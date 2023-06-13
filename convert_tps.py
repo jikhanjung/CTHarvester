@@ -4,27 +4,23 @@ from PIL import Image, ImageDraw, ImageChops
 from os import listdir
 from os.path import isfile, join
 
-path_list = [
-    "D:/Dropbox/Blender/Estaingia/Estaingia_simulation_rigid_body_flat_surface/",
-    "D:/Dropbox/Blender/Estaingia/Estaingia_simulation_rigid_body_tilted_surface/",
-    "D:/Dropbox/Blender/Estaingia/Estaingia_simulation_rigid_body_rough_surface/",
-    "D:/Dropbox/Blender/Estaingia/Estaingia_simulation_rigid_body_rough_surface/"
-]
+surface_type_list = ["flat", "tilted", "irregular"]
 
-input_file_list = [ 
-    "estaingia_landmark_20221124_rigid_body_flat_surface.txt",
-    "estaingia_landmark_20221125_rigid_body_tilted_surface.txt",
-    "estaingia_landmark_20221125_rigid_body_rough_surface_1.txt",
-    "estaingia_landmark_20221125_rigid_body_rough_surface_2.txt",
-]
 
-output_file_list = [ "flat_surface.tps", "tilted_surface.tps", "rough_surface_1.tps", "rough_surface_2.tps" ]
+path_template = "D:/Dropbox/Blender/{}_simulation/{}/{}_landmark_{}.txt"
+output_template = "D:/Dropbox/Blender/{}_simulation/{}/{}_{}.tps"
 
-specimen_count = 100
-for idx in range(len(input_file_list)):
-    with open(path_list[idx]+input_file_list[idx]) as f:
+genus_name = "Phacops"
+
+#input_file_list = [ path_template.format(surface_type, genus_name, surface_type) for surface_type in surface_type_list ]
+
+specimen_count_list = [ 100, 200, 300 ]
+for idx, surface_type in enumerate(surface_type_list):
+    file_path = path_template.format(genus_name, surface_type, genus_name, surface_type)
+    with open(file_path) as f:
         lines = f.readlines()
 
+    specimen_count = specimen_count_list[idx]
     specimen_text = ''
     prev_specimen_name = ''
     landmark_count = 0
@@ -37,7 +33,7 @@ for idx in range(len(input_file_list)):
         if specimen_name != prev_specimen_name:
             if prev_specimen_name != '':
                 specimen_count += 1
-                specimen_text += "lm={}\tEstaingia_{:03d}\n".format(str(len(coords_list)),specimen_count)
+                specimen_text += "lm={}\t{}_{:03d}\n".format(str(len(coords_list)),genus_name,specimen_count)
                 specimen_text += "\n".join(coords_list) + "\n"
                 coords_list = []
                 landmark_count = 0
@@ -52,10 +48,11 @@ for idx in range(len(input_file_list)):
 
 
     specimen_count += 1
-    specimen_text += "lm=" + str(len(coords_list)) + "\t" + "Estaingia_" + str(specimen_count) + "\n"
+    specimen_text += "lm=" + str(len(coords_list)) + "\t" + genus_name + "_" + str(specimen_count) + "\n"
     #specimen_text += "lm=" + str(len(coords_list)) + "\t" + prev_specimen_name + "\n"
     specimen_text += "\n".join(coords_list) + "\n"
 
+    #file_path = path_template.format(genus_name, surface_type, genus_name, surface_type)
     #print(specimen_text)
-    with open("D:/"+output_file_list[idx], 'w') as f:
+    with open(output_template.format(genus_name, surface_type, genus_name, surface_type), 'w') as f:
         f.write(specimen_text)
