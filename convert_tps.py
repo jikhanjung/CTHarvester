@@ -8,9 +8,9 @@ surface_type_list = ["flat", "tilted", "irregular"]
 
 
 path_template = "D:/Dropbox/Blender/{}_simulation/{}/{}_landmark_{}.txt"
-output_template = "D:/Dropbox/Blender/{}_simulation/{}/{}_{}.tps"
+output_template = "D:/Dropbox/Blender/{}_simulation/{}/{}_{}_20230619.tps"
 
-genus_name = "Phacops"
+genus_name = "Taebaeksaukia"
 
 #input_file_list = [ path_template.format(surface_type, genus_name, surface_type) for surface_type in surface_type_list ]
 
@@ -22,18 +22,25 @@ for idx, surface_type in enumerate(surface_type_list):
 
     specimen_count = specimen_count_list[idx]
     specimen_text = ''
-    prev_specimen_name = ''
+    specimen_id = ''
+    prev_specimen_id = ''
     landmark_count = 0
     coords_list = []
 
     for line in lines:
         #print(line)
         specimen_name, x, y, z = line.split("\t")
+        if "." in specimen_name:
+            prefix, seq = specimen_name.split(".")
+            specimen_id = "{}{}-{:03d}".format(genus_name[0],surface_type[0],int(seq))
+        else:
+            specimen_id = "{}{}-{:03d}".format(genus_name[0],surface_type[0],int(0))
+            #continue
         #print(x,y,z)
-        if specimen_name != prev_specimen_name:
-            if prev_specimen_name != '':
+        if specimen_id != prev_specimen_id:
+            if prev_specimen_id != '':
                 specimen_count += 1
-                specimen_text += "lm={}\t{}_{:03d}\n".format(str(len(coords_list)),genus_name,specimen_count)
+                specimen_text += "lm={}\t{}\n".format(str(len(coords_list)),prev_specimen_id)
                 specimen_text += "\n".join(coords_list) + "\n"
                 coords_list = []
                 landmark_count = 0
@@ -44,11 +51,11 @@ for idx, surface_type in enumerate(surface_type_list):
         coords = [str(int((float(val)+10.0)*1000)/1000.0) for val in coords]
         #print(coords)
         coords_list.append("\t".join(coords))
-        prev_specimen_name = specimen_name
+        prev_specimen_id = specimen_id
 
 
     specimen_count += 1
-    specimen_text += "lm=" + str(len(coords_list)) + "\t" + genus_name + "_" + str(specimen_count) + "\n"
+    specimen_text += "lm=" + str(len(coords_list)) + "\t" + specimen_id + "\n"
     #specimen_text += "lm=" + str(len(coords_list)) + "\t" + prev_specimen_name + "\n"
     specimen_text += "\n".join(coords_list) + "\n"
 
