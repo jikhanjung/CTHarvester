@@ -5,9 +5,6 @@ import numpy
 #from statlib import stats
 from numpy import newaxis as nA
 
-from libpy.model_mdobject import MdObject
-import libpy.chemometrics
-
 
 class MdManova:
     def __init__(self):

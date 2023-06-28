@@ -235,14 +235,21 @@ class MdObjectOps:
 
     def move_to_center(self):
         centroid = self.get_centroid_coord()
+        #print("centroid:", centroid[0], centroid[1], centroid[2])
         self.move(-1 * centroid[0], -1 * centroid[1], -1 * centroid[2])
 
     def rescale(self, factor):
+        print("rescale:", factor, self.landmark_list[:5])
+        new_landmark_list = []
         for lm in self.landmark_list:
             lm = [x * factor for x in lm]
+            new_landmark_list.append(lm)
+        self.landmark_list = new_landmark_list
+        print("rescale:", factor, self.objname, self.landmark_list[:5])
 
     def rescale_to_unitsize(self):
         centroid_size = self.get_centroid_size(True)
+        
         self.rescale(( 1 / centroid_size ))
 
     def rotate_2d(self, theta):
@@ -288,8 +295,9 @@ class MdObjectOps:
     def print_landmarks(self, text=''):
         print("[", text, "] [", str(self.get_centroid_size()), "]")
         # lm= self.landmarks[0]
-        for lm in self.landmark_list:
-            print(lm)
+        print(self.landmark_list[:5])
+        #for lm in self.landmark_list:
+        #    print(lm)
             #break
             #lm= self.landmarks[1]
             #print lm.xcoord, ", ", lm.ycoord, ", ", lm.zcoord
@@ -439,10 +447,15 @@ class MdDatasetOps:
         #print rotated_shape
 
         i = 0
-        for lm in ( mo.landmark_list ):
-            lm = rotated_shape[i]
+        new_landmark_list = []
+        for i in range( len(mo.landmark_list) ):
+            lm = [0,0,0]
+            for j in range(3):
+                lm[j] = rotated_shape[i,j]
+            new_landmark_list.append(lm)
             #lm = [ rotated_shape[i, 0], rotated_shape[i, 1], rotated_shape[i, 2] ]
-            i += 1
+            #i += 1
+        mo.landmark_list = new_landmark_list
 
     def rotation_matrix(self, ref, target):
         #assert( ref[0] == 3 )
@@ -453,7 +466,9 @@ class MdDatasetOps:
         is_reflection = ( numpy.linalg.det(v) * numpy.linalg.det(w) ) < 0.0
         if is_reflection:
             v[-1, :] = -v[-1, :]
-        return numpy.dot(v, w)
+        rot_mx = numpy.dot(v, w)
+        print("rotation_matrix:",rot_mx)
+        return rot_mx
 
     def get_average_shape(self):
 
@@ -843,6 +858,112 @@ class MdDatasetOps:
         half_len = int(math.floor(len_arr / 2.0))
         return half_len
 
+class MdPrincipalComponent2:
+    def __init__(self):
+        # self.datamatrix = []
+        return
+
+    def SetData(self, data):
+        self.data = data
+        self.nObservation = len(data)
+        self.nVariable = len(data[0])
+
+    def Analyze(self):
+        '''analyze'''
+        # print "analyze"
+        self.raw_eigen_values = []
+        self.eigen_value_percentages = []
+
+        #for d in self.datamatrix :
+        #print d
+
+        sums = [0.0 for x in range(self.nVariable)]
+        avrs = [0.0 for x in range(self.nVariable)]
+        ''' calculate the empirical mean '''
+        for i in range(self.nObservation):
+            for j in range(self.nVariable):
+                sums[j] += float(self.data[i][j])
+
+        for j in range(self.nVariable):
+            avrs[j] = float(sums[j]) / float(self.nObservation)
+
+        #print "sum:", sums
+        #print "avgs:",avrs
+        #return
+
+        for i in range(self.nObservation):
+            for j in range(self.nVariable):
+                self.data[i][j] -= avrs[j]
+
+                #print self.datamatrix
+
+        log_str = ""
+
+        ''' covariance matrix '''
+        np_data = numpy.matrix(self.data)
+        self.covariance_matrix = numpy.dot(numpy.transpose(np_data), np_data) / self.nObservation
+
+        #print "covariance_matrix", self.covariance_matrix
+
+        ''' zz '''
+        v, s, w = numpy.linalg.svd(self.covariance_matrix)
+        #print "v", v
+        #print "w", w
+
+        #print "s[",
+
+        self.raw_eigen_values = s
+        sum = 0
+        for ss in s:
+            sum += ss
+        for ss in s:
+            self.eigen_value_percentages.append(ss / sum)
+        cumul = 0
+        eigen_values = []
+        i = 0
+        nSignificantEigenValue = -1
+        nEigenValues = -1
+        for ss in s:
+            cumul += ss
+            eigen_values.append(ss)
+            #print sum, cumul, ss
+            if cumul / sum > 0.95 and nSignificantEigenValue == -1:
+                nSignificantEigenValue = i + 1
+            if (ss / sum ) < 0.00001 and nEigenValues == -1:
+                nEigenValues = i + 1
+            i += 1
+
+        self.rotated_matrix = numpy.dot(np_data, v)
+        self.rotation_matrix = v
+        #print w
+        #print self.datamatrix[...,2]
+        #print self.rotated_matrix[...,2]
+        #print self.rotated_matrix
+        self.loading = v
+        return
+
+def PerformPCA(dataset):
+
+    pca = MdPrincipalComponent2()
+    datamatrix = []
+    for obj in dataset.object_list:
+        datum = []
+        for lm in obj.landmark_list:
+            datum.extend( lm )
+        datamatrix.append(datum)
+
+    pca.SetData(datamatrix)
+    pca.Analyze()
+    loading_listctrl_initialized = False
+    coordinates_listctrl_initialized = False
+
+    number_of_axes = min(pca.nObservation, pca.nVariable)
+
+    pca_done = True
+
+    return pca
+
+
 
 
 # open tps file
@@ -956,6 +1077,42 @@ ds_core.dsname = dataset_name
 ds_core.object_list = object_list
 
 ds_ops = MdDatasetOps(ds_core)
-ds_ops.procrustes_superimposition()
+
+obj1 = ds_ops.object_list[0]
+
+
+for obj in ds_ops.object_list[:2]:
+    print(obj.objname, obj.landmark_list[:5])
+'''
+    print("centroid coords:", obj.get_centroid_coord())
+    print("centroid size:", obj.get_centroid_size())
+
 for obj in ds_ops.object_list:
-    print(obj.objname, len(obj.landmark_list))
+    #mo.set_landmarks()
+    obj.move_to_center()
+    #obj.rescale_to_unitsize()
+
+for obj in ds_ops.object_list[:2]:
+    print(obj.objname, obj.landmark_list[:5])
+    print("centroid size:", obj.get_centroid_size(True))
+
+for obj in ds_ops.object_list:
+    #obj.move_to_center()
+    obj.rescale_to_unitsize()
+
+for obj in ds_ops.object_list[:2]:
+    print(obj.objname, obj.landmark_list[:5])
+    print("centroid size:", obj.get_centroid_size(True))
+'''
+
+
+ds_ops.procrustes_superimposition()
+for obj in ds_ops.object_list[:2]:
+    print(obj.objname, obj.landmark_list[:5])
+
+pca_result = PerformPCA(ds_ops)
+#print(pca_result.loading)
+#print(pca_result.data)
+print(pca_result.rotated_matrix[:,0:2].tolist())
+print(pca_result.raw_eigen_values)
+print(pca_result.eigen_value_percentages)
