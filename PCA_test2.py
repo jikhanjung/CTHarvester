@@ -239,13 +239,13 @@ class MdObjectOps:
         self.move(-1 * centroid[0], -1 * centroid[1], -1 * centroid[2])
 
     def rescale(self, factor):
-        print("rescale:", factor, self.landmark_list[:5])
+        #print("rescale:", factor, self.landmark_list[:5])
         new_landmark_list = []
         for lm in self.landmark_list:
             lm = [x * factor for x in lm]
             new_landmark_list.append(lm)
         self.landmark_list = new_landmark_list
-        print("rescale:", factor, self.objname, self.landmark_list[:5])
+        #print("rescale:", factor, self.objname, self.landmark_list[:5])
 
     def rescale_to_unitsize(self):
         centroid_size = self.get_centroid_size(True)
@@ -467,7 +467,7 @@ class MdDatasetOps:
         if is_reflection:
             v[-1, :] = -v[-1, :]
         rot_mx = numpy.dot(v, w)
-        print("rotation_matrix:",rot_mx)
+        #print("rotation_matrix:",rot_mx)
         return rot_mx
 
     def get_average_shape(self):
@@ -1113,6 +1113,16 @@ for obj in ds_ops.object_list[:2]:
 pca_result = PerformPCA(ds_ops)
 #print(pca_result.loading)
 #print(pca_result.data)
-print(pca_result.rotated_matrix[:,0:2].tolist())
-print(pca_result.raw_eigen_values)
-print(pca_result.eigen_value_percentages)
+new_coords = pca_result.rotated_matrix[:,0:5].tolist()
+for i, obj in enumerate(ds_ops.object_list):
+    obj.pca_result = new_coords[i]
+    print(obj.objname, "\t", "\t".join([str(x) for x in obj.pca_result[:5]]))
+
+# write objname and obj.pca_result  to a file
+# write objname and obj.pca_result  to a file
+with open('pca_result.txt', 'w') as f:
+    for obj in ds_ops.object_list:
+        f.write(obj.objname + "\t" + "\t".join([str(x) for x in obj.pca_result[:5]]) + "\n")
+#print(pca_result.rotated_matrix[:,0:2].tolist())
+#print(pca_result.raw_eigen_values)
+#print(pca_result.eigen_value_percentages)
