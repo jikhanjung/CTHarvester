@@ -34,6 +34,52 @@ MODE['EDIT_BOX'] = 3
 MODE['EDIT_BOX_READY'] = 4
 MODE['EDIT_BOX_PROGRESS'] = 5
 
+class ProgressDialog(QDialog):
+    def __init__(self,parent):
+        super().__init__()
+        #self.setupUi(self)
+        #self.setGeometry(200, 250, 400, 250)
+        self.setWindowTitle("CTHarvester - Progress Dialog")
+        self.parent = parent
+        self.setGeometry(QRect(100, 100, 320, 180))
+        self.move(self.parent.pos()+QPoint(100,100))
+
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(50,50, 50, 50)
+
+        self.lbl_text = QLabel(self)
+        #self.lbl_text.setGeometry(50, 50, 320, 80)
+        #self.pb_progress = QProgressBar(self)
+        self.pb_progress = QProgressBar(self)
+        #self.pb_progress.setGeometry(50, 150, 320, 40)
+        self.pb_progress.setValue(0)
+        self.stop_progress = False
+        self.btnStop = QPushButton(self)
+        #self.btnStop.setGeometry(175, 200, 50, 30)
+        self.btnStop.setText("Stop")
+        self.btnStop.clicked.connect(self.set_stop_progress)
+        self.layout.addWidget(self.lbl_text)
+        self.layout.addWidget(self.pb_progress)
+        self.layout.addWidget(self.btnStop)
+        self.setLayout(self.layout)
+
+    def set_stop_progress(self):
+        self.stop_progress = True
+
+    def set_progress_text(self,text_format):
+        self.text_format = text_format
+
+    def set_max_value(self,max_value):
+        self.max_value = max_value
+
+    def set_curr_value(self,curr_value):
+        self.curr_value = curr_value
+        self.pb_progress.setValue(int((self.curr_value/float(self.max_value))*100))
+        self.lbl_text.setText(self.text_format.format(self.curr_value, self.max_value))
+        #self.lbl_text.setText(label_text)
+        self.update()
+        QApplication.processEvents()
+
 class ObjectViewer2D(QLabel):
     def __init__(self, widget):
         super(ObjectViewer2D, self).__init__(widget)
@@ -52,7 +98,7 @@ class ObjectViewer2D(QLabel):
         self.orig_pixmap = None
         self.curr_pixmap = None
         self.distance_threshold = self._2imgx(5)
-        print("distance_threshold:", self.distance_threshold)
+        #print("distance_threshold:", self.distance_threshold)
         self.edit_x1 = False
         self.edit_x2 = False
         self.edit_y1 = False
@@ -105,7 +151,7 @@ class ObjectViewer2D(QLabel):
                 self.edit_y2 = True
             else:
                 self.edit_y2 = False
-        print("distance_check", self.crop_from_x, self.crop_to_x, x, self.crop_from_y, self.crop_to_y, y, self.edit_x1, self.edit_x2, self.edit_y1, self.edit_y2)
+        #print("distance_check", self.crop_from_x, self.crop_to_x, x, self.crop_from_y, self.crop_to_y, y, self.edit_x1, self.edit_x2, self.edit_y1, self.edit_y2)
         self.set_cursor_mode()
 
     def set_cursor_mode(self):
@@ -125,16 +171,18 @@ class ObjectViewer2D(QLabel):
             self.setCursor(Qt.ArrowCursor)
 
     def mouseMoveEvent(self, event):
+        if self.orig_pixmap is None:
+            return
         me = QMouseEvent(event)
-        print("mouseMoveEvent", me.x(), me.y(), self.edit_mode)
-        print(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y)
+        #print("mouseMoveEvent", me.x(), me.y(), self.edit_mode)
+        #print(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y)
         if me.buttons() == Qt.LeftButton:
             if self.edit_mode == MODE['ADD_BOX']:
                 self.mouse_curr_x = me.x()
                 self.mouse_curr_y = me.y()
                 self.crop_to_x = self._2imgx(self.mouse_curr_x)
                 self.crop_to_y = self._2imgy(self.mouse_curr_y)
-                self.object_dialog.edtStatus.setText("({}, {})-({}, {})".format(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y))
+                #self.object_dialog.edtStatus.setText("({}, {})-({}, {})".format(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y))
             elif self.edit_mode == MODE['EDIT_BOX_PROGRESS']:
                 self.mouse_curr_x = me.x()
                 self.mouse_curr_y = me.y()
@@ -163,10 +211,11 @@ class ObjectViewer2D(QLabel):
         self.repaint()
 
     def mousePressEvent(self, event):
-
+        if self.orig_pixmap is None:
+            return
         me = QMouseEvent(event)
-        print("mousePressEvent", me.x(), me.y(),self.edit_mode)
-        print(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y)
+        #print("mousePressEvent", me.x(), me.y(),self.edit_mode)
+        #print(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y)
         if me.button() == Qt.LeftButton:
             #if self.object_dialog is None:
             #    return
@@ -174,7 +223,7 @@ class ObjectViewer2D(QLabel):
                 self.set_mode(MODE['ADD_BOX'])
                 img_x = self._2imgx(me.x())
                 img_y = self._2imgy(me.y())
-                print("mousePressEvent", img_x, img_y)
+                #print("mousePressEvent", img_x, img_y)
                 if img_x < 0 or img_x > self.orig_pixmap.width() or img_y < 0 or img_y > self.orig_pixmap.height():
                     return
                 self.crop_from_x = img_x
@@ -189,9 +238,11 @@ class ObjectViewer2D(QLabel):
         self.repaint()
 
     def mouseReleaseEvent(self, ev: QMouseEvent) -> None:
+        if self.orig_pixmap is None:
+            return
         me = QMouseEvent(ev)
-        print("mouseReleaseEvent", me.x(), me.y(),self.edit_mode)
-        print(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y)
+        #print("mouseReleaseEvent", me.x(), me.y(),self.edit_mode)
+        #print(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y)
         if me.button() == Qt.LeftButton:
             if self.edit_mode == MODE['ADD_BOX']:
                 img_x = self._2imgx(self.mouse_curr_x)
@@ -213,6 +264,7 @@ class ObjectViewer2D(QLabel):
             self.crop_to_x = to_x
             self.crop_to_y = to_y
             self.canvas_box = QRect(self._2canx(from_x), self._2cany(from_y), self._2canx(to_x - from_x), self._2cany(to_y - from_y))
+            self.object_dialog.update_status()
 
 
         self.repaint()
@@ -226,7 +278,7 @@ class ObjectViewer2D(QLabel):
             #print("paintEvent", self.curr_pixmap.width(), self.curr_pixmap.height())
             painter.drawPixmap(0,0,self.curr_pixmap)
 
-        if self.crop_from_x > -1:
+        if self.crop_from_x > -1 and self.curr_idx <= self.max_idx and self.curr_idx >= self.min_idx:
             painter.setPen(QPen(Qt.red, 1, Qt.SolidLine))
             from_x = min(self.crop_from_x, self.crop_to_x)
             to_x = max(self.crop_from_x, self.crop_to_x)
@@ -244,13 +296,20 @@ class ObjectViewer2D(QLabel):
             self.crop_from_y = self._2imgy(self.canvas_box.y())
             self.crop_to_x = self._2imgx(self.canvas_box.x() + self.canvas_box.width())
             self.crop_to_y = self._2imgy(self.canvas_box.y() + self.canvas_box.height())
-            
+    def set_max_idx(self, max_idx):
+        self.max_idx = max_idx
+    def set_curr_idx(self, curr_idx):
+        self.curr_idx = curr_idx
+        #print("set_curr_idx", curr_idx, self.max_idx, self.min_idx)
+        #print("set_curr_idx", )
+    def set_min_idx(self, min_idx):
+        self.min_idx = min_idx
 
     def calculate_resize(self):
         #print("objectviewer calculate resize", self, self.object, self.object.landmark_list, self.landmark_list)
         if self.orig_pixmap is not None:
             self.distance_threshold = self._2imgx(5)
-            print("distance_threshold:", self.distance_threshold)
+            #print("distance_threshold:", self.distance_threshold)
             self.orig_width = self.orig_pixmap.width()
             self.orig_height = self.orig_pixmap.height()
             image_wh_ratio = self.orig_width / self.orig_height
@@ -261,43 +320,16 @@ class ObjectViewer2D(QLabel):
                 self.image_canvas_ratio = self.orig_height / self.height()
             self.curr_pixmap = self.orig_pixmap.scaled(int(self.orig_width*self.scale/self.image_canvas_ratio),int(self.orig_width*self.scale/self.image_canvas_ratio), Qt.KeepAspectRatio)
 
-def resample2():
-
-    mypath_format = "D:/CT/CO-{}/CO-{}_Rec/small/"
-    file_prefix_format = "CO-{}__rec"
-
-    begin_idx = 215
-    end_idx = 969
-
-    for i in range(1,2):
-        for z_idx in range(begin_idx,end_idx,2):
-            print("idx:", z_idx)
-            num1 = "000000" + str( z_idx )
-            num2 = "000000" + str( z_idx +1)
-            num3 = "000000" + str(begin_idx+int((z_idx-begin_idx) / 2))
-            filename1 = file_prefix_format.format(i) + num1[-8:] + ".bmp"
-            filename2 = file_prefix_format.format(i) + num2[-8:] + ".bmp"
-            filename3 = file_prefix_format.format(i) + num3[-8:] + ".bmp"
-            img1 = Image.open(mypath_format.format(i,i) + filename1 )
-            img2 = Image.open(mypath_format.format(i,i) + filename2 )
-
-            small_img1 = img1.resize( (int(img1.width/2),int(img1.height/2)) )
-            small_img2 = img2.resize((int(img1.width / 2), int(img1.height / 2)))
-
-            new_img_ops = ImageChops.add(small_img1, small_img2, scale=2.0)
-            new_path2 = mypath_format.format(i,i) + "smaller2/"
-            if not os.path.exists(new_path2):
-                os.makedirs(new_path2)
-            new_img_ops.save(new_path2 + filename3)
-
-class CTScopeMainWindow(QMainWindow):
+class CTHarvesterMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         #self.setWindowIcon(QIcon(mu.resource_path('icons/Modan2_2.png')))
-        self.setWindowTitle("CT Scape")
+        self.setWindowTitle("CT Harvester")
         self.setGeometry(QRect(100, 100, 600, 550))
         self.settings_hash = {}
         self.level_info = []
+        self.curr_level_idx = 0
+        self.prev_level_idx = 0
 
         # add file open dialog
         self.dirname_layout = QHBoxLayout()
@@ -323,9 +355,9 @@ class CTScopeMainWindow(QMainWindow):
         self.edtNumImages = QLineEdit()
         self.edtNumImages.setReadOnly(True)
         self.edtNumImages.setText("")
-        self.image_info_layout.addWidget(QLabel("Image Dimension:"))
+        self.image_info_layout.addWidget(QLabel("Size:"))
         self.image_info_layout.addWidget(self.edtImageDimension)
-        self.image_info_layout.addWidget(QLabel("Number of Images:"))
+        self.image_info_layout.addWidget(QLabel("Count:"))
         self.image_info_layout.addWidget(self.edtNumImages)
         self.image_info_widget.setLayout(self.image_info_layout)
 
@@ -348,7 +380,7 @@ class CTScopeMainWindow(QMainWindow):
         self.btnToImage = QPushButton("To >")
         self.btnToImage.clicked.connect(self.set_to_image)
         self.edtToImage = QLineEdit()
-        self.btnCrop = QPushButton("Set Crop")
+        self.btnCrop = QPushButton("Reset")
         self.btnCrop.clicked.connect(self.set_crop)
 
         self.crop_layout.addWidget(self.btnFromImage)
@@ -375,7 +407,7 @@ class CTScopeMainWindow(QMainWindow):
         self.left_layout.addWidget(self.btnCreateThumbnail)
         #self.left_layout.addWidget(self.crop_widget)
 
-        self.lblLevel = QLabel("Select level:")
+        self.lblLevel = QLabel("Level")
         self.comboLevel = QComboBox()
         self.comboLevel.currentIndexChanged.connect(self.comboLevelIndexChanged)
 
@@ -390,9 +422,9 @@ class CTScopeMainWindow(QMainWindow):
         self.edtNumImages2.setText("")
         self.image_info_layout2.addWidget(self.lblLevel)
         self.image_info_layout2.addWidget(self.comboLevel)
-        self.image_info_layout2.addWidget(QLabel("Image Dimension:"))
+        self.image_info_layout2.addWidget(QLabel("Size"))
         self.image_info_layout2.addWidget(self.edtImageDimension2)
-        self.image_info_layout2.addWidget(QLabel("Number of Images:"))
+        self.image_info_layout2.addWidget(QLabel("Count"))
         self.image_info_layout2.addWidget(self.edtNumImages2)
         self.image_info_widget2.setLayout(self.image_info_layout2)
 
@@ -421,7 +453,7 @@ class CTScopeMainWindow(QMainWindow):
         self.btnToImage2 = QPushButton("To >")
         self.btnToImage2.clicked.connect(self.set_to_image2)
         self.edtToImage2 = QLineEdit()
-        self.btnCrop2 = QPushButton("Set Crop")
+        self.btnCrop2 = QPushButton("Reset")
         self.btnCrop2.clicked.connect(self.set_crop2)
 
         self.crop_layout2.addWidget(self.btnFromImage2)
@@ -435,6 +467,8 @@ class CTScopeMainWindow(QMainWindow):
         self.edtStatus.setReadOnly(True)
         self.edtStatus.setText("")
 
+        self.btnSave = QPushButton("Save")
+        self.btnSave.clicked.connect(self.save_result)
 
         self.right_layout = QVBoxLayout()
         self.right_widget = QWidget()
@@ -445,6 +479,7 @@ class CTScopeMainWindow(QMainWindow):
         self.right_layout.addWidget(self.image_widget2)
         self.right_layout.addWidget(self.crop_widget2)
         self.right_layout.addWidget(self.edtStatus)
+        self.right_layout.addWidget(self.btnSave)
 
         self.main_layout = QHBoxLayout()
         self.main_widget = QWidget()
@@ -454,6 +489,34 @@ class CTScopeMainWindow(QMainWindow):
 
         self.setCentralWidget(self.main_widget)
 
+    def save_result(self):
+        # open dir dialog for save
+        target_dirname = QFileDialog.getExistingDirectory(self, 'Select directory to save', self.edtDirname.text())
+        if target_dirname == "":
+            return
+        # get crop box info
+        from_x = self.image_label2.crop_from_x
+        from_y = self.image_label2.crop_from_y
+        to_x = self.image_label2.crop_to_x
+        to_y = self.image_label2.crop_to_y
+        # get size idx
+        size_idx = self.comboLevel.currentIndex()
+        # get filename from level from idx
+
+        for idx in range(int(self.edtFromImage2.text()), int(self.edtToImage2.text())+1):
+            filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+            # get full path
+            if size_idx == 0:
+                orig_dirname = self.edtDirname.text()
+            else:
+                orig_dirname = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(size_idx))
+            fullpath = os.path.join(orig_dirname, filename)
+            # open image
+            img = Image.open(fullpath)
+            # crop image
+            img = img.crop((from_x, from_y, to_x, to_y))
+            # save image
+            img.save(os.path.join(target_dirname, filename))
 
     def sliderValueChanged(self):
         # print current slide value
@@ -461,6 +524,7 @@ class CTScopeMainWindow(QMainWindow):
         #print("slider value:", self.slider.value())
         # get scale factor
         size_idx = self.comboLevel.currentIndex()
+        #print("size_idx:", size_idx)
         # get directory for size idx
         if size_idx == 0:
             dirname = self.edtDirname.text()
@@ -469,8 +533,11 @@ class CTScopeMainWindow(QMainWindow):
             dirname = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(size_idx))
             # get filename from level from idx
             filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + self.slider.value()).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+        #print("dirname:", dirname)
+        #print("filename:", filename)
 
         self.image_label2.set_image(os.path.join(dirname, filename))
+        self.image_label2.set_curr_idx(self.slider.value())
         #self.image_label2.setPixmap(QPixmap(os.path.join(dirname, filename)).scaledToWidth(512))
 
     def set_from_image(self):
@@ -483,12 +550,26 @@ class CTScopeMainWindow(QMainWindow):
 
     def set_from_image2(self):
         self.edtFromImage2.setText(str(self.slider.value()))
+        self.image_label2.set_min_idx(self.slider.value())
+        self.update_status()
     
     def set_to_image2(self):
         self.edtToImage2.setText(str(self.slider.value()))
+        self.image_label2.set_max_idx(self.slider.value())
+        self.update_status()
 
     def set_crop2(self):
-        self.image_label2.set_mode(MODE['CROP'])
+        self.edtFromImage2.setText(str(self.slider.minimum()))
+        self.edtToImage2.setText(str(self.slider.maximum()))
+        self.update_status()
+
+    def update_status(self):
+        txt = "Images {}-{}".format(self.edtFromImage2.text(), self.edtToImage2.text())
+        # add crop box info
+        txt += " ({}, {})-({}, {}) ".format(self.image_label2.crop_from_x, self.image_label2.crop_from_y, self.image_label2.crop_to_x, self.image_label2.crop_to_y)
+        count = ( int( self.edtToImage2.text() ) - int( self.edtFromImage2.text() ) )
+        txt += "Est. {} MB".format(round(count * (self.image_label2.crop_to_x - self.image_label2.crop_from_x) * (self.image_label2.crop_to_y - self.image_label2.crop_from_y) * 2 / 1024 / 1024 , 2))    
+        self.edtStatus.setText(txt)
 
     def calculate_target_idx(self):
         self.target_from_idx = self.original_from_idx
@@ -497,6 +578,8 @@ class CTScopeMainWindow(QMainWindow):
             self.target_from_idx = int(self.original_from_idx / 2**size_idx)
         #print("target_from_idx:", self.target_from_idx)
         self.slider.setMinimum(self.target_from_idx)
+        self.image_label2.set_min_idx(self.target_from_idx)
+
         #self.slider.setValue(self.target_from_idx)
 
         self.target_to_idx = self.original_to_idx
@@ -505,6 +588,7 @@ class CTScopeMainWindow(QMainWindow):
             self.target_to_idx = int(self.original_to_idx / 2**size_idx)
         #print("target_to_idx:", self.target_to_idx)
         self.slider.setMaximum(self.target_to_idx)
+        self.image_label2.set_max_idx(self.target_to_idx)
     
     def set_crop(self):
         pass
@@ -512,21 +596,55 @@ class CTScopeMainWindow(QMainWindow):
     def initializeComboSize(self):
         self.comboLevel.clear()
         for level in self.level_info:
+            #print("level:", level)
             self.comboLevel.addItem( level['name'])
+        self.comboLevel.setCurrentIndex(0)
+        #self.comboLevelIndexChanged()
 
     def comboLevelIndexChanged(self):
         #print("comboSizeIndexChanged")
-        idx = self.comboLevel.currentIndex()
+        self.prev_level_idx = self.curr_level_idx
+        self.curr_level_idx = self.comboLevel.currentIndex()
         #print("idx:", idx)
         #print("level_info:", self.level_info)
-        self.edtImageDimension2.setText(str(self.level_info[idx]['width']) + " x " + str(self.level_info[idx]['height']))
-        self.edtNumImages2.setText(str(self.level_info[idx]['seq_end'] - self.level_info[idx]['seq_begin'] + 1))
+        self.edtImageDimension2.setText(str(self.level_info[self.curr_level_idx]['width']) + " x " + str(self.level_info[self.curr_level_idx]['height']))
+        image_count = self.level_info[self.curr_level_idx]['seq_end'] - self.level_info[self.curr_level_idx]['seq_begin'] + 1
+        self.edtNumImages2.setText(str(image_count))
 
-        self.edtFromImage2.setText(str(0))
-        self.edtToImage2.setText(str(self.level_info[idx]['seq_end'] - self.level_info[idx]['seq_begin'] + 1))
-        self.slider.setValue(0)
+        curr_idx = self.slider.value()
 
+        from_idx = 0
+        if self.edtFromImage2.text() != '':
+            from_idx = int(self.edtFromImage2.text())
+            #print("from_idx 1:", from_idx)
+            from_idx = int(from_idx * 2**(self.prev_level_idx-self.curr_level_idx))
+        #print("from_idx 2:", from_idx)
+
+        to_idx = image_count - 1
+        if self.edtToImage2.text() != '':
+            to_idx = int(self.edtToImage2.text())
+            #print("to_idx 1:", to_idx)
+            to_idx = int(to_idx * 2**(self.prev_level_idx-self.curr_level_idx))
+        else:
+            to_idx = image_count - 1
+        #print("to_idx 2:", to_idx)
+
+        #print("curr_idx 1:", curr_idx)
+        curr_idx = int(curr_idx * 2**(self.prev_level_idx-self.curr_level_idx))
+        #print("curr_idx 2:", curr_idx)
+        
+        
         self.calculate_target_idx()
+
+        self.edtFromImage2.setText(str(from_idx))
+        self.image_label2.set_min_idx(from_idx)
+        self.edtToImage2.setText(str(to_idx))
+        self.image_label2.set_max_idx(to_idx)
+
+        self.slider.setValue(curr_idx)
+        self.sliderValueChanged()
+        self.update_status()
+
 
     def create_thumbnail(self):
         # determine thumbnail size
@@ -540,6 +658,12 @@ class CTScopeMainWindow(QMainWindow):
         
         seq_begin = self.settings_hash['seq_begin']
         seq_end = self.settings_hash['seq_end']
+
+        current_count = 0
+        self.progress_dialog = ProgressDialog(self)
+        self.progress_dialog.setModal(True)
+        self.progress_dialog.show()
+
         while True:
             size /= 2
             width = int(width / 2)
@@ -550,16 +674,23 @@ class CTScopeMainWindow(QMainWindow):
             else:
                 from_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i))
 
+            total_count = seq_end - seq_begin + 1
+            self.progress_dialog.lbl_text.setText("Creating thumbnail level {}...".format(i+1))
+            self.progress_dialog.pb_progress.setValue(0)
+
             # create thumbnail
             to_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i+1))
             if not os.path.exists(to_dir):
                 os.makedirs(to_dir)
-            
+            last_count = 0
 
             for idx, seq in enumerate(range(seq_begin, seq_end+1, 2)):
                 filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename3 = os.path.join(to_dir, self.settings_hash['prefix'] + str(seq_begin + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type'])
+                self.progress_dialog.lbl_text.setText("Creating smaller images level {}... {}/{}".format(i+1, idx+1, int(total_count/2)))
+                self.progress_dialog.pb_progress.setValue(int(((idx+1)/float(int(total_count/2)))*100))
+                self.progress_dialog.update()
                 if os.path.exists(os.path.join(from_dir, filename3)):
                     continue
                 # check if filename exist
@@ -571,17 +702,22 @@ class CTScopeMainWindow(QMainWindow):
                     img2 = Image.open(os.path.join(from_dir, filename2))
                 # average two images
                 if img1 is None or img2 is None:
+                    last_count = -1
                     continue
                 new_img_ops = ImageChops.add(img1, img2, scale=2.0)
                 # resize to half
                 new_img_ops = new_img_ops.resize((int(img1.width / 2), int(img1.height / 2)))
                 # save to temporary directory
                 new_img_ops.save(filename3)
+                QApplication.processEvents()
+
             i+= 1
-            seq_end = int((seq_end - seq_begin) / 2) + seq_begin
+            seq_end = int((seq_end - seq_begin) / 2) + seq_begin + last_count
             self.level_info.append( {'name': "Level " + str(i), 'width': width, 'height': height, 'seq_begin': seq_begin, 'seq_end': seq_end} )
             if size < MAX_THUMBNAIL_SIZE:
                 break
+
+        self.progress_dialog.close()
         self.initializeComboSize()
         thumbnail_size = int(size)
         #print("thumbnail size:", thumbnail_size)
@@ -594,9 +730,12 @@ class CTScopeMainWindow(QMainWindow):
     def open_dir(self):
         #pass
         ddir = QFileDialog.getExistingDirectory(self, "Select directory")
+        if ddir:
         # ddir is a QString containing the path to the directory you selected
         #print(ddir)  # this will output something like 'C://path/you/selected'
-        self.edtDirname.setText(ddir)
+            self.edtDirname.setText(ddir)
+        else:
+            return
         image_file_list = []
         for r, d, files in os.walk(ddir):
             for file in files:
@@ -605,17 +744,31 @@ class CTScopeMainWindow(QMainWindow):
                 if ext in [".bmp", ".jpg", ".png", ".tif", ".tiff"]:
                     pass #image_file_list.append(file)
                 elif ext == '.log':
+                    fn = os.path.join(r,file)
+                    #print("log file:", fn)
                     settings = QSettings(os.path.join(r,file), QSettings.IniFormat)
+                    prefix = settings.value("File name convention/Filename Prefix")
+                    if not prefix:
+                        continue
+                    if file != prefix + ".log":
+                        continue
                     self.settings_hash['prefix'] = settings.value("File name convention/Filename Prefix")
                     self.settings_hash['image_width'] = settings.value("Reconstruction/Result Image Width (pixels)")
                     self.settings_hash['image_height'] = settings.value("Reconstruction/Result Image Height (pixels)")
                     self.settings_hash['file_type'] = settings.value("Reconstruction/Result File Type")
-                    self.settings_hash['index_length'] = int(settings.value("File name convention/Filename Index Length"))
-                    self.settings_hash['seq_begin'] = int(settings.value("Reconstruction/First Section"))
-                    self.settings_hash['seq_end'] = int(settings.value("Reconstruction/Last Section"))
+                    self.settings_hash['index_length'] = settings.value("File name convention/Filename Index Length")
+                    self.settings_hash['seq_begin'] = settings.value("Reconstruction/First Section")
+                    self.settings_hash['seq_end'] = settings.value("Reconstruction/Last Section")
+                    #print("Settings hash:", self.settings_hash)
+                    self.settings_hash['index_length'] = int(self.settings_hash['index_length'])
+                    self.settings_hash['seq_begin'] = int(self.settings_hash['seq_begin'])
+                    self.settings_hash['seq_end'] = int(self.settings_hash['seq_end'])
+                    #print("Settings hash:", self.settings_hash)
                     self.edtNumImages.setText(str(self.settings_hash['seq_end'] - self.settings_hash['seq_begin'] + 1))
                     self.edtImageDimension.setText(str(self.settings_hash['image_width']) + " x " + str(self.settings_hash['image_height']))
                     #print("Settings hash:", settings_hash)
+        if 'prefix' not in self.settings_hash:
+            return
         for seq in range(self.settings_hash['seq_begin'], self.settings_hash['seq_end']+1):
             filename = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
             self.lstFileList.addItem(filename)
@@ -628,7 +781,7 @@ class CTScopeMainWindow(QMainWindow):
         self.image_label2.setPixmap(QPixmap(os.path.join(ddir,image_file_list[0])).scaledToWidth(512))
         self.level_info = []
         self.level_info.append( {'name': 'Original', 'width': self.settings_hash['image_width'], 'height': self.settings_hash['image_height'], 'seq_begin': self.settings_hash['seq_begin'], 'seq_end': self.settings_hash['seq_end']} )
-        self.initializeComboSize()
+        #self.initializeComboSize()
         #self.open_dir()
         self.create_thumbnail()
 
@@ -641,7 +794,7 @@ if __name__ == "__main__":
     #app.preferences = QSettings("Modan", "Modan2")
 
     #WindowClass의 인스턴스 생성
-    myWindow = CTScopeMainWindow()
+    myWindow = CTHarvesterMainWindow()
 
     #프로그램 화면을 보여주는 코드
     myWindow.show()
@@ -649,5 +802,5 @@ if __name__ == "__main__":
     #프로그램을 이벤트루프로 진입시키는(프로그램을 작동시키는) 코드
     app.exec_()
 '''
-pyinstaller --onefile --noconsole CTScope.py
+pyinstaller --onefile --noconsole CTHarvester.py
 '''
