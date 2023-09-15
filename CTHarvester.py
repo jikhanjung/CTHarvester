@@ -287,6 +287,18 @@ class ObjectViewer2D(QLabel):
             painter.drawRect(self._2canx(from_x), self._2cany(from_y), self._2canx(to_x - from_x), self._2cany(to_y - from_y))
 
     def set_image(self,file_path):
+        #print("set_image", file_path)
+        # check if file exists
+        if not os.path.exists(file_path):
+            #print("file not exists:", file_path)
+            self.curr_pixmap = None
+            self.orig_pixmap = None
+            self.crop_from_x = -1
+            self.crop_from_y = -1
+            self.crop_to_x = -1
+            self.crop_to_y = -1
+            self.canvas_box = None
+            return
         self.fullpath = file_path
         self.curr_pixmap = self.orig_pixmap = QPixmap(file_path)
         self.setPixmap(self.curr_pixmap)
