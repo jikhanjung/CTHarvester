@@ -116,6 +116,9 @@ class ObjectViewer2D(QLabel):
         self.temp_y2 = -1
         self.top_idx = -1
         self.bottom_idx = -1
+        self.curr_idx = -1
+        self.move_x = 0
+        self.move_y = 0
 
     def _2canx(self, coord):
         return round((float(coord) / self.image_canvas_ratio) * self.scale)
@@ -145,6 +148,7 @@ class ObjectViewer2D(QLabel):
             self.edit_x2 = False
             self.edit_y1 = False
             self.edit_y2 = False
+            self.inside_box = False
         else:
             if self.crop_from_x + self.distance_threshold <= x and self.crop_to_x - self.distance_threshold >= x \
                 and self.crop_from_y + self.distance_threshold <= y and self.crop_to_y - self.distance_threshold >= y:
@@ -152,9 +156,10 @@ class ObjectViewer2D(QLabel):
                 self.edit_x2 = False
                 self.edit_y1 = False
                 self.edit_y2 = False
-                self.set_mode(MODE['MOVE_BOX_READY'])
+                self.inside_box = True
                 #print("move box ready")
-                return
+            else:
+                self.inside_box = False
             if abs(self.crop_from_x - x) <= self.distance_threshold:
                 self.edit_x1 = True
             else:
@@ -187,6 +192,8 @@ class ObjectViewer2D(QLabel):
             self.setCursor(Qt.SizeHorCursor)
         elif self.edit_y1 or self.edit_y2:
             self.setCursor(Qt.SizeVerCursor)
+        elif self.inside_box:
+            self.setCursor(Qt.OpenHandCursor)
         else: 
             self.setCursor(Qt.ArrowCursor)
 
@@ -200,48 +207,36 @@ class ObjectViewer2D(QLabel):
             if self.edit_mode == MODE['ADD_BOX']:
                 self.mouse_curr_x = me.x()
                 self.mouse_curr_y = me.y()
-                self.crop_to_x = self._2imgx(self.mouse_curr_x)
-                self.crop_to_y = self._2imgy(self.mouse_curr_y)
+                self.temp_x2 = self._2imgx(self.mouse_curr_x)
+                self.temp_y2 = self._2imgy(self.mouse_curr_y)
                 #self.object_dialog.edtStatus.setText("({}, {})-({}, {})".format(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y))
-            elif self.edit_mode == MODE['EDIT_BOX_PROGRESS']:
+            elif self.edit_mode in [ MODE['EDIT_BOX_PROGRESS'], MODE['MOVE_BOX_PROGRESS'] ]:
                 self.mouse_curr_x = me.x()
                 self.mouse_curr_y = me.y()
-                if self.edit_x1:
-                    self.crop_from_x = self._2imgx(self.mouse_curr_x)
-                elif self.edit_x2:
-                    self.crop_to_x = self._2imgx(self.mouse_curr_x)
-                if self.edit_y1:
-                    self.crop_from_y = self._2imgy(self.mouse_curr_y)
-                elif self.edit_y2:
-                    self.crop_to_y = self._2imgy(self.mouse_curr_y)
-            elif self.edit_mode == MODE['MOVE_BOX_PROGRESS']:
-                self.mouse_curr_x = me.x()
-                self.mouse_curr_y = me.y()
-                self.crop_from_x = self.crop_from_x + self._2imgx(self.mouse_curr_x - self.mouse_down_x )
-                self.crop_to_x = self.crop_to_x + self._2imgx(self.mouse_curr_x - self.mouse_down_x )
-                self.crop_from_y = self.crop_from_y + self._2imgy(self.mouse_curr_y - self.mouse_down_y )
-                self.crop_to_y = self.crop_to_y + self._2imgy(self.mouse_curr_y - self.mouse_down_y )
-                self.mouse_down_x = self.mouse_curr_x
-                self.mouse_down_y = self.mouse_curr_y
+                self.move_x = self.mouse_curr_x - self.mouse_down_x
+                self.move_y = self.mouse_curr_y - self.mouse_down_y
+                #print("move", self.move_x, self.move_y)
         else:
             if self.edit_mode == MODE['EDIT_BOX']:
                 self.distance_check(me.x(), me.y())
                 if self.edit_x1 or self.edit_x2 or self.edit_y1 or self.edit_y2:
                     self.set_mode(MODE['EDIT_BOX_READY'])
-                else:
-                    pass #self.set_mode(MODE['EDIT_BOX'])
+                elif self.inside_box:
+                    self.set_mode(MODE['MOVE_BOX_READY'])
             elif self.edit_mode == MODE['EDIT_BOX_READY']:
                 self.distance_check(me.x(), me.y())
                 if self.edit_x1 or self.edit_x2 or self.edit_y1 or self.edit_y2:
                     pass #self.set_mode(MODE['EDIT_BOX_PROGRESS'])
+                elif self.inside_box:
+                    self.set_mode(MODE['MOVE_BOX_READY'])
                 else:
                     self.set_mode(MODE['EDIT_BOX'])
             elif self.edit_mode == MODE['MOVE_BOX_READY']:
                 self.distance_check(me.x(), me.y())
                 if self.edit_x1 or self.edit_x2 or self.edit_y1 or self.edit_y2:
                     self.set_mode(MODE['EDIT_BOX_READY'])
-                else:
-                    pass
+                elif self.inside_box == False:
+                    self.set_mode(MODE['EDIT_BOX'])
         self.object_dialog.update_status()
         self.repaint()
 
@@ -261,17 +256,31 @@ class ObjectViewer2D(QLabel):
                 #print("mousePressEvent", img_x, img_y)
                 if img_x < 0 or img_x > self.orig_pixmap.width() or img_y < 0 or img_y > self.orig_pixmap.height():
                     return
-                self.crop_from_x = img_x
-                self.crop_from_y = img_y
-                self.crop_to_x = img_x
-                self.crop_to_y = img_y
+                self.temp_x1 = img_x
+                self.temp_y1 = img_y
+                self.temp_x2 = img_x
+                self.temp_y2 = img_y
             elif self.edit_mode == MODE['EDIT_BOX_READY']:
                 self.mouse_down_x = me.x()
                 self.mouse_down_y = me.y()
+                self.move_x = 0
+                self.move_y = 0
+                self.temp_x1 = self.crop_from_x
+                self.temp_y1 = self.crop_from_y
+                self.temp_x2 = self.crop_to_x
+                self.temp_y2 = self.crop_to_y
                 self.set_mode(MODE['EDIT_BOX_PROGRESS'])
             elif self.edit_mode == MODE['MOVE_BOX_READY']:
                 self.mouse_down_x = me.x()
                 self.mouse_down_y = me.y()
+                self.mouse_curr_x = me.x()
+                self.mouse_curr_y = me.y()
+                self.move_x = 0
+                self.move_y = 0
+                self.temp_x1 = self.crop_from_x
+                self.temp_y1 = self.crop_from_y
+                self.temp_x2 = self.crop_to_x
+                self.temp_y2 = self.crop_to_y
                 self.set_mode(MODE['MOVE_BOX_PROGRESS'])
         self.object_dialog.update_status()
         self.repaint()
@@ -280,6 +289,8 @@ class ObjectViewer2D(QLabel):
         if self.orig_pixmap is None:
             return
         me = QMouseEvent(ev)
+        if self.mouse_down_x == me.x() and self.mouse_down_y == me.y():
+            return
         #print("mouseReleaseEvent", me.x(), me.y(),self.edit_mode)
         #print(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y)
         if me.button() == Qt.LeftButton:
@@ -288,12 +299,30 @@ class ObjectViewer2D(QLabel):
                 img_y = self._2imgy(self.mouse_curr_y)
                 if img_x < 0 or img_x > self.orig_pixmap.width() or img_y < 0 or img_y > self.orig_pixmap.height():
                     return
-                self.crop_to_x = img_x
-                self.crop_to_y = img_y
+                self.crop_from_x = min(self.temp_x1, self.temp_x2)
+                self.crop_to_x = max(self.temp_x1, self.temp_x2)
+                self.crop_from_y = min(self.temp_y1, self.temp_y2)
+                self.crop_to_y = max(self.temp_y1, self.temp_y2)
                 self.set_mode(MODE['EDIT_BOX'])
             elif self.edit_mode == MODE['EDIT_BOX_PROGRESS']:
+                if self.edit_x1:
+                    self.crop_from_x = min(self.temp_x1, self.temp_x2) + self._2imgx(self.move_x)
+                if self.edit_x2:
+                    self.crop_to_x = max(self.temp_x1, self.temp_x2) + self._2imgx(self.move_x)
+                if self.edit_y1:
+                    self.crop_from_y = min(self.temp_y1, self.temp_y2) + self._2imgy(self.move_y)
+                if self.edit_y2:
+                    self.crop_to_y = max(self.temp_y1, self.temp_y2) + self._2imgy(self.move_y)
+                self.move_x = 0
+                self.move_y = 0
                 self.set_mode(MODE['EDIT_BOX'])
             elif self.edit_mode == MODE['MOVE_BOX_PROGRESS']:
+                self.crop_from_x = self.temp_x1 + self._2imgx(self.move_x)
+                self.crop_to_x = self.temp_x2 + self._2imgx(self.move_x)
+                self.crop_from_y = self.temp_y1 + self._2imgy(self.move_y)
+                self.crop_to_y = self.temp_y2 + self._2imgy(self.move_y)
+                self.move_x = 0
+                self.move_y = 0
                 self.set_mode(MODE['MOVE_BOX_READY'])
 
             from_x = min(self.crop_from_x, self.crop_to_x)
@@ -319,7 +348,34 @@ class ObjectViewer2D(QLabel):
             #print("paintEvent", self.curr_pixmap.width(), self.curr_pixmap.height())
             painter.drawPixmap(0,0,self.curr_pixmap)
 
-        if self.crop_from_x > -1 and self.curr_idx <= self.top_idx and self.curr_idx >= self.bottom_idx:
+        if self.curr_idx > self.top_idx or self.curr_idx < self.bottom_idx:
+            return
+        
+        if self.edit_mode == MODE['ADD_BOX']:
+            
+            painter.setPen(QPen(Qt.red, 1, Qt.SolidLine))
+            from_x = min(self.temp_x1, self.temp_x2)
+            to_x = max(self.temp_x1, self.temp_x2)
+            from_y = min(self.temp_y1, self.temp_y2)
+            to_y = max(self.temp_y1, self.temp_y2)
+            painter.drawRect(self._2canx(from_x), self._2cany(from_y), self._2canx(to_x - from_x), self._2cany(to_y - from_y))
+        elif self.edit_mode in [ MODE['EDIT_BOX_PROGRESS'], MODE['MOVE_BOX_PROGRESS'] ]:
+
+            painter.setPen(QPen(Qt.red, 1, Qt.SolidLine))
+            from_x = self._2canx(min(self.temp_x1, self.temp_x2)) 
+            to_x = self._2canx(max(self.temp_x1, self.temp_x2))
+            from_y = self._2cany(min(self.temp_y1, self.temp_y2))
+            to_y = self._2cany(max(self.temp_y1, self.temp_y2))
+            if self.edit_x1 or self.edit_mode == MODE['MOVE_BOX_PROGRESS']:
+                from_x += self.move_x
+            if self.edit_x2 or self.edit_mode == MODE['MOVE_BOX_PROGRESS']:
+                to_x += self.move_x
+            if self.edit_y1 or self.edit_mode == MODE['MOVE_BOX_PROGRESS']:
+                from_y += self.move_y
+            if self.edit_y2 or self.edit_mode == MODE['MOVE_BOX_PROGRESS']:
+                to_y += self.move_y
+            painter.drawRect(from_x, from_y, to_x - from_x, to_y - from_y)
+        elif self.crop_from_x > -1 and self.curr_idx <= self.top_idx and self.curr_idx >= self.bottom_idx:
             painter.setPen(QPen(Qt.red, 1, Qt.SolidLine))
             from_x = min(self.crop_from_x, self.crop_to_x)
             to_x = max(self.crop_from_x, self.crop_to_x)
@@ -371,7 +427,17 @@ class ObjectViewer2D(QLabel):
                 self.image_canvas_ratio = self.orig_width / self.width()
             else:
                 self.image_canvas_ratio = self.orig_height / self.height()
+            #if self.image_canvas_ratio < 1.0:
+            #    self.scale = 1.0 / self.image_canvas_ratio
+            #else:
+            #    self.scale = 1.0
+            
+            #print("calculate_resize", self.orig_width, self.orig_height, self.width(), self.height(), self.image_canvas_ratio, self.scale)
+
             self.curr_pixmap = self.orig_pixmap.scaled(int(self.orig_width*self.scale/self.image_canvas_ratio),int(self.orig_width*self.scale/self.image_canvas_ratio), Qt.KeepAspectRatio)
+    def resizeEvent(self, a0: QResizeEvent) -> None:
+        self.calculate_resize()
+        return super().resizeEvent(a0)
 
 class CTHarvesterMainWindow(QMainWindow):
     def __init__(self):
@@ -501,7 +567,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.range_slider.valueChanged.connect(self.rangeSliderValueChanged)
         self.range_slider.setMinimumWidth(100)
 
-        self.image_layout2.addWidget(self.image_label2)
+        self.image_layout2.addWidget(self.image_label2,stretch=1)
         self.image_layout2.addWidget(self.slider)
         self.image_layout2.addWidget(self.range_slider)
         self.image_widget2.setLayout(self.image_layout2)
