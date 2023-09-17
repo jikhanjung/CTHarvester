@@ -39,6 +39,10 @@ MODE['EDIT_BOX_PROGRESS'] = 5
 MODE['MOVE_BOX_PROGRESS'] = 6
 MODE['MOVE_BOX_READY'] = 7
 DISTANCE_THRESHOLD = 10
+COMPANY_NAME = "PaleoBytes"
+PROGRAM_NAME = "CT Harvester"
+PROGRAM_VERSION = "0.1"
+PROGRAM_AUTHOR = "Jikhan Jung"
 
 class ProgressDialog(QDialog):
     def __init__(self,parent):
@@ -97,30 +101,33 @@ class ObjectViewer2D(QLabel):
         self.mouse_curr_x = 0
         self.mouse_curr_y = 0
         self.edit_mode = MODE['ADD_BOX']
-        self.crop_from_x = -1
-        self.crop_from_y = -1
-        self.crop_to_x = -1
-        self.crop_to_y = -1
         self.orig_pixmap = None
         self.curr_pixmap = None
         self.distance_threshold = self._2imgx(5)
         #print("distance_threshold:", self.distance_threshold)
-        self.edit_x1 = False
-        self.edit_x2 = False
-        self.edit_y1 = False
-        self.edit_y2 = False
         self.setMouseTracking(True)
-        self.canvas_box = None
         self.object_dialog = None
-        self.temp_x1 = -1
-        self.temp_y1 = -1
-        self.temp_x2 = -1
-        self.temp_y2 = -1
         self.top_idx = -1
         self.bottom_idx = -1
         self.curr_idx = -1
         self.move_x = 0
         self.move_y = 0
+        self.reset_crop()
+
+    def reset_crop(self):
+        self.crop_from_x = -1
+        self.crop_from_y = -1
+        self.crop_to_x = -1
+        self.crop_to_y = -1
+        self.temp_x1 = -1
+        self.temp_y1 = -1
+        self.temp_x2 = -1
+        self.temp_y2 = -1
+        self.edit_x1 = False
+        self.edit_x2 = False
+        self.edit_y1 = False
+        self.edit_y2 = False
+        self.canvas_box = None
 
     def _2canx(self, coord):
         return round((float(coord) / self.image_canvas_ratio) * self.scale)
@@ -441,11 +448,12 @@ class ObjectViewer2D(QLabel):
         self.calculate_resize()
         return super().resizeEvent(a0)
 
+
 class CTHarvesterMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         #self.setWindowIcon(QIcon(mu.resource_path('icons/Modan2_2.png')))
-        self.setWindowTitle("CT Harvester")
+        self.setWindowTitle("{} v{}".format(PROGRAM_NAME, PROGRAM_VERSION))
         self.setGeometry(QRect(100, 100, 600, 550))
         self.settings_hash = {}
         self.level_info = []
@@ -556,9 +564,9 @@ class CTHarvesterMainWindow(QMainWindow):
         self.image_label2 = ObjectViewer2D(self.image_widget2)
         self.image_label2.object_dialog = self
         self.slider = QLabeledSlider(Qt.Vertical)
-        self.slider.setValue(20)
+        self.slider.setValue(0)
         self.range_slider = QLabeledRangeSlider(Qt.Vertical)
-        self.range_slider.setValue((10,30))
+        self.range_slider.setValue((0,99))
 
         #self.slider.setTickInterval(1)
         #self.slider.setTickPosition(QSlider.TicksBothSides)
@@ -670,6 +678,7 @@ class CTHarvesterMainWindow(QMainWindow):
         (bottom_idx, top_idx) = self.range_slider.value()
         self.image_label2.set_bottom_idx(bottom_idx)
         self.image_label2.set_top_idx(top_idx)
+        self.image_label2.repaint()
         self.update_status()
 
     def sliderValueChanged(self):
@@ -683,10 +692,14 @@ class CTHarvesterMainWindow(QMainWindow):
         curr_image_idx = self.slider.value()
         #print("curr_image_idx:", curr_image_idx)
         #print("size_idx:", size_idx)
+        #print("settings hash", self.settings_hash)
+        if size_idx < 0:
+            size_idx = 0
         # get directory for size idx
         if size_idx == 0:
             dirname = self.edtDirname.text()
-            filename = self.lstFileList.item(self.slider.value()).text()
+            #filename = self.lstFileList.item(self.slider.value()).text()
+            filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + self.slider.value()).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
         else:
             dirname = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(size_idx))
             # get filename from level from idx
@@ -703,11 +716,9 @@ class CTHarvesterMainWindow(QMainWindow):
         #self.image_label2.set_top_idx(self.slider.minimum())
         #self.image_label2.set_bottom_idx(self.slider.maximum())
         self.image_label2.set_curr_idx(self.slider.value())
-        self.image_label2.crop_from_x = -1
-        self.image_label2.crop_from_y = -1
-        self.image_label2.crop_to_x = -1
-        self.image_label2.crop_to_y = -1
+        self.image_label2.reset_crop()
         self.range_slider.setValue((self.slider.minimum(), self.slider.maximum()))
+        self.canvas_box = None
         self.update_status()
 
     def update_status(self):
@@ -722,23 +733,29 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtStatus.setText(txt)
    
     def initializeComboSize(self):
+        #print("initializeComboSize")
         self.comboLevel.clear()
         for level in self.level_info:
                 
             #print("level:", level)
             self.comboLevel.addItem( level['name'])
-        self.comboLevel.setCurrentIndex(0)
+
+        #self.comboLevel.setCurrentIndex(0)
         #self.comboLevelIndexChanged()
 
     def comboLevelIndexChanged(self):
 
-        #print("comboSizeIndexChanged")
+        #print("-----------------------------[[[comboSizeIndexChanged]]]-----------------------------")
         self.prev_level_idx = self.curr_level_idx
         self.curr_level_idx = self.comboLevel.currentIndex()
-        #print("idx:", idx)
-        #print("level_info:", self.level_info)
+        if self.curr_level_idx < 0:
+            return
+        
+        #print("prev_level_idx:", self.prev_level_idx)
+        #print("curr_level_idx:", self.curr_level_idx)
 
         level_info = self.level_info[self.curr_level_idx]
+        #print("level_info:", self.level_info)
         seq_begin = level_info['seq_begin']
         seq_end = level_info['seq_end']
 
@@ -746,23 +763,36 @@ class CTHarvesterMainWindow(QMainWindow):
         image_count = seq_end - seq_begin + 1
         self.edtNumImages2.setText(str(image_count))
 
-        if not self.initialized:          
+        if not self.initialized:
+            #print("not initialized. image_count:", image_count)
             self.slider.setMaximum(image_count - 1)
             self.slider.setMinimum(0)
             self.slider.setValue(0)
             self.range_slider.setRange(0,image_count - 1)
             self.range_slider.setValue((0, image_count - 1))
+            #print("range_slider value:", self.range_slider.value())
+            #print("range_slider range:", self.range_slider.minimum(), self.range_slider.maximum())
+            self.curr_level_idx = 0
+            self.prev_level_idx = 0
             self.initialized = True
 
 
+        level_diff = self.prev_level_idx-self.curr_level_idx
+        #print("level_diff:", level_diff)
+        #print("prev_level_idx:", self.prev_level_idx)
+        #print("curr_level_idx:", self.curr_level_idx)
         curr_idx = self.slider.value()
         #print("curr_idx 1:", curr_idx)
-        curr_idx = int(curr_idx * 2**(self.prev_level_idx-self.curr_level_idx))
+        curr_idx = int(curr_idx * (2**level_diff))
         #print("curr_idx 2:", curr_idx)
 
         (bottom_idx, top_idx) = self.range_slider.value()
-        bottom_idx = int(bottom_idx * 2**(self.prev_level_idx-self.curr_level_idx))
-        top_idx = int(top_idx * 2**(self.prev_level_idx-self.curr_level_idx))
+        #print("bottom_idx:", bottom_idx)
+        #print("top_idx:", top_idx)
+        bottom_idx = int(bottom_idx * (2**level_diff))
+        top_idx = int(top_idx * (2**level_diff))
+        #print("bottom_idx:", bottom_idx)
+        #print("top_idx:", top_idx)
 
         self.range_slider.setRange(0, image_count - 1)
         self.range_slider.setValue((bottom_idx, top_idx))
@@ -778,6 +808,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def create_thumbnail(self):
         # determine thumbnail size
+        #print("create thumbnail")
         MAX_THUMBNAIL_SIZE = 512
         size =  max(int(self.settings_hash['image_width']), int(self.settings_hash['image_height']))
         width = int(self.settings_hash['image_width'])
@@ -849,6 +880,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
         self.progress_dialog.close()
         self.initializeComboSize()
+        self.reset_crop()
         thumbnail_size = int(size)
         #print("thumbnail size:", thumbnail_size)
         #print("i:", i)
@@ -859,6 +891,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def open_dir(self):
         #pass
+        #print("open_dir")
         ddir = QFileDialog.getExistingDirectory(self, "Select directory", self.default_directory)
         if ddir:
         # ddir is a QString containing the path to the directory you selected
@@ -869,6 +902,7 @@ class CTHarvesterMainWindow(QMainWindow):
             return
         self.initialized = False
         image_file_list = []
+        self.lstFileList.clear()
         for r, d, files in os.walk(ddir):
             for file in files:
                 # get extension
@@ -899,6 +933,7 @@ class CTHarvesterMainWindow(QMainWindow):
                     self.edtNumImages.setText(str(self.settings_hash['seq_end'] - self.settings_hash['seq_begin'] + 1))
                     self.edtImageDimension.setText(str(self.settings_hash['image_width']) + " x " + str(self.settings_hash['image_height']))
                     #print("Settings hash:", settings_hash)
+        #print("Settings hash:", self.settings_hash)
         if 'prefix' not in self.settings_hash:
             return
         for seq in range(self.settings_hash['seq_begin'], self.settings_hash['seq_end']+1):
@@ -913,12 +948,13 @@ class CTHarvesterMainWindow(QMainWindow):
         self.image_label2.setPixmap(QPixmap(os.path.join(ddir,image_file_list[0])).scaledToWidth(512))
         self.level_info = []
         self.level_info.append( {'name': 'Original', 'width': self.settings_hash['image_width'], 'height': self.settings_hash['image_height'], 'seq_begin': self.settings_hash['seq_begin'], 'seq_end': self.settings_hash['seq_end']} )
+        #print("level_info in open_dir:", self.level_info)
         #self.initializeComboSize()
         #self.open_dir()
         self.create_thumbnail()
 
     def read_settings(self):
-        self.settings = QSettings(QSettings.IniFormat, QSettings.UserScope,"PaleoBytes", "CTHarvester")
+        self.settings = QSettings(QSettings.IniFormat, QSettings.UserScope,COMPANY_NAME, PROGRAM_NAME)
         self.default_directory = self.settings.value("Default directory", ".")
     
     def save_settings(self):
