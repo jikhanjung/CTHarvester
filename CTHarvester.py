@@ -18,6 +18,8 @@ from PyQt5.QtGui import QColor, QPainter, QPen, QPixmap, QStandardItemModel, QSt
 from PyQt5.QtCore import Qt, QRect, QSortFilterProxyModel, QSize, QPoint,\
                          pyqtSlot, QItemSelectionModel, QTimer
 from superqt import QLabeledRangeSlider, QLabeledSlider
+import vtkmodules.all as vtk
+
 import os, sys
 
 import numpy
@@ -449,6 +451,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.level_info = []
         self.curr_level_idx = 0
         self.prev_level_idx = 0
+        self.default_directory = "."
+        self.read_settings()
 
         # add file open dialog
         self.dirname_layout = QHBoxLayout()
@@ -855,13 +859,15 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def open_dir(self):
         #pass
-        ddir = QFileDialog.getExistingDirectory(self, "Select directory")
+        ddir = QFileDialog.getExistingDirectory(self, "Select directory", self.default_directory)
         if ddir:
         # ddir is a QString containing the path to the directory you selected
         #print(ddir)  # this will output something like 'C://path/you/selected'
             self.edtDirname.setText(ddir)
+            self.default_directory = os.path.dirname(ddir)
         else:
             return
+        self.initialized = False
         image_file_list = []
         for r, d, files in os.walk(ddir):
             for file in files:
@@ -911,6 +917,16 @@ class CTHarvesterMainWindow(QMainWindow):
         #self.open_dir()
         self.create_thumbnail()
 
+    def read_settings(self):
+        self.settings = QSettings(QSettings.IniFormat, QSettings.UserScope,"PaleoBytes", "CTHarvester")
+        self.default_directory = self.settings.value("Default directory", ".")
+    
+    def save_settings(self):
+        self.settings.setValue("Default directory", self.default_directory)
+
+    def closeEvent(self, event):
+        self.save_settings()
+        event.accept()
         
 
 if __name__ == "__main__":
