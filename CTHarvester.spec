@@ -8,7 +8,7 @@ a = Analysis(
     ['CTHarvester.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('*.png', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -41,4 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['CTHarvester_48_2.png'],
 )

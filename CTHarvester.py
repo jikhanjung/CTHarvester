@@ -18,16 +18,23 @@ from PyQt5.QtGui import QColor, QPainter, QPen, QPixmap, QStandardItemModel, QSt
 from PyQt5.QtCore import Qt, QRect, QSortFilterProxyModel, QSize, QPoint,\
                          pyqtSlot, QItemSelectionModel, QTimer
 from superqt import QLabeledRangeSlider, QLabeledSlider
-import vtkmodules.all as vtk
+#import vtkmodules.all as vtk
 
-import os, sys
+import os, sys, re
 
 import numpy
 from PIL import Image, ImageDraw, ImageChops
 
-import os
 from os import listdir
 from os.path import isfile, join
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 MODE = {}
 MODE['VIEW'] = 0
@@ -452,7 +459,7 @@ class ObjectViewer2D(QLabel):
 class CTHarvesterMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        #self.setWindowIcon(QIcon(mu.resource_path('icons/Modan2_2.png')))
+        self.setWindowIcon(QIcon(resource_path('CTHarvester_48_2.png')))
         self.setWindowTitle("{} v{}".format(PROGRAM_NAME, PROGRAM_VERSION))
         self.setGeometry(QRect(100, 100, 600, 550))
         self.settings_hash = {}
@@ -603,7 +610,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtStatus.setReadOnly(True)
         self.edtStatus.setText("")
 
-        self.btnSave = QPushButton("Save")
+        self.btnSave = QPushButton("Save cropped image stack")
         self.btnSave.clicked.connect(self.save_result)
 
         self.right_layout = QVBoxLayout()
@@ -728,7 +735,7 @@ class CTHarvesterMainWindow(QMainWindow):
         # add crop box info
         txt += " ({}, {})-({}, {}) ".format(self.image_label2.crop_from_x, self.image_label2.crop_from_y, self.image_label2.crop_to_x, self.image_label2.crop_to_y)
         count = ( top_idx - bottom_idx + 1 )
-        txt += "Est. {} MB".format(round(count * (self.image_label2.crop_to_x - self.image_label2.crop_from_x) * (self.image_label2.crop_to_y - self.image_label2.crop_from_y) * 2 / 1024 / 1024 , 2))    
+        txt += "Est. {} MB".format(round(count * (self.image_label2.crop_to_x - self.image_label2.crop_from_x) * (self.image_label2.crop_to_y - self.image_label2.crop_from_y) / 1024 / 1024 , 2))    
         txt += " ["+str(self.image_label2.edit_mode)+"]"
         self.edtStatus.setText(txt)
    
@@ -813,6 +820,11 @@ class CTHarvesterMainWindow(QMainWindow):
         size =  max(int(self.settings_hash['image_width']), int(self.settings_hash['image_height']))
         width = int(self.settings_hash['image_width'])
         height = int(self.settings_hash['image_height'])
+        #print("size:", size)
+        #print("width:", width)
+        #print("height:", height)
+        #print("settings_hash:", self.settings_hash)
+
         i = 0
         # create temporary directory for thumbnail
         dirname = self.edtDirname.text()
@@ -889,53 +901,164 @@ class CTHarvesterMainWindow(QMainWindow):
         #print("lstFileListSelectionChanged")
         self.image_label.setPixmap(QPixmap(os.path.join(self.edtDirname.text(), self.lstFileList.currentItem().text())).scaledToWidth(512))
 
+    def sort_file_list_from_dir(self, directory_path):
+        # Step 1: Get a list of all files in the directory
+        #directory_path = "/path/to/your/directory"  # Replace with the path to your directory
+        all_files = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))]
+
+        # Step 2: Regular expression pattern
+        pattern = r'^(.*?)(\d+)\.(\w+)$'
+
+        ct_stack_files = []
+        matching_files = []
+        other_files = []
+        prefix_hash = {}
+        extension_hash = {}
+        settings_hash = {}
+
+        for file in all_files:
+            if re.match(pattern, file):
+                matching_files.append(file)
+                if re.match(pattern, file).group(1) in prefix_hash:
+                    prefix_hash[re.match(pattern, file).group(1)] += 1
+                else:
+                    prefix_hash[re.match(pattern, file).group(1)] = 1
+                if re.match(pattern, file).group(3) in extension_hash:
+                    extension_hash[re.match(pattern, file).group(3)] += 1
+                else:
+                    extension_hash[re.match(pattern, file).group(3)] = 1
+
+            else:
+                other_files.append(file)
+
+        # determine prefix
+        max_prefix_count = 0
+        for prefix in prefix_hash:
+            if prefix_hash[prefix] > max_prefix_count:
+                max_prefix_count = prefix_hash[prefix]
+                max_prefix = prefix
+        #print("max_prefix:", max_prefix)
+        #print("max_count:", max_prefix_count)
+        # determine extension
+        max_extension_count = 0
+        for extension in extension_hash:
+            if extension_hash[extension] > max_extension_count:
+                max_extension_count = extension_hash[extension]
+                max_extension = extension
+        #print("max_extension:", max_extension)
+        #print("max_count:", max_extension_count)
+
+        if matching_files:
+            for file in matching_files:
+                if re.match(pattern, file).group(1) == max_prefix and re.match(pattern, file).group(3) == max_extension:
+                    ct_stack_files.append(file)
+
+
+        # Determine the pattern if needed further
+        if ct_stack_files:
+            # If there are CT stack files, we can determine some common patterns
+            # Here as an example, we are just displaying the prefix of the first matched file
+            # This can be expanded upon based on specific needs
+            first_file = ct_stack_files[0]
+            last_file = ct_stack_files[-1]
+            imagefile_name = os.path.join(directory_path, first_file)
+            # get width and height
+            img = Image.open(imagefile_name)
+            width, height = img.size
+
+
+            match1 = re.match(pattern, first_file)
+            match2 = re.match(pattern, last_file)
+            #if match1:
+                #print("\nDetermined Pattern:")
+                #print("Prefix:", match1.group(1))
+                #print("Extension:", match1.group(3))
+
+            if match1 and match2:
+                #print("Start Index:", match1.group(2))
+                #print("End Index:", match2.group(2))
+                start_index = match1.group(2)
+                end_index = match2.group(2)
+            image_count = int(match2.group(2)) - int(match1.group(2)) + 1
+            number_of_images = len(ct_stack_files)
+            #print("Number of images:", number_of_images)
+            #print("Image count:", image_count)
+            seq_length = len(match1.group(2))
+            #print("Sequence length:", seq_length)
+
+            settings_hash['prefix'] = prefix
+            settings_hash['image_width'] = width
+            settings_hash['image_height'] = height
+            settings_hash['file_type'] = max_extension
+            settings_hash['index_length'] = seq_length
+            settings_hash['seq_begin'] = start_index
+            settings_hash['seq_end'] = end_index
+            #print("Settings hash:", settings_hash)
+            settings_hash['index_length'] = int(settings_hash['index_length'])
+            settings_hash['seq_begin'] = int(settings_hash['seq_begin'])
+            settings_hash['seq_end'] = int(settings_hash['seq_end'])
+
+            return settings_hash
+        else:
+            return None
+        
+
+
     def open_dir(self):
         #pass
         #print("open_dir")
         ddir = QFileDialog.getExistingDirectory(self, "Select directory", self.default_directory)
         if ddir:
         # ddir is a QString containing the path to the directory you selected
-        #print(ddir)  # this will output something like 'C://path/you/selected'
+            #print("loading from:", ddir)  # this will output something like 'C://path/you/selected'
             self.edtDirname.setText(ddir)
             self.default_directory = os.path.dirname(ddir)
         else:
             return
+        self.settings_hash = {}
         self.initialized = False
         image_file_list = []
         self.lstFileList.clear()
-        for r, d, files in os.walk(ddir):
-            for file in files:
-                # get extension
-                ext = os.path.splitext(file)[-1].lower()
-                if ext in [".bmp", ".jpg", ".png", ".tif", ".tiff"]:
-                    pass #image_file_list.append(file)
-                elif ext == '.log':
-                    fn = os.path.join(r,file)
-                    #print("log file:", fn)
-                    settings = QSettings(os.path.join(r,file), QSettings.IniFormat)
-                    prefix = settings.value("File name convention/Filename Prefix")
-                    if not prefix:
-                        continue
-                    if file != prefix + ".log":
-                        continue
-                    self.settings_hash['prefix'] = settings.value("File name convention/Filename Prefix")
-                    self.settings_hash['image_width'] = settings.value("Reconstruction/Result Image Width (pixels)")
-                    self.settings_hash['image_height'] = settings.value("Reconstruction/Result Image Height (pixels)")
-                    self.settings_hash['file_type'] = settings.value("Reconstruction/Result File Type")
-                    self.settings_hash['index_length'] = settings.value("File name convention/Filename Index Length")
-                    self.settings_hash['seq_begin'] = settings.value("Reconstruction/First Section")
-                    self.settings_hash['seq_end'] = settings.value("Reconstruction/Last Section")
-                    #print("Settings hash:", self.settings_hash)
-                    self.settings_hash['index_length'] = int(self.settings_hash['index_length'])
-                    self.settings_hash['seq_begin'] = int(self.settings_hash['seq_begin'])
-                    self.settings_hash['seq_end'] = int(self.settings_hash['seq_end'])
-                    #print("Settings hash:", self.settings_hash)
-                    self.edtNumImages.setText(str(self.settings_hash['seq_end'] - self.settings_hash['seq_begin'] + 1))
-                    self.edtImageDimension.setText(str(self.settings_hash['image_width']) + " x " + str(self.settings_hash['image_height']))
-                    #print("Settings hash:", settings_hash)
+        files = [f for f in os.listdir(ddir) if os.path.isfile(os.path.join(ddir, f))]
+
+        for file in files:
+            # get extension
+            ext = os.path.splitext(file)[-1].lower()
+            if ext in [".bmp", ".jpg", ".png", ".tif", ".tiff"]:
+                pass #image_file_list.append(file)
+            elif ext == '.log':
+                fn = file
+                #print("log file:", fn)
+                settings = QSettings(file, QSettings.IniFormat)
+                prefix = settings.value("File name convention/Filename Prefix")
+                if not prefix:
+                    continue
+                if file != prefix + ".log":
+                    continue
+                self.settings_hash['prefix'] = settings.value("File name convention/Filename Prefix")
+                self.settings_hash['image_width'] = settings.value("Reconstruction/Result Image Width (pixels)")
+                self.settings_hash['image_height'] = settings.value("Reconstruction/Result Image Height (pixels)")
+                self.settings_hash['file_type'] = settings.value("Reconstruction/Result File Type")
+                self.settings_hash['index_length'] = settings.value("File name convention/Filename Index Length")
+                self.settings_hash['seq_begin'] = settings.value("Reconstruction/First Section")
+                self.settings_hash['seq_end'] = settings.value("Reconstruction/Last Section")
+                #print("Settings hash:", self.settings_hash)
+                self.settings_hash['index_length'] = int(self.settings_hash['index_length'])
+                self.settings_hash['seq_begin'] = int(self.settings_hash['seq_begin'])
+                self.settings_hash['seq_end'] = int(self.settings_hash['seq_end'])
+                #print("Settings hash:", self.settings_hash)
+                self.edtNumImages.setText(str(self.settings_hash['seq_end'] - self.settings_hash['seq_begin'] + 1))
+                self.edtImageDimension.setText(str(self.settings_hash['image_width']) + " x " + str(self.settings_hash['image_height']))
+                #print("Settings hash:", settings_hash)
         #print("Settings hash:", self.settings_hash)
         if 'prefix' not in self.settings_hash:
-            return
+            #print("prefix not found. trying to find prefix from file name")
+            self.settings_hash = self.sort_file_list_from_dir(ddir)
+            if self.settings_hash is None:
+                return
+            #return
+        #print("Settings hash:", self.settings_hash)
+        #print("dir:", ddir)
         for seq in range(self.settings_hash['seq_begin'], self.settings_hash['seq_end']+1):
             filename = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
             self.lstFileList.addItem(filename)
@@ -967,7 +1090,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    #app.setWindowIcon(QIcon(mu.resource_path('icons/Modan2_2.png')))
+    app.setWindowIcon(QIcon(resource_path('CTHarvester_48_2.png')))
     #app.settings = 
     #app.preferences = QSettings("Modan", "Modan2")
 
@@ -980,5 +1103,5 @@ if __name__ == "__main__":
     #프로그램을 이벤트루프로 진입시키는(프로그램을 작동시키는) 코드
     app.exec_()
 '''
-pyinstaller --onefile --noconsole CTHarvester.py
+pyinstaller --onefile --noconsole --add-data "*.png;." --icon="CTHarvester_48_2.png" CTHarvester.py
 '''
