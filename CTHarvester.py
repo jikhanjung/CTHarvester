@@ -355,29 +355,18 @@ class ObjectViewer2D(QLabel):
         self.object_dialog.update_status()
         self.repaint()
 
-    def paintEvent(self, event):
-        # fill background with dark gray
-
-        painter = QPainter(self)
-        #painter.fillRect(self.rect(), QBrush(QColor()))#as_qt_color(COLOR['BACKGROUND'])))
-        if self.curr_pixmap is not None:
-            #print("paintEvent", self.curr_pixmap.width(), self.curr_pixmap.height())
-            painter.drawPixmap(0,0,self.curr_pixmap)
-
-        if self.curr_idx > self.top_idx or self.curr_idx < self.bottom_idx:
-            return
-        
+    def get_crop_area(self, imgxy = False):
+        from_x = -1
+        to_x = -1
+        from_y = -1
+        to_y = -1
         if self.edit_mode == MODE['ADD_BOX']:
-            
-            painter.setPen(QPen(Qt.red, 1, Qt.SolidLine))
-            from_x = min(self.temp_x1, self.temp_x2)
-            to_x = max(self.temp_x1, self.temp_x2)
-            from_y = min(self.temp_y1, self.temp_y2)
-            to_y = max(self.temp_y1, self.temp_y2)
-            painter.drawRect(self._2canx(from_x), self._2cany(from_y), self._2canx(to_x - from_x), self._2cany(to_y - from_y))
+            from_x = self._2canx(min(self.temp_x1, self.temp_x2))
+            to_x = self._2canx(max(self.temp_x1, self.temp_x2))
+            from_y = self._2cany(min(self.temp_y1, self.temp_y2))
+            to_y = self._2cany(max(self.temp_y1, self.temp_y2))
+            #return [from_x, from_y, to_x, to_y]
         elif self.edit_mode in [ MODE['EDIT_BOX_PROGRESS'], MODE['MOVE_BOX_PROGRESS'] ]:
-
-            painter.setPen(QPen(Qt.red, 1, Qt.SolidLine))
             from_x = self._2canx(min(self.temp_x1, self.temp_x2)) 
             to_x = self._2canx(max(self.temp_x1, self.temp_x2))
             from_y = self._2cany(min(self.temp_y1, self.temp_y2))
@@ -390,14 +379,37 @@ class ObjectViewer2D(QLabel):
                 from_y += self.move_y
             if self.edit_y2 or self.edit_mode == MODE['MOVE_BOX_PROGRESS']:
                 to_y += self.move_y
-            painter.drawRect(from_x, from_y, to_x - from_x, to_y - from_y)
+            #return [from_x, from_y, to_x, to_y]
         elif self.crop_from_x > -1 and self.curr_idx <= self.top_idx and self.curr_idx >= self.bottom_idx:
-            painter.setPen(QPen(Qt.red, 1, Qt.SolidLine))
-            from_x = min(self.crop_from_x, self.crop_to_x)
-            to_x = max(self.crop_from_x, self.crop_to_x)
-            from_y = min(self.crop_from_y, self.crop_to_y)
-            to_y = max(self.crop_from_y, self.crop_to_y)
-            painter.drawRect(self._2canx(from_x), self._2cany(from_y), self._2canx(to_x - from_x), self._2cany(to_y - from_y))
+            from_x = self._2canx(min(self.crop_from_x, self.crop_to_x))
+            to_x = self._2canx(max(self.crop_from_x, self.crop_to_x))
+            from_y = self._2cany(min(self.crop_from_y, self.crop_to_y))
+            to_y = self._2cany(max(self.crop_from_y, self.crop_to_y))
+
+        if imgxy == True:
+            #print("imagexy true", from_x, self.orig_pixmap)
+            if from_x <= 0 and from_y <= 0 and to_x <= 0 and to_y <= 0 and self.orig_pixmap:
+                return [ 0,0,self.orig_pixmap.width()-1,self.orig_pixmap.height()-1]
+            else:
+                return [self._2imgx(from_x), self._2imgy(from_y), self._2imgx(to_x), self._2imgy(to_y)]
+        else:
+            return [from_x, from_y, to_x, to_y]
+
+
+    def paintEvent(self, event):
+        # fill background with dark gray
+        painter = QPainter(self)
+        #painter.fillRect(self.rect(), QBrush(QColor()))#as_qt_color(COLOR['BACKGROUND'])))
+        if self.curr_pixmap is not None:
+            #print("paintEvent", self.curr_pixmap.width(), self.curr_pixmap.height())
+            painter.drawPixmap(0,0,self.curr_pixmap)
+
+        if self.curr_idx > self.top_idx or self.curr_idx < self.bottom_idx:
+            return
+        
+        painter.setPen(QPen(Qt.red, 1, Qt.SolidLine))
+        [ x1, y1, x2, y2 ] = self.get_crop_area()
+        painter.drawRect(x1, y1, x2 - x1, y2 - y1)
 
     def set_image(self,file_path):
         #print("set_image", file_path)
@@ -730,12 +742,12 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def update_status(self):
         ( bottom_idx, top_idx ) = self.range_slider.value()
-
-        txt = "Images {}-{}".format(bottom_idx, top_idx)
-        # add crop box info
-        txt += " ({}, {})-({}, {}) ".format(self.image_label2.crop_from_x, self.image_label2.crop_from_y, self.image_label2.crop_to_x, self.image_label2.crop_to_y)
+        [ x1, y1, x2, y2 ] = self.image_label2.get_crop_area(imgxy=True)
         count = ( top_idx - bottom_idx + 1 )
-        txt += "Est. {} MB".format(round(count * (self.image_label2.crop_to_x - self.image_label2.crop_from_x) * (self.image_label2.crop_to_y - self.image_label2.crop_from_y) / 1024 / 1024 , 2))    
+
+        txt = "Crop indices: {}~{}".format(bottom_idx, top_idx)
+        txt += "    Cropped image size: {}x{}".format(x2 - x1+1, y2 - y1+1)
+        txt += "    Estimated stack size: {} MB".format(round(count * (x2 - x1+1 ) * (y2 - y1+1 ) / 1024 / 1024 , 2))    
         txt += " ["+str(self.image_label2.edit_mode)+"]"
         self.edtStatus.setText(txt)
    
