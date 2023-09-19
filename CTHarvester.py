@@ -380,7 +380,7 @@ class ObjectViewer2D(QLabel):
             if self.edit_y2 or self.edit_mode == MODE['MOVE_BOX_PROGRESS']:
                 to_y += self.move_y
             #return [from_x, from_y, to_x, to_y]
-        elif self.crop_from_x > -1 and self.curr_idx <= self.top_idx and self.curr_idx >= self.bottom_idx:
+        elif self.crop_from_x > -1:
             from_x = self._2canx(min(self.crop_from_x, self.crop_to_x))
             to_x = self._2canx(max(self.crop_from_x, self.crop_to_x))
             from_y = self._2cany(min(self.crop_from_y, self.crop_to_y))
@@ -405,9 +405,9 @@ class ObjectViewer2D(QLabel):
             painter.drawPixmap(0,0,self.curr_pixmap)
 
         if self.curr_idx > self.top_idx or self.curr_idx < self.bottom_idx:
-            return
-        
-        painter.setPen(QPen(Qt.red, 1, Qt.SolidLine))
+            painter.setPen(QPen(QColor(128,0,0), 1, Qt.DotLine))
+        else:
+            painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
         [ x1, y1, x2, y2 ] = self.get_crop_area()
         painter.drawRect(x1, y1, x2 - x1, y2 - y1)
 
@@ -678,7 +678,15 @@ class CTHarvesterMainWindow(QMainWindow):
         top_idx = self.image_label2.top_idx
         bottom_idx = self.image_label2.bottom_idx
 
-        for idx in range(bottom_idx, top_idx+1):
+        current_count = 0
+        total_count = top_idx - bottom_idx + 1
+        self.progress_dialog = ProgressDialog(self)
+        self.progress_dialog.setModal(True)
+        self.progress_dialog.show()
+        self.progress_dialog.lbl_text.setText("Saving image stack...")
+        self.progress_dialog.pb_progress.setValue(0)
+
+        for i, idx in enumerate(range(bottom_idx, top_idx+1)):
             filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
             # get full path
             if size_idx == 0:
@@ -692,6 +700,14 @@ class CTHarvesterMainWindow(QMainWindow):
             img = img.crop((from_x, from_y, to_x, to_y))
             # save image
             img.save(os.path.join(target_dirname, filename))
+
+            self.progress_dialog.lbl_text.setText("Saving image stack... {}/{}".format(i+1, int(total_count)))
+            self.progress_dialog.pb_progress.setValue(int(((i+1)/float(int(total_count)))*100))
+            self.progress_dialog.update()
+            QApplication.processEvents()
+
+        self.progress_dialog.close()
+
 
     def rangeSliderValueChanged(self):
         (bottom_idx, top_idx) = self.range_slider.value()
