@@ -51,6 +51,47 @@ PROGRAM_NAME = "CT Harvester"
 PROGRAM_VERSION = "0.1"
 PROGRAM_AUTHOR = "Jikhan Jung"
 
+class PreferencesDialog(QDialog):
+    '''
+    PreferencesDialog shows preferences.
+
+    Args:
+        None
+
+    Attributes:
+        well..
+    '''
+    def __init__(self,parent):
+        super().__init__()
+        self.parent = parent
+        self.remember_geometry = False
+        self.language = "en"
+        self.default_directory = "."
+
+
+        self.rbRememberGeometryYes = QRadioButton("Yes")
+        self.rbRememberGeometryYes.setChecked(self.remember_geometry)
+        self.rbRememberGeometryYes.clicked.connect(self.on_rbRememberGeometryYes_clicked)
+        self.rbRememberGeometryNo = QRadioButton("No")
+        self.rbRememberGeometryNo.setChecked(not self.remember_geometry)
+        self.rbRememberGeometryNo.clicked.connect(self.on_rbRememberGeometryNo_clicked)
+
+        self.gbRememberGeomegry = QGroupBox()
+        self.gbRememberGeomegry.setLayout(QHBoxLayout())
+        self.gbRememberGeomegry.layout().addWidget(self.rbRememberGeometryYes)
+        self.gbRememberGeomegry.layout().addWidget(self.rbRememberGeometryNo)
+
+        self.read_settings()
+
+    def read_settings(self):
+        self.remember_geometry = mu.value_to_bool(self.m_app.settings.value("WindowGeometry/RememberGeometry", True))
+
+
+    def save_settings(self):
+        self.settings.setValue("Default directory", self.default_directory)
+        self.settings.setValue("Window geometry", self.geometry())
+        self.settings.setValue("Language", self.language)
+
 class ProgressDialog(QDialog):
     def __init__(self,parent):
         super().__init__()
@@ -472,7 +513,7 @@ class CTHarvesterMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(resource_path('CTHarvester_48_2.png')))
-        self.setWindowTitle("{} v{}".format(PROGRAM_NAME, PROGRAM_VERSION))
+        self.setWindowTitle("{} v{}".format(self.tr("CT Harvester"), PROGRAM_VERSION))
         self.setGeometry(QRect(100, 100, 600, 550))
         self.settings_hash = {}
         self.level_info = []

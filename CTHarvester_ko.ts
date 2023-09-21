@@ -81,12 +81,12 @@
     <message>
         <location filename="CTHarvester.py" line="765"/>
         <source>    Cropped image size: {}x{}</source>
-        <translation type="unfinished">    자른 이미지 크기: {}x{}</translation>
+        <translation>    자른 이미지 크기: {}x{}</translation>
     </message>
     <message>
         <location filename="CTHarvester.py" line="766"/>
         <source>    Estimated stack size: {} MB</source>
-        <translation type="unfinished">    이미지 스택 크기 (추정): {} MB</translation>
+        <translation>    이미지 스택 크기 (추정): {} MB</translation>
     </message>
     <message>
         <location filename="CTHarvester.py" line="767"/>
@@ -107,6 +107,11 @@
         <location filename="CTHarvester.py" line="892"/>
         <source>Creating rescaled images level {}... {}/{}</source>
         <translation>이미지 스케일 조정 중: 레벨 {}... {}/{}</translation>
+    </message>
+    <message>
+        <location filename="CTHarvester.py" line="475"/>
+        <source>CT Harvester</source>
+        <translation>CT하베스터</translation>
     </message>
 </context>
 <context>
