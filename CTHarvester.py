@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QMainWindow, QHeaderView, QApplication, QAbstractIte
                             QMessageBox, QTreeView, QTableView, QSplitter, QAction, QMenu, \
                             QStatusBar, QInputDialog, QToolBar
 from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem, QKeySequence
-from PyQt5.QtCore import Qt, QRect, QSortFilterProxyModel, QSettings, QSize
+from PyQt5.QtCore import Qt, QRect, QSortFilterProxyModel, QSettings, QSize, QTranslator
 
 from PyQt5.QtCore import pyqtSlot
 
@@ -56,7 +56,7 @@ class ProgressDialog(QDialog):
         super().__init__()
         #self.setupUi(self)
         #self.setGeometry(200, 250, 400, 250)
-        self.setWindowTitle("CTHarvester - Progress Dialog")
+        self.setWindowTitle(self.tr("CTHarvester - Progress Dialog"))
         self.parent = parent
         self.setGeometry(QRect(100, 100, 320, 180))
         self.move(self.parent.pos()+QPoint(100,100))
@@ -73,7 +73,7 @@ class ProgressDialog(QDialog):
         self.stop_progress = False
         self.btnStop = QPushButton(self)
         #self.btnStop.setGeometry(175, 200, 50, 30)
-        self.btnStop.setText("Stop")
+        self.btnStop.setText(self.tr("Stop"))
         self.btnStop.clicked.connect(self.set_stop_progress)
         self.layout.addWidget(self.lbl_text)
         self.layout.addWidget(self.pb_progress)
@@ -484,12 +484,12 @@ class CTHarvesterMainWindow(QMainWindow):
         # add file open dialog
         self.dirname_layout = QHBoxLayout()
         self.dirname_widget = QWidget()
-        self.btnOpenDir = QPushButton("Open Directory")
+        self.btnOpenDir = QPushButton(self.tr("Open Directory"))
         self.btnOpenDir.clicked.connect(self.open_dir)
         self.edtDirname = QLineEdit()
         self.edtDirname.setReadOnly(True)
         self.edtDirname.setText("")
-        self.edtDirname.setPlaceholderText("Select directory to load CT data")
+        self.edtDirname.setPlaceholderText(self.tr("Select directory to load CT data"))
         self.edtDirname.setMinimumWidth(400)
         #self.edtDirname.setMaximumWidth(400)
         self.edtDirname.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -505,9 +505,9 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtNumImages = QLineEdit()
         self.edtNumImages.setReadOnly(True)
         self.edtNumImages.setText("")
-        self.image_info_layout.addWidget(QLabel("Size:"))
+        self.image_info_layout.addWidget(QLabel(self.tr("Size:")))
         self.image_info_layout.addWidget(self.edtImageDimension)
-        self.image_info_layout.addWidget(QLabel("Count:"))
+        self.image_info_layout.addWidget(QLabel(self.tr("Count:")))
         self.image_info_layout.addWidget(self.edtNumImages)
         self.image_info_widget.setLayout(self.image_info_layout)
 
@@ -557,7 +557,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.left_layout.addWidget(self.btnCreateThumbnail)
         #self.left_layout.addWidget(self.crop_widget)
 
-        self.lblLevel = QLabel("Level")
+        self.lblLevel = QLabel(self.tr("Level"))
         self.comboLevel = QComboBox()
         self.comboLevel.currentIndexChanged.connect(self.comboLevelIndexChanged)
 
@@ -572,9 +572,9 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtNumImages2.setText("")
         self.image_info_layout2.addWidget(self.lblLevel)
         self.image_info_layout2.addWidget(self.comboLevel)
-        self.image_info_layout2.addWidget(QLabel("Size"))
+        self.image_info_layout2.addWidget(QLabel(self.tr("Size")))
         self.image_info_layout2.addWidget(self.edtImageDimension2)
-        self.image_info_layout2.addWidget(QLabel("Count"))
+        self.image_info_layout2.addWidget(QLabel(self.tr("Count")))
         self.image_info_layout2.addWidget(self.edtNumImages2)
         self.image_info_widget2.setLayout(self.image_info_layout2)
 
@@ -606,11 +606,11 @@ class CTHarvesterMainWindow(QMainWindow):
 
         self.crop_layout2 = QHBoxLayout()
         self.crop_widget2 = QWidget()
-        self.btnSetBottom = QPushButton("Set Bottom")
+        self.btnSetBottom = QPushButton(self.tr("Set Bottom"))
         self.btnSetBottom.clicked.connect(self.set_bottom)
-        self.btnSetTop = QPushButton("Set Top")
+        self.btnSetTop = QPushButton(self.tr("Set Top"))
         self.btnSetTop.clicked.connect(self.set_top)
-        self.btnReset = QPushButton("Reset")
+        self.btnReset = QPushButton(self.tr("Reset"))
         self.btnReset.clicked.connect(self.reset_crop)
 
         self.crop_layout2.addWidget(self.btnSetBottom)
@@ -622,7 +622,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtStatus.setReadOnly(True)
         self.edtStatus.setText("")
 
-        self.btnSave = QPushButton("Save cropped image stack")
+        self.btnSave = QPushButton(self.tr("Save cropped image stack"))
         self.btnSave.clicked.connect(self.save_result)
 
         self.right_layout = QVBoxLayout()
@@ -664,7 +664,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def save_result(self):
         # open dir dialog for save
-        target_dirname = QFileDialog.getExistingDirectory(self, 'Select directory to save', self.edtDirname.text())
+        target_dirname = QFileDialog.getExistingDirectory(self, self.tr('Select directory to save'), self.edtDirname.text())
         if target_dirname == "":
             return
         # get crop box info
@@ -683,7 +683,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_dialog = ProgressDialog(self)
         self.progress_dialog.setModal(True)
         self.progress_dialog.show()
-        self.progress_dialog.lbl_text.setText("Saving image stack...")
+        self.progress_dialog.lbl_text.setText(self.tr("Saving image stack..."))
         self.progress_dialog.pb_progress.setValue(0)
 
         for i, idx in enumerate(range(bottom_idx, top_idx+1)):
@@ -701,7 +701,7 @@ class CTHarvesterMainWindow(QMainWindow):
             # save image
             img.save(os.path.join(target_dirname, filename))
 
-            self.progress_dialog.lbl_text.setText("Saving image stack... {}/{}".format(i+1, int(total_count)))
+            self.progress_dialog.lbl_text.setText(self.tr("Saving image stack... {}/{}").format(i+1, int(total_count)))
             self.progress_dialog.pb_progress.setValue(int(((i+1)/float(int(total_count)))*100))
             self.progress_dialog.update()
             QApplication.processEvents()
@@ -761,10 +761,10 @@ class CTHarvesterMainWindow(QMainWindow):
         [ x1, y1, x2, y2 ] = self.image_label2.get_crop_area(imgxy=True)
         count = ( top_idx - bottom_idx + 1 )
 
-        txt = "Crop indices: {}~{}".format(bottom_idx, top_idx)
-        txt += "    Cropped image size: {}x{}".format(x2 - x1+1, y2 - y1+1)
-        txt += "    Estimated stack size: {} MB".format(round(count * (x2 - x1+1 ) * (y2 - y1+1 ) / 1024 / 1024 , 2))    
-        txt += " ["+str(self.image_label2.edit_mode)+"]"
+        txt = self.tr("Crop indices: {}~{}").format(bottom_idx, top_idx)
+        txt += self.tr("    Cropped image size: {}x{}").format(x2 - x1+1, y2 - y1+1)
+        txt += self.tr("    Estimated stack size: {} MB").format(round(count * (x2 - x1+1 ) * (y2 - y1+1 ) / 1024 / 1024 , 2))    
+        txt += self.tr(" [")+str(self.image_label2.edit_mode)+self.tr("]")
         self.edtStatus.setText(txt)
    
     def initializeComboSize(self):
@@ -876,7 +876,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 from_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i))
 
             total_count = seq_end - seq_begin + 1
-            self.progress_dialog.lbl_text.setText("Creating thumbnail level {}...".format(i+1))
+            self.progress_dialog.lbl_text.setText(self.tr("Creating thumbnail level {}...").format(i+1))
             self.progress_dialog.pb_progress.setValue(0)
 
             # create thumbnail
@@ -889,7 +889,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename3 = os.path.join(to_dir, self.settings_hash['prefix'] + str(seq_begin + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type'])
-                self.progress_dialog.lbl_text.setText("Creating rescaled images level {}... {}/{}".format(i+1, idx+1, int(total_count/2)))
+                self.progress_dialog.lbl_text.setText(self.tr("Creating rescaled images level {}... {}/{}").format(i+1, idx+1, int(total_count/2)))
                 self.progress_dialog.pb_progress.setValue(int(((idx+1)/float(int(total_count/2)))*100))
                 self.progress_dialog.update()
                 if os.path.exists(os.path.join(from_dir, filename3)):
@@ -1120,6 +1120,11 @@ class CTHarvesterMainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    translator = QTranslator(app)
+    translator.load("CTHarvester_ko.qm")     
+    app.installTranslator(translator)
+
     app.setWindowIcon(QIcon(resource_path('CTHarvester_48_2.png')))
     #app.settings = 
     #app.preferences = QSettings("Modan", "Modan2")
@@ -1134,4 +1139,7 @@ if __name__ == "__main__":
     app.exec_()
 '''
 pyinstaller --onefile --noconsole --add-data "*.png;." --icon="CTHarvester_48_2.png" CTHarvester.py
+
+pylupdate5 CTHarvester.py -ts CTHarvester_en.ts
+pylupdate5 CTHarvester.py -ts CTHarvester_ko.ts
 '''
