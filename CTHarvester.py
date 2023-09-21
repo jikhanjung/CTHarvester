@@ -491,10 +491,10 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtDirname.setText("")
         self.edtDirname.setPlaceholderText("Select directory to load CT data")
         self.edtDirname.setMinimumWidth(400)
-        self.edtDirname.setMaximumWidth(400)
+        #self.edtDirname.setMaximumWidth(400)
         self.edtDirname.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.dirname_layout.addWidget(self.edtDirname)
-        self.dirname_layout.addWidget(self.btnOpenDir)
+        self.dirname_layout.addWidget(self.edtDirname,stretch=1)
+        self.dirname_layout.addWidget(self.btnOpenDir,stretch=0)
         self.dirname_widget.setLayout(self.dirname_layout)
 
         self.image_info_layout = QHBoxLayout()
