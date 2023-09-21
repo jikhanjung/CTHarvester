@@ -889,7 +889,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename3 = os.path.join(to_dir, self.settings_hash['prefix'] + str(seq_begin + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type'])
-                self.progress_dialog.lbl_text.setText("Creating smaller images level {}... {}/{}".format(i+1, idx+1, int(total_count/2)))
+                self.progress_dialog.lbl_text.setText("Creating rescaled images level {}... {}/{}".format(i+1, idx+1, int(total_count/2)))
                 self.progress_dialog.pb_progress.setValue(int(((idx+1)/float(int(total_count/2)))*100))
                 self.progress_dialog.update()
                 if os.path.exists(os.path.join(from_dir, filename3)):
@@ -1107,9 +1107,11 @@ class CTHarvesterMainWindow(QMainWindow):
     def read_settings(self):
         self.settings = QSettings(QSettings.IniFormat, QSettings.UserScope,COMPANY_NAME, PROGRAM_NAME)
         self.default_directory = self.settings.value("Default directory", ".")
-    
+        self.setGeometry(self.settings.value("Window geometry", QRect(100, 100, 600, 550)))    
+
     def save_settings(self):
         self.settings.setValue("Default directory", self.default_directory)
+        self.settings.setValue("Window geometry", self.geometry())
 
     def closeEvent(self, event):
         self.save_settings()
