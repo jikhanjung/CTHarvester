@@ -19,6 +19,7 @@ from PyQt5.QtCore import Qt, QRect, QSortFilterProxyModel, QSize, QPoint,\
                          pyqtSlot, QItemSelectionModel, QTimer
 from superqt import QLabeledRangeSlider, QLabeledSlider
 #import vtkmodules.all as vtk
+from PyQt5.QtCore import QT_TR_NOOP as tr
 
 import os, sys, re
 
@@ -47,7 +48,7 @@ MODE['MOVE_BOX_PROGRESS'] = 6
 MODE['MOVE_BOX_READY'] = 7
 DISTANCE_THRESHOLD = 10
 COMPANY_NAME = "PaleoBytes"
-PROGRAM_NAME = "CT Harvester"
+PROGRAM_NAME = tr("CT Harvester")
 PROGRAM_VERSION = "0.1"
 PROGRAM_AUTHOR = "Jikhan Jung"
 
@@ -116,9 +117,10 @@ class ProgressDialog(QDialog):
         #self.btnStop.setGeometry(175, 200, 50, 30)
         self.btnStop.setText(self.tr("Stop"))
         self.btnStop.clicked.connect(self.set_stop_progress)
+        self.btnStop.hide()
         self.layout.addWidget(self.lbl_text)
         self.layout.addWidget(self.pb_progress)
-        self.layout.addWidget(self.btnStop)
+        #self.layout.addWidget(self.btnStop)
         self.setLayout(self.layout)
 
     def set_stop_progress(self):
@@ -512,8 +514,10 @@ class ObjectViewer2D(QLabel):
 class CTHarvesterMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.m_app = QApplication.instance()
+
         self.setWindowIcon(QIcon(resource_path('CTHarvester_48_2.png')))
-        self.setWindowTitle("{} v{}".format(self.tr("CT Harvester"), PROGRAM_VERSION))
+        self.setWindowTitle("{} v{}".format(self.tr(PROGRAM_NAME), PROGRAM_VERSION))
         self.setGeometry(QRect(100, 100, 600, 550))
         self.settings_hash = {}
         self.level_info = []
@@ -546,9 +550,11 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtNumImages = QLineEdit()
         self.edtNumImages.setReadOnly(True)
         self.edtNumImages.setText("")
-        self.image_info_layout.addWidget(QLabel(self.tr("Size:")))
+        self.lblSize01 = QLabel(self.tr("Size:"))
+        self.lblCount01 = QLabel(self.tr("Count:"))
+        self.image_info_layout.addWidget(self.lblSize01)
         self.image_info_layout.addWidget(self.edtImageDimension)
-        self.image_info_layout.addWidget(QLabel(self.tr("Count:")))
+        self.image_info_layout.addWidget(self.lblCount01)
         self.image_info_layout.addWidget(self.edtNumImages)
         self.image_info_widget.setLayout(self.image_info_layout)
 
@@ -613,9 +619,11 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtNumImages2.setText("")
         self.image_info_layout2.addWidget(self.lblLevel)
         self.image_info_layout2.addWidget(self.comboLevel)
-        self.image_info_layout2.addWidget(QLabel(self.tr("Size")))
+        self.lblSize02 = QLabel(self.tr("Size:"))
+        self.lblCount02 = QLabel(self.tr("Count:")) 
+        self.image_info_layout2.addWidget(self.lblSize02)
         self.image_info_layout2.addWidget(self.edtImageDimension2)
-        self.image_info_layout2.addWidget(QLabel(self.tr("Count")))
+        self.image_info_layout2.addWidget(self.lblCount02)
         self.image_info_layout2.addWidget(self.edtNumImages2)
         self.image_info_widget2.setLayout(self.image_info_layout2)
 
@@ -665,6 +673,10 @@ class CTHarvesterMainWindow(QMainWindow):
 
         self.btnSave = QPushButton(self.tr("Save cropped image stack"))
         self.btnSave.clicked.connect(self.save_result)
+        self.comboLang = QComboBox()
+        self.comboLang.addItem("English")
+        self.comboLang.addItem("한국어")
+        self.comboLang.currentIndexChanged.connect(self.comboLangIndexChanged)
 
         self.right_layout = QVBoxLayout()
         self.right_widget = QWidget()
@@ -675,7 +687,13 @@ class CTHarvesterMainWindow(QMainWindow):
         self.right_layout.addWidget(self.image_widget2)
         self.right_layout.addWidget(self.crop_widget2)
         self.right_layout.addWidget(self.edtStatus)
-        self.right_layout.addWidget(self.btnSave)
+        self.button_layout = QHBoxLayout()
+        self.button_layout.addWidget(self.btnSave,stretch=1)
+        self.button_layout.addWidget(self.comboLang,stretch=0)
+        self.button_widget = QWidget()
+        self.button_widget.setLayout(self.button_layout)
+        self.right_layout.addWidget(self.button_widget)
+        #self.right_layout.addWidget(self.btnSave)
 
         self.main_layout = QHBoxLayout()
         self.main_widget = QWidget()
@@ -685,6 +703,31 @@ class CTHarvesterMainWindow(QMainWindow):
 
         self.setCentralWidget(self.main_widget)
         self.initialized = False
+
+    def comboLangIndexChanged(self, idx):
+        if idx == 1:
+            translator = QTranslator()
+            translator.load('CTHarvester_ko.qm')
+            self.m_app.installTranslator(translator)
+        else:
+            translator = QTranslator()
+            translator.load('CTHarvester_en.qm')
+            self.m_app.installTranslator(translator)
+
+        self.setWindowTitle("{} v{}".format(self.tr(PROGRAM_NAME), PROGRAM_VERSION))
+        self.btnOpenDir.setText(self.tr("Open Directory"))
+        self.edtDirname.setPlaceholderText(self.tr("Select directory to load CT data"))
+        self.btnCreateThumbnail.setText(self.tr("Prepare View"))
+        self.lblLevel.setText(self.tr("Level"))
+        self.btnSetBottom.setText(self.tr("Set Bottom"))
+        self.btnSetTop.setText(self.tr("Set Top"))
+        self.btnReset.setText(self.tr("Reset"))
+        self.btnSave.setText(self.tr("Save cropped image stack"))
+        self.lblCount01.setText(self.tr("Count:"))
+        self.lblSize01.setText(self.tr("Size:"))
+        self.lblCount02.setText(self.tr("Count:"))
+        self.lblSize02.setText(self.tr("Size:"))
+            #self.btnLang.setText(self.tr("Lang"))
 
     def set_bottom(self):
         #self.image_label2.set_bottom_idx(self.slider.value())
@@ -748,6 +791,7 @@ class CTHarvesterMainWindow(QMainWindow):
             QApplication.processEvents()
 
         self.progress_dialog.close()
+        self.progress_dialog = None
 
 
     def rangeSliderValueChanged(self):
@@ -960,6 +1004,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 break
 
         self.progress_dialog.close()
+        self.progress_dialog = None
         self.initializeComboSize()
         self.reset_crop()
         thumbnail_size = int(size)
@@ -1076,7 +1121,7 @@ class CTHarvesterMainWindow(QMainWindow):
     def open_dir(self):
         #pass
         #print("open_dir")
-        ddir = QFileDialog.getExistingDirectory(self, "Select directory", self.default_directory)
+        ddir = QFileDialog.getExistingDirectory(self, self.tr("Select directory"), self.default_directory)
         if ddir:
         # ddir is a QString containing the path to the directory you selected
             #print("loading from:", ddir)  # this will output something like 'C://path/you/selected'
