@@ -135,7 +135,7 @@ class PreferencesDialog(QDialog):
     def update_language(self):
         #print("update_language", self.m_app.language)
         translator = QTranslator()
-        translator.load('CTHarvester_{}.qm'.format(self.m_app.language))
+        translator.load(resource_path('CTHarvester_{}.qm').format(self.m_app.language))
         self.m_app.installTranslator(translator)
         
         self.rbRememberGeometryYes.setText(self.tr("Yes"))
