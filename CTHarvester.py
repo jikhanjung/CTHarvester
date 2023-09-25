@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QRadio
                             QFileDialog, QWidget, QHBoxLayout, QVBoxLayout, QProgressBar, QApplication, \
                             QDialog, QLineEdit, QLabel, QPushButton, QAbstractItemView, \
                             QSizePolicy, QGroupBox, QListWidget, QFormLayout
-from PyQt5.QtCore import Qt, QRect, QPoint, QSettings, QTranslator
+from PyQt5.QtCore import Qt, QRect, QPoint, QSettings, QTranslator, QMargins
 from PyQt5.QtCore import QT_TR_NOOP as tr
 from superqt import QLabeledRangeSlider, QLabeledSlider
 
@@ -50,24 +50,23 @@ class PreferencesDialog(QDialog):
         super().__init__()
         self.parent = parent
         self.m_app = QApplication.instance()
-        self.remember_geometry = True
-        self.remember_directory = True
-        self.language = "en"
-        self.default_directory = "."
-
+        #self.m_app.remember_geometry = True
+        #self.m_app.remember_directory = True
+        #self.m_app.language = "en"
+        #self.m_app.default_directory = "."
 
         self.rbRememberGeometryYes = QRadioButton(self.tr("Yes"))
-        self.rbRememberGeometryYes.setChecked(self.remember_geometry)
+        self.rbRememberGeometryYes.setChecked(self.m_app.remember_geometry)
         self.rbRememberGeometryYes.clicked.connect(self.on_rbRememberGeometryYes_clicked)
         self.rbRememberGeometryNo = QRadioButton(self.tr("No"))
-        self.rbRememberGeometryNo.setChecked(not self.remember_geometry)
+        self.rbRememberGeometryNo.setChecked(not self.m_app.remember_geometry)
         self.rbRememberGeometryNo.clicked.connect(self.on_rbRememberGeometryNo_clicked)
 
         self.rbRememberDirectoryYes = QRadioButton(self.tr("Yes"))
-        self.rbRememberDirectoryYes.setChecked(self.remember_directory)
+        self.rbRememberDirectoryYes.setChecked(self.m_app.remember_directory)
         self.rbRememberDirectoryYes.clicked.connect(self.on_rbRememberDirectoryYes_clicked)
         self.rbRememberDirectoryNo = QRadioButton(self.tr("No"))
-        self.rbRememberDirectoryNo.setChecked(not self.remember_directory)
+        self.rbRememberDirectoryNo.setChecked(not self.m_app.remember_directory)
         self.rbRememberDirectoryNo.clicked.connect(self.on_rbRememberDirectoryNo_clicked)
 
         self.gbRememberGeometry = QGroupBox()
@@ -114,51 +113,74 @@ class PreferencesDialog(QDialog):
         self.close()
 
     def on_rbRememberGeometryYes_clicked(self):
-        self.remember_geometry = True
+        self.m_app.remember_geometry = True
 
     def on_rbRememberGeometryNo_clicked(self):
-        self.remember_geometry = False
+        self.m_app.remember_geometry = False
 
     def on_rbRememberDirectoryYes_clicked(self):
-        self.remember_directory = True
+        self.m_app.remember_directory = True
 
     def on_rbRememberDirectoryNo_clicked(self):
-        self.remember_directory = False
+        self.m_app.remember_directory = False
 
     def comboLangIndexChanged(self, index):
         if index == 0:
-            self.language = "en"
+            self.m_app.language = "en"
         elif index == 1:
-            self.language = "ko"
+            self.m_app.language = "ko"
+        #print("self.language:", self.m_app.language)
+        self.update_language()
+
+    def update_language(self):
+        #print("update_language", self.m_app.language)
+        translator = QTranslator()
+        translator.load('CTHarvester_{}.qm'.format(self.m_app.language))
+        self.m_app.installTranslator(translator)
+        
+        self.rbRememberGeometryYes.setText(self.tr("Yes"))
+        self.rbRememberGeometryNo.setText(self.tr("No"))
+        self.rbRememberDirectoryYes.setText(self.tr("Yes"))
+        self.rbRememberDirectoryNo.setText(self.tr("No"))
+        self.gbRememberGeometry.setTitle("")
+        self.gbRememberDirectory.setTitle("")
+        self.comboLang.setItemText(0, self.tr("English"))
+        self.comboLang.setItemText(1, self.tr("Korean"))
+        self.btnOK.setText(self.tr("OK"))
+        self.btnCancel.setText(self.tr("Cancel"))
+        self.form_layout.labelForField(self.gbRememberGeometry).setText(self.tr("Remember Geometry"))
+        self.form_layout.labelForField(self.gbRememberDirectory).setText(self.tr("Remember Directory"))
+        self.form_layout.labelForField(self.comboLang).setText(self.tr("Language"))
+        self.setWindowTitle(self.tr("CTHarvester - Preferences"))
+        self.parent.update_language()
+        self.parent.update_status()
 
     def read_settings(self):
-        self.remember_geometry = value_to_bool(self.m_app.settings.value("Remember geometry", True))
-        self.remember_directory = value_to_bool(self.m_app.settings.value("Remember directory", True))
-        if self.remember_directory:
-            self.default_directory = self.m_app.settings.value("Default directory", ".")
-        else:
-            self.default_directory = "."
-        if self.remember_geometry:
-            self.main_window_geometry = self.m_app.settings.value("MainWindow geometry", QRect(100, 100, 600, 550))
-        else:
-            self.main_window_geometry = QRect(100, 100, 600, 550)
-        self.language = self.m_app.settings.value("Language", "en")
-        self.rbRememberGeometryYes.setChecked(self.remember_geometry)
-        self.rbRememberGeometryNo.setChecked(not self.remember_geometry)
-        self.rbRememberDirectoryYes.setChecked(self.remember_directory)
-        self.rbRememberDirectoryNo.setChecked(not self.remember_directory)
+        self.m_app.remember_geometry = value_to_bool(self.m_app.settings.value("Remember geometry", True))
+        self.m_app.remember_directory = value_to_bool(self.m_app.settings.value("Remember directory", True))
+        self.m_app.language = self.m_app.settings.value("Language", "en")
+        #self.m_app.default_directory = self.m_app.settings.value("Default directory", ".")
+        #print("self.language:", self.m_app.language
+        #        , "self.remember_geometry:", self.m_app.remember_geometry
+        #        , "self.remember_directory:", self.m_app.remember_directory
+        #        , "self.default_directory:", self.m_app.default_directory)
 
-        if self.language == "en":
+        self.rbRememberGeometryYes.setChecked(self.m_app.remember_geometry)
+        self.rbRememberGeometryNo.setChecked(not self.m_app.remember_geometry)
+        self.rbRememberDirectoryYes.setChecked(self.m_app.remember_directory)
+        self.rbRememberDirectoryNo.setChecked(not self.m_app.remember_directory)
+
+        if self.m_app.language == "en":
             self.comboLang.setCurrentIndex(0)
-        elif self.language == "ko":
+        elif self.m_app.language == "ko":
             self.comboLang.setCurrentIndex(1)
+        self.update_language()
 
     def save_settings(self):
-        self.m_app.settings.setValue("Default directory", self.default_directory)
-        self.m_app.settings.setValue("Remember geometry", self.remember_geometry)
-        self.m_app.settings.setValue("Remember directory", self.remember_directory)
-        self.m_app.settings.setValue("MainWindow geometry", self.geometry())
-        self.m_app.settings.setValue("Language", self.language)
+        self.m_app.settings.setValue("Remember geometry", self.m_app.remember_geometry)
+        self.m_app.settings.setValue("Remember directory", self.m_app.remember_directory)
+        self.m_app.settings.setValue("Language", self.m_app.language)
+        self.update_language()
 
 class ProgressDialog(QDialog):
     def __init__(self,parent):
@@ -593,6 +615,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.default_directory = "."
         self.read_settings()
 
+        margin = QMargins(11,0,11,0)
+
         # add file open dialog
         self.dirname_layout = QHBoxLayout()
         self.dirname_widget = QWidget()
@@ -608,6 +632,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.dirname_layout.addWidget(self.edtDirname,stretch=1)
         self.dirname_layout.addWidget(self.btnOpenDir,stretch=0)
         self.dirname_widget.setLayout(self.dirname_layout)
+        #self.dirname_layout.setSpacing(0)
+        self.dirname_layout.setContentsMargins(margin)
 
         self.image_info_layout = QHBoxLayout()
         self.image_info_widget = QWidget()
@@ -693,6 +719,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.image_info_layout2.addWidget(self.lblCount02)
         self.image_info_layout2.addWidget(self.edtNumImages2)
         self.image_info_widget2.setLayout(self.image_info_layout2)
+        #self.image_info_layout2.setSpacing(0)
+        self.image_info_layout2.setContentsMargins(margin)
 
         self.image_widget2 = QWidget()
         self.image_layout2 = QHBoxLayout()
@@ -719,6 +747,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.image_layout2.addWidget(self.range_slider)
         self.image_widget2.setLayout(self.image_layout2)
         #self.image_layout2.setSpacing(20)
+        #self.image_layout2.setSpacing(0)
+        self.image_layout2.setContentsMargins(margin)
 
         self.crop_layout2 = QHBoxLayout()
         self.crop_widget2 = QWidget()
@@ -733,31 +763,45 @@ class CTHarvesterMainWindow(QMainWindow):
         self.crop_layout2.addWidget(self.btnSetTop)
         self.crop_layout2.addWidget(self.btnReset)
         self.crop_widget2.setLayout(self.crop_layout2)
+        #self.crop_layout2.setSpacing(0)
+        self.crop_layout2.setContentsMargins(margin)
 
+        self.status_layout = QHBoxLayout()
+        self.status_widget = QWidget()
         self.edtStatus = QLineEdit()
         self.edtStatus.setReadOnly(True)
         self.edtStatus.setText("")
+        self.status_layout.addWidget(self.edtStatus)
+        self.status_widget.setLayout(self.status_layout)
+        #self.status_layout.setSpacing(0)
+        self.status_layout.setContentsMargins(margin)
 
         self.btnSave = QPushButton(self.tr("Save cropped image stack"))
         self.btnSave.clicked.connect(self.save_result)
         self.btnPreferences = QPushButton(self.tr("Preferences"))
         self.btnPreferences.clicked.connect(self.show_preferences)
+        self.button_layout = QHBoxLayout()
+        self.button_layout.addWidget(self.btnSave,stretch=1)
+        self.button_layout.addWidget(self.btnPreferences,stretch=0)
+        self.button_widget = QWidget()
+        self.button_widget.setLayout(self.button_layout)
+        #self.button_layout.setSpacing(0)
+        self.button_layout.setContentsMargins(margin)
+
+
 
         self.right_layout = QVBoxLayout()
         self.right_widget = QWidget()
+        #self.right_layout.setSpacing(0)
+        self.right_layout.setContentsMargins(0,0,0,0)
         self.right_widget.setLayout(self.right_layout)
         #self.right_layout.addWidget(self.comboSize)
         self.right_layout.addWidget(self.dirname_widget)
         self.right_layout.addWidget(self.image_info_widget2)
         self.right_layout.addWidget(self.image_widget2)
         self.right_layout.addWidget(self.crop_widget2)
-        self.right_layout.addWidget(self.edtStatus)
-        self.button_layout = QHBoxLayout()
-        self.button_layout.addWidget(self.btnSave,stretch=1)
-        self.button_layout.addWidget(self.btnPreferences,stretch=0)
-        self.button_widget = QWidget()
-        self.button_widget.setLayout(self.button_layout)
         self.right_layout.addWidget(self.button_widget)
+        self.right_layout.addWidget(self.status_widget)
         #self.right_layout.addWidget(self.btnSave)
 
         self.main_layout = QHBoxLayout()
@@ -765,6 +809,11 @@ class CTHarvesterMainWindow(QMainWindow):
         self.main_widget.setLayout(self.main_layout)
         #self.main_layout.addWidget(self.left_widget)
         self.main_layout.addWidget(self.right_widget)
+        #self.main_layout.setSpacing(0)
+        #self.main_layout.setContentsMargins(11,,11,0)
+        
+        #self.main_layout.setContentsMargins(margin)
+        self.status_format = self.tr("Crop indices: {}~{}    Cropped image size: {}x{}    Estimated stack size: {} MB [{}]")
 
         self.setCentralWidget(self.main_widget)
         self.initialized = False
@@ -773,16 +822,14 @@ class CTHarvesterMainWindow(QMainWindow):
         self.settings_dialog = PreferencesDialog(self)
         self.settings_dialog.setModal(True)
         self.settings_dialog.show()
+        #self.settings_dialog.close()
+        #self.settings_dialog = None
 
-    def comboLangIndexChanged(self, idx):
-        if idx == 1:
-            translator = QTranslator()
-            translator.load('CTHarvester_ko.qm')
-            self.m_app.installTranslator(translator)
-        else:
-            translator = QTranslator()
-            translator.load('CTHarvester_en.qm')
-            self.m_app.installTranslator(translator)
+    def update_language(self):
+        #print("main update language", self.m_app.language)
+        translator = QTranslator()
+        translator.load('CTHarvester_{}.qm'.format(self.m_app.language))
+        self.m_app.installTranslator(translator)
 
         self.setWindowTitle("{} v{}".format(self.tr(PROGRAM_NAME), PROGRAM_VERSION))
         self.btnOpenDir.setText(self.tr("Open Directory"))
@@ -797,6 +844,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.lblSize01.setText(self.tr("Size:"))
         self.lblCount02.setText(self.tr("Count:"))
         self.lblSize02.setText(self.tr("Size:"))
+        self.btnPreferences.setText(self.tr("Preferences"))
+        self.status_format = self.tr("Crop indices: {}~{}    Cropped image size: {}x{}    Estimated stack size: {} MB [{}]")
             #self.btnLang.setText(self.tr("Lang"))
 
     def set_bottom(self):
@@ -915,12 +964,16 @@ class CTHarvesterMainWindow(QMainWindow):
         ( bottom_idx, top_idx ) = self.range_slider.value()
         [ x1, y1, x2, y2 ] = self.image_label2.get_crop_area(imgxy=True)
         count = ( top_idx - bottom_idx + 1 )
+        #self.status_format = self.tr("Crop indices: {}~{}    Cropped image size: {}x{}    Estimated stack size: {} MB [{}]")
+        status_text = self.status_format.format(bottom_idx, top_idx, x2 - x1+1, y2 - y1+1, round(count * (x2 - x1+1 ) * (y2 - y1+1 ) / 1024 / 1024 , 2), str(self.image_label2.edit_mode))
+        self.edtStatus.setText(status_text)
+        return
 
-        txt = self.tr("Crop indices: {}~{}").format(bottom_idx, top_idx)
-        txt += self.tr("    Cropped image size: {}x{}").format(x2 - x1+1, y2 - y1+1)
-        txt += self.tr("    Estimated stack size: {} MB").format(round(count * (x2 - x1+1 ) * (y2 - y1+1 ) / 1024 / 1024 , 2))    
-        txt += self.tr(" [")+str(self.image_label2.edit_mode)+self.tr("]")
-        self.edtStatus.setText(txt)
+        #txt = self.tr("Crop indices: {}~{}").format(bottom_idx, top_idx)
+        #txt += self.tr("    Cropped image size: {}x{}").format(x2 - x1+1, y2 - y1+1)
+        #txt += self.tr("    Estimated stack size: {} MB").format(round(count * (x2 - x1+1 ) * (y2 - y1+1 ) / 1024 / 1024 , 2))    
+        #txt += self.tr(" [")+str(self.image_label2.edit_mode)+self.tr("]")
+        #self.edtStatus.setText(txt)
    
     def initializeComboSize(self):
         #print("initializeComboSize")
@@ -1191,12 +1244,13 @@ class CTHarvesterMainWindow(QMainWindow):
     def open_dir(self):
         #pass
         #print("open_dir")
-        ddir = QFileDialog.getExistingDirectory(self, self.tr("Select directory"), self.default_directory)
+        ddir = QFileDialog.getExistingDirectory(self, self.tr("Select directory"), self.m_app.default_directory)
         if ddir:
         # ddir is a QString containing the path to the directory you selected
             #print("loading from:", ddir)  # this will output something like 'C://path/you/selected'
             self.edtDirname.setText(ddir)
-            self.default_directory = os.path.dirname(ddir)
+            self.m_app.default_directory = os.path.dirname(ddir)
+            #print("default directory:", self.m_app.default_directory)
         else:
             return
         self.settings_hash = {}
@@ -1263,31 +1317,27 @@ class CTHarvesterMainWindow(QMainWindow):
     def read_settings(self):
         settings = self.m_app.settings
 
-        settings.remember_directory = value_to_bool(settings.value("Remember directory", True))
-        settings.remember_geometry = value_to_bool(settings.value("Remember geometry", True))
-        if settings.remember_directory:
-            self.default_directory = settings.value("Default directory", ".")
-        self.m_app.settings.default_directory = self.m_app.settings.value("Default directory", ".")
-        self.setGeometry(self.m_app.settings.value("MainWindow geometry", QRect(100, 100, 600, 550)))
-        
-        settings.default_directory = settings.value("Default directory", ".")
-        self.m_app.settings.default_directory = self.m_app.settings.value("Default directory", ".")
-        self.setGeometry(self.m_app.settings.value("MainWindow geometry", QRect(100, 100, 600, 550)))    
-        self.remember_geometry = value_to_bool(self.m_app.settings.value("Remember geometry", True))
-        self.remember_directory = value_to_bool(self.m_app.settings.value("Remember directory", True))
-            self.default_directory = self.m_app.settings.value("Default directory", ".")
+        self.m_app.remember_directory = value_to_bool(settings.value("Remember directory", True))
+        #print("read settings remember directory:", self.m_app.remember_directory)
+        if self.m_app.remember_directory:
+            self.m_app.default_directory = settings.value("Default directory", ".")
         else:
-            self.default_directory = "."
-        if self.remember_geometry:
-            self.main_window_geometry = self.m_app.settings.value("MainWindow geometry", QRect(100, 100, 600, 550))
+            self.m_app.default_directory = "."
+        #print("read settings default directory:", self.m_app.default_directory)
+
+        self.m_app.remember_geometry = value_to_bool(settings.value("Remember geometry", True))
+        if self.m_app.remember_geometry:
+            self.setGeometry(settings.value("MainWindow geometry", QRect(100, 100, 600, 550)))
         else:
-            self.main_window_geometry = QRect(100, 100, 600, 550)
-        self.language = self.m_app.settings.value("Language", "en")
+            self.setGeometry(QRect(100, 100, 600, 550))
+        self.m_app.language = settings.value("Language", "en")
 
     def save_settings(self):
-        if self.m_app.settings.remember_directory:
-            self.m_app.settings.setValue("Default directory", self.default_directory)
-        if self.m_app.settings.remember_geometry:
+        #print("save default directory:", self.m_app.default_directory)
+        if self.m_app.remember_directory:
+            self.m_app.settings.setValue("Default directory", self.m_app.default_directory)
+            #print("save default directory:", self.m_app.default_directory)
+        if self.m_app.remember_geometry:
             self.m_app.settings.setValue("MainWindow geometry", self.geometry())
 
     def closeEvent(self, event):
@@ -1302,8 +1352,8 @@ if __name__ == "__main__":
     app.settings = QSettings(QSettings.IniFormat, QSettings.UserScope,COMPANY_NAME, PROGRAM_NAME)
 
     translator = QTranslator(app)
-    lang = app.settings.value("Language", "en")
-    translator.load(resource_path("CTHarvester_{}.qm".format(lang)))
+    app.language = app.settings.value("Language", "en")
+    translator.load(resource_path("CTHarvester_{}.qm".format(app.language)))
     app.installTranslator(translator)
 
 
@@ -1312,7 +1362,6 @@ if __name__ == "__main__":
 
     #WindowClass의 인스턴스 생성
     myWindow = CTHarvesterMainWindow()
-    myWindow.m_app = app
 
     #프로그램 화면을 보여주는 코드
     myWindow.show()
@@ -1320,8 +1369,10 @@ if __name__ == "__main__":
     #프로그램을 이벤트루프로 진입시키는(프로그램을 작동시키는) 코드
     app.exec_()
 '''
-pyinstaller --onefile --noconsole --add-data "*.png;." --icon="CTHarvester_48_2.png" CTHarvester.py
+pyinstaller --onefile --noconsole --add-data "*.png;." --add-data "*.qm;." --icon="CTHarvester_48_2.png" CTHarvester.py
 
 pylupdate5 CTHarvester.py -ts CTHarvester_en.ts
 pylupdate5 CTHarvester.py -ts CTHarvester_ko.ts
+linguist
+
 '''

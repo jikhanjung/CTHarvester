@@ -8,7 +8,7 @@ a = Analysis(
     ['CTHarvester.py'],
     pathex=[],
     binaries=[],
-    datas=[('*.png', '.')],
+    datas=[('*.png', '.'), ('*.qm', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
