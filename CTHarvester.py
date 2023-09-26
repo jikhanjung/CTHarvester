@@ -130,7 +130,6 @@ class PreferencesDialog(QDialog):
         elif index == 1:
             self.m_app.language = "ko"
         #print("self.language:", self.m_app.language)
-        self.update_language()
 
     def update_language(self):
         #print("update_language", self.m_app.language)
@@ -189,6 +188,7 @@ class ProgressDialog(QDialog):
         #self.setGeometry(200, 250, 400, 250)
         self.setWindowTitle(self.tr("CTHarvester - Progress Dialog"))
         self.parent = parent
+        self.m_app = QApplication.instance()
         self.setGeometry(QRect(100, 100, 320, 180))
         self.move(self.parent.pos()+QPoint(100,100))
 
@@ -211,6 +211,7 @@ class ProgressDialog(QDialog):
         self.layout.addWidget(self.pb_progress)
         #self.layout.addWidget(self.btnStop)
         self.setLayout(self.layout)
+        #self.update_language()
 
     def set_stop_progress(self):
         self.stop_progress = True
@@ -228,6 +229,16 @@ class ProgressDialog(QDialog):
         #self.lbl_text.setText(label_text)
         self.update()
         QApplication.processEvents()
+
+    def update_language(self):
+        #print("update_language", self.m_app.language)
+        translator = QTranslator()
+        translator.load(resource_path('CTHarvester_{}.qm').format(self.m_app.language))
+        self.m_app.installTranslator(translator)
+        
+        self.setWindowTitle(self.tr("CTHarvester - Progress Dialog"))
+        self.btnStop.setText(self.tr("Stop"))
+
 
 class ObjectViewer2D(QLabel):
     def __init__(self, widget):
@@ -814,6 +825,10 @@ class CTHarvesterMainWindow(QMainWindow):
         
         #self.main_layout.setContentsMargins(margin)
         self.status_format = self.tr("Crop indices: {}~{}    Cropped image size: {}x{}    Estimated stack size: {} MB [{}]")
+        self.progress_text_1_1 = self.tr("Saving image stack...")
+        self.progress_text_1_2 = self.tr("Saving image stack... {}/{}")
+        self.progress_text_2_1 = self.tr("Creating rescaled images level {}...")
+        self.progress_text_2_2 = self.tr("Creating rescaled images level {}... {}/{}")
 
         self.setCentralWidget(self.main_widget)
         self.initialized = False
@@ -846,6 +861,10 @@ class CTHarvesterMainWindow(QMainWindow):
         self.lblSize02.setText(self.tr("Size:"))
         self.btnPreferences.setText(self.tr("Preferences"))
         self.status_format = self.tr("Crop indices: {}~{}    Cropped image size: {}x{}    Estimated stack size: {} MB [{}]")
+        self.progress_text_1_2 = self.tr("Saving image stack... {}/{}")
+        self.progress_text_1_1 = self.tr("Saving image stack...")
+        self.progress_text_2_1 = self.tr("Creating rescaled images level {}...")
+        self.progress_text_2_2 = self.tr("Creating rescaled images level {}... {}/{}")
             #self.btnLang.setText(self.tr("Lang"))
 
     def set_bottom(self):
@@ -884,9 +903,10 @@ class CTHarvesterMainWindow(QMainWindow):
         current_count = 0
         total_count = top_idx - bottom_idx + 1
         self.progress_dialog = ProgressDialog(self)
+        self.progress_dialog.update_language()
         self.progress_dialog.setModal(True)
         self.progress_dialog.show()
-        self.progress_dialog.lbl_text.setText(self.tr("Saving image stack..."))
+        self.progress_dialog.lbl_text.setText(self.progress_text_1_1)
         self.progress_dialog.pb_progress.setValue(0)
 
         for i, idx in enumerate(range(bottom_idx, top_idx+1)):
@@ -900,11 +920,13 @@ class CTHarvesterMainWindow(QMainWindow):
             # open image
             img = Image.open(fullpath)
             # crop image
-            img = img.crop((from_x, from_y, to_x, to_y))
+            #print("crop", from_x, from_y, to_x, to_y)
+            if from_x > -1:
+                img = img.crop((from_x, from_y, to_x, to_y))
             # save image
             img.save(os.path.join(target_dirname, filename))
 
-            self.progress_dialog.lbl_text.setText(self.tr("Saving image stack... {}/{}").format(i+1, int(total_count)))
+            self.progress_dialog.lbl_text.setText(self.progress_text_1_2.format(i+1, int(total_count)))
             self.progress_dialog.pb_progress.setValue(int(((i+1)/float(int(total_count)))*100))
             self.progress_dialog.update()
             QApplication.processEvents()
@@ -1070,6 +1092,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
         current_count = 0
         self.progress_dialog = ProgressDialog(self)
+        self.progress_dialog.update_language()
         self.progress_dialog.setModal(True)
         self.progress_dialog.show()
 
@@ -1084,7 +1107,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 from_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i))
 
             total_count = seq_end - seq_begin + 1
-            self.progress_dialog.lbl_text.setText(self.tr("Creating thumbnail level {}...").format(i+1))
+            self.progress_dialog.lbl_text.setText(self.progress_text_2_1.format(i+1))
             self.progress_dialog.pb_progress.setValue(0)
 
             # create thumbnail
@@ -1097,7 +1120,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename3 = os.path.join(to_dir, self.settings_hash['prefix'] + str(seq_begin + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type'])
-                self.progress_dialog.lbl_text.setText(self.tr("Creating rescaled images level {}... {}/{}").format(i+1, idx+1, int(total_count/2)))
+                self.progress_dialog.lbl_text.setText(self.progress_text_2_2.format(i+1, idx+1, int(total_count/2)))
                 self.progress_dialog.pb_progress.setValue(int(((idx+1)/float(int(total_count/2)))*100))
                 self.progress_dialog.update()
                 if os.path.exists(os.path.join(from_dir, filename3)):
@@ -1265,14 +1288,16 @@ class CTHarvesterMainWindow(QMainWindow):
             if ext in [".bmp", ".jpg", ".png", ".tif", ".tiff"]:
                 pass #image_file_list.append(file)
             elif ext == '.log':
-                fn = file
-                #print("log file:", fn)
-                settings = QSettings(file, QSettings.IniFormat)
+                #fn = file
+                #print("log file:", ddir, file)
+                settings = QSettings(os.path.join(ddir, file), QSettings.IniFormat)
+                #print("settings:", settings, settings.fileName(), settings.status(), settings.allKeys())
                 prefix = settings.value("File name convention/Filename Prefix")
                 if not prefix:
                     continue
                 if file != prefix + ".log":
                     continue
+
                 self.settings_hash['prefix'] = settings.value("File name convention/Filename Prefix")
                 self.settings_hash['image_width'] = settings.value("Reconstruction/Result Image Width (pixels)")
                 self.settings_hash['image_height'] = settings.value("Reconstruction/Result Image Height (pixels)")
@@ -1281,6 +1306,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 self.settings_hash['seq_begin'] = settings.value("Reconstruction/First Section")
                 self.settings_hash['seq_end'] = settings.value("Reconstruction/Last Section")
                 #print("Settings hash:", self.settings_hash)
+                #print("prefix:", prefix)
                 self.settings_hash['index_length'] = int(self.settings_hash['index_length'])
                 self.settings_hash['seq_begin'] = int(self.settings_hash['seq_begin'])
                 self.settings_hash['seq_end'] = int(self.settings_hash['seq_end'])
