@@ -2,7 +2,7 @@ from PyQt5.QtGui import QIcon, QColor, QPainter, QPen, QPixmap, QPainter, QMouse
 from PyQt5.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QRadioButton, QComboBox, \
                             QFileDialog, QWidget, QHBoxLayout, QVBoxLayout, QProgressBar, QApplication, \
                             QDialog, QLineEdit, QLabel, QPushButton, QAbstractItemView, \
-                            QSizePolicy, QGroupBox, QListWidget, QFormLayout
+                            QSizePolicy, QGroupBox, QListWidget, QFormLayout, QCheckBox
 from PyQt5.QtCore import Qt, QRect, QPoint, QSettings, QTranslator, QMargins
 from PyQt5.QtCore import QT_TR_NOOP as tr
 from superqt import QLabeledRangeSlider, QLabeledSlider
@@ -532,7 +532,7 @@ class ObjectViewer2D(QLabel):
         if imgxy == True:
             #print("imagexy true", from_x, self.orig_pixmap)
             if from_x <= 0 and from_y <= 0 and to_x <= 0 and to_y <= 0 and self.orig_pixmap:
-                return [ 0,0,self.orig_pixmap.width()-1,self.orig_pixmap.height()-1]
+                return [ 0,0,self.orig_pixmap.width(),self.orig_pixmap.height()]
             else:
                 return [self._2imgx(from_x), self._2imgy(from_y), self._2imgx(to_x), self._2imgy(to_y)]
         else:
@@ -654,8 +654,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtNumImages = QLineEdit()
         self.edtNumImages.setReadOnly(True)
         self.edtNumImages.setText("")
-        self.lblSize01 = QLabel(self.tr("Size:"))
-        self.lblCount01 = QLabel(self.tr("Count:"))
+        self.lblSize01 = QLabel(self.tr("Size"))
+        self.lblCount01 = QLabel(self.tr("Count"))
         self.image_info_layout.addWidget(self.lblSize01)
         self.image_info_layout.addWidget(self.edtImageDimension)
         self.image_info_layout.addWidget(self.lblCount01)
@@ -723,8 +723,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtNumImages2.setText("")
         self.image_info_layout2.addWidget(self.lblLevel)
         self.image_info_layout2.addWidget(self.comboLevel)
-        self.lblSize02 = QLabel(self.tr("Size:"))
-        self.lblCount02 = QLabel(self.tr("Count:")) 
+        self.lblSize02 = QLabel(self.tr("Size"))
+        self.lblCount02 = QLabel(self.tr("Count")) 
         self.image_info_layout2.addWidget(self.lblSize02)
         self.image_info_layout2.addWidget(self.edtImageDimension2)
         self.image_info_layout2.addWidget(self.lblCount02)
@@ -787,11 +787,14 @@ class CTHarvesterMainWindow(QMainWindow):
         #self.status_layout.setSpacing(0)
         self.status_layout.setContentsMargins(margin)
 
+        self.cbxOpenDirAfter = QCheckBox(self.tr("Open dir. after"))
+        self.cbxOpenDirAfter.setChecked(True)
         self.btnSave = QPushButton(self.tr("Save cropped image stack"))
         self.btnSave.clicked.connect(self.save_result)
         self.btnPreferences = QPushButton(self.tr("Preferences"))
         self.btnPreferences.clicked.connect(self.show_preferences)
         self.button_layout = QHBoxLayout()
+        self.button_layout.addWidget(self.cbxOpenDirAfter,stretch=0)
         self.button_layout.addWidget(self.btnSave,stretch=1)
         self.button_layout.addWidget(self.btnPreferences,stretch=0)
         self.button_widget = QWidget()
@@ -824,7 +827,7 @@ class CTHarvesterMainWindow(QMainWindow):
         #self.main_layout.setContentsMargins(11,,11,0)
         
         #self.main_layout.setContentsMargins(margin)
-        self.status_format = self.tr("Crop indices: {}~{}    Cropped image size: {}x{}    Estimated stack size: {} MB [{}]")
+        self.status_text_format = self.tr("Crop indices: {}~{} Cropped image size: {}x{} ({},{})-({},{}) Estimated stack size: {} MB [{}]")
         self.progress_text_1_1 = self.tr("Saving image stack...")
         self.progress_text_1_2 = self.tr("Saving image stack... {}/{}")
         self.progress_text_2_1 = self.tr("Creating rescaled images level {}...")
@@ -854,13 +857,14 @@ class CTHarvesterMainWindow(QMainWindow):
         self.btnSetBottom.setText(self.tr("Set Bottom"))
         self.btnSetTop.setText(self.tr("Set Top"))
         self.btnReset.setText(self.tr("Reset"))
+        self.cbxOpenDirAfter.setText(self.tr("Open dir. after"))
         self.btnSave.setText(self.tr("Save cropped image stack"))
-        self.lblCount01.setText(self.tr("Count:"))
-        self.lblSize01.setText(self.tr("Size:"))
-        self.lblCount02.setText(self.tr("Count:"))
-        self.lblSize02.setText(self.tr("Size:"))
+        self.lblCount01.setText(self.tr("Count"))
+        self.lblSize01.setText(self.tr("Size"))
+        self.lblCount02.setText(self.tr("Count"))
+        self.lblSize02.setText(self.tr("Size"))
         self.btnPreferences.setText(self.tr("Preferences"))
-        self.status_format = self.tr("Crop indices: {}~{}    Cropped image size: {}x{}    Estimated stack size: {} MB [{}]")
+        self.status_text_format = self.tr("Crop indices: {}~{} Cropped image size: {}x{} ({},{})-({},{}) Estimated stack size: {} MB [{}]")
         self.progress_text_1_2 = self.tr("Saving image stack... {}/{}")
         self.progress_text_1_1 = self.tr("Saving image stack...")
         self.progress_text_2_1 = self.tr("Creating rescaled images level {}...")
@@ -908,6 +912,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_dialog.show()
         self.progress_dialog.lbl_text.setText(self.progress_text_1_1)
         self.progress_dialog.pb_progress.setValue(0)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
 
         for i, idx in enumerate(range(bottom_idx, top_idx+1)):
             filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
@@ -931,8 +936,11 @@ class CTHarvesterMainWindow(QMainWindow):
             self.progress_dialog.update()
             QApplication.processEvents()
 
+        QApplication.restoreOverrideCursor()
         self.progress_dialog.close()
         self.progress_dialog = None
+        if self.cbxOpenDirAfter.isChecked():
+            os.startfile(target_dirname)
 
 
     def rangeSliderValueChanged(self):
@@ -987,7 +995,7 @@ class CTHarvesterMainWindow(QMainWindow):
         [ x1, y1, x2, y2 ] = self.image_label2.get_crop_area(imgxy=True)
         count = ( top_idx - bottom_idx + 1 )
         #self.status_format = self.tr("Crop indices: {}~{}    Cropped image size: {}x{}    Estimated stack size: {} MB [{}]")
-        status_text = self.status_format.format(bottom_idx, top_idx, x2 - x1+1, y2 - y1+1, round(count * (x2 - x1+1 ) * (y2 - y1+1 ) / 1024 / 1024 , 2), str(self.image_label2.edit_mode))
+        status_text = self.status_text_format.format(bottom_idx, top_idx, x2 - x1, y2 - y1, x1, y1, x2, y2, round(count * (x2 - x1 ) * (y2 - y1 ) / 1024 / 1024 , 2), str(self.image_label2.edit_mode))
         self.edtStatus.setText(status_text)
         return
 
@@ -1095,6 +1103,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_dialog.update_language()
         self.progress_dialog.setModal(True)
         self.progress_dialog.show()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
 
         while True:
             size /= 2
@@ -1148,7 +1157,8 @@ class CTHarvesterMainWindow(QMainWindow):
             self.level_info.append( {'name': "Level " + str(i), 'width': width, 'height': height, 'seq_begin': seq_begin, 'seq_end': seq_end} )
             if size < MAX_THUMBNAIL_SIZE:
                 break
-
+            
+        QApplication.restoreOverrideCursor()
         self.progress_dialog.close()
         self.progress_dialog = None
         self.initializeComboSize()
@@ -1280,6 +1290,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.initialized = False
         image_file_list = []
         self.lstFileList.clear()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
         files = [f for f in os.listdir(ddir) if os.path.isfile(os.path.join(ddir, f))]
 
         for file in files:
@@ -1338,6 +1350,7 @@ class CTHarvesterMainWindow(QMainWindow):
         #print("level_info in open_dir:", self.level_info)
         #self.initializeComboSize()
         #self.open_dir()
+        QApplication.restoreOverrideCursor()
         self.create_thumbnail()
 
     def read_settings(self):
