@@ -9,6 +9,7 @@ from superqt import QLabeledRangeSlider, QLabeledSlider
 
 import os, sys, re
 from PIL import Image, ImageChops
+import numpy as np
 
 def value_to_bool(value):
     return value.lower() == 'true' if isinstance(value, str) else bool(value)
@@ -1138,10 +1139,17 @@ class CTHarvesterMainWindow(QMainWindow):
                 img1 = None
                 if os.path.exists(os.path.join(from_dir, filename1)):
                     img1 = Image.open(os.path.join(from_dir, filename1))
+                    if img1.mode[0] == 'I':
+                        img1 = Image.fromarray(np.divide(np.array(img1), 2**8-1)).convert('L')
+                        img1 = img1.convert('L')
                 img2 = None
                 if os.path.exists(os.path.join(from_dir, filename2)):
                     img2 = Image.open(os.path.join(from_dir, filename2))
+                    if img2.mode[0] == 'I':
+                    #if img2.mode != 'L':
+                        img2 = Image.fromarray(np.divide(np.array(img2), 2**8-1)).convert('L')
                 # average two images
+                #print("img1:", img1.mode, "img2:", img2.mode)
                 if img1 is None or img2 is None:
                     last_count = -1
                     continue
