@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QRadio
 from PyQt5.QtCore import Qt, QRect, QPoint, QSettings, QTranslator, QMargins
 from PyQt5.QtCore import QT_TR_NOOP as tr
 from superqt import QLabeledRangeSlider, QLabeledSlider
+from mcube_test import MCubeWidget
 
 import os, sys, re
 from PIL import Image, ImageChops
@@ -34,7 +35,7 @@ MODE['MOVE_BOX_READY'] = 7
 DISTANCE_THRESHOLD = 10
 COMPANY_NAME = "PaleoBytes"
 PROGRAM_NAME = "CT Harvester"
-PROGRAM_VERSION = "0.1"
+PROGRAM_VERSION = "0.2"
 PROGRAM_AUTHOR = "Jikhan Jung"
 
 class PreferencesDialog(QDialog):
@@ -742,6 +743,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.slider.setValue(0)
         self.range_slider = QLabeledRangeSlider(Qt.Vertical)
         self.range_slider.setValue((0,99))
+        #self.mcube_widget.setMinimumHeight(200)
+        #self.mcube_widget.setMinimumWidth(200)
 
         #self.slider.setTickInterval(1)
         #self.slider.setTickPosition(QSlider.TicksBothSides)
@@ -757,10 +760,25 @@ class CTHarvesterMainWindow(QMainWindow):
         self.image_layout2.addWidget(self.image_label2,stretch=1)
         self.image_layout2.addWidget(self.slider)
         self.image_layout2.addWidget(self.range_slider)
+        #self.image_layout2.addWidget(self.mcube_widget,stretch=1)
         self.image_widget2.setLayout(self.image_layout2)
         #self.image_layout2.setSpacing(20)
         #self.image_layout2.setSpacing(0)
         self.image_layout2.setContentsMargins(margin)
+
+        self.threed_widget = QWidget()
+        self.threed_layout = QHBoxLayout()
+        self.mcube_widget = MCubeWidget()
+        self.slider2 = QLabeledSlider(Qt.Vertical)
+        self.slider2.setValue(60)
+        self.slider2.setMaximum(255)
+        self.slider2.setSingleStep(1)
+        self.slider2.valueChanged.connect(self.slider2ValueChanged)
+        self.threed_layout.addWidget(self.mcube_widget,stretch=1)
+        self.threed_layout.addWidget(self.slider2)
+        self.threed_widget.setLayout(self.threed_layout)
+
+        self.image_layout2.addWidget(self.threed_widget,stretch=1)
 
         self.crop_layout2 = QHBoxLayout()
         self.crop_widget2 = QWidget()
@@ -770,10 +788,13 @@ class CTHarvesterMainWindow(QMainWindow):
         self.btnSetTop.clicked.connect(self.set_top)
         self.btnReset = QPushButton(self.tr("Reset"))
         self.btnReset.clicked.connect(self.reset_crop)
+        self.btnUpdate3DView = QPushButton(self.tr("Update 3D View"))
+        self.btnUpdate3DView.clicked.connect(self.update_3D_view)
 
         self.crop_layout2.addWidget(self.btnSetBottom)
         self.crop_layout2.addWidget(self.btnSetTop)
         self.crop_layout2.addWidget(self.btnReset)
+        self.crop_layout2.addWidget(self.btnUpdate3DView)
         self.crop_widget2.setLayout(self.crop_layout2)
         #self.crop_layout2.setSpacing(0)
         self.crop_layout2.setContentsMargins(margin)
@@ -887,7 +908,59 @@ class CTHarvesterMainWindow(QMainWindow):
         #print("resizeEvent")
 
         return super().resizeEvent(a0)
-    
+
+    def update_3D_view(self):
+        self.get_cropped_volume()
+        self.mcube_widget.generate_mesh()
+        self.mcube_widget.repaint()
+        #pass
+
+    def get_cropped_volume(self):
+        # get current size idx
+        size_idx = self.comboLevel.currentIndex()
+
+
+        level_info = self.level_info[self.curr_level_idx]
+        #print("level_info:", self.level_info)
+        seq_begin = level_info['seq_begin']
+        seq_end = level_info['seq_end']
+        image_count = seq_end - seq_begin + 1
+
+        # get current size
+        curr_width = level_info['width']
+        curr_height = level_info['height']
+
+        # get top and bottom idx
+        top_idx = self.image_label2.top_idx
+        bottom_idx = self.image_label2.bottom_idx
+
+        #get current crop box
+        crop_box = self.image_label2.get_crop_area(imgxy=True)
+
+        # get cropbox coordinates when image width and height is 1
+        from_x = crop_box[0] / float(curr_width)
+        from_y = crop_box[1] / float(curr_height)
+        to_x = crop_box[2] / float(curr_width)
+        to_y = crop_box[3] / float(curr_height)
+
+        # get top idx and bottom idx when image count is 1
+        top_idx = top_idx / float(image_count)
+        bottom_idx = bottom_idx / float(image_count)
+
+        # get cropped volume for smallest size
+        smallest_level_info = self.level_info[-1]
+
+        smallest_count = smallest_level_info['seq_end'] - smallest_level_info['seq_begin'] + 1
+        bottom_idx = int(bottom_idx * smallest_count)
+        top_idx = int(top_idx * smallest_count)
+        from_x = int(from_x * smallest_level_info['width'])
+        from_y = int(from_y * smallest_level_info['height'])
+        to_x = int(to_x * smallest_level_info['width'])
+        to_y = int(to_y * smallest_level_info['height'])
+
+        volume = self.minimum_volume[bottom_idx:top_idx, from_y:to_y, from_x:to_x]
+        self.mcube_widget.set_volume(volume)
+
 
     def save_result(self):
         # open dir dialog for save
@@ -1095,7 +1168,8 @@ class CTHarvesterMainWindow(QMainWindow):
         i = 0
         # create temporary directory for thumbnail
         dirname = self.edtDirname.text()
-        
+
+        self.minimum_volume = []
         seq_begin = self.settings_hash['seq_begin']
         seq_end = self.settings_hash['seq_end']
 
@@ -1130,39 +1204,60 @@ class CTHarvesterMainWindow(QMainWindow):
                 filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename3 = os.path.join(to_dir, self.settings_hash['prefix'] + str(seq_begin + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type'])
+                #print("filename1:", filename1)
+                #print("filename2:", filename2)
+                #print("filename3:", filename3)
                 self.progress_dialog.lbl_text.setText(self.progress_text_2_2.format(i+1, idx+1, int(total_count/2)))
                 self.progress_dialog.pb_progress.setValue(int(((idx+1)/float(int(total_count/2)))*100))
                 self.progress_dialog.update()
-                if os.path.exists(os.path.join(from_dir, filename3)):
+                if os.path.exists(filename3):  
+                    if size < MAX_THUMBNAIL_SIZE:
+                        img= Image.open(os.path.join(from_dir,filename3))
+                        #print("new_img_ops:", np.array(img).shape)
+                        self.minimum_volume.append(np.array(img))
                     continue
-                # check if filename exist
-                img1 = None
-                if os.path.exists(os.path.join(from_dir, filename1)):
-                    img1 = Image.open(os.path.join(from_dir, filename1))
-                    if img1.mode[0] == 'I':
-                        img1 = Image.fromarray(np.divide(np.array(img1), 2**8-1)).convert('L')
-                img2 = None
-                if os.path.exists(os.path.join(from_dir, filename2)):
-                    img2 = Image.open(os.path.join(from_dir, filename2))
-                    if img2.mode[0] == 'I':
-                        img2 = Image.fromarray(np.divide(np.array(img2), 2**8-1)).convert('L')
-                # average two images
-                #print("img1:", img1.mode, "img2:", img2.mode)
-                if img1 is None or img2 is None:
-                    last_count = -1
-                    continue
-                new_img_ops = ImageChops.add(img1, img2, scale=2.0)
-                # resize to half
-                new_img_ops = new_img_ops.resize((int(img1.width / 2), int(img1.height / 2)))
-                # save to temporary directory
-                new_img_ops.save(filename3)
+                else:
+                    # check if filename exist
+                    img1 = None
+                    if os.path.exists(os.path.join(from_dir, filename1)):
+                        img1 = Image.open(os.path.join(from_dir, filename1))
+                        if img1.mode[0] == 'I':
+                            img1 = Image.fromarray(np.divide(np.array(img1), 2**8-1)).convert('L')
+                    img2 = None
+                    if os.path.exists(os.path.join(from_dir, filename2)):
+                        img2 = Image.open(os.path.join(from_dir, filename2))
+                        if img2.mode[0] == 'I':
+                            img2 = Image.fromarray(np.divide(np.array(img2), 2**8-1)).convert('L')
+                    # average two images
+                    #print("img1:", img1.mode, "img2:", img2.mode)
+                    if img1 is None or img2 is None:
+                        last_count = -1
+                        continue
+                    new_img_ops = ImageChops.add(img1, img2, scale=2.0)
+                    # resize to half
+                    new_img_ops = new_img_ops.resize((int(img1.width / 2), int(img1.height / 2)))
+                    # save to temporary directory
+                    new_img_ops.save(filename3)
+
+                    if size < MAX_THUMBNAIL_SIZE:
+                        print("new_img_ops:", np.array(new_img_ops).shape)
+                        self.minimum_volume.append(np.array(new_img_ops))
+
+
+
                 QApplication.processEvents()
 
             i+= 1
             seq_end = int((seq_end - seq_begin) / 2) + seq_begin + last_count
             self.level_info.append( {'name': "Level " + str(i), 'width': width, 'height': height, 'seq_begin': seq_begin, 'seq_end': seq_end} )
             if size < MAX_THUMBNAIL_SIZE:
+                self.minimum_volume = np.array(self.minimum_volume)
+                print("minimum_volume:", self.minimum_volume.shape)
+                self.mcube_widget.set_volume(self.minimum_volume)
+                self.mcube_widget.generate_mesh()
+
                 break
+
             
         QApplication.restoreOverrideCursor()
         self.progress_dialog.close()
@@ -1172,6 +1267,9 @@ class CTHarvesterMainWindow(QMainWindow):
         thumbnail_size = int(size)
         #print("thumbnail size:", thumbnail_size)
         #print("i:", i)
+
+    def slider2ValueChanged(self, value):
+        self.mcube_widget.set_isovalue(value)
 
     def lstFileListSelectionChanged(self):
         #print("lstFileListSelectionChanged")

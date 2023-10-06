@@ -23,29 +23,46 @@ ZOOM_MODE = 4
 
 
 # Define a custom OpenGL widget using QOpenGLWidget
-class OpenGLWidget(QGLWidget):
+class MCubeWidget(QGLWidget):
     def __init__(self):
         super().__init__()
-
-        self.volume = self.read_images_from_folder( "D:/CT/CO-1/CO-1_Rec/Cropped" ) #np.zeros((10, 10, 10))  # Define the volume to visualize
-        print(self.volume.shape)
-        max_len = max(self.volume.shape)
-        # set max length to 100
-        scale_factors = 50.0/max_len
-
-
-        # Define the scaling factors for each dimension (x, y, z)
-        #scale_factors = (0.3, 0.3, 0.3)  # Reducing each dimension by half
-
-        # Use scipy's zoom function for interpolation
-        self.volume = ndimage.zoom(self.volume, scale_factors, order=1)
-        print(self.volume.shape)
-
+        self.setMinimumSize(512,512)
+        #self.volume = self.read_images_from_folder( "D:/CT/CO-1/CO-1_Rec/Cropped" ) #np.zeros((10, 10, 10))  # Define the volume to visualize
         # Example usage:
-        isovalue = 60  # Adjust the isovalue as needed
+        self.isovalue = 60  # Adjust the isovalue as needed
         #self.triangles, self.vertices = self.marching_cubes(self.volume,isovalue)
         #print(triangles)
-        self.vertices, self.triangles = mcubes.marching_cubes(self.volume, isovalue)
+        self.scale = 1.0
+        self.pan_x = 0
+        self.pan_y = 0
+        self.temp_pan_x = 0
+        self.temp_pan_y = 0
+        self.rotate_x = 0
+        self.rotate_y = 0
+        self.temp_rotate_x = 0
+        self.temp_rotate_y = 0
+        self.curr_x = 0
+        self.curr_y = 0
+        self.down_x = 0
+        self.down_y = 0
+        self.temp_dolly = 0
+        self.dolly = 0
+        self.data_mode = OBJECT_MODE
+        self.view_mode = VIEW_MODE
+        self.auto_rotate = False
+        self.is_dragging = False
+        #self.setMinimumSize(400,400)
+        self.timer = QTimer(self)
+        self.timer.setInterval(50)
+        self.timer.timeout.connect(self.timeout)
+        self.timer.start()
+        self.triangles = []
+
+
+        #print("init")
+
+    def generate_mesh(self):
+        self.vertices, self.triangles = mcubes.marching_cubes(self.volume, self.isovalue)
         self.vertices /= 10.0
         average_coordinates = np.mean(self.vertices, axis=0)
         self.vertices -= average_coordinates
@@ -88,35 +105,50 @@ class OpenGLWidget(QGLWidget):
         #vertex_normals /= np.linalg.norm(vertex_normals, axis=1)[:, np.newaxis]
         self.vertex_normals = vertex_normals
 
+        for i in range(len(self.vertices)):
+            #continue
+            # rotate 90 degrees around y axis
+            self.vertices[i] = np.array([self.vertices[i][2],self.vertices[i][1],-1*self.vertices[i][0]])
+            # rotate vertex normal 90degrees around y axis
+            self.vertex_normals[i] = np.array([self.vertex_normals[i][2],self.vertex_normals[i][1],-1*self.vertex_normals[i][0]])
+            # rotate -90 degrees around x axis
+            self.vertices[i] = np.array([self.vertices[i][0],-1*self.vertices[i][2],self.vertices[i][1]])
+            # rotate vertex normal -90degrees around x axis
+            self.vertex_normals[i] = np.array([self.vertex_normals[i][0],-1*self.vertex_normals[i][2],self.vertex_normals[i][1]])
 
-        self.scale = 1.0
-        self.pan_x = 0
-        self.pan_y = 0
-        self.temp_pan_x = 0
-        self.temp_pan_y = 0
-        self.rotate_x = 0
-        self.rotate_y = 0
-        self.temp_rotate_x = 0
-        self.temp_rotate_y = 0
-        self.curr_x = 0
-        self.curr_y = 0
-        self.down_x = 0
-        self.down_y = 0
-        self.temp_dolly = 0
-        self.dolly = 0
-        self.data_mode = OBJECT_MODE
-        self.view_mode = VIEW_MODE
-        self.auto_rotate = False
-        self.is_dragging = False
-        #self.setMinimumSize(400,400)
-        self.timer = QTimer(self)
-        self.timer.setInterval(50)
-        self.timer.timeout.connect(self.timeout)
-        self.timer.start()
+            #print("vertex:", vertex)
+            #print("1:",vertex[0],vertex[1],vertex[2])
+            #print("2:",vertex[0],vertex[2],-1*vertex[1])
+            #print("3:",vertex[2],vertex[1],-1*vertex[0])
+            #print("4:",vertex[2],vertex[0],vertex[1])
+            #print("5:",-1*vertex[1],vertex[0],vertex[2])
+            #print("6:",-1*vertex[1],vertex[2],-1*vertex[0])
+            #print("7:",-1*vertex[0],vertex[1],vertex[2])
+            #print("8:",-1*vertex[0],vertex[2],-1*vertex[1])
+            #print("9:",-1*vertex[2],vertex[0],vertex[1])
+            #print("10:",-1*vertex[2],vertex[1],-1*vertex[0])
 
+        #print(len(self.vertices),len(self.triangles))
 
-        print(len(self.vertices),len(self.triangles))
-        print("init")
+    def set_volume(self, volume):
+        self.volume = volume
+        #print(self.volume.shape)
+        max_len = max(self.volume.shape)
+        # set max length to 100
+        scale_factors = 100.0/max_len
+
+        # Use scipy's zoom function for interpolation
+        self.volume = ndimage.zoom(self.volume, scale_factors, order=1)
+        #print(self.volume.shape)
+
+    def set_isovalue(self, isovalue):
+        self.isovalue = isovalue
+
+    def set_total_volume_box(self, total_volume_box):
+        self.total_volume_box = total_volume_box
+
+    def set_roi_volume_box(self, roi_volume_box):
+        self.roi_volume_box = roi_volume_box
 
     def read_images_from_folder(self,folder):
         images = []
@@ -246,7 +278,7 @@ class OpenGLWidget(QGLWidget):
 
         glMatrixMode(GL_MODELVIEW)
         
-        glClearColor(0.2,0.2,0.2, 1)
+        #glClearColor(0.2,0.2,0.2, 1)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
         glEnable(GL_POINT_SMOOTH)
@@ -258,15 +290,21 @@ class OpenGLWidget(QGLWidget):
 
         glTranslatef(0, 0, -5.0 + self.dolly + self.temp_dolly)   # x, y, z 
         glTranslatef((self.pan_x + self.temp_pan_x)/100.0, (self.pan_y + self.temp_pan_y)/-100.0, 0.0)
+        #glRotatef(90,0.0,1.0,0.0)
         glRotatef(self.rotate_y + self.temp_rotate_y, 1.0, 0.0, 0.0)
         glRotatef(self.rotate_x + self.temp_rotate_x, 0.0, 1.0, 0.0)
 
 
         glColor3f( 0.7,0.7,0.7 ) #*COLOR['WIREFRAME'])
 
+
+        count = 0
+        if len(self.triangles) == 0:
+            return
+
         # Render the 3D surface
         glBegin(GL_TRIANGLES)
-        count = 0
+        
         for triangle in self.triangles:
         #    #print(triangle)
             #count += 1
@@ -293,9 +331,12 @@ class MainApplication(QMainWindow):
         self.setWindowTitle("Marching Cubes Visualization")
 
         # Create the OpenGL widget and add it to the main window
-        self.openglWidget = OpenGLWidget()
+        self.mcube_widget = MCubeWidget()
         self.layout = QVBoxLayout()
-        self.layout.addWidget(self.openglWidget)
+        self.layout.addWidget(self.mcube_widget)
+        self.mcube_widget.set_volume( self.mcube_widget.read_images_from_folder( "D:/CT/CO-1/CO-1_Rec/Cropped" ) )
+        self.mcube_widget.generate_mesh()
+        #self.volume = self.read_images_from_folder( "D:/CT/CO-1/CO-1_Rec/Cropped" ) #np.zeros((10, 10, 10))  # Define the volume to visualize
 
         container = QWidget()
         container.setLayout(self.layout)
