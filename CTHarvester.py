@@ -777,6 +777,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.threed_layout.addWidget(self.mcube_widget,stretch=1)
         self.threed_layout.addWidget(self.slider2)
         self.threed_widget.setLayout(self.threed_layout)
+        self.threed_layout.setContentsMargins(QMargins(0,0,0,0))
+        #self.image_widget2
 
         self.image_layout2.addWidget(self.threed_widget,stretch=1)
 
@@ -910,9 +912,11 @@ class CTHarvesterMainWindow(QMainWindow):
         return super().resizeEvent(a0)
 
     def update_3D_view(self):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         self.get_cropped_volume()
         self.mcube_widget.generate_mesh()
         self.mcube_widget.repaint()
+        QApplication.restoreOverrideCursor()
         #pass
 
     def get_cropped_volume(self):
@@ -1240,7 +1244,7 @@ class CTHarvesterMainWindow(QMainWindow):
                     new_img_ops.save(filename3)
 
                     if size < MAX_THUMBNAIL_SIZE:
-                        print("new_img_ops:", np.array(new_img_ops).shape)
+                        #print("new_img_ops:", np.array(new_img_ops).shape)
                         self.minimum_volume.append(np.array(new_img_ops))
 
 
@@ -1252,7 +1256,7 @@ class CTHarvesterMainWindow(QMainWindow):
             self.level_info.append( {'name': "Level " + str(i), 'width': width, 'height': height, 'seq_begin': seq_begin, 'seq_end': seq_end} )
             if size < MAX_THUMBNAIL_SIZE:
                 self.minimum_volume = np.array(self.minimum_volume)
-                print("minimum_volume:", self.minimum_volume.shape)
+                #print("minimum_volume:", self.minimum_volume.shape)
                 self.mcube_widget.set_volume(self.minimum_volume)
                 self.mcube_widget.generate_mesh()
 

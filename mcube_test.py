@@ -26,6 +26,7 @@ ZOOM_MODE = 4
 class MCubeWidget(QGLWidget):
     def __init__(self):
         super().__init__()
+        #self.parent = parent
         self.setMinimumSize(512,512)
         #self.volume = self.read_images_from_folder( "D:/CT/CO-1/CO-1_Rec/Cropped" ) #np.zeros((10, 10, 10))  # Define the volume to visualize
         # Example usage:
@@ -57,7 +58,7 @@ class MCubeWidget(QGLWidget):
         self.timer.timeout.connect(self.timeout)
         self.timer.start()
         self.triangles = []
-
+        self.gl_list_generated = False
 
         #print("init")
 
@@ -129,6 +130,7 @@ class MCubeWidget(QGLWidget):
             #print("10:",-1*vertex[2],vertex[1],-1*vertex[0])
 
         #print(len(self.vertices),len(self.triangles))
+        self.generate_gl_list()
 
     def set_volume(self, volume):
         self.volume = volume
@@ -301,6 +303,11 @@ class MCubeWidget(QGLWidget):
         count = 0
         if len(self.triangles) == 0:
             return
+        if self.gl_list_generated == False:
+            self.generate_gl_list()
+
+        self.render_gl_list()
+        return
 
         # Render the 3D surface
         glBegin(GL_TRIANGLES)
@@ -320,6 +327,38 @@ class MCubeWidget(QGLWidget):
         #glVertex3fv([0.0,0.0,1.0])
         glEnd()
 
+
+    def render_gl_list(self):
+        if self.gl_list_generated == False:
+            return
+        #print("render", self, self.gl_list)
+        glCallList(self.gl_list)
+        return
+
+    def generate_gl_list(self):
+        self.gl_list = glGenLists(1)
+        glNewList(self.gl_list, GL_COMPILE)
+
+        # Render the 3D surface
+        glBegin(GL_TRIANGLES)
+        
+        for triangle in self.triangles:
+        #    #print(triangle)
+            #count += 1
+            for vertex in triangle:
+                glNormal3fv(self.vertex_normals[vertex])
+                glVertex3fv(self.vertices[vertex])
+                #print(self.vertices[vertex])
+                #break
+            #if count == 10:
+            #    break
+        #glVertex3fv([1.0,0.0,0.0])
+        #glVertex3fv([0.0,1.0,0.0])
+        #glVertex3fv([0.0,0.0,1.0])
+        glEnd()
+        glEndList()
+        self.gl_list_generated = True
+
 # Define your PyQt main application
 class MainApplication(QMainWindow):
     def __init__(self):
@@ -331,7 +370,7 @@ class MainApplication(QMainWindow):
         self.setWindowTitle("Marching Cubes Visualization")
 
         # Create the OpenGL widget and add it to the main window
-        self.mcube_widget = MCubeWidget()
+        self.mcube_widget = MCubeWidget(self)
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.mcube_widget)
         self.mcube_widget.set_volume( self.mcube_widget.read_images_from_folder( "D:/CT/CO-1/CO-1_Rec/Cropped" ) )
