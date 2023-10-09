@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QIcon, QColor, QPainter, QPen, QPixmap, QPainter, QMouseEvent, QResizeEvent
+from PyQt5.QtGui import QIcon, QColor, QPainter, QPen, QPixmap, QPainter, QMouseEvent, QResizeEvent, QImage
 from PyQt5.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QRadioButton, QComboBox, \
                             QFileDialog, QWidget, QHBoxLayout, QVBoxLayout, QProgressBar, QApplication, \
                             QDialog, QLineEdit, QLabel, QPushButton, QAbstractItemView, \
@@ -261,10 +261,19 @@ class ObjectViewer2D(QLabel):
         self.object_dialog = None
         self.top_idx = -1
         self.bottom_idx = -1
-        self.curr_idx = -1
+        self.curr_idx = 0
         self.move_x = 0
         self.move_y = 0
+        self.threed_view = None
+        self.isovalue = 60
         self.reset_crop()
+
+    def set_isovalue(self, isovalue):
+        self.isovalue = isovalue
+        self.update()
+
+    def set_threed_view(self, threed_view):
+        self.threed_view = threed_view
 
     def reset_crop(self):
         self.crop_from_x = -1
@@ -377,6 +386,7 @@ class ObjectViewer2D(QLabel):
                 self.move_x = self.mouse_curr_x - self.mouse_down_x
                 self.move_y = self.mouse_curr_y - self.mouse_down_y
                 #print("move", self.move_x, self.move_y)
+            self.calculate_resize()
         else:
             if self.edit_mode == MODE['EDIT_BOX']:
                 self.distance_check(me.x(), me.y())
@@ -495,9 +505,11 @@ class ObjectViewer2D(QLabel):
             self.crop_to_x = to_x
             self.crop_to_y = to_y
             self.canvas_box = QRect(self._2canx(from_x), self._2cany(from_y), self._2canx(to_x - from_x), self._2cany(to_y - from_y))
+            self.calculate_resize()
             #self.object_dialog.update_status()
 
         self.object_dialog.update_status()
+        #self.object_dialog.update_3D_view()
         self.repaint()
 
     def get_crop_area(self, imgxy = False):
@@ -546,6 +558,7 @@ class ObjectViewer2D(QLabel):
         painter = QPainter(self)
         #painter.fillRect(self.rect(), QBrush(QColor()))#as_qt_color(COLOR['BACKGROUND'])))
         if self.curr_pixmap is not None:
+
             #print("paintEvent", self.curr_pixmap.width(), self.curr_pixmap.height())
             painter.drawPixmap(0,0,self.curr_pixmap)
 
@@ -555,6 +568,64 @@ class ObjectViewer2D(QLabel):
             painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
         [ x1, y1, x2, y2 ] = self.get_crop_area()
         painter.drawRect(x1, y1, x2 - x1, y2 - y1)
+
+    def apply_threshold_and_colorize(self,qt_pixmap, threshold, color=np.array([0, 255, 0], dtype=np.uint8)):
+        #print("apply_threshold_and_colorize", qt_pixmap.width(), qt_pixmap.height())
+        # Convert the QPixmap to a NumPy array
+        qt_image = qt_pixmap.toImage()
+        
+        # Convert the QImage to a NumPy array
+        width = qt_image.width()
+        height = qt_image.height()
+        buffer = qt_image.bits()
+        buffer.setsize(qt_image.byteCount())
+        qt_image_array = np.frombuffer(buffer, dtype=np.uint8).reshape((height, width, 4))
+        #print("qt_image_array", qt_image_array.shape, qt_image_array.dtype)
+        
+        # Extract the alpha channel (if present)
+        if qt_image_array.shape[2] == 4:
+            qt_image_array = qt_image_array[:, :, :3]  # Remove the alpha channel
+
+        color = np.array([0, 255, 0], dtype=np.uint8)
+
+        # ... (load or create image_array)
+        #image_array = self.convert_qt_pixmap_to_ndarray(qt_pixmap)
+        #print("image_array", qt_image_array.shape)
+        #print("image array[10,10]", qt_image_array[10,10,:])
+
+        # Check the dtype of image_array
+        if qt_image_array.dtype != np.uint8:
+            raise ValueError("image_array should have dtype np.uint8")
+
+        # Check the threshold value (example threshold)
+        threshold = self.isovalue
+        if not 0 <= threshold <= 255:
+            raise ValueError("Threshold should be in the range 0-255")
+        
+        [ x1, y1, x2, y2 ] = self.get_crop_area()
+        #print("apply_threshold_and_colorize", x1, y1, x2, y2)
+        if x1 == x2 == y1 == y2 == 0:
+            # whole pixmap is selected
+            x1, x2, y1, y2 = 0, qt_image_array.shape[1], 0, qt_image_array.shape[0]
+
+
+        region_mask = (qt_image_array[y1:y2+1, x1:x2+1, 0] > threshold)
+
+        # Apply the threshold and colorize
+        qt_image_array[y1:y2+1, x1:x2+1][region_mask] = color
+        #qt_image_array[qt_image_array[:, :, 0] > threshold] = color
+
+        # Convert the NumPy array back to a QPixmap
+        height, width, channel = qt_image_array.shape
+        bytes_per_line = 3 * width
+        qt_image = QImage(np.copy(qt_image_array.data), width, height, bytes_per_line, QImage.Format_RGB888)
+        
+        # Convert the QImage to a QPixmap
+        modified_pixmap = QPixmap.fromImage(qt_image)
+
+        #print("modified_pixmap", modified_pixmap.width(), modified_pixmap.height())
+        
+        return modified_pixmap
 
     def set_image(self,file_path):
         #print("set_image", file_path)
@@ -571,6 +642,7 @@ class ObjectViewer2D(QLabel):
             return
         self.fullpath = file_path
         self.curr_pixmap = self.orig_pixmap = QPixmap(file_path)
+
         self.setPixmap(self.curr_pixmap)
         self.calculate_resize()
         if self.canvas_box:
@@ -588,7 +660,7 @@ class ObjectViewer2D(QLabel):
         self.bottom_idx = bottom_idx
 
     def calculate_resize(self):
-        #print("objectviewer calculate resize", self, self.object, self.object.landmark_list, self.landmark_list)
+        #print("objectviewer calculate resize")
         if self.orig_pixmap is not None:
             self.distance_threshold = self._2imgx(DISTANCE_THRESHOLD)
             #print("distance_threshold:", self.distance_threshold)
@@ -608,8 +680,17 @@ class ObjectViewer2D(QLabel):
             #print("calculate_resize", self.orig_width, self.orig_height, self.width(), self.height(), self.image_canvas_ratio, self.scale)
 
             self.curr_pixmap = self.orig_pixmap.scaled(int(self.orig_width*self.scale/self.image_canvas_ratio),int(self.orig_width*self.scale/self.image_canvas_ratio), Qt.KeepAspectRatio)
+            #print("curr_pixmap", self.curr_pixmap.width(), self.curr_pixmap.height())
+            # if between bottom_idx and top_idx, apply threshold
+            #print("isovalue", self.isovalue, self.curr_idx, self.bottom_idx, self.top_idx)
+            if self.isovalue > 0 and self.curr_idx >= self.bottom_idx and self.curr_idx <= self.top_idx:
+                #print("getting new pixmap")
+                self.curr_pixmap = self.apply_threshold_and_colorize(self.curr_pixmap, self.isovalue)
+                #pass
+
     def resizeEvent(self, a0: QResizeEvent) -> None:
         self.calculate_resize()
+        self.threed_view.calculate_resize()
         return super().resizeEvent(a0)
 
 
@@ -755,6 +836,7 @@ class CTHarvesterMainWindow(QMainWindow):
         #self.slider.setMaximum(0)
         self.slider.valueChanged.connect(self.sliderValueChanged)
         self.range_slider.valueChanged.connect(self.rangeSliderValueChanged)
+        self.range_slider.sliderReleased.connect(self.rangeSliderReleased)
         self.range_slider.setMinimumWidth(100)
 
         self.image_layout2.addWidget(self.image_label2,stretch=1)
@@ -766,21 +848,23 @@ class CTHarvesterMainWindow(QMainWindow):
         #self.image_layout2.setSpacing(0)
         self.image_layout2.setContentsMargins(margin)
 
-        self.threed_widget = QWidget()
-        self.threed_layout = QHBoxLayout()
-        self.mcube_widget = MCubeWidget()
+        #self.threed_widget = QWidget()
+        #self.threed_layout = QHBoxLayout()
         self.slider2 = QLabeledSlider(Qt.Vertical)
         self.slider2.setValue(60)
         self.slider2.setMaximum(255)
         self.slider2.setSingleStep(1)
         self.slider2.valueChanged.connect(self.slider2ValueChanged)
-        self.threed_layout.addWidget(self.mcube_widget,stretch=1)
-        self.threed_layout.addWidget(self.slider2)
-        self.threed_widget.setLayout(self.threed_layout)
-        self.threed_layout.setContentsMargins(QMargins(0,0,0,0))
+        #self.slider2.editingFinished.connect(self.slider2EditingFinished)
+        self.slider2.sliderReleased.connect(self.slider2SliderReleased)
+        self.image_layout2.addWidget(self.slider2)
+        #self.threed_layout.addWidget(self.mcube_widget,stretch=1)
+        #self.threed_layout.addWidget(self.slider2)
+        #self.threed_widget.setLayout(self.threed_layout)
+        #self.threed_layout.setContentsMargins(QMargins(0,0,0,0))
         #self.image_widget2
 
-        self.image_layout2.addWidget(self.threed_widget,stretch=1)
+        #self.image_layout2.addWidget(self.threed_widget,stretch=1)
 
         self.crop_layout2 = QHBoxLayout()
         self.crop_widget2 = QWidget()
@@ -858,6 +942,11 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_text_2_2 = self.tr("Creating rescaled images level {}... {}/{}")
 
         self.setCentralWidget(self.main_widget)
+
+        self.mcube_widget = MCubeWidget(self.image_label2)
+        self.mcube_widget.setGeometry(QRect(0,0,150,150))
+
+
         self.initialized = False
 
     def show_preferences(self):
@@ -899,11 +988,13 @@ class CTHarvesterMainWindow(QMainWindow):
         #self.image_label2.set_bottom_idx(self.slider.value())
         #self.image_label2.set_curr_idx(self.slider.value())
         self.range_slider.setValue((self.slider.value(), self.range_slider.value()[1]))
+        #self.update_3D_view()
         self.update_status()
     def set_top(self):
         #self.image_label2.set_top_idx(self.slider.value())
         #self.image_label2.set_curr_idx(self.slider.value())
         self.range_slider.setValue((self.range_slider.value()[0], self.slider.value()))
+        #self.update_3D_view()
         self.update_status()
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
@@ -1025,8 +1116,15 @@ class CTHarvesterMainWindow(QMainWindow):
         (bottom_idx, top_idx) = self.range_slider.value()
         self.image_label2.set_bottom_idx(bottom_idx)
         self.image_label2.set_top_idx(top_idx)
+        self.image_label2.calculate_resize()
         self.image_label2.repaint()
         self.update_status()
+
+    def rangeSliderReleased(self):
+        #print("range slider released")
+        #self.image_label2.calculate_resize()
+        return
+
 
     def sliderValueChanged(self):
         # print current slide value
@@ -1273,7 +1371,20 @@ class CTHarvesterMainWindow(QMainWindow):
         #print("i:", i)
 
     def slider2ValueChanged(self, value):
+        #print("value:", value)
+        self.image_label2.set_isovalue(value)
         self.mcube_widget.set_isovalue(value)
+        self.image_label2.calculate_resize()
+    
+    def slider2SliderReleased(self):
+        #self.threed
+        #print("released")
+        return
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        self.mcube_widget.generate_mesh()
+        self.mcube_widget.repaint()
+        QApplication.restoreOverrideCursor()
+
 
     def lstFileListSelectionChanged(self):
         #print("lstFileListSelectionChanged")

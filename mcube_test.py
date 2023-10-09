@@ -24,10 +24,10 @@ ZOOM_MODE = 4
 
 # Define a custom OpenGL widget using QOpenGLWidget
 class MCubeWidget(QGLWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self,parent):
+        super().__init__(parent=parent)
         #self.parent = parent
-        self.setMinimumSize(512,512)
+        self.setMinimumSize(100,100)
         #self.volume = self.read_images_from_folder( "D:/CT/CO-1/CO-1_Rec/Cropped" ) #np.zeros((10, 10, 10))  # Define the volume to visualize
         # Example usage:
         self.isovalue = 60  # Adjust the isovalue as needed
@@ -59,8 +59,14 @@ class MCubeWidget(QGLWidget):
         self.timer.start()
         self.triangles = []
         self.gl_list_generated = False
+        self.parent = parent
+        self.parent.set_threed_view(self)
 
         #print("init")
+    def calculate_resize(self):
+        size = min(self.parent.width(),self.parent.height())
+        self.resize(int(size*0.25),int(size*0.25))
+        #print("resize:",self.parent.width(),self.parent.height())
 
     def generate_mesh(self):
         self.vertices, self.triangles = mcubes.marching_cubes(self.volume, self.isovalue)
@@ -137,7 +143,7 @@ class MCubeWidget(QGLWidget):
         #print(self.volume.shape)
         max_len = max(self.volume.shape)
         # set max length to 100
-        scale_factors = 100.0/max_len
+        scale_factors = 50.0/max_len
 
         # Use scipy's zoom function for interpolation
         self.volume = ndimage.zoom(self.volume, scale_factors, order=1)
@@ -280,7 +286,7 @@ class MCubeWidget(QGLWidget):
 
         glMatrixMode(GL_MODELVIEW)
         
-        #glClearColor(0.2,0.2,0.2, 1)
+        glClearColor(0.94,0.94,0.94, 1)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
         glEnable(GL_POINT_SMOOTH)
@@ -297,12 +303,16 @@ class MCubeWidget(QGLWidget):
         glRotatef(self.rotate_x + self.temp_rotate_x, 0.0, 1.0, 0.0)
 
 
-        glColor3f( 0.7,0.7,0.7 ) #*COLOR['WIREFRAME'])
+        glColor3f( 0.0,0.6,0.0 ) #*COLOR['WIREFRAME'])
 
 
         count = 0
         if len(self.triangles) == 0:
             return
+
+        glClearColor(0.2,0.2,0.2, 1)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
         if self.gl_list_generated == False:
             self.generate_gl_list()
 
