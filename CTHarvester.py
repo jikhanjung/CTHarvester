@@ -4,13 +4,14 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QRadio
                             QDialog, QLineEdit, QLabel, QPushButton, QAbstractItemView, \
                             QSizePolicy, QGroupBox, QListWidget, QFormLayout, QCheckBox
 from PyQt5.QtCore import Qt, QRect, QPoint, QSettings, QTranslator, QMargins
-from PyQt5.QtCore import QT_TR_NOOP as tr
+#from PyQt5.QtCore import QT_TR_NOOP as tr
 from superqt import QLabeledRangeSlider, QLabeledSlider
 from mcube_test import MCubeWidget
 
 import os, sys, re
 from PIL import Image, ImageChops
 import numpy as np
+import mcubes
 
 def value_to_bool(value):
     return value.lower() == 'true' if isinstance(value, str) else bool(value)
@@ -690,7 +691,7 @@ class ObjectViewer2D(QLabel):
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         self.calculate_resize()
-        self.threed_view.calculate_resize()
+        self.threed_view.resize_self()
         return super().resizeEvent(a0)
 
 
@@ -899,11 +900,15 @@ class CTHarvesterMainWindow(QMainWindow):
         self.cbxOpenDirAfter.setChecked(True)
         self.btnSave = QPushButton(self.tr("Save cropped image stack"))
         self.btnSave.clicked.connect(self.save_result)
+        self.btnExport = QPushButton(self.tr("Export 3D Model"))
+        self.btnExport.clicked.connect(self.export_3d_model)
+
         self.btnPreferences = QPushButton(self.tr("Preferences"))
         self.btnPreferences.clicked.connect(self.show_preferences)
         self.button_layout = QHBoxLayout()
         self.button_layout.addWidget(self.cbxOpenDirAfter,stretch=0)
         self.button_layout.addWidget(self.btnSave,stretch=1)
+        self.button_layout.addWidget(self.btnExport,stretch=1)
         self.button_layout.addWidget(self.btnPreferences,stretch=0)
         self.button_widget = QWidget()
         self.button_widget.setLayout(self.button_layout)
@@ -982,7 +987,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_text_1_1 = self.tr("Saving image stack...")
         self.progress_text_2_1 = self.tr("Creating rescaled images level {}...")
         self.progress_text_2_2 = self.tr("Creating rescaled images level {}... {}/{}")
-            #self.btnLang.setText(self.tr("Lang"))
+        self.btnUpdate3DView.setText(self.tr("Update 3D View"))
 
     def set_bottom(self):
         #self.image_label2.set_bottom_idx(self.slider.value())
@@ -1004,7 +1009,8 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def update_3D_view(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        self.get_cropped_volume()
+        volume = self.get_cropped_volume()
+        self.mcube_widget.set_volume(volume)
         self.mcube_widget.generate_mesh()
         self.mcube_widget.repaint()
         QApplication.restoreOverrideCursor()
@@ -1054,7 +1060,50 @@ class CTHarvesterMainWindow(QMainWindow):
         to_y = int(to_y * smallest_level_info['height'])
 
         volume = self.minimum_volume[bottom_idx:top_idx, from_y:to_y, from_x:to_x]
-        self.mcube_widget.set_volume(volume)
+        return volume
+        #self.mcube_widget.set_volume(volume)
+
+    def export_3d_model(self):
+        # open dir dialog for save
+
+        threed_volume = []
+
+        obj_filename, _ = QFileDialog.getSaveFileName(self, "Save File As", self.edtDirname.text(), "OBJ format (*.obj)")
+        if obj_filename == "":
+            return
+        
+        #print("obj_filename", obj_filename)
+
+
+        threed_volume = self.get_cropped_volume()
+        #print("threed_volume", threed_volume.shape, threed_volume.dtype)
+        isovalue = self.image_label2.isovalue
+        vertices, triangles = mcubes.marching_cubes(threed_volume, isovalue)
+        #print("vertices", vertices.shape, vertices.dtype)
+        #print("triangles", triangles.shape, triangles.dtype)
+
+        for i in range(len(vertices)):
+            #continue
+            # rotate 90 degrees around y axis
+            vertices[i] = np.array([vertices[i][2],vertices[i][1],-1*vertices[i][0]])
+            # rotate -90 degrees around x axis
+            vertices[i] = np.array([vertices[i][0],-1*vertices[i][2],vertices[i][1]])
+
+
+        # write as obj file format
+        with open(obj_filename, 'w') as fh:
+            for v in vertices:
+                fh.write('v {} {} {}\n'.format(v[0], v[1], v[2]))
+            #for vn in vertex_normals:
+            #    fh.write('vn {} {} {}\n'.format(vn[0], vn[1], vn[2]))
+            #for f in triangles:
+            #    fh.write('f {}/{} {}/{} {}/{}\n'.format(f[0]+1, f[0]+1, f[1]+1, f[1]+1, f[2]+1, f[2]+1))
+            for f in triangles:
+                fh.write('f {} {} {}\n'.format(f[0]+1, f[1]+1, f[2]+1))
+
+            #print("exported to", obj_filename)
+
+
 
 
     def save_result(self):

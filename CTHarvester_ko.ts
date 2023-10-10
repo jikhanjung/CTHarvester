@@ -12,12 +12,12 @@
 <context>
     <name>CTHarvesterMainWindow</name>
     <message>
-        <location filename="CTHarvester.py" line="853"/>
+        <location filename="CTHarvester.py" line="966"/>
         <source>Open Directory</source>
         <translation>디렉토리 열기</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="854"/>
+        <location filename="CTHarvester.py" line="967"/>
         <source>Select directory to load CT data</source>
         <translation>CT 데이터를 불러올 디렉토리를 선택하세요.</translation>
     </message>
@@ -32,52 +32,52 @@
         <translation type="obsolete">갯수:</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="856"/>
+        <location filename="CTHarvester.py" line="969"/>
         <source>Level</source>
         <translation>레벨</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="865"/>
+        <location filename="CTHarvester.py" line="978"/>
         <source>Size</source>
         <translation>크기</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="864"/>
+        <location filename="CTHarvester.py" line="977"/>
         <source>Count</source>
         <translation>갯수</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="857"/>
+        <location filename="CTHarvester.py" line="970"/>
         <source>Set Bottom</source>
         <translation>하단 설정</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="858"/>
+        <location filename="CTHarvester.py" line="971"/>
         <source>Set Top</source>
         <translation>상단 설정</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="859"/>
+        <location filename="CTHarvester.py" line="972"/>
         <source>Reset</source>
         <translation>초기화</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="861"/>
+        <location filename="CTHarvester.py" line="974"/>
         <source>Save cropped image stack</source>
         <translation>자른 이미지 스택 저장</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="893"/>
+        <location filename="CTHarvester.py" line="1062"/>
         <source>Select directory to save</source>
         <translation>저장할 디렉토리 선택</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="869"/>
+        <location filename="CTHarvester.py" line="982"/>
         <source>Saving image stack...</source>
         <translation>이미지 스택 저장 중</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="868"/>
+        <location filename="CTHarvester.py" line="981"/>
         <source>Saving image stack... {}/{}</source>
         <translation>이미지 스택 저장 중... {}/{}</translation>
     </message>
@@ -112,12 +112,12 @@
         <translation type="obsolete">이미지 스케일 조정 중 {}...</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="871"/>
+        <location filename="CTHarvester.py" line="984"/>
         <source>Creating rescaled images level {}... {}/{}</source>
         <translation>이미지 스케일 조정 중: 레벨 {}... {}/{}</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="620"/>
+        <location filename="CTHarvester.py" line="703"/>
         <source>CT Harvester</source>
         <translation>CT하베스터</translation>
     </message>
@@ -127,17 +127,17 @@
         <translation type="obsolete">언어</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="855"/>
+        <location filename="CTHarvester.py" line="968"/>
         <source>Prepare View</source>
         <translation>축소 이미지 생성</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="1276"/>
+        <location filename="CTHarvester.py" line="1499"/>
         <source>Select directory</source>
         <translation>디렉토리 선택</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="866"/>
+        <location filename="CTHarvester.py" line="979"/>
         <source>Preferences</source>
         <translation>환경설정</translation>
     </message>
@@ -147,70 +147,75 @@
         <translation type="obsolete">슬라이스 번호: {}~{}    자른 이미지 크기: {}x{}    이미지 스택 크기 (추정): {} MB [{}]</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="860"/>
+        <location filename="CTHarvester.py" line="973"/>
         <source>Open dir. after</source>
         <translation>저장 후 디렉토리 열기</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="867"/>
+        <location filename="CTHarvester.py" line="980"/>
         <source>Crop indices: {}~{} Cropped image size: {}x{} ({},{})-({},{}) Estimated stack size: {} MB [{}]</source>
         <translation>슬라이스 번호: {}~{} 자른 이미지 크기: {}x{} ({},{})-({},{}) 이미지 스택 크기 (추정): {} MB [{}]</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="870"/>
+        <location filename="CTHarvester.py" line="983"/>
         <source>Creating rescaled images level {}...</source>
         <translation>이미지 스케일 조정 중: 레벨 {}...</translation>
+    </message>
+    <message>
+        <location filename="CTHarvester.py" line="877"/>
+        <source>Update 3D View</source>
+        <translation>3D뷰 새로고침</translation>
     </message>
 </context>
 <context>
     <name>PreferencesDialog</name>
     <message>
-        <location filename="CTHarvester.py" line="148"/>
+        <location filename="CTHarvester.py" line="150"/>
         <source>OK</source>
         <translation>저장</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="149"/>
+        <location filename="CTHarvester.py" line="151"/>
         <source>Cancel</source>
         <translation>취소</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="153"/>
+        <location filename="CTHarvester.py" line="155"/>
         <source>CTHarvester - Preferences</source>
         <translation>CT하베스터 - 환경설정</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="142"/>
+        <location filename="CTHarvester.py" line="144"/>
         <source>Yes</source>
         <translation>예</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="143"/>
+        <location filename="CTHarvester.py" line="145"/>
         <source>No</source>
         <translation>아니오</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="146"/>
+        <location filename="CTHarvester.py" line="148"/>
         <source>English</source>
         <translation>영어</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="147"/>
+        <location filename="CTHarvester.py" line="149"/>
         <source>Korean</source>
         <translation>한국어</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="150"/>
+        <location filename="CTHarvester.py" line="152"/>
         <source>Remember Geometry</source>
         <translation>윈도우 모양 기억</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="151"/>
+        <location filename="CTHarvester.py" line="153"/>
         <source>Remember Directory</source>
         <translation>디렉토리 위치 기억</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="152"/>
+        <location filename="CTHarvester.py" line="154"/>
         <source>Language</source>
         <translation>언어</translation>
     </message>
@@ -218,12 +223,12 @@
 <context>
     <name>ProgressDialog</name>
     <message>
-        <location filename="CTHarvester.py" line="239"/>
+        <location filename="CTHarvester.py" line="241"/>
         <source>CTHarvester - Progress Dialog</source>
         <translation>CT하베스터 - 진행상황</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="240"/>
+        <location filename="CTHarvester.py" line="242"/>
         <source>Stop</source>
         <translation>정지</translation>
     </message>

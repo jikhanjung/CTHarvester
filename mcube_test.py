@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QCheckBox
 from PyQt5.QtCore import Qt, QTimer
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -50,7 +50,7 @@ class MCubeWidget(QGLWidget):
         self.dolly = 0
         self.data_mode = OBJECT_MODE
         self.view_mode = VIEW_MODE
-        self.auto_rotate = False
+        self.auto_rotate = True
         self.is_dragging = False
         #self.setMinimumSize(400,400)
         self.timer = QTimer(self)
@@ -61,14 +61,26 @@ class MCubeWidget(QGLWidget):
         self.gl_list_generated = False
         self.parent = parent
         self.parent.set_threed_view(self)
+        self.cbxRotation = QCheckBox(self)
+        self.cbxRotation.setText("R")
+        self.cbxRotation.setChecked(True)
+        self.cbxRotation.stateChanged.connect(self.cbxRotation_stateChanged)
+        self.cbxRotation.setStyleSheet("QCheckBox { background-color: #323232; color: white; }")        
+        self.cbxRotation.hide()
+        #setStyleSheet("QCheckBox { background-color: #323232 }")
 
         #print("init")
-    def calculate_resize(self):
+
+    def cbxRotation_stateChanged(self):
+        self.auto_rotate = self.cbxRotation.isChecked()
+
+    def resize_self(self):
         size = min(self.parent.width(),self.parent.height())
         self.resize(int(size*0.25),int(size*0.25))
         #print("resize:",self.parent.width(),self.parent.height())
 
     def generate_mesh(self):
+        self.cbxRotation.show()
         self.vertices, self.triangles = mcubes.marching_cubes(self.volume, self.isovalue)
         self.vertices /= 10.0
         average_coordinates = np.mean(self.vertices, axis=0)
@@ -177,7 +189,7 @@ class MCubeWidget(QGLWidget):
             #print "dragging"
             return
 
-        self.rotate_x += 0.5
+        self.rotate_x += 1
         self.updateGL()
 
 
@@ -220,7 +232,7 @@ class MCubeWidget(QGLWidget):
                         self.threed_model.generate()
                     #print("3:",datetime.datetime.now())
                 #print( "test_obj vert 1 after rotation:", self.test_obj.vertices[0])
-                self.rotate_x = 0
+                #self.rotate_x = 0
                 self.rotate_y = 0
                 self.temp_rotate_x = 0
                 self.temp_rotate_y = 0
