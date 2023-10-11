@@ -564,10 +564,11 @@ class ObjectViewer2D(QLabel):
             painter.drawPixmap(0,0,self.curr_pixmap)
 
         if self.curr_idx > self.top_idx or self.curr_idx < self.bottom_idx:
-            painter.setPen(QPen(QColor(128,0,0), 1, Qt.DotLine))
+            painter.setPen(QPen(QColor(128,0,0), 2, Qt.DotLine))
         else:
             painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
         [ x1, y1, x2, y2 ] = self.get_crop_area()
+        #print("paintEvent", x1, y1, x2, y2)
         painter.drawRect(x1, y1, x2 - x1, y2 - y1)
 
     def apply_threshold_and_colorize(self,qt_pixmap, threshold, color=np.array([0, 255, 0], dtype=np.uint8)):
@@ -691,6 +692,8 @@ class ObjectViewer2D(QLabel):
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         self.calculate_resize()
+        if self.canvas_box:
+            self.canvas_box = QRect(self._2canx(self.crop_from_x), self._2cany(self.crop_from_y), self._2canx(self.crop_to_x - self.crop_from_x), self._2cany(self.crop_to_y - self.crop_from_y))
         self.threed_view.resize_self()
         return super().resizeEvent(a0)
 
@@ -877,11 +880,16 @@ class CTHarvesterMainWindow(QMainWindow):
         self.btnReset.clicked.connect(self.reset_crop)
         self.btnUpdate3DView = QPushButton(self.tr("Update 3D View"))
         self.btnUpdate3DView.clicked.connect(self.update_3D_view)
+        #self.cbxInverseImage = QCheckBox(self.tr("Inv."))
+        #self.cbxInverseImage.setChecked(False)
+        #self.cbxInverseImage.stateChanged.connect(self.cbxInverseImage_stateChanged)
+        #self.inverse_image = False
 
-        self.crop_layout2.addWidget(self.btnSetBottom)
-        self.crop_layout2.addWidget(self.btnSetTop)
-        self.crop_layout2.addWidget(self.btnReset)
-        self.crop_layout2.addWidget(self.btnUpdate3DView)
+        self.crop_layout2.addWidget(self.btnSetBottom,stretch=1)
+        self.crop_layout2.addWidget(self.btnSetTop,stretch=1)
+        self.crop_layout2.addWidget(self.btnReset,stretch=1)
+        self.crop_layout2.addWidget(self.btnUpdate3DView,stretch=1)
+        #self.crop_layout2.addWidget(self.cbxInverseImage,stretch=0)
         self.crop_widget2.setLayout(self.crop_layout2)
         #self.crop_layout2.setSpacing(0)
         self.crop_layout2.setContentsMargins(margin)
@@ -945,6 +953,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_text_1_2 = self.tr("Saving image stack... {}/{}")
         self.progress_text_2_1 = self.tr("Creating rescaled images level {}...")
         self.progress_text_2_2 = self.tr("Creating rescaled images level {}... {}/{}")
+        self.progress_text_3_1 = self.tr("Checking rescaled images level {}...")
+        self.progress_text_3_2 = self.tr("Checking rescaled images level {}... {}/{}")
 
         self.setCentralWidget(self.main_widget)
 
@@ -953,6 +963,11 @@ class CTHarvesterMainWindow(QMainWindow):
 
 
         self.initialized = False
+
+    def cbxInverseImage_stateChanged(self):
+        #self.inverse_image = self.cbxInverseImage.isChecked()
+        #self.image_label2.inverse_image = self.inverse_image
+        pass
 
     def show_preferences(self):
         self.settings_dialog = PreferencesDialog(self)
@@ -977,6 +992,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.btnReset.setText(self.tr("Reset"))
         self.cbxOpenDirAfter.setText(self.tr("Open dir. after"))
         self.btnSave.setText(self.tr("Save cropped image stack"))
+        self.btnExport.setText(self.tr("Export 3D Model"))
         self.lblCount01.setText(self.tr("Count"))
         self.lblSize01.setText(self.tr("Size"))
         self.lblCount02.setText(self.tr("Count"))
@@ -987,6 +1003,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_text_1_1 = self.tr("Saving image stack...")
         self.progress_text_2_1 = self.tr("Creating rescaled images level {}...")
         self.progress_text_2_2 = self.tr("Creating rescaled images level {}... {}/{}")
+        self.progress_text_3_1 = self.tr("Checking rescaled images level {}...")
+        self.progress_text_3_2 = self.tr("Checking rescaled images level {}... {}/{}")
         self.btnUpdate3DView.setText(self.tr("Update 3D View"))
 
     def set_bottom(self):
@@ -1010,6 +1028,8 @@ class CTHarvesterMainWindow(QMainWindow):
     def update_3D_view(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         volume = self.get_cropped_volume()
+        #if self.inverse_image:
+        #    volume = 255 - volume
         self.mcube_widget.set_volume(volume)
         self.mcube_widget.generate_mesh()
         self.mcube_widget.repaint()
@@ -1358,16 +1378,22 @@ class CTHarvesterMainWindow(QMainWindow):
                 #print("filename1:", filename1)
                 #print("filename2:", filename2)
                 #print("filename3:", filename3)
-                self.progress_dialog.lbl_text.setText(self.progress_text_2_2.format(i+1, idx+1, int(total_count/2)))
-                self.progress_dialog.pb_progress.setValue(int(((idx+1)/float(int(total_count/2)))*100))
-                self.progress_dialog.update()
+
                 if os.path.exists(filename3):  
+                    self.progress_dialog.lbl_text.setText(self.progress_text_3_2.format(i+1, idx+1, int(total_count/2)))
+                    self.progress_dialog.pb_progress.setValue(int(((idx+1)/float(int(total_count/2)))*100))
+                    self.progress_dialog.update()
+                    QApplication.processEvents()
                     if size < MAX_THUMBNAIL_SIZE:
                         img= Image.open(os.path.join(from_dir,filename3))
                         #print("new_img_ops:", np.array(img).shape)
                         self.minimum_volume.append(np.array(img))
                     continue
                 else:
+                    self.progress_dialog.lbl_text.setText(self.progress_text_2_2.format(i+1, idx+1, int(total_count/2)))
+                    self.progress_dialog.pb_progress.setValue(int(((idx+1)/float(int(total_count/2)))*100))
+                    self.progress_dialog.update()
+                    QApplication.processEvents()
                     # check if filename exist
                     img1 = None
                     if os.path.exists(os.path.join(from_dir, filename1)):
@@ -1394,10 +1420,6 @@ class CTHarvesterMainWindow(QMainWindow):
                         #print("new_img_ops:", np.array(new_img_ops).shape)
                         self.minimum_volume.append(np.array(new_img_ops))
 
-
-
-                QApplication.processEvents()
-
             i+= 1
             seq_end = int((seq_end - seq_begin) / 2) + seq_begin + last_count
             self.level_info.append( {'name': "Level " + str(i), 'width': width, 'height': height, 'seq_begin': seq_begin, 'seq_end': seq_end} )
@@ -1406,18 +1428,13 @@ class CTHarvesterMainWindow(QMainWindow):
                 #print("minimum_volume:", self.minimum_volume.shape)
                 self.mcube_widget.set_volume(self.minimum_volume)
                 self.mcube_widget.generate_mesh()
-
                 break
-
             
         QApplication.restoreOverrideCursor()
         self.progress_dialog.close()
         self.progress_dialog = None
         self.initializeComboSize()
         self.reset_crop()
-        thumbnail_size = int(size)
-        #print("thumbnail size:", thumbnail_size)
-        #print("i:", i)
 
     def slider2ValueChanged(self, value):
         #print("value:", value)
@@ -1477,6 +1494,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 max_prefix = prefix
         #print("max_prefix:", max_prefix)
         #print("max_count:", max_prefix_count)
+
         # determine extension
         max_extension_count = 0
         for extension in extension_hash:
