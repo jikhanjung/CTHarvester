@@ -82,7 +82,7 @@ class MCubeWidget(QGLWidget):
         self.dolly = 0
         self.data_mode = OBJECT_MODE
         self.view_mode = VIEW_MODE
-        self.auto_rotate = False
+        self.auto_rotate = True
         self.is_dragging = False
         #self.setMinimumSize(400,400)
         self.timer = QTimer(self)
@@ -127,7 +127,7 @@ class MCubeWidget(QGLWidget):
         average_coordinates = np.mean(self.vertices, axis=0)
         self.vertices -= average_coordinates
         if self.bounding_box is not None:
-            print("bounding box:", self.bounding_box.shape, average_coordinates.shape)
+            #print("bounding box:", self.bounding_box.shape, average_coordinates.shape)
             #self.bounding_box -= average_coordinates
             self.bounding_box_vertices -= average_coordinates
         if self.roi_box is not None:
@@ -172,6 +172,7 @@ class MCubeWidget(QGLWidget):
         #vertex_normals /= np.linalg.norm(vertex_normals, axis=1)[:, np.newaxis]
         self.vertex_normals = vertex_normals
 
+        # rotate vertices
         for i in range(len(self.vertices)):
             #continue
             # rotate 90 degrees around y axis
@@ -183,8 +184,7 @@ class MCubeWidget(QGLWidget):
             # rotate vertex normal -90degrees around x axis
             self.vertex_normals[i] = np.array([self.vertex_normals[i][0],-1*self.vertex_normals[i][2],self.vertex_normals[i][1]])
 
-        print(self.bounding_box_vertices[0])
-
+        # rotate bounding box and roi box
         for i in range(len(self.bounding_box_vertices)):
             self.bounding_box_vertices[i] = np.array([self.bounding_box_vertices[i][2],self.bounding_box_vertices[i][1],-1*self.bounding_box_vertices[i][0]])
             self.bounding_box_vertices[i] = np.array([self.bounding_box_vertices[i][0],-1*self.bounding_box_vertices[i][2],self.bounding_box_vertices[i][1]])
@@ -192,7 +192,7 @@ class MCubeWidget(QGLWidget):
                 self.roi_box_vertices[i] = np.array([self.roi_box_vertices[i][2],self.roi_box_vertices[i][1],-1*self.roi_box_vertices[i][0]])
                 self.roi_box_vertices[i] = np.array([self.roi_box_vertices[i][0],-1*self.roi_box_vertices[i][2],self.roi_box_vertices[i][1]])
                 pass
-        print(self.bounding_box_vertices[0])
+        #print(self.bounding_box_vertices[0])
 
         self.generate_gl_list()
 
@@ -257,9 +257,9 @@ class MCubeWidget(QGLWidget):
             self.roi_box *= scale_factors
             self.roi_box_vertices *= scale_factors
 
-        print("volume shape:", self.volume.shape)
-        print("bounding box:", self.bouding_box)
-        print("roi box:", self.roi_box)
+        #print("volume shape:", self.volume.shape)
+        #print("bounding box:", self.bouding_box)
+        #print("roi box:", self.roi_box)
         #print(self.volume.shape)
 
     def set_isovalue(self, isovalue):
@@ -385,6 +385,16 @@ class MCubeWidget(QGLWidget):
         gluPerspective(45, (width / height), 0.1, 50.0)
         glMatrixMode(GL_MODELVIEW)
 
+    def draw_box(self, box_vertices, box_edges, color=[1.0, 0.0, 0.0]):
+        glColor3f(color[0], color[1], color[2])
+        v = box_vertices
+        glBegin(GL_LINES)
+        for e in box_edges:
+            for idx in e:
+                glVertex3fv(v[idx])
+        glEnd()
+
+
     def paintGL(self):
         #print("paintGL")
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -405,7 +415,8 @@ class MCubeWidget(QGLWidget):
 
         glTranslatef(0, 0, -5.0 + self.dolly + self.temp_dolly)   # x, y, z 
         glTranslatef((self.pan_x + self.temp_pan_x)/100.0, (self.pan_y + self.temp_pan_y)/-100.0, 0.0)
-        #glRotatef(90,0.0,1.0,0.0)
+
+        # rotate viewpoint
         glRotatef(self.rotate_y + self.temp_rotate_y, 1.0, 0.0, 0.0)
         glRotatef(self.rotate_x + self.temp_rotate_x, 0.0, 1.0, 0.0)
 
@@ -415,66 +426,30 @@ class MCubeWidget(QGLWidget):
         glClearColor(0.2,0.2,0.2, 1)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-
-        '''[from_x, from_y, from_z],
-        [from_x, from_y, to_z],
-        [from_x, to_y, from_z],
-        [from_x, to_y, to_z],
-        [to_x, from_y, from_z],
-        [to_x, from_y, to_z],
-        [to_x, to_y, from_z],
-        [to_x, to_y, to_z]'''
-        #print(self.bounding_box_vertices[0])
-
-        # render bounding box
+        ''' render bounding box and roi box '''
         glDisable(GL_LIGHTING)
-
+        # render bounding box
         if self.bounding_box is not None:
-            v = self.bounding_box_vertices
-            glColor3f(0.0, 0.0, 1.0)
-            glBegin(GL_LINES)
-            for e in self.bounding_box_edges:
-                for idx in e:
-                    glVertex3fv(v[idx])
-            glEnd()
-
+            glLineWidth(1)
+            self.draw_box(self.bounding_box_vertices, self.bounding_box_edges, color=[0.0, 0.0, 1.0])
         # render roi box
+        
         if self.roi_box is not None:
-            v = self.roi_box_vertices
-            glColor3f(1.0, 0.0, 0.0)
-            glBegin(GL_LINES)
-            for e in self.roi_box_edges:
-                for idx in e:
-                    glVertex3fv(v[idx])
-            glEnd()
-
+            #print("roi box:", self.roi_box_vertices)
+            #print("bounding box:", self.bounding_box_vertices)
+            #print("check", self.roi_box_vertices == self.bounding_box_vertices)
+            if not (self.roi_box_vertices == self.bounding_box_vertices).all():
+                glLineWidth(2)
+                self.draw_box(self.roi_box_vertices, self.roi_box_edges, color=[1.0, 0.0, 0.0])
         glEnable(GL_LIGHTING)
 
+        ''' render 3d model '''
         glColor3f(0.0, 1.0, 0.0)
         if self.gl_list_generated == False:
             self.generate_gl_list()
 
         self.render_gl_list()
         return
-
-        # Render the 3D surface
-        glBegin(GL_TRIANGLES)
-        
-        for triangle in self.triangles:
-        #    #print(triangle)
-            #count += 1
-            for vertex in triangle:
-                glNormal3fv(self.vertex_normals[vertex])
-                glVertex3fv(self.vertices[vertex])
-                #print(self.vertices[vertex])
-                #break
-            #if count == 10:
-            #    break
-        #glVertex3fv([1.0,0.0,0.0])
-        #glVertex3fv([0.0,1.0,0.0])
-        #glVertex3fv([0.0,0.0,1.0])
-        glEnd()
-
 
     def render_gl_list(self):
         if self.gl_list_generated == False:
@@ -491,22 +466,12 @@ class MCubeWidget(QGLWidget):
         glBegin(GL_TRIANGLES)
         
         for triangle in self.triangles:
-        #    #print(triangle)
-            #count += 1
             for vertex in triangle:
                 glNormal3fv(self.vertex_normals[vertex])
                 glVertex3fv(self.vertices[vertex])
-                #print(self.vertices[vertex])
-                #break
-            #if count == 10:
-            #    break
-        #glVertex3fv([1.0,0.0,0.0])
-        #glVertex3fv([0.0,1.0,0.0])
-        #glVertex3fv([0.0,0.0,1.0])
         glEnd()
         glEndList()
         self.gl_list_generated = True
-
 
 class PreferencesDialog(QDialog):
     '''
@@ -1493,12 +1458,15 @@ class CTHarvesterMainWindow(QMainWindow):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         volume, roi_box = self.get_cropped_volume()
         bounding_box = self.minimum_volume.shape
+        print("bounding_box", bounding_box)
         bounding_box = [ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ]
-        print(bounding_box, roi_box)
+        #print(bounding_box, roi_box)
         #if self.inverse_image:
         #    volume = 255 - volume
-        self.mcube_widget.set_bounding_box(bounding_box)
+        self.mcube_widget.set_bounding_box(bounding_box)        
         self.mcube_widget.set_roi_box(roi_box)
+        print("bounding_box", bounding_box)
+        print("roi_box", roi_box)
         self.mcube_widget.set_volume(volume)
         self.mcube_widget.generate_mesh()
         self.mcube_widget.repaint()
@@ -1545,8 +1513,8 @@ class CTHarvesterMainWindow(QMainWindow):
         top_idx = int(top_idx * smallest_count)
         from_x = int(from_x * smallest_level_info['width'])
         from_y = int(from_y * smallest_level_info['height'])
-        to_x = int(to_x * smallest_level_info['width'])
-        to_y = int(to_y * smallest_level_info['height'])
+        to_x = int(to_x * smallest_level_info['width'])-1
+        to_y = int(to_y * smallest_level_info['height'])-1
 
         volume = self.minimum_volume[bottom_idx:top_idx, from_y:to_y, from_x:to_x]
         return volume, [ bottom_idx, top_idx, from_y, to_y, from_x, to_x ]
@@ -1560,14 +1528,12 @@ class CTHarvesterMainWindow(QMainWindow):
         obj_filename, _ = QFileDialog.getSaveFileName(self, "Save File As", self.edtDirname.text(), "OBJ format (*.obj)")
         if obj_filename == "":
             return
-        
         #print("obj_filename", obj_filename)
 
-
         threed_volume, _ = self.get_cropped_volume()
-        #print("threed_volume", threed_volume.shape, threed_volume.dtype)
         isovalue = self.image_label2.isovalue
         vertices, triangles = mcubes.marching_cubes(threed_volume, isovalue)
+        #print("threed_volume", threed_volume.shape, threed_volume.dtype)
         #print("vertices", vertices.shape, vertices.dtype)
         #print("triangles", triangles.shape, triangles.dtype)
 
@@ -1589,11 +1555,6 @@ class CTHarvesterMainWindow(QMainWindow):
             #    fh.write('f {}/{} {}/{} {}/{}\n'.format(f[0]+1, f[0]+1, f[1]+1, f[1]+1, f[2]+1, f[2]+1))
             for f in triangles:
                 fh.write('f {} {} {}\n'.format(f[0]+1, f[1]+1, f[2]+1))
-
-            #print("exported to", obj_filename)
-
-
-
 
     def save_result(self):
         # open dir dialog for save
@@ -1711,27 +1672,14 @@ class CTHarvesterMainWindow(QMainWindow):
         #self.status_format = self.tr("Crop indices: {}~{}    Cropped image size: {}x{}    Estimated stack size: {} MB [{}]")
         status_text = self.status_text_format.format(bottom_idx, top_idx, x2 - x1, y2 - y1, x1, y1, x2, y2, round(count * (x2 - x1 ) * (y2 - y1 ) / 1024 / 1024 , 2), str(self.image_label2.edit_mode))
         self.edtStatus.setText(status_text)
-        return
 
-        #txt = self.tr("Crop indices: {}~{}").format(bottom_idx, top_idx)
-        #txt += self.tr("    Cropped image size: {}x{}").format(x2 - x1+1, y2 - y1+1)
-        #txt += self.tr("    Estimated stack size: {} MB").format(round(count * (x2 - x1+1 ) * (y2 - y1+1 ) / 1024 / 1024 , 2))    
-        #txt += self.tr(" [")+str(self.image_label2.edit_mode)+self.tr("]")
-        #self.edtStatus.setText(txt)
-   
     def initializeComboSize(self):
         #print("initializeComboSize")
         self.comboLevel.clear()
         for level in self.level_info:
-                
-            #print("level:", level)
             self.comboLevel.addItem( level['name'])
 
-        #self.comboLevel.setCurrentIndex(0)
-        #self.comboLevelIndexChanged()
-
     def comboLevelIndexChanged(self):
-
         #print("-----------------------------[[[comboSizeIndexChanged]]]-----------------------------")
         self.prev_level_idx = self.curr_level_idx
         self.curr_level_idx = self.comboLevel.currentIndex()
@@ -1740,7 +1688,6 @@ class CTHarvesterMainWindow(QMainWindow):
         
         #print("prev_level_idx:", self.prev_level_idx)
         #print("curr_level_idx:", self.curr_level_idx)
-
         level_info = self.level_info[self.curr_level_idx]
         #print("level_info:", self.level_info)
         seq_begin = level_info['seq_begin']
@@ -1800,10 +1747,6 @@ class CTHarvesterMainWindow(QMainWindow):
         size =  max(int(self.settings_hash['image_width']), int(self.settings_hash['image_height']))
         width = int(self.settings_hash['image_width'])
         height = int(self.settings_hash['image_height'])
-        #print("size:", size)
-        #print("width:", width)
-        #print("height:", height)
-        #print("settings_hash:", self.settings_hash)
 
         i = 0
         # create temporary directory for thumbnail
@@ -1844,9 +1787,6 @@ class CTHarvesterMainWindow(QMainWindow):
                 filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename3 = os.path.join(to_dir, self.settings_hash['prefix'] + str(seq_begin + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type'])
-                #print("filename1:", filename1)
-                #print("filename2:", filename2)
-                #print("filename3:", filename3)
 
                 if os.path.exists(filename3):  
                     self.progress_dialog.lbl_text.setText(self.progress_text_3_2.format(i+1, idx+1, int(total_count/2)))
