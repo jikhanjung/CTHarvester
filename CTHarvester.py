@@ -1143,11 +1143,6 @@ class ObjectViewer2D(QLabel):
                 self.image_canvas_ratio = self.orig_width / self.width()
             else:
                 self.image_canvas_ratio = self.orig_height / self.height()
-            #if self.image_canvas_ratio < 1.0:
-            #    self.scale = 1.0 / self.image_canvas_ratio
-            #else:
-            #    self.scale = 1.0
-            
             #print("calculate_resize", self.orig_width, self.orig_height, self.width(), self.height(), self.image_canvas_ratio, self.scale)
 
             self.curr_pixmap = self.orig_pixmap.scaled(int(self.orig_width*self.scale/self.image_canvas_ratio),int(self.orig_width*self.scale/self.image_canvas_ratio), Qt.KeepAspectRatio)
