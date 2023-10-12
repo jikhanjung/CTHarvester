@@ -14,7 +14,6 @@ from scipy import ndimage  # For interpolation
 import math
 
 OBJECT_MODE = 1
-
 VIEW_MODE = 1
 PAN_MODE = 2
 ROTATE_MODE = 3
