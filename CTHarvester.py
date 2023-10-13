@@ -51,6 +51,7 @@ VIEW_MODE = 1
 PAN_MODE = 2
 ROTATE_MODE = 3
 ZOOM_MODE = 4
+MOVE_3DVIEW_MODE = 5
 
 
 
@@ -93,46 +94,106 @@ class MCubeWidget(QGLWidget):
         self.gl_list_generated = False
         self.parent = parent
         self.parent.set_threed_view(self)
+
+        self.moveButton = QLabel(self)
+        self.moveButton.setPixmap(QPixmap(resource_path("move.png")).scaled(15,15))
+        self.moveButton.hide()
+        self.moveButton.setGeometry(0,0,15,15)
+        self.moveButton.mousePressEvent = self.moveButton_mousePressEvent
+        self.moveButton.mouseMoveEvent = self.moveButton_mouseMoveEvent
+        self.moveButton.mouseReleaseEvent = self.moveButton_mouseReleaseEvent
+        self.expandButton = QLabel(self)
+        self.expandButton.setPixmap(QPixmap(resource_path("expand.png")).scaled(15,15))
+        self.expandButton.hide()
+        self.expandButton.setGeometry(15,0,15,15)
+        self.expandButton.mousePressEvent = self.expandButton_mousePressEvent
+        self.shrinkButton = QLabel(self)
+        self.shrinkButton.setPixmap(QPixmap(resource_path("shrink.png")).scaled(15,15))
+        self.shrinkButton.hide()
+        self.shrinkButton.setGeometry(30,0,15,15)
+        self.shrinkButton.mousePressEvent = self.shrinkButton_mousePressEvent
         self.cbxRotation = QCheckBox(self)
         self.cbxRotation.setText("R")
         self.cbxRotation.setChecked(True)
         self.cbxRotation.stateChanged.connect(self.cbxRotation_stateChanged)
         self.cbxRotation.setStyleSheet("QCheckBox { background-color: #323232; color: white; }")        
         self.cbxRotation.hide()
+        self.cbxRotation.move(45,0)
+
+        self.curr_slice = None
+        self.curr_slice_vertices = []
+        self.scale = 0.20
+        self.average_coordinates = np.array([0.0,0.0,0.0], dtype=np.float64)
         self.bouding_box = None
         self.roi_box = None
-        #setStyleSheet("QCheckBox { background-color: #323232 }")
 
-        #print("init")
+    def expandButton_mousePressEvent(self, event):
+        self.scale += 0.1
+        self.resize_self()
+        self.reposition_self()
+
+    def shrinkButton_mousePressEvent(self, event):
+        self.scale -= 0.1
+        if self.scale < 0.1:
+            self.scale = 0.1
+        self.resize_self()
+        self.reposition_self()
+
+    def moveButton_mousePressEvent(self, event):
+        self.down_x = event.x()
+        self.down_y = event.y()
+        self.view_mode = MOVE_3DVIEW_MODE
+
+    def moveButton_mouseMoveEvent(self, event):
+        self.curr_x = event.x()
+        self.curr_y = event.y()
+        if self.view_mode == MOVE_3DVIEW_MODE:
+            self.move(self.x() + self.curr_x - self.down_x, self.y() + self.curr_y - self.down_y)
+        #self.reposition_self()
+
+    def moveButton_mouseReleaseEvent(self, event):
+        self.curr_x = event.x()
+        self.curr_y = event.y()
+        if self.view_mode == MOVE_3DVIEW_MODE:
+            self.move(self.x() + self.curr_x - self.down_x, self.y() + self.curr_y - self.down_y)
+
+        self.view_mode = VIEW_MODE
+        # get parent's geometry
+        self.reposition_self()
+
+    def reposition_self(self):
+        x, y = self.x(), self.y()
+        parent_geometry = self.parent.geometry()
+        if y + ( self.height() / 2 ) > parent_geometry.height() / 2 :
+            y = parent_geometry.height() - self.height()
+        else:
+            y = 0
+        if x + ( self.width() / 2 ) > parent_geometry.width() / 2 :
+            x = parent_geometry.width() - self.width()
+        else:
+            x = 0
+        
+        self.move(x, y)                
 
     def cbxRotation_stateChanged(self):
         self.auto_rotate = self.cbxRotation.isChecked()
 
     def resize_self(self):
         size = min(self.parent.width(),self.parent.height())
-        self.resize(int(size*0.33),int(size*0.33))
+        self.resize(int(size*self.scale),int(size*self.scale))
         #print("resize:",self.parent.width(),self.parent.height())
 
     def generate_mesh(self):
         self.cbxRotation.show()
+        self.moveButton.show()
+        self.expandButton.show()
+        self.shrinkButton.show()
         self.vertices, self.triangles = mcubes.marching_cubes(self.volume, self.isovalue)
-        self.vertices /= 10.0
-        if self.bounding_box is not None:
-            self.bounding_box /= 10.0
-            self.bounding_box_vertices /= 10.0
-        if self.roi_box is not None:
-            self.roi_box /= 10.0
-            self.roi_box_vertices /= 10.0
 
-        average_coordinates = np.mean(self.vertices, axis=0)
-        self.vertices -= average_coordinates
-        if self.bounding_box is not None:
-            #print("bounding box:", self.bounding_box.shape, average_coordinates.shape)
-            #self.bounding_box -= average_coordinates
-            self.bounding_box_vertices -= average_coordinates
-        if self.roi_box is not None:
-            #self.roi_box -= average_coordinates
-            self.roi_box_vertices -= average_coordinates            
+        self.vertices /= 10.0
+
+        self.average_coordinates = np.mean(self.vertices, axis=0)
+        self.vertices -= self.average_coordinates
 
         face_normals = []
         for triangle in self.triangles:
@@ -184,14 +245,6 @@ class MCubeWidget(QGLWidget):
             # rotate vertex normal -90degrees around x axis
             self.vertex_normals[i] = np.array([self.vertex_normals[i][0],-1*self.vertex_normals[i][2],self.vertex_normals[i][1]])
 
-        # rotate bounding box and roi box
-        for i in range(len(self.bounding_box_vertices)):
-            self.bounding_box_vertices[i] = np.array([self.bounding_box_vertices[i][2],self.bounding_box_vertices[i][1],-1*self.bounding_box_vertices[i][0]])
-            self.bounding_box_vertices[i] = np.array([self.bounding_box_vertices[i][0],-1*self.bounding_box_vertices[i][2],self.bounding_box_vertices[i][1]])
-            if self.roi_box is not None:
-                self.roi_box_vertices[i] = np.array([self.roi_box_vertices[i][2],self.roi_box_vertices[i][1],-1*self.roi_box_vertices[i][0]])
-                self.roi_box_vertices[i] = np.array([self.roi_box_vertices[i][0],-1*self.roi_box_vertices[i][2],self.roi_box_vertices[i][1]])
-                pass
         #print(self.bounding_box_vertices[0])
 
         self.generate_gl_list()
@@ -234,12 +287,58 @@ class MCubeWidget(QGLWidget):
     def set_bounding_box(self, bounding_box):
         self.bounding_box = np.array(bounding_box, dtype=np.float64)
         self.bounding_box_vertices, self.bounding_box_edges = self.make_box(self.bounding_box)
+        print("bounding_box_vertices:", self.bounding_box_vertices)
     
+    def set_curr_slice(self, curr_slice):
+        self.curr_slice = curr_slice
+        self.curr_slice_vertices = np.array([
+            [self.curr_slice, self.bounding_box_vertices[0][1], self.bounding_box_vertices[0][2]],
+            [self.curr_slice, self.bounding_box_vertices[2][1], self.bounding_box_vertices[2][2]],
+            [self.curr_slice, self.bounding_box_vertices[6][1], self.bounding_box_vertices[6][2]],
+            [self.curr_slice, self.bounding_box_vertices[4][1], self.bounding_box_vertices[4][2]]
+        ], dtype=np.float64)
+        print("curr_slice_vertices:", self.curr_slice_vertices)
+
     def set_roi_box(self, roi_box):
         self.roi_box = np.array(roi_box, dtype=np.float64)
         self.roi_box_vertices, self.roi_box_edges = self.make_box(self.roi_box)
+
+    def adjust_vertices(self):
         self.bounding_box_vertices -= self.roi_box_vertices[0]
+        self.curr_slice_vertices -= self.roi_box_vertices[0]
         self.roi_box_vertices -= self.roi_box_vertices[0]
+        print("curr_slice_vertices 3:", self.curr_slice_vertices)
+        if self.bounding_box is not None:
+            self.bounding_box /= 10.0
+            self.bounding_box_vertices /= 10.0
+        if self.roi_box is not None:
+            self.roi_box /= 10.0
+            self.roi_box_vertices /= 10.0
+        if self.curr_slice is not None:
+            self.curr_slice_vertices /= 10.0
+
+        if self.bounding_box is not None:
+            #print("bounding box:", self.bounding_box.shape, average_coordinates.shape)
+            #self.bounding_box -= average_coordinates
+            self.bounding_box_vertices -= self.average_coordinates
+        if self.roi_box is not None:
+            #self.roi_box -= average_coordinates
+            self.roi_box_vertices -= self.average_coordinates
+        if self.curr_slice is not None:
+            self.curr_slice_vertices -= self.average_coordinates
+
+        # rotate bounding box and roi box
+        for i in range(len(self.bounding_box_vertices)):
+            self.bounding_box_vertices[i] = np.array([self.bounding_box_vertices[i][2],self.bounding_box_vertices[i][1],-1*self.bounding_box_vertices[i][0]])
+            self.bounding_box_vertices[i] = np.array([self.bounding_box_vertices[i][0],-1*self.bounding_box_vertices[i][2],self.bounding_box_vertices[i][1]])
+            if self.roi_box is not None:
+                self.roi_box_vertices[i] = np.array([self.roi_box_vertices[i][2],self.roi_box_vertices[i][1],-1*self.roi_box_vertices[i][0]])
+                self.roi_box_vertices[i] = np.array([self.roi_box_vertices[i][0],-1*self.roi_box_vertices[i][2],self.roi_box_vertices[i][1]])
+                pass
+        for i in range(len(self.curr_slice_vertices)):
+            self.curr_slice_vertices[i] = np.array([self.curr_slice_vertices[i][2],self.curr_slice_vertices[i][1],-1*self.curr_slice_vertices[i][0]])
+            self.curr_slice_vertices[i] = np.array([self.curr_slice_vertices[i][0],-1*self.curr_slice_vertices[i][2],self.curr_slice_vertices[i][1]])
+
 
     def set_volume(self, volume):
         self.volume = volume
@@ -256,6 +355,9 @@ class MCubeWidget(QGLWidget):
         if self.roi_box is not None:
             self.roi_box *= scale_factors
             self.roi_box_vertices *= scale_factors
+        if self.curr_slice is not None:
+            self.curr_slice_vertices *= scale_factors
+        print("curr_slice_vertices 2:", self.curr_slice_vertices)
 
         #print("volume shape:", self.volume.shape)
         #print("bounding box:", self.bouding_box)
@@ -377,6 +479,9 @@ class MCubeWidget(QGLWidget):
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
 
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
     def resizeGL(self, width, height):
         #print("resizeGL")
         glViewport(0, 0, width, height)
@@ -449,6 +554,18 @@ class MCubeWidget(QGLWidget):
             self.generate_gl_list()
 
         self.render_gl_list()
+
+
+        glColor4f(0.0, 1.0, 0.0, 0.5) 
+
+        glBegin(GL_QUADS)
+        for vertex in self.curr_slice_vertices:
+            #glNormal3fv(self.vertex_normals[0])
+            glVertex3fv(vertex)
+            #print(vertex)
+        glEnd()
+
+
         return
 
     def render_gl_list(self):
@@ -472,6 +589,7 @@ class MCubeWidget(QGLWidget):
         glEnd()
         glEndList()
         self.gl_list_generated = True
+
 
 class PreferencesDialog(QDialog):
     '''
@@ -1458,20 +1576,26 @@ class CTHarvesterMainWindow(QMainWindow):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         volume, roi_box = self.get_cropped_volume()
         bounding_box = self.minimum_volume.shape
-        print("bounding_box", bounding_box)
         bounding_box = [ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ]
-        #print(bounding_box, roi_box)
-        #if self.inverse_image:
-        #    volume = 255 - volume
-        self.mcube_widget.set_bounding_box(bounding_box)        
+
+        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
+        self.mcube_widget.set_bounding_box(bounding_box)    
+        self.mcube_widget.set_curr_slice(curr_slice_val)
         self.mcube_widget.set_roi_box(roi_box)
-        print("bounding_box", bounding_box)
-        print("roi_box", roi_box)
         self.mcube_widget.set_volume(volume)
+        self.mcube_widget.adjust_vertices()
         self.mcube_widget.generate_mesh()
         self.mcube_widget.repaint()
         QApplication.restoreOverrideCursor()
-        #pass
+
+    def update_curr_slice(self):
+        return
+        bounding_box = self.minimum_volume.shape
+        bounding_box = [ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ]
+        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
+        self.mcube_widget.set_curr_slice(curr_slice_val)
+        self.mcube_widget.adjust_vertices()
+        self.mcube_widget.repaint()
 
     def get_cropped_volume(self):
         # get current size idx
@@ -1653,6 +1777,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
         self.image_label2.set_image(os.path.join(dirname, filename))
         self.image_label2.set_curr_idx(self.slider.value())
+        self.update_curr_slice()
         #self.edtCurrentImage.setText(str(self.slider.value()))
         #self.image_label2.setPixmap(QPixmap(os.path.join(dirname, filename)).scaledToWidth(512))
 
@@ -1837,8 +1962,17 @@ class CTHarvesterMainWindow(QMainWindow):
                 #print("minimum_volume:", self.minimum_volume.shape)
                 bounding_box = self.minimum_volume.shape
                 bounding_box = np.array([ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ])
+
+                curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
                 self.mcube_widget.set_bounding_box(bounding_box)
+                self.mcube_widget.set_curr_slice(curr_slice_val)
+                self.mcube_widget.set_roi_box(bounding_box)
                 self.mcube_widget.set_volume(self.minimum_volume)
+                self.mcube_widget.adjust_vertices()
+                self.mcube_widget.generate_mesh()
+                self.mcube_widget.repaint()
+
+
                 self.mcube_widget.generate_mesh()
                 break
             
