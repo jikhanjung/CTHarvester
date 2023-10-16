@@ -18,6 +18,7 @@ import numpy as np
 import mcubes
 from scipy import ndimage  # For interpolation
 import math
+from copy import deepcopy
 
 def value_to_bool(value):
     return value.lower() == 'true' if isinstance(value, str) else bool(value)
@@ -124,7 +125,7 @@ class MCubeWidget(QGLWidget):
         self.curr_slice_vertices = []
         self.scale = 0.20
         self.average_coordinates = np.array([0.0,0.0,0.0], dtype=np.float64)
-        self.bouding_box = None
+        self.bounding_box = None
         self.roi_box = None
 
     def expandButton_mousePressEvent(self, event):
@@ -183,72 +184,6 @@ class MCubeWidget(QGLWidget):
         self.resize(int(size*self.scale),int(size*self.scale))
         #print("resize:",self.parent.width(),self.parent.height())
 
-    def generate_mesh(self):
-        self.cbxRotation.show()
-        self.moveButton.show()
-        self.expandButton.show()
-        self.shrinkButton.show()
-        self.vertices, self.triangles = mcubes.marching_cubes(self.volume, self.isovalue)
-
-        self.vertices /= 10.0
-
-        self.average_coordinates = np.mean(self.vertices, axis=0)
-        self.vertices -= self.average_coordinates
-
-        face_normals = []
-        for triangle in self.triangles:
-            v0 = self.vertices[triangle[0]]
-            v1 = self.vertices[triangle[1]]
-            v2 = self.vertices[triangle[2]]
-            edge1 = v1 - v0
-            edge2 = v2 - v0
-            normal = np.cross(edge1, edge2)
-            norm = np.linalg.norm(normal)
-            if norm == 0:
-                normal = np.array([0, 0, 0])
-            else:
-                normal /= np.linalg.norm(normal)
-            face_normals.append(normal)
-
-        vertex_normals = np.zeros(self.vertices.shape)
-
-        # Calculate vertex normals by averaging face normals
-        for i, triangle in enumerate(self.triangles):
-            for vertex_index in triangle:
-                vertex_normals[vertex_index] += face_normals[i]
-
-        # Normalize vertex normals
-        '''
-        norms = np.linalg.norm(vertex_normals, axis=1)
-        vertex_normals = np.where(norms != 0, vertex_normals / norms[:, np.newaxis], np.array([0.0, 0.0, 0.0]))
-        self.vertex_normals = vertex_normals
-
-        '''
-        for i in range(len(vertex_normals)):
-            if np.linalg.norm(vertex_normals[i]) != 0:
-                vertex_normals[i] /= np.linalg.norm(vertex_normals[i])
-            else:
-                vertex_normals[i] = np.array([0.0, 0.0, 0.0])
-        
-        #vertex_normals /= np.linalg.norm(vertex_normals, axis=1)[:, np.newaxis]
-        self.vertex_normals = vertex_normals
-
-        # rotate vertices
-        for i in range(len(self.vertices)):
-            #continue
-            # rotate 90 degrees around y axis
-            self.vertices[i] = np.array([self.vertices[i][2],self.vertices[i][1],-1*self.vertices[i][0]])
-            # rotate vertex normal 90degrees around y axis
-            self.vertex_normals[i] = np.array([self.vertex_normals[i][2],self.vertex_normals[i][1],-1*self.vertex_normals[i][0]])
-            # rotate -90 degrees around x axis
-            self.vertices[i] = np.array([self.vertices[i][0],-1*self.vertices[i][2],self.vertices[i][1]])
-            # rotate vertex normal -90degrees around x axis
-            self.vertex_normals[i] = np.array([self.vertex_normals[i][0],-1*self.vertex_normals[i][2],self.vertex_normals[i][1]])
-
-        #print(self.bounding_box_vertices[0])
-
-        self.generate_gl_list()
-
     def make_box(self, box_coords):
         from_z = box_coords[0]
         to_z = box_coords[1]
@@ -285,37 +220,35 @@ class MCubeWidget(QGLWidget):
         return box_vertex, box_edges
 
     def set_bounding_box(self, bounding_box):
-        self.bounding_box = np.array(bounding_box, dtype=np.float64)
+        self.original_bounding_box = deepcopy(np.array(bounding_box, dtype=np.float64))
+        self.bounding_box = deepcopy(np.array(bounding_box, dtype=np.float64))
         self.bounding_box_vertices, self.bounding_box_edges = self.make_box(self.bounding_box)
-        print("bounding_box_vertices:", self.bounding_box_vertices)
+        self.original_bounding_box_vertices, self.original_bounding_box_edges = self.make_box(self.original_bounding_box)
+        #print("bounding_box_vertices:", self.bounding_box_vertices)
     
     def set_curr_slice(self, curr_slice):
         self.curr_slice = curr_slice
-        self.curr_slice_vertices = np.array([
-            [self.curr_slice, self.bounding_box_vertices[0][1], self.bounding_box_vertices[0][2]],
-            [self.curr_slice, self.bounding_box_vertices[2][1], self.bounding_box_vertices[2][2]],
-            [self.curr_slice, self.bounding_box_vertices[6][1], self.bounding_box_vertices[6][2]],
-            [self.curr_slice, self.bounding_box_vertices[4][1], self.bounding_box_vertices[4][2]]
+        self.original_curr_slice_vertices = np.array([
+            [self.curr_slice, self.original_bounding_box_vertices[0][1], self.original_bounding_box_vertices[0][2]],
+            [self.curr_slice, self.original_bounding_box_vertices[2][1], self.original_bounding_box_vertices[2][2]],
+            [self.curr_slice, self.original_bounding_box_vertices[6][1], self.original_bounding_box_vertices[6][2]],
+            [self.curr_slice, self.original_bounding_box_vertices[4][1], self.original_bounding_box_vertices[4][2]]
         ], dtype=np.float64)
-        print("curr_slice_vertices:", self.curr_slice_vertices)
+        self.curr_slice_vertices = deepcopy(self.original_curr_slice_vertices)
+        #print("curr_slice_vertices in set_curr_slice:", self.curr_slice_vertices)
 
     def set_roi_box(self, roi_box):
-        self.roi_box = np.array(roi_box, dtype=np.float64)
+        self.original_roi_box = deepcopy(np.array(roi_box, dtype=np.float64))
+        self.roi_box = deepcopy(np.array(roi_box, dtype=np.float64))
+        self.original_roi_box_vertices, self.original_roi_box_edges = self.make_box(self.original_roi_box)
         self.roi_box_vertices, self.roi_box_edges = self.make_box(self.roi_box)
+        self.roi_displacement = deepcopy(self.roi_box_vertices[0])
 
     def adjust_vertices(self):
-        self.bounding_box_vertices -= self.roi_box_vertices[0]
-        self.curr_slice_vertices -= self.roi_box_vertices[0]
-        self.roi_box_vertices -= self.roi_box_vertices[0]
-        print("curr_slice_vertices 3:", self.curr_slice_vertices)
-        if self.bounding_box is not None:
-            self.bounding_box /= 10.0
-            self.bounding_box_vertices /= 10.0
-        if self.roi_box is not None:
-            self.roi_box /= 10.0
-            self.roi_box_vertices /= 10.0
-        if self.curr_slice is not None:
-            self.curr_slice_vertices /= 10.0
+        self.bounding_box_vertices = self.original_bounding_box_vertices - self.roi_displacement
+        self.curr_slice_vertices = self.original_curr_slice_vertices - self.roi_displacement
+        self.roi_box_vertices = self.original_roi_box_vertices - self.roi_displacement
+        #print("curr_slice_vertices 3:", self.curr_slice_vertices)
 
         if self.bounding_box is not None:
             #print("bounding box:", self.bounding_box.shape, average_coordinates.shape)
@@ -339,30 +272,95 @@ class MCubeWidget(QGLWidget):
             self.curr_slice_vertices[i] = np.array([self.curr_slice_vertices[i][2],self.curr_slice_vertices[i][1],-1*self.curr_slice_vertices[i][0]])
             self.curr_slice_vertices[i] = np.array([self.curr_slice_vertices[i][0],-1*self.curr_slice_vertices[i][2],self.curr_slice_vertices[i][1]])
 
+        factor = 50.0
+        #self.vertices /= 500.0
+        self.roi_box_vertices /= factor
+        self.bounding_box_vertices /= factor
+        self.curr_slice_vertices /= factor
+        #print("curr_slice_vertices 4:", self.curr_slice_vertices)
+        #print("vertices:", self.vertices.shape, self.vertices)
+
 
     def set_volume(self, volume):
         self.volume = volume
         #print(self.volume.shape)
         max_len = max(self.volume.shape)
         # set max length to 100
-        scale_factors = 50.0/max_len
+        self.scale_factor = 50.0/max_len
+        print("scale factor = ", self.scale_factor)
 
         # Use scipy's zoom function for interpolation
-        self.volume = ndimage.zoom(self.volume, scale_factors, order=1)
-        if self.bounding_box is not None:
-            self.bounding_box *= scale_factors
-            self.bounding_box_vertices *= scale_factors
-        if self.roi_box is not None:
-            self.roi_box *= scale_factors
-            self.roi_box_vertices *= scale_factors
-        if self.curr_slice is not None:
-            self.curr_slice_vertices *= scale_factors
-        print("curr_slice_vertices 2:", self.curr_slice_vertices)
+        print("volume shape:", self.volume.shape)
+        self.volume = ndimage.zoom(self.volume, self.scale_factor, order=1)
 
-        #print("volume shape:", self.volume.shape)
+        print("volume shape:", self.volume.shape)
         #print("bounding box:", self.bouding_box)
         #print("roi box:", self.roi_box)
         #print(self.volume.shape)
+
+#    def generate_mesh(self):
+        self.cbxRotation.show()
+        self.moveButton.show()
+        self.expandButton.show()
+        self.shrinkButton.show()
+        self.vertices, self.triangles = mcubes.marching_cubes(self.volume, self.isovalue)
+        #print("vertices:", self.vertices.shape, self.vertices)
+        self.vertices *= self.scale_factor
+
+        self.average_coordinates = np.mean(self.vertices, axis=0)
+        self.vertices -= self.average_coordinates
+
+        # calculate normals
+        face_normals = []
+        for triangle in self.triangles:
+            v0 = self.vertices[triangle[0]]
+            v1 = self.vertices[triangle[1]]
+            v2 = self.vertices[triangle[2]]
+            edge1 = v1 - v0
+            edge2 = v2 - v0
+            normal = np.cross(edge1, edge2)
+            norm = np.linalg.norm(normal)
+            if norm == 0:
+                normal = np.array([0, 0, 0])
+            else:
+                normal /= np.linalg.norm(normal)
+            face_normals.append(normal)
+
+        vertex_normals = np.zeros(self.vertices.shape)
+
+        # Calculate vertex normals by averaging face normals
+        for i, triangle in enumerate(self.triangles):
+            for vertex_index in triangle:
+                vertex_normals[vertex_index] += face_normals[i]
+
+        # Normalize vertex normals
+        for i in range(len(vertex_normals)):
+            if np.linalg.norm(vertex_normals[i]) != 0:
+                vertex_normals[i] /= np.linalg.norm(vertex_normals[i])
+            else:
+                vertex_normals[i] = np.array([0.0, 0.0, 0.0])
+        
+        #vertex_normals /= np.linalg.norm(vertex_normals, axis=1)[:, np.newaxis]
+        self.vertex_normals = vertex_normals
+
+        # rotate vertices
+        for i in range(len(self.vertices)):
+            #continue
+            # rotate 90 degrees around y axis
+            self.vertices[i] = np.array([self.vertices[i][2],self.vertices[i][1],-1*self.vertices[i][0]])
+            # rotate vertex normal 90degrees around y axis
+            self.vertex_normals[i] = np.array([self.vertex_normals[i][2],self.vertex_normals[i][1],-1*self.vertex_normals[i][0]])
+            # rotate -90 degrees around x axis
+            self.vertices[i] = np.array([self.vertices[i][0],-1*self.vertices[i][2],self.vertices[i][1]])
+            # rotate vertex normal -90degrees around x axis
+            self.vertex_normals[i] = np.array([self.vertex_normals[i][0],-1*self.vertex_normals[i][2],self.vertex_normals[i][1]])
+
+        #print(self.bounding_box_vertices[0])
+
+        self.generate_gl_list()
+
+    def generate_mesh(self):
+        return
 
     def set_isovalue(self, isovalue):
         self.isovalue = isovalue
@@ -1583,12 +1581,22 @@ class CTHarvesterMainWindow(QMainWindow):
         self.mcube_widget.set_curr_slice(curr_slice_val)
         self.mcube_widget.set_roi_box(roi_box)
         self.mcube_widget.set_volume(volume)
-        self.mcube_widget.adjust_vertices()
         self.mcube_widget.generate_mesh()
+        self.mcube_widget.adjust_vertices()
         self.mcube_widget.repaint()
         QApplication.restoreOverrideCursor()
 
     def update_curr_slice(self):
+        bounding_box = self.minimum_volume.shape
+        bounding_box = [ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ]
+        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
+        #print("curr_slice", self.mcube_widget.curr_slice_vertices)
+        self.mcube_widget.set_curr_slice(curr_slice_val)
+        #print("curr_slice", self.mcube_widget.curr_slice_vertices)
+        self.mcube_widget.adjust_vertices()
+        #print("curr_slice", self.mcube_widget.curr_slice_vertices)
+        self.mcube_widget.repaint()
+        #print("update curr slice", curr_slice_val)
         return
         bounding_box = self.minimum_volume.shape
         bounding_box = [ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ]
@@ -1968,12 +1976,10 @@ class CTHarvesterMainWindow(QMainWindow):
                 self.mcube_widget.set_curr_slice(curr_slice_val)
                 self.mcube_widget.set_roi_box(bounding_box)
                 self.mcube_widget.set_volume(self.minimum_volume)
-                self.mcube_widget.adjust_vertices()
                 self.mcube_widget.generate_mesh()
+                self.mcube_widget.adjust_vertices()
                 self.mcube_widget.repaint()
 
-
-                self.mcube_widget.generate_mesh()
                 break
             
         QApplication.restoreOverrideCursor()
