@@ -158,7 +158,7 @@ class MCubeWidget(QGLWidget):
         self.dolly = 0
         self.data_mode = OBJECT_MODE
         self.view_mode = VIEW_MODE
-        self.auto_rotate = False
+        self.auto_rotate = True
         self.is_dragging = False
         #self.setMinimumSize(400,400)
         self.timer = QTimer(self)
@@ -202,7 +202,7 @@ class MCubeWidget(QGLWidget):
         self.bounding_box = None
         self.roi_box = None
         self.threadpool = QThreadPool()
-        print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
+        #print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
         self.vertices = []
         self.setCursor(QCursor(Qt.ArrowCursor))
 
@@ -261,7 +261,9 @@ class MCubeWidget(QGLWidget):
 
     def reposition_self(self):
         x, y = self.x(), self.y()
-        parent_geometry = self.parent.geometry()
+        parent_geometry = self.parent.get_pixmap_geometry()
+        if parent_geometry is None:
+            return
         if y + ( self.height() / 2 ) > parent_geometry.height() / 2 :
             y = parent_geometry.height() - self.height()
         else:
@@ -398,16 +400,16 @@ class MCubeWidget(QGLWidget):
 
     def generate_mesh_multithread(self):
         # Pass the function to execute
-        print("generate mesh multithread")
+        #print("generate mesh multithread")
         worker = Worker(self.generate_mesh) # Any other args, kwargs are passed to the run function
         worker.signals.result.connect(self.print_output)
         worker.signals.finished.connect(self.thread_complete)
         worker.signals.progress.connect(self.progress_fn)
-        print("generate mesh multithread 2")
+        #print("generate mesh multithread 2")
 
         # Execute
         self.threadpool.start(worker)
-        print("generate mesh multithread 3")
+        #print("generate mesh multithread 3")
 
     def update_volume(self, volume):
         self.set_volume(volume)
@@ -431,39 +433,37 @@ class MCubeWidget(QGLWidget):
         #print("roi box:", self.roi_box)
         #print(self.volume.shape)
 
-    def generate_mesh(self, progress_callback=None):
-        print("generate mesh", progress_callback)
-        i = 1
-        print("gen mesh ", i)
-        i+=1
+    def show_buttons(self):
         self.cbxRotation.show()
-        print("gen mesh ", i)
-        i+=1
         self.moveButton.show()
         self.expandButton.show()
-        print("gen mesh ", i)
-        i+=1
         self.shrinkButton.show()
+
+    def generate_mesh(self, progress_callback=None):
+        #print("generate mesh", progress_callback)
+        i = 1
+        #print("gen mesh ", i)
+        i+=1
 
         max_len = max(self.volume.shape)
         # set max length to 100
         #print("scale factor = ", self.scale_factor)
         self.scale_factor = 50.0/max_len
         #print("scale factor = ", self.scale_factor)
-        print("gen mesh ", i)
+        #print("gen mesh ", i)
         i+=1
 
         #print("volume shape before zoom:", self.volume.shape)
         volume = ndimage.zoom(self.volume, self.scale_factor, order=1)
         #print("volume shape after zoom:", volume.shape)
-        print("gen mesh ", i)
+        #print("gen mesh ", i)
         i+=1
 
         vertices, triangles = mcubes.marching_cubes(volume, self.isovalue)
         #print("volume before scale", vertices)
         #vertices *= self.scale_factor
         #print("volume after scale", vertices)
-        print("gen mesh ", i)
+        #print("gen mesh ", i)
         i+=1
 
         #self.average_coordinates = np.mean(self.vertices, axis=0)
@@ -987,6 +987,11 @@ class ObjectViewer2D(QLabel):
         self.isovalue = 60
         self.reset_crop()
 
+    def get_pixmap_geometry(self):
+        if self.curr_pixmap:
+            #print("self.curr_pixmap:", self.curr_pixmap)
+            return self.curr_pixmap.rect()
+
     def set_isovalue(self, isovalue):
         self.isovalue = isovalue
         self.update()
@@ -1405,6 +1410,8 @@ class ObjectViewer2D(QLabel):
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         self.calculate_resize()
+        self.object_dialog.mcube_widget.reposition_self()
+
         if self.canvas_box:
             self.canvas_box = QRect(self._2canx(self.crop_from_x), self._2cany(self.crop_from_y), self._2canx(self.crop_to_x - self.crop_from_x), self._2cany(self.crop_to_y - self.crop_from_y))
         self.threed_view.resize_self()
@@ -1751,13 +1758,17 @@ class CTHarvesterMainWindow(QMainWindow):
         self.mcube_widget.adjust_boxes()
         #print("roi_box after adjusting:", self.mcube_widget.roi_box_vertices)
         if update_volume:
-            print("update volume")
+            #print("update volume")
             self.mcube_widget.update_volume(volume)
-            print("generate mesh")
+            #print("generate mesh")
             self.mcube_widget.generate_mesh()
         #print("volume:", self.mcube_widget.vertices)
         self.mcube_widget.adjust_volume()
         #print("volume:", self.mcube_widget.vertices)
+
+
+
+
 
         #self.mcube_widget.set_bounding_box(bounding_box)    
         #self.mcube_widget.set_curr_slice(curr_slice_val)
@@ -1804,6 +1815,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
         #get current crop box
         crop_box = self.image_label2.get_crop_area(imgxy=True)
+        #print("crop_box:", crop_box)
 
         # get cropbox coordinates when image width and height is 1
         from_x = crop_box[0] / float(curr_width)
@@ -2147,6 +2159,8 @@ class CTHarvesterMainWindow(QMainWindow):
             if size < MAX_THUMBNAIL_SIZE:
                 self.minimum_volume = np.array(self.minimum_volume)
                 #print("minimum_volume:", self.minimum_volume.shape)
+                #self.update_3D_view()
+                #break
                 bounding_box = self.minimum_volume.shape
                 bounding_box = np.array([ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ])
                 curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
@@ -2154,7 +2168,9 @@ class CTHarvesterMainWindow(QMainWindow):
                 self.mcube_widget.update_boxes(bounding_box, bounding_box, curr_slice_val)
                 self.mcube_widget.adjust_boxes()
                 self.mcube_widget.update_volume(self.minimum_volume)
+                self.mcube_widget.generate_mesh()
                 self.mcube_widget.adjust_volume()
+                self.mcube_widget.show_buttons()
                 self.mcube_widget.repaint()
 
                 break
