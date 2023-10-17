@@ -105,7 +105,7 @@ class Worker(QRunnable):
         self.signals = WorkerSignals()
 
         # Add the callback to our kwargs
-        self.kwargs['progress_callback'] = self.signals.progress
+        #self.kwargs['progress_callback'] = self.signals.progress
 
     @pyqtSlot()
     def run(self):
@@ -205,6 +205,7 @@ class MCubeWidget(QGLWidget):
         #print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
         self.vertices = []
         self.setCursor(QCursor(Qt.ArrowCursor))
+        self.generate_mesh_under_way = False
 
     def progress_fn(self, n):
         print("progress_fn")
@@ -416,6 +417,9 @@ class MCubeWidget(QGLWidget):
         
 
     def adjust_volume(self):
+        if self.generate_mesh_under_way == True:
+            return
+        print("adjust volume vertices:", len(self.vertices))
         self.scale_volume()
         self.apply_volume_displacement()
         self.rotate_volume()
@@ -439,7 +443,8 @@ class MCubeWidget(QGLWidget):
         self.expandButton.show()
         self.shrinkButton.show()
 
-    def generate_mesh(self, progress_callback=None):
+    def generate_mesh(self):
+        self.generate_mesh_under_way = True
         #print("generate mesh", progress_callback)
         i = 1
         #print("gen mesh ", i)
@@ -505,6 +510,7 @@ class MCubeWidget(QGLWidget):
         self.vertices = deepcopy(self.original_vertices)
         self.triangles = triangles
         self.gl_list_generated = False
+        self.generate_mesh_under_way = False
 
     def apply_volume_displacement(self):
         if len(self.vertices) > 0:        
@@ -513,7 +519,9 @@ class MCubeWidget(QGLWidget):
     def rotate_volume(self):
         # rotate vertices
         if len(self.vertices) > 0:        
+            print(self.vertices.shape)
             for i in range(len(self.vertices)):
+                print("vertices[i]", i, self.vertices[i])
                 self.vertices[i] = np.array([self.vertices[i][2],self.vertices[i][0],self.vertices[i][1]])
                 self.vertex_normals[i] = np.array([self.vertex_normals[i][2],self.vertex_normals[i][0],self.vertex_normals[i][1]])
 
@@ -1761,7 +1769,7 @@ class CTHarvesterMainWindow(QMainWindow):
             #print("update volume")
             self.mcube_widget.update_volume(volume)
             #print("generate mesh")
-            self.mcube_widget.generate_mesh()
+            self.mcube_widget.generate_mesh_multithread()
         #print("volume:", self.mcube_widget.vertices)
         self.mcube_widget.adjust_volume()
         #print("volume:", self.mcube_widget.vertices)
