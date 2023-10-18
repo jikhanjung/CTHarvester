@@ -9,6 +9,7 @@ from PyQt5.QtOpenGL import *
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+from queue import Queue
 
 from superqt import QLabeledRangeSlider, QLabeledSlider
 
@@ -165,6 +166,11 @@ class MCubeWidget(QGLWidget):
         self.timer.setInterval(50)
         self.timer.timeout.connect(self.timeout)
         self.timer.start()
+        self.timer2 = QTimer(self)
+        self.timer2.setInterval(50)
+        self.timer2.timeout.connect(self.timeout2)
+        self.timer2.start()
+
         self.triangles = []
         self.gl_list_generated = False
         self.parent = parent
@@ -208,6 +214,12 @@ class MCubeWidget(QGLWidget):
         self.generate_mesh_under_way = False
         self.adjust_volume_under_way = False
         self.generated_data = None
+
+        self.queue = Queue()
+
+    def start_generate_mesh(self):
+        # Execute
+        self.threadpool.start(self.worker)
 
     def progress_fn(self, n):
         #print("progress_fn")
@@ -404,16 +416,10 @@ class MCubeWidget(QGLWidget):
         return
 
     def generate_mesh_multithread(self):
-        # Pass the function to execute
-        #print("generate mesh multithread")
-        worker = Worker(self.generate_mesh) # Any other args, kwargs are passed to the run function
-        worker.signals.result.connect(self.print_output)
-        worker.signals.finished.connect(self.thread_complete)
-        worker.signals.progress.connect(self.progress_fn)
-        #print("generate mesh multithread 2")
+        # put current parameters to the queue
+        #print("generate mesh multithread 1")
+        self.queue.put((self.volume, self.isovalue))
 
-        # Execute
-        self.threadpool.start(worker)
         #print("generate mesh multithread 3")
 
     def update_volume(self, volume):
@@ -575,7 +581,22 @@ class MCubeWidget(QGLWidget):
                 images.append(np.array(img))
         return np.array(images)
 
+    def timeout2(self):
+        #print("timout2")
+        if not self.queue.empty() and self.generate_mesh_under_way == False:
+            while not self.queue.empty():
+                (volume, isovalue) = self.queue.get()
+            self.volume = volume
+            self.isovalue = isovalue
+            self.worker = Worker(self.generate_mesh) # Any other args, kwargs are passed to the run function
+            self.worker.signals.result.connect(self.print_output)
+            self.worker.signals.finished.connect(self.thread_complete)
+            self.worker.signals.progress.connect(self.progress_fn)
+            self.threadpool.start(self.worker)
+        self.updateGL()
+
     def timeout(self):
+        #print("timout1")
         #print("timeout, auto_rotate:", self.auto_rotate)
         if self.auto_rotate == False:
             #print "no rotate"
@@ -586,7 +607,6 @@ class MCubeWidget(QGLWidget):
 
         self.rotate_x += 1
         self.updateGL()
-
 
     def mousePressEvent(self, event):
         # left button: rotate
