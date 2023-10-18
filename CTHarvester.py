@@ -112,22 +112,22 @@ class Worker(QRunnable):
         '''
         Initialise the runner function with passed args, kwargs.
         '''
-        print("run")
+        #print("run")
         # Retrieve args/kwargs here; and fire processing using them
         try:
-            print("run try")
+            #print("run try")
             result = self.fn(*self.args, **self.kwargs)
-            print("run self.fn done")
+            #print("run self.fn done")
         except:
-            print("run exception")
-            traceback.print_exc()
+            #print("run exception")
+            #traceback.print_exc()
             exctype, value = sys.exc_info()[:2]
             self.signals.error.emit((exctype, value, traceback.format_exc()))
         else:
-            print("run else")
+            #print("run else")
             self.signals.result.emit(result)  # Return the result of the processing
         finally:
-            print("run finally")
+            #print("run finally")
             self.signals.finished.emit()  # Done
 
 # Define a custom OpenGL widget using QOpenGLWidget
@@ -206,23 +206,27 @@ class MCubeWidget(QGLWidget):
         self.vertices = []
         self.setCursor(QCursor(Qt.ArrowCursor))
         self.generate_mesh_under_way = False
+        self.adjust_volume_under_way = False
+        self.generated_data = None
 
     def progress_fn(self, n):
-        print("progress_fn")
-        print("%d%% done" % n)
+        #print("progress_fn")
+        #print("%d%% done" % n)
         return
 
     def execute_this_fn(self, progress_callback):
-        print("execute_this_fn")
+        #print("execute_this_fn")
+        return
         progress_callback.emit(100)
 
-        return "Done."
+        #return "Done."
 
     def print_output(self, s):
+        return
         print(s)
 
     def thread_complete(self):
-        print("THREAD COMPLETE!")
+        #print("THREAD COMPLETE!")
         self.adjust_volume()
         return
 
@@ -419,10 +423,25 @@ class MCubeWidget(QGLWidget):
     def adjust_volume(self):
         if self.generate_mesh_under_way == True:
             return
+        
+        if self.generated_data is None:
+            return
+        
+        if self.adjust_volume_under_way == True:
+            return
+        
+        self.adjust_volume_under_way = True
+        self.vertices = deepcopy(self.generated_data['vertices'])
+        self.triangles = deepcopy(self.generated_data['triangles'])
+        self.vertex_normals = deepcopy(self.generated_data['vertex_normals'])
+
+        
         #print("adjust volume vertices:", len(self.vertices))
         self.scale_volume()
         self.apply_volume_displacement()
         self.rotate_volume()
+
+        self.adjust_volume_under_way = False
 
 
     def set_volume(self, volume):
@@ -505,10 +524,15 @@ class MCubeWidget(QGLWidget):
                 vertex_normals[i] = np.array([0.0, 0.0, 0.0])
         
         #vertex_normals /= np.linalg.norm(vertex_normals, axis=1)[:, np.newaxis]
-        self.vertex_normals = vertex_normals
-        self.original_vertices = deepcopy(vertices)
-        self.vertices = deepcopy(self.original_vertices)
-        self.triangles = triangles
+        self.generated_data = {}
+        self.generated_data['vertices'] = vertices
+        self.generated_data['triangles'] = triangles
+        self.generated_data['vertex_normals'] = vertex_normals
+
+        #self.vertex_normals = vertex_normals
+        #self.original_vertices = deepcopy(vertices)
+        #self.vertices = deepcopy(self.original_vertices)
+        #self.triangles = triangles
         self.gl_list_generated = False
         self.generate_mesh_under_way = False
 
@@ -1568,7 +1592,11 @@ class CTHarvesterMainWindow(QMainWindow):
         #self.slider.setMaximum(0)
         self.slider.valueChanged.connect(self.sliderValueChanged)
         self.range_slider.valueChanged.connect(self.rangeSliderValueChanged)
-        self.range_slider.sliderReleased.connect(self.rangeSliderReleased)
+        #self.range_slider.sliderReleased.connect(self.rangeSliderReleased)
+        #self.range_slider.sliderMoved.connect(self.rangeSliderMoved)
+        #self.range_slider.sliderPressed.connect(self.rangeSliderPressed)
+        self.range_slider._slider.sliderReleased.connect(self.rangeSliderReleased)
+        #self.range_slider._slider.sliderReleased.connect(self.rangeSliderReleased)
         self.range_slider.setMinimumWidth(100)
 
         self.image_layout2.addWidget(self.image_label2,stretch=1)
@@ -1607,7 +1635,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.btnReset = QPushButton(self.tr("Reset"))
         self.btnReset.clicked.connect(self.reset_crop)
         self.btnUpdate3DView = QPushButton(self.tr("Update 3D View"))
-        self.btnUpdate3DView.clicked.connect(self.update_3D_view)
+        self.btnUpdate3DView.clicked.connect(self.update_3D_view_click)
         #self.cbxInverseImage = QCheckBox(self.tr("Inv."))
         #self.cbxInverseImage.setChecked(False)
         #self.cbxInverseImage.stateChanged.connect(self.cbxInverseImage_stateChanged)
@@ -1692,6 +1720,17 @@ class CTHarvesterMainWindow(QMainWindow):
 
         self.initialized = False
 
+    def rangeSliderMoved(self):
+        #print("rangeslider moved")
+        return
+    
+    def rangeSliderPressed(self):
+        #print("range slider pressed")
+        return
+
+    def update_3D_view_click(self):
+        self.update_3D_view(True)
+
     def cbxInverseImage_stateChanged(self):
         #self.inverse_image = self.cbxInverseImage.isChecked()
         #self.image_label2.inverse_image = self.inverse_image
@@ -1754,7 +1793,7 @@ class CTHarvesterMainWindow(QMainWindow):
         return super().resizeEvent(a0)
 
     def update_3D_view(self, update_volume=True):
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        #print("update 3d view")
         volume, roi_box = self.get_cropped_volume()
         #print("roi_box out of get_cropped_volume:", roi_box)
         bounding_box = self.minimum_volume.shape
@@ -1765,15 +1804,18 @@ class CTHarvesterMainWindow(QMainWindow):
         #print("roi_box before adjusting", self.mcube_widget.roi_box_vertices)
         self.mcube_widget.adjust_boxes()
         #print("roi_box after adjusting:", self.mcube_widget.roi_box_vertices)
+        #print("update_volume:", update_volume)
+
         if update_volume:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
             #print("update volume")
             self.mcube_widget.update_volume(volume)
             #print("generate mesh")
-            self.mcube_widget.generate_mesh()
+            self.mcube_widget.generate_mesh_multithread()
+            QApplication.restoreOverrideCursor()
         #print("volume:", self.mcube_widget.vertices)
         self.mcube_widget.adjust_volume()
         #self.mcube_widget.repaint()
-        QApplication.restoreOverrideCursor()
 
     def update_curr_slice(self):
         bounding_box = self.minimum_volume.shape
@@ -1930,6 +1972,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
 
     def rangeSliderValueChanged(self):
+        #print("range slider value changed")
         (bottom_idx, top_idx) = self.range_slider.value()
         self.image_label2.set_bottom_idx(bottom_idx)
         self.image_label2.set_top_idx(top_idx)
