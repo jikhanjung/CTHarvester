@@ -419,7 +419,7 @@ class MCubeWidget(QGLWidget):
     def adjust_volume(self):
         if self.generate_mesh_under_way == True:
             return
-        print("adjust volume vertices:", len(self.vertices))
+        #print("adjust volume vertices:", len(self.vertices))
         self.scale_volume()
         self.apply_volume_displacement()
         self.rotate_volume()
@@ -519,9 +519,9 @@ class MCubeWidget(QGLWidget):
     def rotate_volume(self):
         # rotate vertices
         if len(self.vertices) > 0:        
-            print(self.vertices.shape)
+            #print(self.vertices.shape)
             for i in range(len(self.vertices)):
-                print("vertices[i]", i, self.vertices[i])
+                #print("vertices[i]", i, self.vertices[i])
                 self.vertices[i] = np.array([self.vertices[i][2],self.vertices[i][0],self.vertices[i][1]])
                 self.vertex_normals[i] = np.array([self.vertex_normals[i][2],self.vertex_normals[i][0],self.vertex_normals[i][1]])
 
@@ -1769,22 +1769,10 @@ class CTHarvesterMainWindow(QMainWindow):
             #print("update volume")
             self.mcube_widget.update_volume(volume)
             #print("generate mesh")
-            self.mcube_widget.generate_mesh_multithread()
+            self.mcube_widget.generate_mesh()
         #print("volume:", self.mcube_widget.vertices)
         self.mcube_widget.adjust_volume()
-        #print("volume:", self.mcube_widget.vertices)
-
-
-
-
-
-        #self.mcube_widget.set_bounding_box(bounding_box)    
-        #self.mcube_widget.set_curr_slice(curr_slice_val)
-        #self.mcube_widget.set_roi_box(roi_box)
-        #self.mcube_widget.set_volume(volume)
-        #self.mcube_widget.generate_mesh()
-        #self.mcube_widget.adjust_vertices()
-        self.mcube_widget.repaint()
+        #self.mcube_widget.repaint()
         QApplication.restoreOverrideCursor()
 
     def update_curr_slice(self):
@@ -2179,7 +2167,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 self.mcube_widget.generate_mesh()
                 self.mcube_widget.adjust_volume()
                 self.mcube_widget.show_buttons()
-                self.mcube_widget.repaint()
+                #self.mcube_widget.repaint()
 
                 break
             
