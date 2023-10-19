@@ -1487,7 +1487,6 @@ class CTHarvesterMainWindow(QMainWindow):
         self.btnExport.setText(self.tr("Export 3D Model"))
         self.lblCount.setText(self.tr("Count"))
         self.lblSize.setText(self.tr("Size"))
-        #self.btnPreferences.setText(self.tr("Preferences"))
         self.status_text_format = self.tr("Crop indices: {}~{} Cropped image size: {}x{} ({},{})-({},{}) Estimated stack size: {} MB [{}]")
         self.progress_text_1_2 = self.tr("Saving image stack... {}/{}")
         self.progress_text_1_1 = self.tr("Saving image stack...")
@@ -1495,24 +1494,17 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_text_2_2 = self.tr("Creating rescaled images level {}... {}/{}")
         self.progress_text_3_1 = self.tr("Checking rescaled images level {}...")
         self.progress_text_3_2 = self.tr("Checking rescaled images level {}... {}/{}")
-        #self.btnUpdate3DView.setText(self.tr("Update 3D View"))
 
     def set_bottom(self):
-        #self.image_label2.set_bottom_idx(self.slider.value())
-        #self.image_label2.set_curr_idx(self.slider.value())
         self.range_slider.setValue((self.slider.value(), self.range_slider.value()[1]))
-        #self.update_3D_view(True)
         self.update_status()
     def set_top(self):
-        #self.image_label2.set_top_idx(self.slider.value())
-        #self.image_label2.set_curr_idx(self.slider.value())
         self.range_slider.setValue((self.range_slider.value()[0], self.slider.value()))
-        #self.update_3D_view(True)
         self.update_status()
 
-    def resizeEvent(self, a0: QResizeEvent) -> None:
-        #print("resizeEvent")
-        return super().resizeEvent(a0)
+    #def resizeEvent(self, a0: QResizeEvent) -> None:
+    #    #print("resizeEvent")
+    #    return super().resizeEvent(a0)
 
     def update_3D_view_click(self):
         self.update_3D_view(True)
@@ -1555,7 +1547,6 @@ class CTHarvesterMainWindow(QMainWindow):
 
         #get current crop box
         crop_box = self.image_label.get_crop_area(imgxy=True)
-        #print("crop_box:", crop_box)
 
         # get cropbox coordinates when image width and height is 1
         from_x = crop_box[0] / float(curr_width)
@@ -1580,7 +1571,6 @@ class CTHarvesterMainWindow(QMainWindow):
 
         volume = self.minimum_volume[bottom_idx:top_idx, from_y:to_y, from_x:to_x]
         return volume, [ bottom_idx, top_idx, from_y, to_y, from_x, to_x ]
-        #self.mcube_widget.set_volume(volume)
 
     def export_3d_model(self):
         # open dir dialog for save
@@ -1589,7 +1579,6 @@ class CTHarvesterMainWindow(QMainWindow):
         obj_filename, _ = QFileDialog.getSaveFileName(self, "Save File As", self.edtDirname.text(), "OBJ format (*.obj)")
         if obj_filename == "":
             return
-        #print("obj_filename", obj_filename)
 
         threed_volume, _ = self.get_cropped_volume()
         isovalue = self.image_label.isovalue
