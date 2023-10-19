@@ -20,6 +20,7 @@ import mcubes
 from scipy import ndimage  # For interpolation
 import math
 from copy import deepcopy
+import datetime
 
 def value_to_bool(value):
     return value.lower() == 'true' if isinstance(value, str) else bool(value)
@@ -113,35 +114,24 @@ class Worker(QRunnable):
         '''
         Initialise the runner function with passed args, kwargs.
         '''
-        #print("run")
         # Retrieve args/kwargs here; and fire processing using them
         try:
-            #print("run try")
             result = self.fn(*self.args, **self.kwargs)
-            #print("run self.fn done")
         except:
-            #print("run exception")
             #traceback.print_exc()
             exctype, value = sys.exc_info()[:2]
             self.signals.error.emit((exctype, value, traceback.format_exc()))
         else:
-            #print("run else")
             self.signals.result.emit(result)  # Return the result of the processing
         finally:
-            #print("run finally")
             self.signals.finished.emit()  # Done
 
 # Define a custom OpenGL widget using QOpenGLWidget
 class MCubeWidget(QGLWidget):
     def __init__(self,parent):
         super().__init__(parent=parent)
-        #self.parent = parent
         self.setMinimumSize(100,100)
-        #self.volume = self.read_images_from_folder( "D:/CT/CO-1/CO-1_Rec/Cropped" ) #np.zeros((10, 10, 10))  # Define the volume to visualize
-        # Example usage:
         self.isovalue = 60  # Adjust the isovalue as needed
-        #self.triangles, self.vertices = self.marching_cubes(self.volume,isovalue)
-        #print(triangles)
         self.scale = 1.0
         self.pan_x = 0
         self.pan_y = 0
@@ -164,11 +154,11 @@ class MCubeWidget(QGLWidget):
         #self.setMinimumSize(400,400)
         self.timer = QTimer(self)
         self.timer.setInterval(50)
-        self.timer.timeout.connect(self.timeout)
+        self.timer.timeout.connect(self.rotate_timeout)
         self.timer.start()
         self.timer2 = QTimer(self)
         self.timer2.setInterval(50)
-        self.timer2.timeout.connect(self.timeout2)
+        self.timer2.timeout.connect(self.generate_mesh_timeout)
         self.timer2.start()
 
         self.triangles = []
@@ -176,6 +166,7 @@ class MCubeWidget(QGLWidget):
         self.parent = parent
         self.parent.set_threed_view(self)
 
+        ''' set up buttons '''
         self.moveButton = QLabel(self)
         self.moveButton.setPixmap(QPixmap(resource_path("move.png")).scaled(15,15))
         self.moveButton.hide()
@@ -218,24 +209,19 @@ class MCubeWidget(QGLWidget):
         self.queue = Queue()
 
     def start_generate_mesh(self):
-        # Execute
         self.threadpool.start(self.worker)
 
     def progress_fn(self, n):
         #print("progress_fn")
-        #print("%d%% done" % n)
         return
 
     def execute_this_fn(self, progress_callback):
-        #print("execute_this_fn")
         return
-        progress_callback.emit(100)
 
         #return "Done."
 
     def print_output(self, s):
         return
-        print(s)
 
     def thread_complete(self):
         #print("THREAD COMPLETE!")
@@ -336,10 +322,6 @@ class MCubeWidget(QGLWidget):
         return box_vertex, box_edges
 
     def update_boxes(self, bounding_box, roi_box,curr_slice_val):
-        # set volume sets the scale factor
-        #self.set_volume(volume)
-
-        # set bounding box and roi box, scale factor not applied
         self.set_bounding_box(bounding_box)
         self.set_roi_box(roi_box)
         self.set_curr_slice(curr_slice_val)
@@ -350,10 +332,6 @@ class MCubeWidget(QGLWidget):
         self.rotate_boxes()
         self.scale_boxes()
         
-
-        #self.adjust_vertices()
-        #self.generate_mesh()
-
     def scale_boxes(self):
         factor = 10.0
         self.roi_box_vertices *= self.scale_factor / factor
@@ -366,7 +344,6 @@ class MCubeWidget(QGLWidget):
         self.bounding_box = deepcopy(np.array(bounding_box, dtype=np.float64))
         self.bounding_box_vertices, self.bounding_box_edges = self.make_box(self.bounding_box)
         self.original_bounding_box_vertices, self.original_bounding_box_edges = self.make_box(self.original_bounding_box)
-        #print("bounding_box_vertices:", self.bounding_box_vertices)
     
     def set_curr_slice(self, curr_slice):
         self.curr_slice = curr_slice
@@ -377,31 +354,26 @@ class MCubeWidget(QGLWidget):
             [self.curr_slice, self.original_bounding_box_vertices[4][1], self.original_bounding_box_vertices[4][2]]
         ], dtype=np.float64)
         self.curr_slice_vertices = deepcopy(self.original_curr_slice_vertices)
-        #print("curr_slice_vertices in set_curr_slice:", self.curr_slice_vertices)
 
     def set_roi_box(self, roi_box):
-        #print("roi box:", roi_box)
         roi_box_width = roi_box[1] - roi_box[0]
         roi_box_height = roi_box[3] - roi_box[2]
         roi_box_depth = roi_box[5] - roi_box[4]
         max_roi_box_dim = max(roi_box_width, roi_box_height, roi_box_depth)
         self.scale_factor = ROI_BOX_RESOLUTION/max_roi_box_dim
         self.original_roi_box = deepcopy(np.array(roi_box, dtype=np.float64))
-        #print("original roi box:", self.original_roi_box)
+
         self.roi_box = deepcopy(np.array(roi_box, dtype=np.float64))
         self.original_roi_box_vertices, self.original_roi_box_edges = self.make_box(self.original_roi_box)
         self.roi_box_vertices, self.roi_box_edges = self.make_box(self.roi_box)
-        #self.roi_displacement = self.roi_box_vertices[0]
+
         self.roi_displacement = deepcopy((self.roi_box_vertices[0]+self.roi_box_vertices[7])/2.0)
         self.volume_displacement = deepcopy((self.roi_box_vertices[7]-self.roi_box_vertices[0])/2.0)
-        #print("roi_displacement:", self.roi_displacement)
-        #print("roi_box_vertices[0]:", self.roi_box_vertices[0])
 
     def apply_roi_displacement(self):
         self.bounding_box_vertices = self.original_bounding_box_vertices - self.roi_displacement
         self.curr_slice_vertices = self.original_curr_slice_vertices - self.roi_displacement
         self.roi_box_vertices = self.original_roi_box_vertices - self.roi_displacement
-        #print("curr_slice_vertices 3:", self.curr_slice_vertices)
 
     def rotate_boxes(self):
         # rotate bounding box and roi box
@@ -417,15 +389,11 @@ class MCubeWidget(QGLWidget):
 
     def generate_mesh_multithread(self):
         # put current parameters to the queue
-        #print("generate mesh multithread 1")
         self.queue.put((self.volume, self.isovalue))
-
-        #print("generate mesh multithread 3")
 
     def update_volume(self, volume):
         self.set_volume(volume)
         
-
     def adjust_volume(self):
         if self.generate_mesh_under_way == True:
             return
@@ -441,26 +409,14 @@ class MCubeWidget(QGLWidget):
         self.triangles = deepcopy(self.generated_data['triangles'])
         self.vertex_normals = deepcopy(self.generated_data['vertex_normals'])
 
-        
-        #print("adjust volume vertices:", len(self.vertices))
         self.scale_volume()
         self.apply_volume_displacement()
         self.rotate_volume()
 
         self.adjust_volume_under_way = False
 
-
     def set_volume(self, volume):
         self.volume = volume
-        #print(self.volume.shape)
-
-        # Use scipy's zoom function for interpolation
-
-        #print("volume shape:", self.volume.shape)
-        #print("volume shape:", self.volume.shape)
-        #print("bounding box:", self.bouding_box)
-        #print("roi box:", self.roi_box)
-        #print(self.volume.shape)
 
     def show_buttons(self):
         self.cbxRotation.show()
@@ -470,36 +426,13 @@ class MCubeWidget(QGLWidget):
 
     def generate_mesh(self):
         self.generate_mesh_under_way = True
-        #print("generate mesh", progress_callback)
-        i = 1
-        #print("gen mesh ", i)
-        i+=1
 
         max_len = max(self.volume.shape)
-        # set max length to 100
-        #print("scale factor = ", self.scale_factor)
         self.scale_factor = 50.0/max_len
-        #print("scale factor = ", self.scale_factor)
-        #print("gen mesh ", i)
-        i+=1
 
-        #print("volume shape before zoom:", self.volume.shape)
         volume = ndimage.zoom(self.volume, self.scale_factor, order=1)
-        #print("volume shape after zoom:", volume.shape)
-        #print("gen mesh ", i)
-        i+=1
-
         vertices, triangles = mcubes.marching_cubes(volume, self.isovalue)
-        #print("volume before scale", vertices)
-        #vertices *= self.scale_factor
-        #print("volume after scale", vertices)
-        #print("gen mesh ", i)
-        i+=1
 
-        #self.average_coordinates = np.mean(self.vertices, axis=0)
-        #self.vertices -= self.average_coordinates
-
-        # calculate normals
         face_normals = []
         for triangle in triangles:
             v0 = vertices[triangle[0]]
@@ -529,16 +462,11 @@ class MCubeWidget(QGLWidget):
             else:
                 vertex_normals[i] = np.array([0.0, 0.0, 0.0])
         
-        #vertex_normals /= np.linalg.norm(vertex_normals, axis=1)[:, np.newaxis]
         self.generated_data = {}
         self.generated_data['vertices'] = vertices
         self.generated_data['triangles'] = triangles
         self.generated_data['vertex_normals'] = vertex_normals
 
-        #self.vertex_normals = vertex_normals
-        #self.original_vertices = deepcopy(vertices)
-        #self.vertices = deepcopy(self.original_vertices)
-        #self.triangles = triangles
         self.gl_list_generated = False
         self.generate_mesh_under_way = False
 
@@ -561,13 +489,6 @@ class MCubeWidget(QGLWidget):
             self.vertices /= 10.0
         return
 
-        #self.roi_box_vertices *= self.scale_factor
-        #self.bounding_box_vertices *= self.scale_factor
-        #self.curr_slice_vertices *= self.scale_factor
-
-    #def generate_mesh(self):
-    #    return
-
     def set_isovalue(self, isovalue):
         self.isovalue = isovalue
 
@@ -581,7 +502,7 @@ class MCubeWidget(QGLWidget):
                 images.append(np.array(img))
         return np.array(images)
 
-    def timeout2(self):
+    def generate_mesh_timeout(self):
         #print("timout2")
         if not self.queue.empty() and self.generate_mesh_under_way == False:
             while not self.queue.empty():
@@ -595,7 +516,7 @@ class MCubeWidget(QGLWidget):
             self.threadpool.start(self.worker)
         self.updateGL()
 
-    def timeout(self):
+    def rotate_timeout(self):
         #print("timout1")
         #print("timeout, auto_rotate:", self.auto_rotate)
         if self.auto_rotate == False:
@@ -609,13 +530,8 @@ class MCubeWidget(QGLWidget):
         self.updateGL()
 
     def mousePressEvent(self, event):
-        # left button: rotate
-        # right button: zoom
-        # middle button: pan
-
         self.down_x = event.x()
         self.down_y = event.y()
-        #print("down_x:", self.down_x, "down_y:", self.down_y)
         if event.buttons() == Qt.LeftButton:
             self.view_mode = ROTATE_MODE
         elif event.buttons() == Qt.RightButton:
@@ -624,30 +540,13 @@ class MCubeWidget(QGLWidget):
             self.view_mode = PAN_MODE
 
     def mouseReleaseEvent(self, event):
-        import datetime
         self.is_dragging = False
         self.curr_x = event.x()
         self.curr_y = event.y()
-        #print("curr_x:", self.curr_x, "curr_y:", self.curr_y)
+
         if event.button() == Qt.LeftButton:
                 self.rotate_x += self.temp_rotate_x
                 self.rotate_y += self.temp_rotate_y
-                if False: #self.threed_model is not None:
-                    #print("rotate_x:", self.rotate_x, "rotate_y:", self.rotate_y)
-                    #print("1:",datetime.datetime.now())
-                    if self.show_model == True:
-                        apply_rotation_to_vertex = True
-                    else:
-                        apply_rotation_to_vertex = False
-                    self.threed_model.rotate(math.radians(self.rotate_x),math.radians(self.rotate_y),apply_rotation_to_vertex)
-                    #print("2:",datetime.datetime.now())
-                    #self.threed_model.rotate_3d(math.radians(-1*self.rotate_x),'Y')
-                    #self.threed_model.rotate_3d(math.radians(self.rotate_y),'X')
-                    if self.show_model == True:
-                        self.threed_model.generate()
-                    #print("3:",datetime.datetime.now())
-                #print( "test_obj vert 1 after rotation:", self.test_obj.vertices[0])
-                #self.rotate_x = 0
                 self.rotate_y = 0
                 self.temp_rotate_x = 0
                 self.temp_rotate_y = 0
@@ -661,13 +560,10 @@ class MCubeWidget(QGLWidget):
             self.temp_pan_y = 0
         self.view_mode = VIEW_MODE
         self.updateGL()
-        #self.parent.update_status()
 
     def mouseMoveEvent(self, event):
-        #@print("mouse move event",event)
         self.curr_x = event.x()
         self.curr_y = event.y()
-        #print("curr_x:", self.curr_x, "curr_y:", self.curr_y)
 
         if event.buttons() == Qt.LeftButton and self.view_mode == ROTATE_MODE:
             self.is_dragging = True
@@ -683,13 +579,11 @@ class MCubeWidget(QGLWidget):
         self.updateGL()
 
     def wheelEvent(self, event):
-        #print("wheel event", event.angleDelta().y())
         self.dolly -= event.angleDelta().y() / 240.0
         self.updateGL()
 
 
     def initializeGL(self):
-        #print("initGL")
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_COLOR_MATERIAL)
         glShadeModel(GL_SMOOTH)
@@ -701,7 +595,6 @@ class MCubeWidget(QGLWidget):
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     def resizeGL(self, width, height):
-        #print("resizeGL")
         glViewport(0, 0, width, height)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
@@ -719,19 +612,16 @@ class MCubeWidget(QGLWidget):
 
 
     def paintGL(self):
-        #print("paintGL")
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
 
 
         glMatrixMode(GL_MODELVIEW)
-        
         glClearColor(0.94,0.94,0.94, 1)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
         glEnable(GL_POINT_SMOOTH)
         glEnable(GL_LIGHTING)
-
 
         # Set camera position and view
         gluLookAt(0, 0, 5, 0, 0, 0, 0, 1, 0)
@@ -749,18 +639,14 @@ class MCubeWidget(QGLWidget):
         glClearColor(0.2,0.2,0.2, 1)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        ''' render bounding box and roi box '''
+        ''' render bounding box '''
         glDisable(GL_LIGHTING)
-        # render bounding box
         if self.bounding_box is not None:
             glLineWidth(1)
             self.draw_box(self.bounding_box_vertices, self.bounding_box_edges, color=[0.0, 0.0, 1.0])
-        # render roi box
-        
+
+        ''' render roi box '''
         if self.roi_box is not None:
-            #print("roi box:", self.roi_box_vertices)
-            #print("bounding box:", self.bounding_box_vertices)
-            #print("check", self.roi_box_vertices == self.bounding_box_vertices)
             if not (self.roi_box_vertices == self.bounding_box_vertices).all():
                 glLineWidth(2)
                 self.draw_box(self.roi_box_vertices, self.roi_box_edges, color=[1.0, 0.0, 0.0])
@@ -773,23 +659,18 @@ class MCubeWidget(QGLWidget):
 
         self.render_gl_list()
 
-
+        ''' draw current slice plane '''
         glColor4f(0.0, 1.0, 0.0, 0.5) 
-
         glBegin(GL_QUADS)
         for vertex in self.curr_slice_vertices:
-            #glNormal3fv(self.vertex_normals[0])
             glVertex3fv(vertex)
-            #print(vertex)
         glEnd()
-
 
         return
 
     def render_gl_list(self):
         if self.gl_list_generated == False:
             return
-        #print("render", self, self.gl_list)
         glCallList(self.gl_list)
         return
 
@@ -823,10 +704,6 @@ class PreferencesDialog(QDialog):
         super().__init__()
         self.parent = parent
         self.m_app = QApplication.instance()
-        #self.m_app.remember_geometry = True
-        #self.m_app.remember_directory = True
-        #self.m_app.language = "en"
-        #self.m_app.default_directory = "."
 
         self.rbRememberGeometryYes = QRadioButton(self.tr("Yes"))
         self.rbRememberGeometryYes.setChecked(self.m_app.remember_geometry)
@@ -931,11 +808,6 @@ class PreferencesDialog(QDialog):
         self.m_app.remember_geometry = value_to_bool(self.m_app.settings.value("Remember geometry", True))
         self.m_app.remember_directory = value_to_bool(self.m_app.settings.value("Remember directory", True))
         self.m_app.language = self.m_app.settings.value("Language", "en")
-        #self.m_app.default_directory = self.m_app.settings.value("Default directory", ".")
-        #print("self.language:", self.m_app.language
-        #        , "self.remember_geometry:", self.m_app.remember_geometry
-        #        , "self.remember_directory:", self.m_app.remember_directory
-        #        , "self.default_directory:", self.m_app.default_directory)
 
         self.rbRememberGeometryYes.setChecked(self.m_app.remember_geometry)
         self.rbRememberGeometryNo.setChecked(not self.m_app.remember_geometry)
@@ -957,8 +829,6 @@ class PreferencesDialog(QDialog):
 class ProgressDialog(QDialog):
     def __init__(self,parent):
         super().__init__()
-        #self.setupUi(self)
-        #self.setGeometry(200, 250, 400, 250)
         self.setWindowTitle(self.tr("CTHarvester - Progress Dialog"))
         self.parent = parent
         self.m_app = QApplication.instance()
@@ -969,22 +839,16 @@ class ProgressDialog(QDialog):
         self.layout.setContentsMargins(50,50, 50, 50)
 
         self.lbl_text = QLabel(self)
-        #self.lbl_text.setGeometry(50, 50, 320, 80)
-        #self.pb_progress = QProgressBar(self)
         self.pb_progress = QProgressBar(self)
-        #self.pb_progress.setGeometry(50, 150, 320, 40)
         self.pb_progress.setValue(0)
         self.stop_progress = False
         self.btnStop = QPushButton(self)
-        #self.btnStop.setGeometry(175, 200, 50, 30)
         self.btnStop.setText(self.tr("Stop"))
         self.btnStop.clicked.connect(self.set_stop_progress)
         self.btnStop.hide()
         self.layout.addWidget(self.lbl_text)
         self.layout.addWidget(self.pb_progress)
-        #self.layout.addWidget(self.btnStop)
         self.setLayout(self.layout)
-        #self.update_language()
 
     def set_stop_progress(self):
         self.stop_progress = True
@@ -999,12 +863,10 @@ class ProgressDialog(QDialog):
         self.curr_value = curr_value
         self.pb_progress.setValue(int((self.curr_value/float(self.max_value))*100))
         self.lbl_text.setText(self.text_format.format(self.curr_value, self.max_value))
-        #self.lbl_text.setText(label_text)
         self.update()
         QApplication.processEvents()
 
     def update_language(self):
-        #print("update_language", self.m_app.language)
         translator = QTranslator()
         translator.load(resource_path('CTHarvester_{}.qm').format(self.m_app.language))
         self.m_app.installTranslator(translator)
@@ -1027,7 +889,6 @@ class ObjectViewer2D(QLabel):
         self.orig_pixmap = None
         self.curr_pixmap = None
         self.distance_threshold = self._2imgx(5)
-        #print("distance_threshold:", self.distance_threshold)
         self.setMouseTracking(True)
         self.object_dialog = None
         self.top_idx = -1
@@ -1041,7 +902,6 @@ class ObjectViewer2D(QLabel):
 
     def get_pixmap_geometry(self):
         if self.curr_pixmap:
-            #print("self.curr_pixmap:", self.curr_pixmap)
             return self.curr_pixmap.rect()
 
     def set_isovalue(self, isovalue):
@@ -1122,7 +982,6 @@ class ObjectViewer2D(QLabel):
                 self.edit_y2 = True
             else:
                 self.edit_y2 = False
-        #print("distance_check", self.crop_from_x, self.crop_to_x, x, self.crop_from_y, self.crop_to_y, y, self.edit_x1, self.edit_x2, self.edit_y1, self.edit_y2)
         self.set_cursor_mode()
 
     def set_cursor_mode(self):
@@ -1147,21 +1006,17 @@ class ObjectViewer2D(QLabel):
         if self.orig_pixmap is None:
             return
         me = QMouseEvent(event)
-        #print("mouseMoveEvent", me.x(), me.y(), self.edit_mode)
-        #print(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y)
         if me.buttons() == Qt.LeftButton:
             if self.edit_mode == MODE['ADD_BOX']:
                 self.mouse_curr_x = me.x()
                 self.mouse_curr_y = me.y()
                 self.temp_x2 = self._2imgx(self.mouse_curr_x)
                 self.temp_y2 = self._2imgy(self.mouse_curr_y)
-                #self.object_dialog.edtStatus.setText("({}, {})-({}, {})".format(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y))
             elif self.edit_mode in [ MODE['EDIT_BOX_PROGRESS'], MODE['MOVE_BOX_PROGRESS'] ]:
                 self.mouse_curr_x = me.x()
                 self.mouse_curr_y = me.y()
                 self.move_x = self.mouse_curr_x - self.mouse_down_x
                 self.move_y = self.mouse_curr_y - self.mouse_down_y
-                #print("move", self.move_x, self.move_y)
             self.calculate_resize()
         else:
             if self.edit_mode == MODE['EDIT_BOX']:
@@ -1191,16 +1046,11 @@ class ObjectViewer2D(QLabel):
         if self.orig_pixmap is None:
             return
         me = QMouseEvent(event)
-        #print("mousePressEvent", me.x(), me.y(),self.edit_mode)
-        #print(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y)
         if me.button() == Qt.LeftButton:
-            #if self.object_dialog is None:
-            #    return
             if self.edit_mode == MODE['ADD_BOX'] or self.edit_mode == MODE['EDIT_BOX']:
                 self.set_mode(MODE['ADD_BOX'])
                 img_x = self._2imgx(me.x())
                 img_y = self._2imgy(me.y())
-                #print("mousePressEvent", img_x, img_y)
                 if img_x < 0 or img_x > self.orig_pixmap.width() or img_y < 0 or img_y > self.orig_pixmap.height():
                     return
                 self.temp_x1 = img_x
@@ -1238,8 +1088,6 @@ class ObjectViewer2D(QLabel):
         me = QMouseEvent(ev)
         if self.mouse_down_x == me.x() and self.mouse_down_y == me.y():
             return
-        #print("mouseReleaseEvent", me.x(), me.y(),self.edit_mode)
-        #print(self.crop_from_x, self.crop_from_y, self.crop_to_x, self.crop_to_y)
         if me.button() == Qt.LeftButton:
             if self.edit_mode == MODE['ADD_BOX']:
                 img_x = self._2imgx(self.mouse_curr_x)
@@ -1282,7 +1130,6 @@ class ObjectViewer2D(QLabel):
             self.crop_to_y = to_y
             self.canvas_box = QRect(self._2canx(from_x), self._2cany(from_y), self._2canx(to_x - from_x), self._2cany(to_y - from_y))
             self.calculate_resize()
-            #self.object_dialog.update_status()
 
         self.object_dialog.update_status()
         self.object_dialog.update_3D_view(True)
@@ -1312,7 +1159,6 @@ class ObjectViewer2D(QLabel):
                 from_y += self.move_y
             if self.edit_y2 or self.edit_mode == MODE['MOVE_BOX_PROGRESS']:
                 to_y += self.move_y
-            #return [from_x, from_y, to_x, to_y]
         elif self.crop_from_x > -1:
             from_x = self._2canx(min(self.crop_from_x, self.crop_to_x))
             to_x = self._2canx(max(self.crop_from_x, self.crop_to_x))
@@ -1320,7 +1166,6 @@ class ObjectViewer2D(QLabel):
             to_y = self._2cany(max(self.crop_from_y, self.crop_to_y))
 
         if imgxy == True:
-            #print("imagexy true", from_x, self.orig_pixmap)
             if from_x <= 0 and from_y <= 0 and to_x <= 0 and to_y <= 0 and self.orig_pixmap:
                 return [ 0,0,self.orig_pixmap.width(),self.orig_pixmap.height()]
             else:
@@ -1330,12 +1175,8 @@ class ObjectViewer2D(QLabel):
 
 
     def paintEvent(self, event):
-        # fill background with dark gray
         painter = QPainter(self)
-        #painter.fillRect(self.rect(), QBrush(QColor()))#as_qt_color(COLOR['BACKGROUND'])))
         if self.curr_pixmap is not None:
-
-            #print("paintEvent", self.curr_pixmap.width(), self.curr_pixmap.height())
             painter.drawPixmap(0,0,self.curr_pixmap)
 
         if self.curr_idx > self.top_idx or self.curr_idx < self.bottom_idx:
@@ -1343,32 +1184,21 @@ class ObjectViewer2D(QLabel):
         else:
             painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
         [ x1, y1, x2, y2 ] = self.get_crop_area()
-        #print("paintEvent", x1, y1, x2, y2)
         painter.drawRect(x1, y1, x2 - x1, y2 - y1)
 
     def apply_threshold_and_colorize(self,qt_pixmap, threshold, color=np.array([0, 255, 0], dtype=np.uint8)):
-        #print("apply_threshold_and_colorize", qt_pixmap.width(), qt_pixmap.height())
-        # Convert the QPixmap to a NumPy array
         qt_image = qt_pixmap.toImage()
-        
-        # Convert the QImage to a NumPy array
         width = qt_image.width()
         height = qt_image.height()
         buffer = qt_image.bits()
         buffer.setsize(qt_image.byteCount())
         qt_image_array = np.frombuffer(buffer, dtype=np.uint8).reshape((height, width, 4))
-        #print("qt_image_array", qt_image_array.shape, qt_image_array.dtype)
         
         # Extract the alpha channel (if present)
         if qt_image_array.shape[2] == 4:
             qt_image_array = qt_image_array[:, :, :3]  # Remove the alpha channel
 
         color = np.array([0, 255, 0], dtype=np.uint8)
-
-        # ... (load or create image_array)
-        #image_array = self.convert_qt_pixmap_to_ndarray(qt_pixmap)
-        #print("image_array", qt_image_array.shape)
-        #print("image array[10,10]", qt_image_array[10,10,:])
 
         # Check the dtype of image_array
         if qt_image_array.dtype != np.uint8:
@@ -1380,17 +1210,14 @@ class ObjectViewer2D(QLabel):
             raise ValueError("Threshold should be in the range 0-255")
         
         [ x1, y1, x2, y2 ] = self.get_crop_area()
-        #print("apply_threshold_and_colorize", x1, y1, x2, y2)
         if x1 == x2 == y1 == y2 == 0:
             # whole pixmap is selected
             x1, x2, y1, y2 = 0, qt_image_array.shape[1], 0, qt_image_array.shape[0]
-
 
         region_mask = (qt_image_array[y1:y2+1, x1:x2+1, 0] > threshold)
 
         # Apply the threshold and colorize
         qt_image_array[y1:y2+1, x1:x2+1][region_mask] = color
-        #qt_image_array[qt_image_array[:, :, 0] > threshold] = color
 
         # Convert the NumPy array back to a QPixmap
         height, width, channel = qt_image_array.shape
@@ -1399,16 +1226,12 @@ class ObjectViewer2D(QLabel):
         
         # Convert the QImage to a QPixmap
         modified_pixmap = QPixmap.fromImage(qt_image)
-
-        #print("modified_pixmap", modified_pixmap.width(), modified_pixmap.height())
-        
         return modified_pixmap
 
     def set_image(self,file_path):
         #print("set_image", file_path)
         # check if file exists
         if not os.path.exists(file_path):
-            #print("file not exists:", file_path)
             self.curr_pixmap = None
             self.orig_pixmap = None
             self.crop_from_x = -1
@@ -1427,12 +1250,13 @@ class ObjectViewer2D(QLabel):
             self.crop_from_y = self._2imgy(self.canvas_box.y())
             self.crop_to_x = self._2imgx(self.canvas_box.x() + self.canvas_box.width())
             self.crop_to_y = self._2imgy(self.canvas_box.y() + self.canvas_box.height())
+
     def set_top_idx(self, top_idx):
         self.top_idx = top_idx
+
     def set_curr_idx(self, curr_idx):
         self.curr_idx = curr_idx
-        #print("set_curr_idx", curr_idx, self.max_idx, self.min_idx)
-        #print("set_curr_idx", )
+
     def set_bottom_idx(self, bottom_idx):
         self.bottom_idx = bottom_idx
 
@@ -1440,7 +1264,6 @@ class ObjectViewer2D(QLabel):
         #print("objectviewer calculate resize")
         if self.orig_pixmap is not None:
             self.distance_threshold = self._2imgx(DISTANCE_THRESHOLD)
-            #print("distance_threshold:", self.distance_threshold)
             self.orig_width = self.orig_pixmap.width()
             self.orig_height = self.orig_pixmap.height()
             image_wh_ratio = self.orig_width / self.orig_height
@@ -1449,16 +1272,10 @@ class ObjectViewer2D(QLabel):
                 self.image_canvas_ratio = self.orig_width / self.width()
             else:
                 self.image_canvas_ratio = self.orig_height / self.height()
-            #print("calculate_resize", self.orig_width, self.orig_height, self.width(), self.height(), self.image_canvas_ratio, self.scale)
 
             self.curr_pixmap = self.orig_pixmap.scaled(int(self.orig_width*self.scale/self.image_canvas_ratio),int(self.orig_width*self.scale/self.image_canvas_ratio), Qt.KeepAspectRatio)
-            #print("curr_pixmap", self.curr_pixmap.width(), self.curr_pixmap.height())
-            # if between bottom_idx and top_idx, apply threshold
-            #print("isovalue", self.isovalue, self.curr_idx, self.bottom_idx, self.top_idx)
             if self.isovalue > 0 and self.curr_idx >= self.bottom_idx and self.curr_idx <= self.top_idx:
-                #print("getting new pixmap")
                 self.curr_pixmap = self.apply_threshold_and_colorize(self.curr_pixmap, self.isovalue)
-                #pass
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         self.calculate_resize()
@@ -1468,7 +1285,6 @@ class ObjectViewer2D(QLabel):
             self.canvas_box = QRect(self._2canx(self.crop_from_x), self._2cany(self.crop_from_y), self._2canx(self.crop_to_x - self.crop_from_x), self._2cany(self.crop_to_y - self.crop_from_y))
         self.threed_view.resize_self()
         return super().resizeEvent(a0)
-
 
 class CTHarvesterMainWindow(QMainWindow):
     def __init__(self):
@@ -1497,178 +1313,84 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtDirname.setText("")
         self.edtDirname.setPlaceholderText(self.tr("Select directory to load CT data"))
         self.edtDirname.setMinimumWidth(400)
-        #self.edtDirname.setMaximumWidth(400)
         self.edtDirname.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.dirname_layout.addWidget(self.edtDirname,stretch=1)
         self.dirname_layout.addWidget(self.btnOpenDir,stretch=0)
         self.dirname_widget.setLayout(self.dirname_layout)
         self.dirname_layout.setContentsMargins(margin)
 
+        ''' image info layout '''
         self.image_info_layout = QHBoxLayout()
         self.image_info_widget = QWidget()
+        self.lblLevel = QLabel(self.tr("Level"))
+        self.comboLevel = QComboBox()
+        self.comboLevel.currentIndexChanged.connect(self.comboLevelIndexChanged)
         self.edtImageDimension = QLineEdit()
         self.edtImageDimension.setReadOnly(True)
         self.edtImageDimension.setText("")
         self.edtNumImages = QLineEdit()
         self.edtNumImages.setReadOnly(True)
         self.edtNumImages.setText("")
-        self.lblSize01 = QLabel(self.tr("Size"))
-        self.lblCount01 = QLabel(self.tr("Count"))
-        self.image_info_layout.addWidget(self.lblSize01)
+        self.image_info_layout.addWidget(self.lblLevel)
+        self.image_info_layout.addWidget(self.comboLevel)
+        self.lblSize = QLabel(self.tr("Size"))
+        self.lblCount = QLabel(self.tr("Count")) 
+        self.image_info_layout.addWidget(self.lblSize)
         self.image_info_layout.addWidget(self.edtImageDimension)
-        self.image_info_layout.addWidget(self.lblCount01)
+        self.image_info_layout.addWidget(self.lblCount)
         self.image_info_layout.addWidget(self.edtNumImages)
         self.image_info_widget.setLayout(self.image_info_layout)
-
-        self.image_layout = QHBoxLayout()
-        self.image_label = QLabel()
-        self.image_label.setPixmap(QPixmap("D:/CT/CO-1/CO-1_Rec/small/CO-1__rec00000001.bmp"))
-        self.image_layout.addWidget(self.image_label)
-        self.lstFileList = QListWidget()
-        self.lstFileList.setAlternatingRowColors(True)
-        self.lstFileList.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.lstFileList.setDragDropMode(QAbstractItemView.NoDragDrop)
-        self.lstFileList.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.lstFileList.itemSelectionChanged.connect(self.lstFileListSelectionChanged)
-
-        self.crop_layout = QHBoxLayout()
-        self.crop_widget = QWidget()
-        self.btnFromImage = QPushButton("From >")
-        #self.btnFromImage.clicked.connect(self.set_from_image)
-        self.edtFromImage = QLineEdit()
-        self.btnToImage = QPushButton("To >")
-        #self.btnToImage.clicked.connect(self.set_to_image)
-        self.edtToImage = QLineEdit()
-        self.btnCrop = QPushButton("Reset")
-        #self.btnCrop.clicked.connect(self.set_crop)
-
-        self.crop_layout.addWidget(self.btnFromImage)
-        self.crop_layout.addWidget(self.edtFromImage)
-        self.crop_layout.addWidget(self.btnToImage)
-        self.crop_layout.addWidget(self.edtToImage)
-        self.crop_layout.addWidget(self.btnCrop)
-        self.crop_widget.setLayout(self.crop_layout)
-        
-        self.image_layout.addWidget(self.lstFileList)
-        self.image_widget = QWidget()
-        self.image_widget.setLayout(self.image_layout)
-
-        self.btnCreateThumbnail = QPushButton("Prepare View")
-        self.btnCreateThumbnail.clicked.connect(self.create_thumbnail)
-
-
-        self.left_layout = QVBoxLayout()
-        self.left_widget = QWidget()
-        self.left_widget.setLayout(self.left_layout)
-        #self.left_layout.addWidget(self.dirname_widget)
-        self.left_layout.addWidget(self.image_info_widget)
-        self.left_layout.addWidget(self.image_widget)
-        self.left_layout.addWidget(self.btnCreateThumbnail)
-        #self.left_layout.addWidget(self.crop_widget)
-
-        self.lblLevel = QLabel(self.tr("Level"))
-        self.comboLevel = QComboBox()
-        self.comboLevel.currentIndexChanged.connect(self.comboLevelIndexChanged)
-
-        self.image_info_layout2 = QHBoxLayout()
-        self.image_info_widget2 = QWidget()
-        
-        self.edtImageDimension2 = QLineEdit()
-        self.edtImageDimension2.setReadOnly(True)
-        self.edtImageDimension2.setText("")
-        self.edtNumImages2 = QLineEdit()
-        self.edtNumImages2.setReadOnly(True)
-        self.edtNumImages2.setText("")
-        self.image_info_layout2.addWidget(self.lblLevel)
-        self.image_info_layout2.addWidget(self.comboLevel)
-        self.lblSize02 = QLabel(self.tr("Size"))
-        self.lblCount02 = QLabel(self.tr("Count")) 
-        self.image_info_layout2.addWidget(self.lblSize02)
-        self.image_info_layout2.addWidget(self.edtImageDimension2)
-        self.image_info_layout2.addWidget(self.lblCount02)
-        self.image_info_layout2.addWidget(self.edtNumImages2)
-        self.image_info_widget2.setLayout(self.image_info_layout2)
         #self.image_info_layout2.setSpacing(0)
-        self.image_info_layout2.setContentsMargins(margin)
+        self.image_info_layout.setContentsMargins(margin)
 
-        self.image_widget2 = QWidget()
-        self.image_layout2 = QHBoxLayout()
-        self.image_label2 = ObjectViewer2D(self.image_widget2)
-        self.image_label2.object_dialog = self
+        ''' image layout '''
+        self.image_widget = QWidget()
+        self.image_layout = QHBoxLayout()
+        self.image_label = ObjectViewer2D(self.image_widget)
+        self.image_label.object_dialog = self
+        self.image_label.setMouseTracking(True)
         self.slider = QLabeledSlider(Qt.Vertical)
         self.slider.setValue(0)
         self.range_slider = QLabeledRangeSlider(Qt.Vertical)
         self.range_slider.setValue((0,99))
-        #self.mcube_widget.setMinimumHeight(200)
-        #self.mcube_widget.setMinimumWidth(200)
-
-        #self.slider.setTickInterval(1)
-        #self.slider.setTickPosition(QSlider.TicksBothSides)
         self.slider.setSingleStep(1)
         self.range_slider.setSingleStep(1)
-        #self.slider.setPageStep(1)
-        #self.slider.setMinimum(0)
-        #self.slider.setMaximum(0)
         self.slider.valueChanged.connect(self.sliderValueChanged)
         self.range_slider.valueChanged.connect(self.rangeSliderValueChanged)
-        #self.range_slider.sliderReleased.connect(self.rangeSliderReleased)
-        #self.range_slider.sliderMoved.connect(self.rangeSliderMoved)
-        #self.range_slider.sliderPressed.connect(self.rangeSliderPressed)
         self.range_slider._slider.sliderReleased.connect(self.rangeSliderReleased)
-        #self.range_slider._slider.sliderReleased.connect(self.rangeSliderReleased)
         self.range_slider.setMinimumWidth(100)
 
-        self.image_layout2.addWidget(self.image_label2,stretch=1)
-        self.image_layout2.addWidget(self.slider)
-        self.image_layout2.addWidget(self.range_slider)
-        #self.image_layout2.addWidget(self.mcube_widget,stretch=1)
-        self.image_widget2.setLayout(self.image_layout2)
-        #self.image_layout2.setSpacing(20)
-        #self.image_layout2.setSpacing(0)
-        self.image_layout2.setContentsMargins(margin)
+        self.image_layout.addWidget(self.image_label,stretch=1)
+        self.image_layout.addWidget(self.slider)
+        self.image_layout.addWidget(self.range_slider)
+        self.image_widget.setLayout(self.image_layout)
+        self.image_layout.setContentsMargins(margin)
 
-        #self.threed_widget = QWidget()
-        #self.threed_layout = QHBoxLayout()
-        self.slider2 = QLabeledSlider(Qt.Vertical)
-        self.slider2.setValue(60)
-        self.slider2.setMaximum(255)
-        self.slider2.setSingleStep(1)
-        self.slider2.valueChanged.connect(self.slider2ValueChanged)
-        #self.slider2.editingFinished.connect(self.slider2EditingFinished)
-        self.slider2.sliderReleased.connect(self.slider2SliderReleased)
-        self.image_layout2.addWidget(self.slider2)
-        #self.threed_layout.addWidget(self.mcube_widget,stretch=1)
-        #self.threed_layout.addWidget(self.slider2)
-        #self.threed_widget.setLayout(self.threed_layout)
-        #self.threed_layout.setContentsMargins(QMargins(0,0,0,0))
-        #self.image_widget2
+        self.threshold_slider = QLabeledSlider(Qt.Vertical)
+        self.threshold_slider.setValue(60)
+        self.threshold_slider.setMaximum(255)
+        self.threshold_slider.setSingleStep(1)
+        self.threshold_slider.valueChanged.connect(self.slider2ValueChanged)
+        self.threshold_slider.sliderReleased.connect(self.slider2SliderReleased)
+        self.image_layout.addWidget(self.threshold_slider)
 
-        #self.image_layout2.addWidget(self.threed_widget,stretch=1)
-
-        self.crop_layout2 = QHBoxLayout()
-        self.crop_widget2 = QWidget()
+        ''' crop layout '''
+        self.crop_layout = QHBoxLayout()
+        self.crop_widget = QWidget()
         self.btnSetBottom = QPushButton(self.tr("Set Bottom"))
         self.btnSetBottom.clicked.connect(self.set_bottom)
         self.btnSetTop = QPushButton(self.tr("Set Top"))
         self.btnSetTop.clicked.connect(self.set_top)
         self.btnReset = QPushButton(self.tr("Reset"))
         self.btnReset.clicked.connect(self.reset_crop)
-        #self.btnUpdate3DView = QPushButton(self.tr("Update 3D View"))
-        #self.btnUpdate3DView.clicked.connect(self.update_3D_view_click)
-        #self.cbxInverseImage = QCheckBox(self.tr("Inv."))
-        #self.cbxInverseImage.setChecked(False)
-        #self.cbxInverseImage.stateChanged.connect(self.cbxInverseImage_stateChanged)
-        #self.inverse_image = False
 
-        self.crop_layout2.addWidget(self.btnSetBottom,stretch=1)
-        self.crop_layout2.addWidget(self.btnSetTop,stretch=1)
-        self.crop_layout2.addWidget(self.btnReset,stretch=1)
-        #self.crop_layout2.addWidget(self.btnUpdate3DView,stretch=1)
-        #self.crop_layout2.addWidget(self.cbxInverseImage,stretch=0)
-        self.crop_widget2.setLayout(self.crop_layout2)
-        #self.crop_layout2.setSpacing(0)
-        self.crop_layout2.setContentsMargins(margin)
+        self.crop_layout.addWidget(self.btnSetBottom,stretch=1)
+        self.crop_layout.addWidget(self.btnSetTop,stretch=1)
+        self.crop_layout.addWidget(self.btnReset,stretch=1)
+        self.crop_widget.setLayout(self.crop_layout)
+        self.crop_layout.setContentsMargins(margin)
 
+        ''' status layout '''
         self.status_layout = QHBoxLayout()
         self.status_widget = QWidget()
         self.edtStatus = QLineEdit()
@@ -1679,14 +1401,13 @@ class CTHarvesterMainWindow(QMainWindow):
         #self.status_layout.setSpacing(0)
         self.status_layout.setContentsMargins(margin)
 
+        ''' button layout '''
         self.cbxOpenDirAfter = QCheckBox(self.tr("Open dir. after"))
         self.cbxOpenDirAfter.setChecked(True)
         self.btnSave = QPushButton(self.tr("Save cropped image stack"))
         self.btnSave.clicked.connect(self.save_result)
         self.btnExport = QPushButton(self.tr("Export 3D Model"))
         self.btnExport.clicked.connect(self.export_3d_model)
-
-        #self.btnPreferences = QPushButton(self.tr("Preferences"))
         self.btnPreferences = QPushButton(QIcon(resource_path('M2Preferences_2.png')), "")
         self.btnPreferences.clicked.connect(self.show_preferences)
         self.button_layout = QHBoxLayout()
@@ -1696,34 +1417,30 @@ class CTHarvesterMainWindow(QMainWindow):
         self.button_layout.addWidget(self.btnPreferences,stretch=0)
         self.button_widget = QWidget()
         self.button_widget.setLayout(self.button_layout)
-        #self.button_layout.setSpacing(0)
         self.button_layout.setContentsMargins(margin)
 
-
-
-        self.right_layout = QVBoxLayout()
-        self.right_widget = QWidget()
+        ''' layouts put together '''
+        self.sub_layout = QVBoxLayout()
+        self.sub_widget = QWidget()
         #self.right_layout.setSpacing(0)
-        self.right_layout.setContentsMargins(0,0,0,0)
-        self.right_widget.setLayout(self.right_layout)
+        self.sub_layout.setContentsMargins(0,0,0,0)
+        self.sub_widget.setLayout(self.sub_layout)
         #self.right_layout.addWidget(self.comboSize)
-        self.right_layout.addWidget(self.dirname_widget)
-        self.right_layout.addWidget(self.image_info_widget2)
-        self.right_layout.addWidget(self.image_widget2)
-        self.right_layout.addWidget(self.crop_widget2)
-        self.right_layout.addWidget(self.button_widget)
-        self.right_layout.addWidget(self.status_widget)
+        self.sub_layout.addWidget(self.dirname_widget)
+        self.sub_layout.addWidget(self.image_info_widget)
+        self.sub_layout.addWidget(self.image_widget)
+        self.sub_layout.addWidget(self.crop_widget)
+        self.sub_layout.addWidget(self.button_widget)
+        self.sub_layout.addWidget(self.status_widget)
         #self.right_layout.addWidget(self.btnSave)
 
         self.main_layout = QHBoxLayout()
         self.main_widget = QWidget()
         self.main_widget.setLayout(self.main_layout)
-        #self.main_layout.addWidget(self.left_widget)
-        self.main_layout.addWidget(self.right_widget)
-        #self.main_layout.setSpacing(0)
-        #self.main_layout.setContentsMargins(11,,11,0)
-        
-        #self.main_layout.setContentsMargins(margin)
+        self.main_layout.addWidget(self.sub_widget)
+
+
+        ''' setting up texts'''
         self.status_text_format = self.tr("Crop indices: {}~{} Cropped image size: {}x{} ({},{})-({},{}) Estimated stack size: {} MB [{}]")
         self.progress_text_1_1 = self.tr("Saving image stack...")
         self.progress_text_1_2 = self.tr("Saving image stack... {}/{}")
@@ -1734,37 +1451,26 @@ class CTHarvesterMainWindow(QMainWindow):
 
         self.setCentralWidget(self.main_widget)
 
-        self.mcube_widget = MCubeWidget(self.image_label2)
+        ''' initialize mcube_widget '''
+        self.mcube_widget = MCubeWidget(self.image_label)
         self.mcube_widget.setGeometry(QRect(0,0,150,150))
-
-
         self.initialized = False
 
     def rangeSliderMoved(self):
-        #print("rangeslider moved")
         return
     
     def rangeSliderPressed(self):
-        #print("range slider pressed")
         return
 
-    def update_3D_view_click(self):
-        self.update_3D_view(True)
-
     def cbxInverseImage_stateChanged(self):
-        #self.inverse_image = self.cbxInverseImage.isChecked()
-        #self.image_label2.inverse_image = self.inverse_image
-        pass
+        return
 
     def show_preferences(self):
         self.settings_dialog = PreferencesDialog(self)
         self.settings_dialog.setModal(True)
         self.settings_dialog.show()
-        #self.settings_dialog.close()
-        #self.settings_dialog = None
 
     def update_language(self):
-        #print("main update language", self.m_app.language)
         translator = QTranslator()
         translator.load('CTHarvester_{}.qm'.format(self.m_app.language))
         self.m_app.installTranslator(translator)
@@ -1772,7 +1478,6 @@ class CTHarvesterMainWindow(QMainWindow):
         self.setWindowTitle("{} v{}".format(self.tr(PROGRAM_NAME), PROGRAM_VERSION))
         self.btnOpenDir.setText(self.tr("Open Directory"))
         self.edtDirname.setPlaceholderText(self.tr("Select directory to load CT data"))
-        self.btnCreateThumbnail.setText(self.tr("Prepare View"))
         self.lblLevel.setText(self.tr("Level"))
         self.btnSetBottom.setText(self.tr("Set Bottom"))
         self.btnSetTop.setText(self.tr("Set Top"))
@@ -1780,10 +1485,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.cbxOpenDirAfter.setText(self.tr("Open dir. after"))
         self.btnSave.setText(self.tr("Save cropped image stack"))
         self.btnExport.setText(self.tr("Export 3D Model"))
-        self.lblCount01.setText(self.tr("Count"))
-        self.lblSize01.setText(self.tr("Size"))
-        self.lblCount02.setText(self.tr("Count"))
-        self.lblSize02.setText(self.tr("Size"))
+        self.lblCount.setText(self.tr("Count"))
+        self.lblSize.setText(self.tr("Size"))
         #self.btnPreferences.setText(self.tr("Preferences"))
         self.status_text_format = self.tr("Crop indices: {}~{} Cropped image size: {}x{} ({},{})-({},{}) Estimated stack size: {} MB [{}]")
         self.progress_text_1_2 = self.tr("Saving image stack... {}/{}")
@@ -1809,56 +1512,35 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         #print("resizeEvent")
-
         return super().resizeEvent(a0)
+
+    def update_3D_view_click(self):
+        self.update_3D_view(True)
 
     def update_3D_view(self, update_volume=True):
         #print("update 3d view")
         volume, roi_box = self.get_cropped_volume()
-        #print("roi_box out of get_cropped_volume:", roi_box)
         bounding_box = self.minimum_volume.shape
         bounding_box = [ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ]
         curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
-        #print("roi box:", roi_box)
         self.mcube_widget.update_boxes(bounding_box, roi_box, curr_slice_val)
-        #print("roi_box before adjusting", self.mcube_widget.roi_box_vertices)
         self.mcube_widget.adjust_boxes()
-        #print("roi_box after adjusting:", self.mcube_widget.roi_box_vertices)
-        #print("update_volume:", update_volume)
 
         if update_volume:
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            #print("update volume")
             self.mcube_widget.update_volume(volume)
-            #print("generate mesh")
             self.mcube_widget.generate_mesh_multithread()
             QApplication.restoreOverrideCursor()
-        #print("volume:", self.mcube_widget.vertices)
         self.mcube_widget.adjust_volume()
-        #self.mcube_widget.repaint()
 
     def update_curr_slice(self):
         bounding_box = self.minimum_volume.shape
         bounding_box = [ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ]
         curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
-        #print("curr_slice", self.mcube_widget.curr_slice_vertices)
         self.update_3D_view(False)
-        #print("update curr slice", curr_slice_val)
-        return
-        bounding_box = self.minimum_volume.shape
-        bounding_box = [ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ]
-        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
-        self.mcube_widget.set_curr_slice(curr_slice_val)
-        self.mcube_widget.adjust_vertices()
-        self.mcube_widget.repaint()
 
     def get_cropped_volume(self):
-        # get current size idx
-        size_idx = self.comboLevel.currentIndex()
-
-
         level_info = self.level_info[self.curr_level_idx]
-        #print("level_info:", self.level_info)
         seq_begin = level_info['seq_begin']
         seq_end = level_info['seq_end']
         image_count = seq_end - seq_begin + 1
@@ -1868,11 +1550,11 @@ class CTHarvesterMainWindow(QMainWindow):
         curr_height = level_info['height']
 
         # get top and bottom idx
-        top_idx = self.image_label2.top_idx
-        bottom_idx = self.image_label2.bottom_idx
+        top_idx = self.image_label.top_idx
+        bottom_idx = self.image_label.bottom_idx
 
         #get current crop box
-        crop_box = self.image_label2.get_crop_area(imgxy=True)
+        crop_box = self.image_label.get_crop_area(imgxy=True)
         #print("crop_box:", crop_box)
 
         # get cropbox coordinates when image width and height is 1
@@ -1902,7 +1584,6 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def export_3d_model(self):
         # open dir dialog for save
-
         threed_volume = []
 
         obj_filename, _ = QFileDialog.getSaveFileName(self, "Save File As", self.edtDirname.text(), "OBJ format (*.obj)")
@@ -1911,18 +1592,11 @@ class CTHarvesterMainWindow(QMainWindow):
         #print("obj_filename", obj_filename)
 
         threed_volume, _ = self.get_cropped_volume()
-        isovalue = self.image_label2.isovalue
+        isovalue = self.image_label.isovalue
         vertices, triangles = mcubes.marching_cubes(threed_volume, isovalue)
-        #print("threed_volume", threed_volume.shape, threed_volume.dtype)
-        #print("vertices", vertices.shape, vertices.dtype)
-        #print("triangles", triangles.shape, triangles.dtype)
 
         for i in range(len(vertices)):
-            #continue
-            # rotate 90 degrees around y axis
-            vertices[i] = np.array([vertices[i][2],vertices[i][1],-1*vertices[i][0]])
-            # rotate -90 degrees around x axis
-            vertices[i] = np.array([vertices[i][0],-1*vertices[i][2],vertices[i][1]])
+            vertices[i] = np.array([vertices[i][2],vertices[i][0],vertices[i][1]])
 
 
         # write as obj file format
@@ -1942,15 +1616,15 @@ class CTHarvesterMainWindow(QMainWindow):
         if target_dirname == "":
             return
         # get crop box info
-        from_x = self.image_label2.crop_from_x
-        from_y = self.image_label2.crop_from_y
-        to_x = self.image_label2.crop_to_x
-        to_y = self.image_label2.crop_to_y
+        from_x = self.image_label.crop_from_x
+        from_y = self.image_label.crop_from_y
+        to_x = self.image_label.crop_to_x
+        to_y = self.image_label.crop_to_y
         # get size idx
         size_idx = self.comboLevel.currentIndex()
         # get filename from level from idx
-        top_idx = self.image_label2.top_idx
-        bottom_idx = self.image_label2.bottom_idx
+        top_idx = self.image_label.top_idx
+        bottom_idx = self.image_label.bottom_idx
 
         current_count = 0
         total_count = top_idx - bottom_idx + 1
@@ -1973,7 +1647,6 @@ class CTHarvesterMainWindow(QMainWindow):
             # open image
             img = Image.open(fullpath)
             # crop image
-            #print("crop", from_x, from_y, to_x, to_y)
             if from_x > -1:
                 img = img.crop((from_x, from_y, to_x, to_y))
             # save image
@@ -1990,70 +1663,55 @@ class CTHarvesterMainWindow(QMainWindow):
         if self.cbxOpenDirAfter.isChecked():
             os.startfile(target_dirname)
 
-
     def rangeSliderValueChanged(self):
         #print("range slider value changed")
         (bottom_idx, top_idx) = self.range_slider.value()
-        self.image_label2.set_bottom_idx(bottom_idx)
-        self.image_label2.set_top_idx(top_idx)
-        self.image_label2.calculate_resize()
-        self.image_label2.repaint()
+        self.image_label.set_bottom_idx(bottom_idx)
+        self.image_label.set_top_idx(top_idx)
+        self.image_label.calculate_resize()
+        self.image_label.repaint()
         self.update_3D_view(True)
         self.update_status()
 
     def rangeSliderReleased(self):
         #print("range slider released")
-        #self.image_label2.calculate_resize()
         return
 
 
     def sliderValueChanged(self):
-        # print current slide value
-        #print("sliderValueChanged")
-        #print("slider value:", self.slider.value())
-        # get scale factor
         if not self.initialized:
             return
         size_idx = self.comboLevel.currentIndex()
         curr_image_idx = self.slider.value()
-        #print("curr_image_idx:", curr_image_idx)
-        #print("size_idx:", size_idx)
-        #print("settings hash", self.settings_hash)
         if size_idx < 0:
             size_idx = 0
+
         # get directory for size idx
         if size_idx == 0:
             dirname = self.edtDirname.text()
-            #filename = self.lstFileList.item(self.slider.value()).text()
             filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + self.slider.value()).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
         else:
             dirname = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(size_idx))
             # get filename from level from idx
             filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + self.slider.value()).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
-        #print("dirname:", dirname)
-        #print("filename:", filename)
 
-        self.image_label2.set_image(os.path.join(dirname, filename))
-        self.image_label2.set_curr_idx(self.slider.value())
+        self.image_label.set_image(os.path.join(dirname, filename))
+        self.image_label.set_curr_idx(self.slider.value())
         self.update_curr_slice()
-        #self.edtCurrentImage.setText(str(self.slider.value()))
-        #self.image_label2.setPixmap(QPixmap(os.path.join(dirname, filename)).scaledToWidth(512))
 
     def reset_crop(self):
-        #self.image_label2.set_top_idx(self.slider.minimum())
-        #self.image_label2.set_bottom_idx(self.slider.maximum())
-        self.image_label2.set_curr_idx(self.slider.value())
-        self.image_label2.reset_crop()
+        self.image_label.set_curr_idx(self.slider.value())
+        self.image_label.reset_crop()
         self.range_slider.setValue((self.slider.minimum(), self.slider.maximum()))
         self.canvas_box = None
         self.update_status()
 
     def update_status(self):
         ( bottom_idx, top_idx ) = self.range_slider.value()
-        [ x1, y1, x2, y2 ] = self.image_label2.get_crop_area(imgxy=True)
+        [ x1, y1, x2, y2 ] = self.image_label.get_crop_area(imgxy=True)
         count = ( top_idx - bottom_idx + 1 )
         #self.status_format = self.tr("Crop indices: {}~{}    Cropped image size: {}x{}    Estimated stack size: {} MB [{}]")
-        status_text = self.status_text_format.format(bottom_idx, top_idx, x2 - x1, y2 - y1, x1, y1, x2, y2, round(count * (x2 - x1 ) * (y2 - y1 ) / 1024 / 1024 , 2), str(self.image_label2.edit_mode))
+        status_text = self.status_text_format.format(bottom_idx, top_idx, x2 - x1, y2 - y1, x1, y1, x2, y2, round(count * (x2 - x1 ) * (y2 - y1 ) / 1024 / 1024 , 2), str(self.image_label.edit_mode))
         self.edtStatus.setText(status_text)
 
     def initializeComboSize(self):
@@ -2069,63 +1727,44 @@ class CTHarvesterMainWindow(QMainWindow):
         if self.curr_level_idx < 0:
             return
         
-        #print("prev_level_idx:", self.prev_level_idx)
-        #print("curr_level_idx:", self.curr_level_idx)
         level_info = self.level_info[self.curr_level_idx]
-        #print("level_info:", self.level_info)
         seq_begin = level_info['seq_begin']
         seq_end = level_info['seq_end']
 
-        self.edtImageDimension2.setText(str(level_info['width']) + " x " + str(level_info['height']))
+        self.edtImageDimension.setText(str(level_info['width']) + " x " + str(level_info['height']))
         image_count = seq_end - seq_begin + 1
-        self.edtNumImages2.setText(str(image_count))
+        self.edtNumImages.setText(str(image_count))
 
         if not self.initialized:
-            #print("not initialized. image_count:", image_count)
             self.slider.setMaximum(image_count - 1)
             self.slider.setMinimum(0)
             self.slider.setValue(0)
             self.range_slider.setRange(0,image_count - 1)
             self.range_slider.setValue((0, image_count - 1))
-            #print("range_slider value:", self.range_slider.value())
-            #print("range_slider range:", self.range_slider.minimum(), self.range_slider.maximum())
             self.curr_level_idx = 0
             self.prev_level_idx = 0
             self.initialized = True
 
 
         level_diff = self.prev_level_idx-self.curr_level_idx
-        #print("level_diff:", level_diff)
-        #print("prev_level_idx:", self.prev_level_idx)
-        #print("curr_level_idx:", self.curr_level_idx)
         curr_idx = self.slider.value()
-        #print("curr_idx 1:", curr_idx)
         curr_idx = int(curr_idx * (2**level_diff))
-        #print("curr_idx 2:", curr_idx)
 
         (bottom_idx, top_idx) = self.range_slider.value()
-        #print("bottom_idx:", bottom_idx)
-        #print("top_idx:", top_idx)
         bottom_idx = int(bottom_idx * (2**level_diff))
         top_idx = int(top_idx * (2**level_diff))
-        #print("bottom_idx:", bottom_idx)
-        #print("top_idx:", top_idx)
 
         self.range_slider.setRange(0, image_count - 1)
         self.range_slider.setValue((bottom_idx, top_idx))
 
         self.slider.setMaximum(image_count -1)
         self.slider.setMinimum(0)
-        #print("curr_idx 3:", curr_idx)
         self.slider.setValue(curr_idx)
-        #print("curr_idx 4:", self.slider.value())
 
         self.sliderValueChanged()
         self.update_status()
 
     def create_thumbnail(self):
-        # determine thumbnail size
-        #print("create thumbnail")
         MAX_THUMBNAIL_SIZE = 512
         size =  max(int(self.settings_hash['image_width']), int(self.settings_hash['image_height']))
         width = int(self.settings_hash['image_width'])
@@ -2217,9 +1856,6 @@ class CTHarvesterMainWindow(QMainWindow):
             self.level_info.append( {'name': "Level " + str(i), 'width': width, 'height': height, 'seq_begin': seq_begin, 'seq_end': seq_end} )
             if size < MAX_THUMBNAIL_SIZE:
                 self.minimum_volume = np.array(self.minimum_volume)
-                #print("minimum_volume:", self.minimum_volume.shape)
-                #self.update_3D_view()
-                #break
                 bounding_box = self.minimum_volume.shape
                 bounding_box = np.array([ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ])
                 curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
@@ -2230,8 +1866,6 @@ class CTHarvesterMainWindow(QMainWindow):
                 self.mcube_widget.generate_mesh()
                 self.mcube_widget.adjust_volume()
                 self.mcube_widget.show_buttons()
-                #self.mcube_widget.repaint()
-
                 break
             
         QApplication.restoreOverrideCursor()
@@ -2242,24 +1876,12 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def slider2ValueChanged(self, value):
         #print("value:", value)
-        self.image_label2.set_isovalue(value)
+        self.image_label.set_isovalue(value)
         self.mcube_widget.set_isovalue(value)
-        self.image_label2.calculate_resize()
+        self.image_label.calculate_resize()
     
     def slider2SliderReleased(self):
-        #self.threed
-        #print("released")
         self.update_3D_view(True)
-        return
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        self.mcube_widget.generate_mesh()
-        self.mcube_widget.repaint()
-        QApplication.restoreOverrideCursor()
-
-
-    def lstFileListSelectionChanged(self):
-        #print("lstFileListSelectionChanged")
-        self.image_label.setPixmap(QPixmap(os.path.join(self.edtDirname.text(), self.lstFileList.currentItem().text())).scaledToWidth(512))
 
     def sort_file_list_from_dir(self, directory_path):
         # Step 1: Get a list of all files in the directory
@@ -2297,8 +1919,6 @@ class CTHarvesterMainWindow(QMainWindow):
             if prefix_hash[prefix] > max_prefix_count:
                 max_prefix_count = prefix_hash[prefix]
                 max_prefix = prefix
-        #print("max_prefix:", max_prefix)
-        #print("max_count:", max_prefix_count)
 
         # determine extension
         max_extension_count = 0
@@ -2306,14 +1926,11 @@ class CTHarvesterMainWindow(QMainWindow):
             if extension_hash[extension] > max_extension_count:
                 max_extension_count = extension_hash[extension]
                 max_extension = extension
-        #print("max_extension:", max_extension)
-        #print("max_count:", max_extension_count)
 
         if matching_files:
             for file in matching_files:
                 if re.match(pattern, file).group(1) == max_prefix and re.match(pattern, file).group(3) == max_extension:
                     ct_stack_files.append(file)
-
 
         # Determine the pattern if needed further
         if ct_stack_files:
@@ -2330,22 +1947,13 @@ class CTHarvesterMainWindow(QMainWindow):
 
             match1 = re.match(pattern, first_file)
             match2 = re.match(pattern, last_file)
-            #if match1:
-                #print("\nDetermined Pattern:")
-                #print("Prefix:", match1.group(1))
-                #print("Extension:", match1.group(3))
 
             if match1 and match2:
-                #print("Start Index:", match1.group(2))
-                #print("End Index:", match2.group(2))
                 start_index = match1.group(2)
                 end_index = match2.group(2)
             image_count = int(match2.group(2)) - int(match1.group(2)) + 1
             number_of_images = len(ct_stack_files)
-            #print("Number of images:", number_of_images)
-            #print("Image count:", image_count)
             seq_length = len(match1.group(2))
-            #print("Sequence length:", seq_length)
 
             settings_hash['prefix'] = prefix
             settings_hash['image_width'] = width
@@ -2354,7 +1962,6 @@ class CTHarvesterMainWindow(QMainWindow):
             settings_hash['index_length'] = seq_length
             settings_hash['seq_begin'] = start_index
             settings_hash['seq_end'] = end_index
-            #print("Settings hash:", settings_hash)
             settings_hash['index_length'] = int(settings_hash['index_length'])
             settings_hash['seq_begin'] = int(settings_hash['seq_begin'])
             settings_hash['seq_end'] = int(settings_hash['seq_end'])
@@ -2366,21 +1973,16 @@ class CTHarvesterMainWindow(QMainWindow):
 
 
     def open_dir(self):
-        #pass
         #print("open_dir")
         ddir = QFileDialog.getExistingDirectory(self, self.tr("Select directory"), self.m_app.default_directory)
         if ddir:
-        # ddir is a QString containing the path to the directory you selected
-            #print("loading from:", ddir)  # this will output something like 'C://path/you/selected'
             self.edtDirname.setText(ddir)
             self.m_app.default_directory = os.path.dirname(ddir)
-            #print("default directory:", self.m_app.default_directory)
         else:
             return
         self.settings_hash = {}
         self.initialized = False
         image_file_list = []
-        self.lstFileList.clear()
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
         files = [f for f in os.listdir(ddir) if os.path.isfile(os.path.join(ddir, f))]
@@ -2391,10 +1993,7 @@ class CTHarvesterMainWindow(QMainWindow):
             if ext in [".bmp", ".jpg", ".png", ".tif", ".tiff"]:
                 pass #image_file_list.append(file)
             elif ext == '.log':
-                #fn = file
-                #print("log file:", ddir, file)
                 settings = QSettings(os.path.join(ddir, file), QSettings.IniFormat)
-                #print("settings:", settings, settings.fileName(), settings.status(), settings.allKeys())
                 prefix = settings.value("File name convention/Filename Prefix")
                 if not prefix:
                     continue
@@ -2408,39 +2007,25 @@ class CTHarvesterMainWindow(QMainWindow):
                 self.settings_hash['index_length'] = settings.value("File name convention/Filename Index Length")
                 self.settings_hash['seq_begin'] = settings.value("Reconstruction/First Section")
                 self.settings_hash['seq_end'] = settings.value("Reconstruction/Last Section")
-                #print("Settings hash:", self.settings_hash)
-                #print("prefix:", prefix)
                 self.settings_hash['index_length'] = int(self.settings_hash['index_length'])
                 self.settings_hash['seq_begin'] = int(self.settings_hash['seq_begin'])
                 self.settings_hash['seq_end'] = int(self.settings_hash['seq_end'])
-                #print("Settings hash:", self.settings_hash)
                 self.edtNumImages.setText(str(self.settings_hash['seq_end'] - self.settings_hash['seq_begin'] + 1))
                 self.edtImageDimension.setText(str(self.settings_hash['image_width']) + " x " + str(self.settings_hash['image_height']))
-                #print("Settings hash:", settings_hash)
-        #print("Settings hash:", self.settings_hash)
+
         if 'prefix' not in self.settings_hash:
-            #print("prefix not found. trying to find prefix from file name")
             self.settings_hash = self.sort_file_list_from_dir(ddir)
             if self.settings_hash is None:
                 return
-            #return
-        #print("Settings hash:", self.settings_hash)
-        #print("dir:", ddir)
+
         for seq in range(self.settings_hash['seq_begin'], self.settings_hash['seq_end']+1):
             filename = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
-            self.lstFileList.addItem(filename)
             image_file_list.append(filename)
         self.original_from_idx = 0
-        self.edtFromImage.setText(image_file_list[0])
         self.original_to_idx = len(image_file_list) - 1
-        self.edtToImage.setText(image_file_list[-1])
         self.image_label.setPixmap(QPixmap(os.path.join(ddir,image_file_list[0])).scaledToWidth(512))
-        self.image_label2.setPixmap(QPixmap(os.path.join(ddir,image_file_list[0])).scaledToWidth(512))
         self.level_info = []
         self.level_info.append( {'name': 'Original', 'width': self.settings_hash['image_width'], 'height': self.settings_hash['image_height'], 'seq_begin': self.settings_hash['seq_begin'], 'seq_end': self.settings_hash['seq_end']} )
-        #print("level_info in open_dir:", self.level_info)
-        #self.initializeComboSize()
-        #self.open_dir()
         QApplication.restoreOverrideCursor()
         self.create_thumbnail()
 
@@ -2448,12 +2033,10 @@ class CTHarvesterMainWindow(QMainWindow):
         settings = self.m_app.settings
 
         self.m_app.remember_directory = value_to_bool(settings.value("Remember directory", True))
-        #print("read settings remember directory:", self.m_app.remember_directory)
         if self.m_app.remember_directory:
             self.m_app.default_directory = settings.value("Default directory", ".")
         else:
             self.m_app.default_directory = "."
-        #print("read settings default directory:", self.m_app.default_directory)
 
         self.m_app.remember_geometry = value_to_bool(settings.value("Remember geometry", True))
         if self.m_app.remember_geometry:
@@ -2463,10 +2046,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.m_app.language = settings.value("Language", "en")
 
     def save_settings(self):
-        #print("save default directory:", self.m_app.default_directory)
         if self.m_app.remember_directory:
             self.m_app.settings.setValue("Default directory", self.m_app.default_directory)
-            #print("save default directory:", self.m_app.default_directory)
         if self.m_app.remember_geometry:
             self.m_app.settings.setValue("MainWindow geometry", self.geometry())
 
@@ -2486,10 +2067,6 @@ if __name__ == "__main__":
     translator.load(resource_path("CTHarvester_{}.qm".format(app.language)))
     app.installTranslator(translator)
 
-
-    #app.settings = 
-    #app.preferences = QSettings("Modan", "Modan2")
-
     #WindowClass의 인스턴스 생성
     myWindow = CTHarvesterMainWindow()
 
@@ -2498,6 +2075,7 @@ if __name__ == "__main__":
 
     #프로그램을 이벤트루프로 진입시키는(프로그램을 작동시키는) 코드
     app.exec_()
+
 '''
 pyinstaller --onefile --noconsole --add-data "*.png;." --add-data "*.qm;." --icon="CTHarvester_48_2.png" CTHarvester.py
 
