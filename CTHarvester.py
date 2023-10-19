@@ -1752,6 +1752,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
         self.sliderValueChanged()
         self.update_status()
+        self.update_3D_view(True)
 
     def create_thumbnail(self):
         MAX_THUMBNAIL_SIZE = 512
