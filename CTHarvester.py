@@ -208,6 +208,15 @@ class MCubeWidget(QGLWidget):
 
         self.queue = Queue()
 
+    def recalculate_geometry(self):
+        #self.scale = self.parent.
+        size = min(self.parent.width(),self.parent.height())
+        self.scale = round( ( self.width() / size ) * 10.0 ) / 10.0
+        #self.resize(int(size*self.scale),int(size*self.scale))
+
+        self.resize_self()
+        self.reposition_self()
+
     def start_generate_mesh(self):
         self.threadpool.start(self.worker)
 
@@ -1453,7 +1462,9 @@ class CTHarvesterMainWindow(QMainWindow):
 
         ''' initialize mcube_widget '''
         self.mcube_widget = MCubeWidget(self.image_label)
-        self.mcube_widget.setGeometry(QRect(0,0,150,150))
+        self.mcube_widget.setGeometry(self.mcube_geometry)
+        self.mcube_widget.recalculate_geometry()
+        #self.mcube_geometry
         self.initialized = False
 
     def rangeSliderMoved(self):
@@ -2031,8 +2042,10 @@ class CTHarvesterMainWindow(QMainWindow):
         self.m_app.remember_geometry = value_to_bool(settings.value("Remember geometry", True))
         if self.m_app.remember_geometry:
             self.setGeometry(settings.value("MainWindow geometry", QRect(100, 100, 600, 550)))
+            self.mcube_geometry = settings.value("mcube_widget geometry", QRect(0, 0, 150, 150))
         else:
             self.setGeometry(QRect(100, 100, 600, 550))
+            self.mcube_geometry = QRect(0, 0, 150, 150)
         self.m_app.language = settings.value("Language", "en")
 
     def save_settings(self):
@@ -2040,6 +2053,7 @@ class CTHarvesterMainWindow(QMainWindow):
             self.m_app.settings.setValue("Default directory", self.m_app.default_directory)
         if self.m_app.remember_geometry:
             self.m_app.settings.setValue("MainWindow geometry", self.geometry())
+            self.m_app.settings.setValue("mcube_widget geometry", self.mcube_widget.geometry()) 
 
     def closeEvent(self, event):
         self.save_settings()
