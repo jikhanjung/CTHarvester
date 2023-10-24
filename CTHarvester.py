@@ -205,6 +205,7 @@ class MCubeWidget(QGLWidget):
         self.generate_mesh_under_way = False
         self.adjust_volume_under_way = False
         self.generated_data = None
+        self.is_inverse = False
 
         self.queue = Queue()
 
@@ -440,7 +441,12 @@ class MCubeWidget(QGLWidget):
         self.scale_factor = 50.0/max_len
 
         volume = ndimage.zoom(self.volume, self.scale_factor, order=1)
-        vertices, triangles = mcubes.marching_cubes(volume, self.isovalue)
+        if self.is_inverse:
+            volume = 255 - volume
+            isovalue = 255 - self.isovalue
+        else:
+            isovalue = self.isovalue
+        vertices, triangles = mcubes.marching_cubes(volume, isovalue)
 
         face_normals = []
         for triangle in triangles:
@@ -907,6 +913,7 @@ class ObjectViewer2D(QLabel):
         self.move_y = 0
         self.threed_view = None
         self.isovalue = 60
+        self.is_inverse = False
         self.reset_crop()
 
     def get_pixmap_geometry(self):
@@ -1223,7 +1230,10 @@ class ObjectViewer2D(QLabel):
             # whole pixmap is selected
             x1, x2, y1, y2 = 0, qt_image_array.shape[1], 0, qt_image_array.shape[0]
 
-        region_mask = (qt_image_array[y1:y2+1, x1:x2+1, 0] > threshold)
+        if self.is_inverse:
+            region_mask = (qt_image_array[y1:y2+1, x1:x2+1, 0] <= threshold)
+        else:
+            region_mask = (qt_image_array[y1:y2+1, x1:x2+1, 0] > threshold)
 
         # Apply the threshold and colorize
         qt_image_array[y1:y2+1, x1:x2+1][region_mask] = color
@@ -1392,10 +1402,14 @@ class CTHarvesterMainWindow(QMainWindow):
         self.btnSetTop.clicked.connect(self.set_top)
         self.btnReset = QPushButton(self.tr("Reset"))
         self.btnReset.clicked.connect(self.reset_crop)
+        self.cbxInverse = QCheckBox(self.tr("Inv."))
+        self.cbxInverse.stateChanged.connect(self.cbxInverse_stateChanged)
+        self.cbxInverse.setChecked(False)
 
         self.crop_layout.addWidget(self.btnSetBottom,stretch=1)
         self.crop_layout.addWidget(self.btnSetTop,stretch=1)
         self.crop_layout.addWidget(self.btnReset,stretch=1)
+        self.crop_layout.addWidget(self.cbxInverse,stretch=0)
         self.crop_widget.setLayout(self.crop_layout)
         self.crop_layout.setContentsMargins(margin)
 
@@ -1473,8 +1487,14 @@ class CTHarvesterMainWindow(QMainWindow):
     def rangeSliderPressed(self):
         return
 
-    def cbxInverseImage_stateChanged(self):
-        return
+    def cbxInverse_stateChanged(self):
+        if self.image_label.orig_pixmap is None:
+            return
+        self.mcube_widget.is_inverse = self.image_label.is_inverse = self.cbxInverse.isChecked()
+        #self.mcube_widget.is_inverse = 
+        self.image_label.calculate_resize()
+        self.image_label.repaint()
+        self.update_3D_view(True)
 
     def show_preferences(self):
         self.settings_dialog = PreferencesDialog(self)
