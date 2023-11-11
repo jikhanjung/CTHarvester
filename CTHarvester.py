@@ -1721,7 +1721,11 @@ class CTHarvesterMainWindow(QMainWindow):
             self.comboLevel.addItem( level['name'])
 
     def comboLevelIndexChanged(self):
-        #print("-----------------------------[[[comboSizeIndexChanged]]]-----------------------------")
+        """
+        This method is called when the user selects a different level from the combo box.
+        It updates the UI with information about the selected level, such as the image dimensions and number of images.
+        It also updates the slider and range slider to reflect the number of images in the selected level.
+        """
         self.prev_level_idx = self.curr_level_idx
         self.curr_level_idx = self.comboLevel.currentIndex()
         if self.curr_level_idx < 0:
@@ -1766,6 +1770,10 @@ class CTHarvesterMainWindow(QMainWindow):
         self.update_3D_view(True)
 
     def create_thumbnail(self):
+        """
+        Creates a thumbnail of the image sequence by downsampling the images and averaging them.
+        The resulting thumbnail is saved in a temporary directory and used to generate a mesh for visualization.
+        """
         MAX_THUMBNAIL_SIZE = 512
         size =  max(int(self.settings_hash['image_width']), int(self.settings_hash['image_height']))
         width = int(self.settings_hash['image_width'])
@@ -1876,10 +1884,17 @@ class CTHarvesterMainWindow(QMainWindow):
         self.reset_crop()
 
     def slider2ValueChanged(self, value):
-        #print("value:", value)
-        self.image_label.set_isovalue(value)
-        self.mcube_widget.set_isovalue(value)
-        self.image_label.calculate_resize()
+            """
+            Updates the isovalue of the image label and mcube widget based on the given slider value,
+            and recalculates the image label's size.
+            
+            Args:
+                value (float): The new value of the slider.
+            """
+            #print("value:", value)
+            self.image_label.set_isovalue(value)
+            self.mcube_widget.set_isovalue(value)
+            self.image_label.calculate_resize()
     
     def slider2SliderReleased(self):
         self.update_3D_view(True)
@@ -1974,88 +1989,104 @@ class CTHarvesterMainWindow(QMainWindow):
 
 
     def open_dir(self):
-        #print("open_dir")
-        ddir = QFileDialog.getExistingDirectory(self, self.tr("Select directory"), self.m_app.default_directory)
-        if ddir:
-            self.edtDirname.setText(ddir)
-            self.m_app.default_directory = os.path.dirname(ddir)
-        else:
-            return
-        self.settings_hash = {}
-        self.initialized = False
-        image_file_list = []
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-
-        files = [f for f in os.listdir(ddir) if os.path.isfile(os.path.join(ddir, f))]
-
-        for file in files:
-            # get extension
-            ext = os.path.splitext(file)[-1].lower()
-            if ext in [".bmp", ".jpg", ".png", ".tif", ".tiff"]:
-                pass #image_file_list.append(file)
-            elif ext == '.log':
-                settings = QSettings(os.path.join(ddir, file), QSettings.IniFormat)
-                prefix = settings.value("File name convention/Filename Prefix")
-                if not prefix:
-                    continue
-                if file != prefix + ".log":
-                    continue
-
-                self.settings_hash['prefix'] = settings.value("File name convention/Filename Prefix")
-                self.settings_hash['image_width'] = settings.value("Reconstruction/Result Image Width (pixels)")
-                self.settings_hash['image_height'] = settings.value("Reconstruction/Result Image Height (pixels)")
-                self.settings_hash['file_type'] = settings.value("Reconstruction/Result File Type")
-                self.settings_hash['index_length'] = settings.value("File name convention/Filename Index Length")
-                self.settings_hash['seq_begin'] = settings.value("Reconstruction/First Section")
-                self.settings_hash['seq_end'] = settings.value("Reconstruction/Last Section")
-                self.settings_hash['index_length'] = int(self.settings_hash['index_length'])
-                self.settings_hash['seq_begin'] = int(self.settings_hash['seq_begin'])
-                self.settings_hash['seq_end'] = int(self.settings_hash['seq_end'])
-                self.edtNumImages.setText(str(self.settings_hash['seq_end'] - self.settings_hash['seq_begin'] + 1))
-                self.edtImageDimension.setText(str(self.settings_hash['image_width']) + " x " + str(self.settings_hash['image_height']))
-
-        if 'prefix' not in self.settings_hash:
-            self.settings_hash = self.sort_file_list_from_dir(ddir)
-            if self.settings_hash is None:
+            """
+            Opens a directory dialog to select a directory containing image files and log files.
+            Parses the log file to extract settings information and updates the UI accordingly.
+            """
+            #print("open_dir")
+            ddir = QFileDialog.getExistingDirectory(self, self.tr("Select directory"), self.m_app.default_directory)
+            if ddir:
+                self.edtDirname.setText(ddir)
+                self.m_app.default_directory = os.path.dirname(ddir)
+            else:
                 return
+            self.settings_hash = {}
+            self.initialized = False
+            image_file_list = []
+            QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        for seq in range(self.settings_hash['seq_begin'], self.settings_hash['seq_end']+1):
-            filename = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
-            image_file_list.append(filename)
-        self.original_from_idx = 0
-        self.original_to_idx = len(image_file_list) - 1
-        self.image_label.setPixmap(QPixmap(os.path.join(ddir,image_file_list[0])).scaledToWidth(512))
-        self.level_info = []
-        self.level_info.append( {'name': 'Original', 'width': self.settings_hash['image_width'], 'height': self.settings_hash['image_height'], 'seq_begin': self.settings_hash['seq_begin'], 'seq_end': self.settings_hash['seq_end']} )
-        QApplication.restoreOverrideCursor()
-        self.create_thumbnail()
+            files = [f for f in os.listdir(ddir) if os.path.isfile(os.path.join(ddir, f))]
+
+            for file in files:
+                # get extension
+                ext = os.path.splitext(file)[-1].lower()
+                if ext in [".bmp", ".jpg", ".png", ".tif", ".tiff"]:
+                    pass #image_file_list.append(file)
+                elif ext == '.log':
+                    settings = QSettings(os.path.join(ddir, file), QSettings.IniFormat)
+                    prefix = settings.value("File name convention/Filename Prefix")
+                    if not prefix:
+                        continue
+                    if file != prefix + ".log":
+                        continue
+
+                    self.settings_hash['prefix'] = settings.value("File name convention/Filename Prefix")
+                    self.settings_hash['image_width'] = settings.value("Reconstruction/Result Image Width (pixels)")
+                    self.settings_hash['image_height'] = settings.value("Reconstruction/Result Image Height (pixels)")
+                    self.settings_hash['file_type'] = settings.value("Reconstruction/Result File Type")
+                    self.settings_hash['index_length'] = settings.value("File name convention/Filename Index Length")
+                    self.settings_hash['seq_begin'] = settings.value("Reconstruction/First Section")
+                    self.settings_hash['seq_end'] = settings.value("Reconstruction/Last Section")
+                    self.settings_hash['index_length'] = int(self.settings_hash['index_length'])
+                    self.settings_hash['seq_begin'] = int(self.settings_hash['seq_begin'])
+                    self.settings_hash['seq_end'] = int(self.settings_hash['seq_end'])
+                    self.edtNumImages.setText(str(self.settings_hash['seq_end'] - self.settings_hash['seq_begin'] + 1))
+                    self.edtImageDimension.setText(str(self.settings_hash['image_width']) + " x " + str(self.settings_hash['image_height']))
+
+            if 'prefix' not in self.settings_hash:
+                self.settings_hash = self.sort_file_list_from_dir(ddir)
+                if self.settings_hash is None:
+                    return
+
+            for seq in range(self.settings_hash['seq_begin'], self.settings_hash['seq_end']+1):
+                filename = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+                image_file_list.append(filename)
+            self.original_from_idx = 0
+            self.original_to_idx = len(image_file_list) - 1
+            self.image_label.setPixmap(QPixmap(os.path.join(ddir,image_file_list[0])).scaledToWidth(512))
+            self.level_info = []
+            self.level_info.append( {'name': 'Original', 'width': self.settings_hash['image_width'], 'height': self.settings_hash['image_height'], 'seq_begin': self.settings_hash['seq_begin'], 'seq_end': self.settings_hash['seq_end']} )
+            QApplication.restoreOverrideCursor()
+            self.create_thumbnail()
 
     def read_settings(self):
-        settings = self.m_app.settings
+            """
+            Reads the application settings and updates the corresponding values in the application object.
+            """
+            settings = self.m_app.settings
 
-        self.m_app.remember_directory = value_to_bool(settings.value("Remember directory", True))
-        if self.m_app.remember_directory:
-            self.m_app.default_directory = settings.value("Default directory", ".")
-        else:
-            self.m_app.default_directory = "."
+            self.m_app.remember_directory = value_to_bool(settings.value("Remember directory", True))
+            if self.m_app.remember_directory:
+                self.m_app.default_directory = settings.value("Default directory", ".")
+            else:
+                self.m_app.default_directory = "."
 
-        self.m_app.remember_geometry = value_to_bool(settings.value("Remember geometry", True))
-        if self.m_app.remember_geometry:
-            self.setGeometry(settings.value("MainWindow geometry", QRect(100, 100, 600, 550)))
-            self.mcube_geometry = settings.value("mcube_widget geometry", QRect(0, 0, 150, 150))
-        else:
-            self.setGeometry(QRect(100, 100, 600, 550))
-            self.mcube_geometry = QRect(0, 0, 150, 150)
-        self.m_app.language = settings.value("Language", "en")
+            self.m_app.remember_geometry = value_to_bool(settings.value("Remember geometry", True))
+            if self.m_app.remember_geometry:
+                self.setGeometry(settings.value("MainWindow geometry", QRect(100, 100, 600, 550)))
+                self.mcube_geometry = settings.value("mcube_widget geometry", QRect(0, 0, 150, 150))
+            else:
+                self.setGeometry(QRect(100, 100, 600, 550))
+                self.mcube_geometry = QRect(0, 0, 150, 150)
+            self.m_app.language = settings.value("Language", "en")
 
     def save_settings(self):
-        if self.m_app.remember_directory:
-            self.m_app.settings.setValue("Default directory", self.m_app.default_directory)
-        if self.m_app.remember_geometry:
-            self.m_app.settings.setValue("MainWindow geometry", self.geometry())
-            self.m_app.settings.setValue("mcube_widget geometry", self.mcube_widget.geometry()) 
+            """
+            Saves the current application settings to persistent storage.
+            If the 'remember_directory' setting is enabled, saves the default directory.
+            If the 'remember_geometry' setting is enabled, saves the main window and mcube widget geometries.
+            """
+            if self.m_app.remember_directory:
+                self.m_app.settings.setValue("Default directory", self.m_app.default_directory)
+            if self.m_app.remember_geometry:
+                self.m_app.settings.setValue("MainWindow geometry", self.geometry())
+                self.m_app.settings.setValue("mcube_widget geometry", self.mcube_widget.geometry())
 
     def closeEvent(self, event):
+        """
+        This method is called when the user closes the application window.
+        It saves the current settings and accepts the close event.
+        """
         self.save_settings()
         event.accept()
         
