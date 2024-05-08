@@ -12,12 +12,12 @@
 <context>
     <name>CTHarvesterMainWindow</name>
     <message>
-        <location filename="CTHarvester.py" line="973"/>
+        <location filename="CTHarvester.py" line="1510"/>
         <source>Open Directory</source>
         <translation>Open directory</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="974"/>
+        <location filename="CTHarvester.py" line="1511"/>
         <source>Select directory to load CT data</source>
         <translation>Select directory to load CT data</translation>
     </message>
@@ -32,47 +32,47 @@
         <translation type="obsolete">Count:</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="976"/>
+        <location filename="CTHarvester.py" line="1512"/>
         <source>Level</source>
         <translation>Level</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="985"/>
+        <location filename="CTHarvester.py" line="1520"/>
         <source>Size</source>
         <translation>Size</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="977"/>
+        <location filename="CTHarvester.py" line="1513"/>
         <source>Set Bottom</source>
-        <translation>Set Bottom</translation>
+        <translation>Set Lowerbound</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="978"/>
+        <location filename="CTHarvester.py" line="1514"/>
         <source>Set Top</source>
-        <translation>Set Top</translation>
+        <translation>Set Upperbound</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="979"/>
+        <location filename="CTHarvester.py" line="1515"/>
         <source>Reset</source>
         <translation>Reset</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="981"/>
+        <location filename="CTHarvester.py" line="1517"/>
         <source>Save cropped image stack</source>
         <translation>Save cropped image stack</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="1115"/>
+        <location filename="CTHarvester.py" line="1635"/>
         <source>Select directory to save</source>
         <translation>Select directory to save</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="989"/>
+        <location filename="CTHarvester.py" line="1523"/>
         <source>Saving image stack...</source>
         <translation>Saving image stack...</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="988"/>
+        <location filename="CTHarvester.py" line="1522"/>
         <source>Saving image stack... {}/{}</source>
         <translation>Saving image stack... {}/{}</translation>
     </message>
@@ -97,12 +97,12 @@
         <translation type="obsolete">Creating thumbnail level {}...</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="991"/>
+        <location filename="CTHarvester.py" line="1525"/>
         <source>Creating rescaled images level {}... {}/{}</source>
         <translation>Creating rescaled images level {}... {}/{}</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="704"/>
+        <location filename="CTHarvester.py" line="1314"/>
         <source>CT Harvester</source>
         <translation>CT Harvester</translation>
     </message>
@@ -114,17 +114,17 @@
     <message>
         <location filename="CTHarvester.py" line="975"/>
         <source>Prepare View</source>
-        <translation>Prepare View</translation>
+        <translation type="obsolete">Prepare View</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="1550"/>
+        <location filename="CTHarvester.py" line="1998"/>
         <source>Select directory</source>
         <translation>Select directory</translation>
     </message>
     <message>
         <location filename="CTHarvester.py" line="986"/>
         <source>Preferences</source>
-        <translation>Preferences</translation>
+        <translation type="obsolete">Preferences</translation>
     </message>
     <message>
         <location filename="CTHarvester.py" line="848"/>
@@ -132,95 +132,100 @@
         <translation type="obsolete">Crop indices: {}~{}    Cropped image size: {}x{}    Estimated stack size: {} MB [{}]</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="984"/>
+        <location filename="CTHarvester.py" line="1519"/>
         <source>Count</source>
         <translation>Count</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="980"/>
+        <location filename="CTHarvester.py" line="1516"/>
         <source>Open dir. after</source>
         <translation>Open dir. after</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="987"/>
+        <location filename="CTHarvester.py" line="1521"/>
         <source>Crop indices: {}~{} Cropped image size: {}x{} ({},{})-({},{}) Estimated stack size: {} MB [{}]</source>
         <translation>Crop indices: {}~{} Cropped image size: {}x{} ({},{})-({},{}) Estimated stack size: {} MB [{}]</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="990"/>
+        <location filename="CTHarvester.py" line="1524"/>
         <source>Creating rescaled images level {}...</source>
         <translation>Creating rescaled images level {}...</translation>
     </message>
     <message>
         <location filename="CTHarvester.py" line="994"/>
         <source>Update 3D View</source>
-        <translation>Update 3D View</translation>
+        <translation type="obsolete">Update 3D View</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="903"/>
+        <location filename="CTHarvester.py" line="1518"/>
         <source>Export 3D Model</source>
         <translation>Export 3D model</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="992"/>
+        <location filename="CTHarvester.py" line="1526"/>
         <source>Checking rescaled images level {}...</source>
         <translation>Checking rescaled images level {}...</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="993"/>
+        <location filename="CTHarvester.py" line="1527"/>
         <source>Checking rescaled images level {}... {}/{}</source>
-        <translation type="unfinished">Checking rescaled images level {}... {}/{}</translation>
+        <translation>Checking rescaled images level {}... {}/{}</translation>
+    </message>
+    <message>
+        <location filename="CTHarvester.py" line="1405"/>
+        <source>Inv.</source>
+        <translation>Inv.</translation>
     </message>
 </context>
 <context>
     <name>PreferencesDialog</name>
     <message>
-        <location filename="CTHarvester.py" line="151"/>
+        <location filename="CTHarvester.py" line="813"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="152"/>
+        <location filename="CTHarvester.py" line="814"/>
         <source>Cancel</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="156"/>
+        <location filename="CTHarvester.py" line="818"/>
         <source>CTHarvester - Preferences</source>
         <translation>CT Harvester - Preferences</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="145"/>
+        <location filename="CTHarvester.py" line="807"/>
         <source>Yes</source>
         <translation>Yes</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="146"/>
+        <location filename="CTHarvester.py" line="808"/>
         <source>No</source>
         <translation>No</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="149"/>
+        <location filename="CTHarvester.py" line="811"/>
         <source>English</source>
         <translation>English</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="150"/>
+        <location filename="CTHarvester.py" line="812"/>
         <source>Korean</source>
         <translation>Korean</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="153"/>
+        <location filename="CTHarvester.py" line="815"/>
         <source>Remember Geometry</source>
         <translation>Remember Geometry</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="154"/>
+        <location filename="CTHarvester.py" line="816"/>
         <source>Remember Directory</source>
         <translation>Remember Directory</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="155"/>
+        <location filename="CTHarvester.py" line="817"/>
         <source>Language</source>
         <translation>Language</translation>
     </message>
@@ -228,12 +233,12 @@
 <context>
     <name>ProgressDialog</name>
     <message>
-        <location filename="CTHarvester.py" line="242"/>
+        <location filename="CTHarvester.py" line="889"/>
         <source>CTHarvester - Progress Dialog</source>
         <translation>CTHarvester - Progress Dialog</translation>
     </message>
     <message>
-        <location filename="CTHarvester.py" line="243"/>
+        <location filename="CTHarvester.py" line="890"/>
         <source>Stop</source>
         <translation>Stop</translation>
     </message>
