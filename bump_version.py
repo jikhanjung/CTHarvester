@@ -51,7 +51,7 @@ def update_version_file(new_version: str) -> None:
     try:
         # Write new file
         version_file.write_text(new_content)
-        print(f"✅ Version updated to {new_version}")
+        print(f"[OK] Version updated to {new_version}")
         
         # Remove backup
         backup_file.unlink()
@@ -106,7 +106,7 @@ def create_git_tag(version: str, message: Optional[str] = None) -> None:
         )
         
         if result.stdout.strip():
-            print(f"⚠️  Tag {tag_name} already exists")
+            print(f"[WARNING]  Tag {tag_name} already exists")
             return
         
         # Create annotated tag
@@ -114,15 +114,15 @@ def create_git_tag(version: str, message: Optional[str] = None) -> None:
             ['git', 'tag', '-a', tag_name, '-m', message],
             check=True
         )
-        print(f"✅ Git tag created: {tag_name}")
+        print(f"[OK] Git tag created: {tag_name}")
         
         # Ask to push tag
         response = input("Push tag to remote? (y/N): ")
         if response.lower() == 'y':
             subprocess.run(['git', 'push', 'origin', tag_name], check=True)
-            print(f"✅ Tag pushed to remote")
+            print(f"[OK] Tag pushed to remote")
     except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to create git tag: {e}")
+        print(f"[ERROR] Failed to create git tag: {e}")
 
 def update_changelog(version: str) -> None:
     """Update or create CHANGELOG.md"""
@@ -151,14 +151,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 """
         changelog_file.write_text(content)
-        print("✅ CHANGELOG.md created")
+        print("[OK] CHANGELOG.md created")
     else:
         # Add new version section
         content = changelog_file.read_text()
         
         # Check if version already exists
         if f"## [{version}]" in content:
-            print(f"⚠️  Version {version} already in CHANGELOG.md")
+            print(f"[WARNING]  Version {version} already in CHANGELOG.md")
             return
         
         # Create new section
@@ -196,8 +196,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         new_content = '\n'.join(lines)
         
         changelog_file.write_text(new_content)
-        print("✅ CHANGELOG.md updated")
-        print("⚠️  Please update the changelog entries before committing")
+        print("[OK] CHANGELOG.md updated")
+        print("[WARNING]  Please update the changelog entries before committing")
 
 def check_git_status() -> bool:
     """Check if git working directory is clean"""
@@ -210,12 +210,12 @@ def check_git_status() -> bool:
         )
         
         if result.stdout.strip():
-            print("⚠️  Warning: You have uncommitted changes")
+            print("[WARNING]  Warning: You have uncommitted changes")
             response = input("Continue anyway? (y/N): ")
             return response.lower() == 'y'
         return True
     except subprocess.CalledProcessError:
-        print("⚠️  Not a git repository or git not available")
+        print("[WARNING]  Not a git repository or git not available")
         return True
 
 def main():
@@ -278,14 +278,14 @@ def main():
                 ['git', 'commit', '-m', commit_message],
                 check=True
             )
-            print(f"✅ Git commit created: {commit_message}")
+            print(f"[OK] Git commit created: {commit_message}")
             
             # Create tag
             response = input("Create git tag? (y/N): ")
             if response.lower() == 'y':
                 create_git_tag(new_version)
         
-        print(f"\n🎉 Version {new_version} is ready!")
+        print(f"\n[SUCCESS] Version {new_version} is ready!")
         print("\nNext steps:")
         print("1. Update any changelog entries if needed")
         print("2. Run tests to ensure everything works")
@@ -295,7 +295,7 @@ def main():
         print("\nAborted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"[ERROR] Error: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

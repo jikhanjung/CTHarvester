@@ -42,10 +42,10 @@ def run_pyinstaller():
     try:
         print(f"Running: {' '.join(cmd)}")
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        print("✅ PyInstaller build completed successfully")
+        print("PyInstaller build completed successfully")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ PyInstaller build failed: {e}")
+        print(f"PyInstaller build failed: {e}")
         print(f"stdout: {e.stdout}")
         print(f"stderr: {e.stderr}")
         return False
@@ -56,7 +56,7 @@ def prepare_inno_setup_template():
     
     template_path = Path("InnoSetup/CTHarvester.iss.template")
     if not template_path.exists():
-        print(f"❌ Template file {template_path} not found")
+        print(f"[ERROR] Template file {template_path} not found")
         return None
     
     # Read template
@@ -71,16 +71,16 @@ def prepare_inno_setup_template():
     
     try:
         temp_iss.write_text(iss_content)
-        print(f"✅ Temporary ISS file created: {temp_iss.name}")
+        print(f"[OK] Temporary ISS file created: {temp_iss.name}")
         return str(temp_iss)
     except Exception as e:
-        print(f"❌ Error creating temporary ISS file: {e}")
+        print(f"[ERROR] Error creating temporary ISS file: {e}")
         return None
 
 def build_installer():
     """Build Windows installer using InnoSetup"""
     if platform.system() != "Windows":
-        print("ℹ️  Installer build only available on Windows")
+        print("[INFO]  Installer build only available on Windows")
         return True
     
     print("Building Windows installer...")
@@ -103,7 +103,7 @@ def build_installer():
             break
     
     if not iscc_path:
-        print("⚠️  InnoSetup not found. Skipping installer build.")
+        print("[WARNING]  InnoSetup not found. Skipping installer build.")
         print("   Install from: https://jrsoftware.org/isdl.php")
         # Clean up temp file
         if Path(temp_iss_file).exists():
@@ -118,23 +118,23 @@ def build_installer():
     try:
         print(f"Running: {' '.join(cmd)}")
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        print("✅ Installer built successfully")
+        print("[OK] Installer built successfully")
         
         # Show output location
         installer_name = f"CTHarvester_v{VERSION}_build{build_number}_Installer.exe"
         installer_path = Path(f"InnoSetup/Output/{installer_name}")
         if installer_path.exists():
-            print(f"📦 Installer: {installer_path}")
+            print(f"[PACKAGE] Installer: {installer_path}")
         
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Installer build failed: {e}")
+        print(f"[ERROR] Installer build failed: {e}")
         return False
     finally:
         # Clean up temp file
         if Path(temp_iss_file).exists():
             Path(temp_iss_file).unlink()
-            print(f"🧹 Cleaned up temporary file: {Path(temp_iss_file).name}")
+            print(f"[CLEANUP] Cleaned up temporary file: {Path(temp_iss_file).name}")
 
 def main():
     """Main build process"""
@@ -154,16 +154,16 @@ def main():
     
     # Step 1: Build executable with PyInstaller
     if not run_pyinstaller():
-        print("\n❌ Build failed")
+        print("\n[ERROR] Build failed")
         return 1
     
     # Step 2: Build installer (Windows only)
     if platform.system() == "Windows":
         if not build_installer():
-            print("\n⚠️  Installer build failed, but executable was built")
+            print("\n[WARNING]  Installer build failed, but executable was built")
             return 0  # Partial success
     
-    print("\n✅ Build completed successfully!")
+    print("\n[SUCCESS] Build completed successfully!")
     print("\nOutput:")
     print(f"  - Executable: dist/CTHarvester/")
     
