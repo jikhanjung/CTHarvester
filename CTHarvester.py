@@ -2,7 +2,7 @@ from PyQt5.QtGui import QIcon, QColor, QPainter, QPen, QPixmap, QPainter, QMouse
 from PyQt5.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QRadioButton, QComboBox, \
                             QFileDialog, QWidget, QHBoxLayout, QVBoxLayout, QProgressBar, QApplication, \
                             QDialog, QLineEdit, QLabel, QPushButton, QAbstractItemView, \
-                            QSizePolicy, QGroupBox, QListWidget, QFormLayout, QCheckBox
+                            QSizePolicy, QGroupBox, QListWidget, QFormLayout, QCheckBox, QMessageBox
 from PyQt5.QtCore import Qt, QRect, QPoint, QSettings, QTranslator, QMargins, QTimer, QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot, QEvent
 #from PyQt5.QtCore import QT_TR_NOOP as tr
 from PyQt5.QtOpenGL import *
@@ -44,8 +44,12 @@ MODE['MOVE_BOX_PROGRESS'] = 6
 MODE['MOVE_BOX_READY'] = 7
 DISTANCE_THRESHOLD = 10
 COMPANY_NAME = "PaleoBytes"
+try:
+    from version import __version__ as PROGRAM_VERSION
+except ImportError:
+    PROGRAM_VERSION = "0.2.0"  # Fallback version
+
 PROGRAM_NAME = "CT Harvester"
-PROGRAM_VERSION = "0.2"
 PROGRAM_AUTHOR = "Jikhan Jung"
 
 
@@ -703,6 +707,61 @@ class MCubeWidget(QGLWidget):
         glEnd()
         glEndList()
         self.gl_list_generated = True
+
+
+class InfoDialog(QDialog):
+    '''
+    InfoDialog shows application information.
+    '''
+    def __init__(self, parent):
+        super().__init__()
+        self.parent = parent
+        
+        # Create layout
+        layout = QVBoxLayout()
+        
+        # Add title
+        title_label = QLabel("<h2>CTHarvester</h2>")
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+        
+        # Add version info
+        version_label = QLabel(self.tr("Version {}").format(PROGRAM_VERSION))
+        version_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(version_label)
+        
+        # Add description
+        desc_label = QLabel(self.tr("CT Image Stack Processing Tool"))
+        desc_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(desc_label)
+        
+        # Add copyright
+        copyright_label = QLabel(self.tr("© 2024 Jikhanjung"))
+        copyright_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(copyright_label)
+        
+        # Add GitHub link
+        github_label = QLabel('<a href="https://github.com/jikhanjung/CTHarvester">GitHub Repository</a>')
+        github_label.setOpenExternalLinks(True)
+        github_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(github_label)
+        
+        # Add spacing
+        layout.addSpacing(20)
+        
+        # Add OK button
+        button_layout = QHBoxLayout()
+        btn_ok = QPushButton(self.tr("OK"))
+        btn_ok.clicked.connect(self.accept)
+        button_layout.addStretch()
+        button_layout.addWidget(btn_ok)
+        button_layout.addStretch()
+        layout.addLayout(button_layout)
+        
+        self.setLayout(layout)
+        self.setWindowTitle(self.tr("About CTHarvester"))
+        self.setFixedSize(300, 200)
+        self.move(self.parent.pos() + QPoint(150, 150))
 
 
 class PreferencesDialog(QDialog):
@@ -1433,11 +1492,14 @@ class CTHarvesterMainWindow(QMainWindow):
         self.btnExport.clicked.connect(self.export_3d_model)
         self.btnPreferences = QPushButton(QIcon(resource_path('M2Preferences_2.png')), "")
         self.btnPreferences.clicked.connect(self.show_preferences)
+        self.btnInfo = QPushButton(QIcon(resource_path('info.png')), "")
+        self.btnInfo.clicked.connect(self.show_info)
         self.button_layout = QHBoxLayout()
         self.button_layout.addWidget(self.cbxOpenDirAfter,stretch=0)
         self.button_layout.addWidget(self.btnSave,stretch=1)
         self.button_layout.addWidget(self.btnExport,stretch=1)
         self.button_layout.addWidget(self.btnPreferences,stretch=0)
+        self.button_layout.addWidget(self.btnInfo,stretch=0)
         self.button_widget = QWidget()
         self.button_widget.setLayout(self.button_layout)
         self.button_layout.setContentsMargins(margin)
@@ -1500,6 +1562,11 @@ class CTHarvesterMainWindow(QMainWindow):
         self.settings_dialog = PreferencesDialog(self)
         self.settings_dialog.setModal(True)
         self.settings_dialog.show()
+
+    def show_info(self):
+        self.info_dialog = InfoDialog(self)
+        self.info_dialog.setModal(True)
+        self.info_dialog.show()
 
     def update_language(self):
         translator = QTranslator()
@@ -1860,11 +1927,15 @@ class CTHarvesterMainWindow(QMainWindow):
                         img1 = Image.open(os.path.join(from_dir, filename1))
                         if img1.mode[0] == 'I':
                             img1 = Image.fromarray(np.divide(np.array(img1), 2**8-1)).convert('L')
+                        elif img1.mode == 'P':
+                            img1 = img1.convert('L')
                     img2 = None
                     if os.path.exists(os.path.join(from_dir, filename2)):
                         img2 = Image.open(os.path.join(from_dir, filename2))
                         if img2.mode[0] == 'I':
                             img2 = Image.fromarray(np.divide(np.array(img2), 2**8-1)).convert('L')
+                        elif img2.mode == 'P':
+                            img2 = img2.convert('L')
                     # average two images
                     #print("img1:", img1.mode, "img2:", img2.mode)
                     if img1 is None or img2 is None:
@@ -2056,6 +2127,8 @@ class CTHarvesterMainWindow(QMainWindow):
             if 'prefix' not in self.settings_hash:
                 self.settings_hash = self.sort_file_list_from_dir(ddir)
                 if self.settings_hash is None:
+                    QApplication.restoreOverrideCursor()
+                    QMessageBox.warning(self, self.tr("Warning"), self.tr("No valid image files found in the selected directory."))
                     return
 
             for seq in range(self.settings_hash['seq_begin'], self.settings_hash['seq_end']+1):

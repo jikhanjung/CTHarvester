@@ -1,0 +1,8 @@
+pyqt5
+pyopengl
+pyopengl-accelerate
+superqt
+pillow
+numpy
+pymcubes
+scipy

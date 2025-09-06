@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # Enable version updates for Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "@jikhanjung"
+    assignees:
+      - "@jikhanjung"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
