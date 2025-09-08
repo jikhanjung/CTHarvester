@@ -52,6 +52,10 @@ except ImportError:
 PROGRAM_NAME = "CT Harvester"
 PROGRAM_AUTHOR = "Jikhan Jung"
 
+# Dynamic year for copyright
+from datetime import datetime
+CURRENT_YEAR = datetime.now().year
+PROGRAM_COPYRIGHT = f"© 2023-{CURRENT_YEAR} Jikhan Jung"
 
 OBJECT_MODE = 1
 VIEW_MODE = 1
@@ -736,7 +740,7 @@ class InfoDialog(QDialog):
         layout.addWidget(desc_label)
         
         # Add copyright
-        copyright_label = QLabel(self.tr("© 2024 Jikhanjung"))
+        copyright_label = QLabel(self.tr(PROGRAM_COPYRIGHT))
         copyright_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(copyright_label)
         
