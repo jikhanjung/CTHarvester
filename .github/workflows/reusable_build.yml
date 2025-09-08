@@ -249,11 +249,14 @@ jobs:
           # Use the packaging script
           chmod +x packaging/linux/create_appimage.sh
           packaging/linux/create_appimage.sh v${{ steps.get_version.outputs.VERSION }}-build${{ inputs.build_number }}
+          
+          # Move AppImage to root directory for consistent artifact upload
+          if [ -f "build_linux/CTHarvester-Linux-v${{ steps.get_version.outputs.VERSION }}-build${{ inputs.build_number }}.AppImage" ]; then
+            mv build_linux/CTHarvester-Linux-v${{ steps.get_version.outputs.VERSION }}-build${{ inputs.build_number }}.AppImage ./
+          fi
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
           name: ctharvester-linux
-          path: |
-            CTHarvester-Linux-v${{ steps.get_version.outputs.VERSION }}-build${{ inputs.build_number }}.AppImage
-            build_linux/CTHarvester-Linux-v${{ steps.get_version.outputs.VERSION }}-build${{ inputs.build_number }}.AppImage
+          path: CTHarvester-Linux-v${{ steps.get_version.outputs.VERSION }}-build${{ inputs.build_number }}.AppImage
