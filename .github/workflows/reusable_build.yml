@@ -243,21 +243,17 @@ jobs:
             cp -r dist/* AppDir/usr/bin/
             
             # Create desktop entry
-            cat > AppDir/CTHarvester.desktop <<'DESKTOP_EOF'
-          [Desktop Entry]
-          Name=CTHarvester
-          Exec=CTHarvester
-          Icon=CTHarvester
-          Type=Application
-          Categories=Medical;Science;
-          DESKTOP_EOF
+            echo "[Desktop Entry]" > AppDir/CTHarvester.desktop
+            echo "Name=CTHarvester" >> AppDir/CTHarvester.desktop
+            echo "Exec=CTHarvester" >> AppDir/CTHarvester.desktop
+            echo "Icon=CTHarvester" >> AppDir/CTHarvester.desktop
+            echo "Type=Application" >> AppDir/CTHarvester.desktop
+            echo "Categories=Medical;Science;" >> AppDir/CTHarvester.desktop
             
             # Create AppRun script
-            cat > AppDir/AppRun <<'APPRUN_EOF'
-          #!/bin/bash
-          HERE="$(dirname "$(readlink -f "${0}")")"
-          exec "${HERE}/usr/bin/CTHarvester" "$@"
-          APPRUN_EOF
+            echo '#!/bin/bash' > AppDir/AppRun
+            echo 'HERE="$(dirname "$(readlink -f "${0}")")"' >> AppDir/AppRun
+            echo 'exec "${HERE}/usr/bin/CTHarvester" "$@"' >> AppDir/AppRun
             chmod +x AppDir/AppRun
             
             # Create AppImage
