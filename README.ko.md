@@ -2,6 +2,7 @@
 
 [![Build](https://github.com/jikhanjung/CTHarvester/actions/workflows/build.yml/badge.svg)](https://github.com/jikhanjung/CTHarvester/actions/workflows/build.yml)
 [![Tests](https://github.com/jikhanjung/CTHarvester/actions/workflows/test.yml/badge.svg)](https://github.com/jikhanjung/CTHarvester/actions/workflows/test.yml)
+[![Release Status](https://github.com/jikhanjung/CTHarvester/actions/workflows/release.yml/badge.svg)](https://github.com/jikhanjung/CTHarvester/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
