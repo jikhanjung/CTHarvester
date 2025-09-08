@@ -1669,6 +1669,11 @@ class CTHarvesterMainWindow(QMainWindow):
     def update_3D_view(self, update_volume=True):
         #print("update 3d view")
         volume, roi_box = self.get_cropped_volume()
+        
+        # Check if volume is empty
+        if volume.size == 0:
+            logger.warning("Empty volume in update_3D_view, skipping update")
+            return
         bounding_box = self.minimum_volume.shape
         bounding_box = [ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ]
         curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
@@ -1683,12 +1688,31 @@ class CTHarvesterMainWindow(QMainWindow):
         self.mcube_widget.adjust_volume()
 
     def update_curr_slice(self):
+        # Check if minimum_volume is initialized
+        if not hasattr(self, 'minimum_volume') or self.minimum_volume is None or len(self.minimum_volume) == 0:
+            logger.warning("minimum_volume not initialized in update_curr_slice")
+            return
+        
         bounding_box = self.minimum_volume.shape
         bounding_box = [ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ]
         curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
         self.update_3D_view(False)
 
     def get_cropped_volume(self):
+        # Check if level_info is initialized and curr_level_idx is valid
+        if not hasattr(self, 'level_info') or not self.level_info:
+            logger.warning("level_info not initialized in get_cropped_volume")
+            # Return empty volume and box
+            return np.array([]), [0, 0, 0, 0, 0, 0]
+        
+        if not hasattr(self, 'curr_level_idx'):
+            self.curr_level_idx = 0
+        
+        # Ensure curr_level_idx is within bounds
+        if self.curr_level_idx >= len(self.level_info):
+            logger.warning(f"curr_level_idx {self.curr_level_idx} out of bounds, resetting to 0")
+            self.curr_level_idx = 0
+        
         level_info = self.level_info[self.curr_level_idx]
         seq_begin = level_info['seq_begin']
         seq_end = level_info['seq_end']
@@ -1829,13 +1853,21 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def rangeSliderValueChanged(self):
         #print("range slider value changed")
-        (bottom_idx, top_idx) = self.range_slider.value()
-        self.image_label.set_bottom_idx(bottom_idx)
-        self.image_label.set_top_idx(top_idx)
-        self.image_label.calculate_resize()
-        self.image_label.repaint()
-        self.update_3D_view(True)
-        self.update_status()
+        try:
+            # Check if necessary attributes are initialized
+            if not hasattr(self, 'level_info') or not self.level_info:
+                logger.warning("level_info not initialized in rangeSliderValueChanged")
+                return
+            
+            (bottom_idx, top_idx) = self.range_slider.value()
+            self.image_label.set_bottom_idx(bottom_idx)
+            self.image_label.set_top_idx(top_idx)
+            self.image_label.calculate_resize()
+            self.image_label.repaint()
+            self.update_3D_view(True)
+            self.update_status()
+        except Exception as e:
+            logger.error(f"Error in rangeSliderValueChanged: {e}")
 
     def rangeSliderReleased(self):
         #print("range slider released")
@@ -1890,9 +1922,18 @@ class CTHarvesterMainWindow(QMainWindow):
         It updates the UI with information about the selected level, such as the image dimensions and number of images.
         It also updates the slider and range slider to reflect the number of images in the selected level.
         """
-        self.prev_level_idx = self.curr_level_idx
+        # Check if level_info is initialized
+        if not hasattr(self, 'level_info') or not self.level_info:
+            logger.warning("level_info not initialized in comboLevelIndexChanged")
+            return
+        
+        self.prev_level_idx = self.curr_level_idx if hasattr(self, 'curr_level_idx') else 0
         self.curr_level_idx = self.comboLevel.currentIndex()
-        if self.curr_level_idx < 0:
+        
+        # Validate curr_level_idx
+        if self.curr_level_idx < 0 or self.curr_level_idx >= len(self.level_info):
+            logger.warning(f"Invalid curr_level_idx: {self.curr_level_idx}, resetting to 0")
+            self.curr_level_idx = 0
             return
         
         level_info = self.level_info[self.curr_level_idx]
