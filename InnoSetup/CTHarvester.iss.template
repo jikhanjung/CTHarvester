@@ -26,11 +26,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; Include main executable (single file build)
-Source: "..\dist\CTHarvester.exe"; DestDir: "{app}"
-
-; Include any additional files if they exist in dist directory
-; Source: "..\dist\*"; DestDir: "{app}"; Flags: skipifsourcedoesntexist
+; Include all files from onedir build
+Source: "..\dist\CTHarvester\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
 
 ; Copy sample data if available
 ; Source: "..\SampleData\*"; DestDir: "{%userprofile}\PaleoBytes\CTHarvester\SampleData"; Flags: recursesubdirs createallsubdirs
