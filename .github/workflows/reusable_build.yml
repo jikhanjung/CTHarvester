@@ -248,7 +248,7 @@ jobs:
             echo "Exec=CTHarvester" >> AppDir/CTHarvester.desktop
             echo "Icon=CTHarvester" >> AppDir/CTHarvester.desktop
             echo "Type=Application" >> AppDir/CTHarvester.desktop
-            echo "Categories=Medical;Science;" >> AppDir/CTHarvester.desktop
+            echo "Categories=Science;Education;" >> AppDir/CTHarvester.desktop
             
             # Create AppRun script
             echo '#!/bin/bash' > AppDir/AppRun
