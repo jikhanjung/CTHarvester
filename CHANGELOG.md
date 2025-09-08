@@ -1,1 +1,69 @@
-# CHANGELOG
+# Changelog
+
+All notable changes to CTHarvester will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.2.1] - 2024-12-28
+
+### Added
+- Comprehensive CI/CD pipeline with GitHub Actions
+  - Reusable build workflow (`reusable_build.yml`) for consistent builds across platforms
+  - Manual release action for creating releases with custom version tags
+  - Support for pre-release versions (alpha, beta, rc)
+  - Automated build number management
+- Advanced version management system
+  - New `manage_version.py` utility replacing `bump_version.py`
+  - Semantic versioning with `semver` library support
+  - Pre-release version support (alpha, beta, rc stages)
+  - `VERSION_MANAGEMENT.md` documentation
+- Proper application icons
+  - Converted CTHarvester_64.png to icon.ico for Windows
+  - Created icon.png for Linux AppImage builds
+  - Added `convert_icon.py` utility for PNG to ICO conversion
+- Dynamic copyright year display
+  - Automatically updates copyright year in About dialog
+  - Shows "© 2023-{current_year} Jikhan Jung"
+
+### Changed
+- Version management migrated from simple bump script to comprehensive semver-based system
+- All GitHub Actions workflows now use centralized reusable build workflow
+- Build artifacts properly named with version and build numbers
+- Inno Setup configuration uses absolute paths for reliable builds
+- Copyright display now uses dynamic year calculation
+
+### Fixed
+- Windows installer build issues
+  - Corrected file paths for single-file PyInstaller builds
+  - Fixed Inno Setup output directory path resolution
+  - Disabled Korean language file for CI compatibility
+- Linux AppImage build failures
+  - Resolved missing icon file errors
+  - Fixed desktop entry category validation
+  - Always creates placeholder icon when needed
+- GitHub Actions YAML syntax errors
+  - Replaced heredoc syntax with echo commands
+  - Fixed indentation and escaping issues
+- Build path issues across all platforms
+
+### Technical Details
+- Build system improvements:
+  - Windows: ZIP-packaged installer with Inno Setup
+  - macOS: DMG creation for distribution
+  - Linux: AppImage generation with proper desktop integration
+- Version parsing now handles complex version strings safely
+- All file paths converted to absolute paths during build process
+
+## [0.2.0] - 2024-12-28
+
+### Added
+- Initial centralized version management through `version.py`
+- Cross-platform build support (Windows, macOS, Linux)
+- Basic GitHub Actions for automated builds
+
+### Changed
+- Version information now managed in single source of truth
+
+### Fixed
+- Version consistency across all build artifacts
