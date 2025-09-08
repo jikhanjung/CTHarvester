@@ -129,6 +129,10 @@ def build_installer():
         return True
     except subprocess.CalledProcessError as e:
         print(f"[ERROR] Installer build failed: {e}")
+        if e.stdout:
+            print("STDOUT:", e.stdout)
+        if e.stderr:
+            print("STDERR:", e.stderr)
         return False
     finally:
         # Clean up temp file

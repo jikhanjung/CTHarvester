@@ -38,13 +38,26 @@ jobs:
           $inno_url = "https://files.jrsoftware.org/is/6/innosetup-6.2.2.exe"
           $inno_installer = "innosetup-installer.exe"
           Invoke-WebRequest -Uri $inno_url -OutFile $inno_installer
-          Start-Process -FilePath $inno_installer -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" -Wait
-          echo "C:\Program Files (x86)\Inno Setup 6" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          Start-Process -FilePath $inno_installer -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
+          
+          # Add to PATH for this session
+          $env:PATH = "C:\Program Files (x86)\Inno Setup 6;$env:PATH"
+          
+          # Verify installation
+          if (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe") {
+            echo "Inno Setup installed successfully"
+            echo "C:\Program Files (x86)\Inno Setup 6" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          } else {
+            echo "ERROR: Inno Setup installation failed"
+            exit 1
+          }
 
       - name: Build Windows Executables and Installer
         shell: pwsh
         run: |
           $env:BUILD_NUMBER = "${{ inputs.build_number }}"
+          # Ensure Inno Setup is in PATH
+          $env:PATH = "C:\Program Files (x86)\Inno Setup 6;$env:PATH"
           python build.py
           # List output directories to debug
           echo "=== Listing InnoSetup directory ==="
@@ -242,13 +255,35 @@ jobs:
             mkdir -p AppDir/usr/bin
             cp -r dist/* AppDir/usr/bin/
             
-            # Create desktop entry
-            echo "[Desktop Entry]" > AppDir/CTHarvester.desktop
-            echo "Name=CTHarvester" >> AppDir/CTHarvester.desktop
-            echo "Exec=CTHarvester" >> AppDir/CTHarvester.desktop
-            echo "Icon=CTHarvester" >> AppDir/CTHarvester.desktop
-            echo "Type=Application" >> AppDir/CTHarvester.desktop
-            echo "Categories=Science;Education;" >> AppDir/CTHarvester.desktop
+            # Create a placeholder icon if none exists
+            if [ -f "icon.png" ]; then
+              cp icon.png AppDir/CTHarvester.png
+            elif [ -f "icons/CTHarvester.png" ]; then
+              cp icons/CTHarvester.png AppDir/CTHarvester.png
+            else
+              # Create a simple placeholder icon using ImageMagick if available
+              if command -v convert &> /dev/null; then
+                convert -size 256x256 xc:blue -fill white -gravity center -pointsize 72 -annotate +0+0 'CT' AppDir/CTHarvester.png
+              else
+                # Create desktop entry without icon if no icon available
+                echo "[Desktop Entry]" > AppDir/CTHarvester.desktop
+                echo "Name=CTHarvester" >> AppDir/CTHarvester.desktop
+                echo "Exec=CTHarvester" >> AppDir/CTHarvester.desktop
+                echo "Type=Application" >> AppDir/CTHarvester.desktop
+                echo "Categories=Education;" >> AppDir/CTHarvester.desktop
+                SKIP_ICON=1
+              fi
+            fi
+            
+            # Create desktop entry with icon if not skipped
+            if [ -z "$SKIP_ICON" ]; then
+              echo "[Desktop Entry]" > AppDir/CTHarvester.desktop
+              echo "Name=CTHarvester" >> AppDir/CTHarvester.desktop
+              echo "Exec=CTHarvester" >> AppDir/CTHarvester.desktop
+              echo "Icon=CTHarvester" >> AppDir/CTHarvester.desktop
+              echo "Type=Application" >> AppDir/CTHarvester.desktop
+              echo "Categories=Education;" >> AppDir/CTHarvester.desktop
+            fi
             
             # Create AppRun script
             echo '#!/bin/bash' > AppDir/AppRun
