@@ -517,12 +517,20 @@ class MCubeWidget(QGLWidget):
 
     def read_images_from_folder(self,folder):
         images = []
-        for filename in os.listdir(folder):
-            # read images using Pillow
-            img = Image.open(os.path.join(folder,filename))
-            #img = cv2.imread(os.path.join(folder,filename),0)
-            if img is not None:
-                images.append(np.array(img))
+        try:
+            for filename in os.listdir(folder):
+                try:
+                    # read images using Pillow
+                    img = Image.open(os.path.join(folder,filename))
+                    #img = cv2.imread(os.path.join(folder,filename),0)
+                    if img is not None:
+                        images.append(np.array(img))
+                except Exception as e:
+                    print(f"Error reading image {filename}: {e}")
+                    continue
+        except Exception as e:
+            print(f"Error accessing folder {folder}: {e}")
+            return np.array([])
         return np.array(images)
 
     def generate_mesh_timeout(self):
@@ -883,26 +891,36 @@ class PreferencesDialog(QDialog):
         self.parent.update_status()
 
     def read_settings(self):
-        self.m_app.remember_geometry = value_to_bool(self.m_app.settings.value("Remember geometry", True))
-        self.m_app.remember_directory = value_to_bool(self.m_app.settings.value("Remember directory", True))
-        self.m_app.language = self.m_app.settings.value("Language", "en")
+        try:
+            self.m_app.remember_geometry = value_to_bool(self.m_app.settings.value("Remember geometry", True))
+            self.m_app.remember_directory = value_to_bool(self.m_app.settings.value("Remember directory", True))
+            self.m_app.language = self.m_app.settings.value("Language", "en")
 
-        self.rbRememberGeometryYes.setChecked(self.m_app.remember_geometry)
-        self.rbRememberGeometryNo.setChecked(not self.m_app.remember_geometry)
-        self.rbRememberDirectoryYes.setChecked(self.m_app.remember_directory)
-        self.rbRememberDirectoryNo.setChecked(not self.m_app.remember_directory)
+            self.rbRememberGeometryYes.setChecked(self.m_app.remember_geometry)
+            self.rbRememberGeometryNo.setChecked(not self.m_app.remember_geometry)
+            self.rbRememberDirectoryYes.setChecked(self.m_app.remember_directory)
+            self.rbRememberDirectoryNo.setChecked(not self.m_app.remember_directory)
 
-        if self.m_app.language == "en":
-            self.comboLang.setCurrentIndex(0)
-        elif self.m_app.language == "ko":
-            self.comboLang.setCurrentIndex(1)
-        self.update_language()
+            if self.m_app.language == "en":
+                self.comboLang.setCurrentIndex(0)
+            elif self.m_app.language == "ko":
+                self.comboLang.setCurrentIndex(1)
+            self.update_language()
+        except Exception as e:
+            print(f"Error reading settings: {e}")
+            # Use default values if settings can't be read
+            self.m_app.remember_geometry = True
+            self.m_app.remember_directory = True
+            self.m_app.language = "en"
 
     def save_settings(self):
-        self.m_app.settings.setValue("Remember geometry", self.m_app.remember_geometry)
-        self.m_app.settings.setValue("Remember directory", self.m_app.remember_directory)
-        self.m_app.settings.setValue("Language", self.m_app.language)
-        self.update_language()
+        try:
+            self.m_app.settings.setValue("Remember geometry", self.m_app.remember_geometry)
+            self.m_app.settings.setValue("Remember directory", self.m_app.remember_directory)
+            self.m_app.settings.setValue("Language", self.m_app.language)
+            self.update_language()
+        except Exception as e:
+            print(f"Error saving settings: {e}")
 
 class ProgressDialog(QDialog):
     def __init__(self,parent):
@@ -1682,24 +1700,32 @@ class CTHarvesterMainWindow(QMainWindow):
         if obj_filename == "":
             return
 
-        threed_volume, _ = self.get_cropped_volume()
-        isovalue = self.image_label.isovalue
-        vertices, triangles = mcubes.marching_cubes(threed_volume, isovalue)
+        try:
+            threed_volume, _ = self.get_cropped_volume()
+            isovalue = self.image_label.isovalue
+            vertices, triangles = mcubes.marching_cubes(threed_volume, isovalue)
 
-        for i in range(len(vertices)):
-            vertices[i] = np.array([vertices[i][2],vertices[i][0],vertices[i][1]])
+            for i in range(len(vertices)):
+                vertices[i] = np.array([vertices[i][2],vertices[i][0],vertices[i][1]])
+        except Exception as e:
+            QMessageBox.critical(self, self.tr("Error"), self.tr(f"Failed to generate 3D mesh: {e}"))
+            return
 
 
         # write as obj file format
-        with open(obj_filename, 'w') as fh:
-            for v in vertices:
-                fh.write('v {} {} {}\n'.format(v[0], v[1], v[2]))
-            #for vn in vertex_normals:
-            #    fh.write('vn {} {} {}\n'.format(vn[0], vn[1], vn[2]))
-            #for f in triangles:
-            #    fh.write('f {}/{} {}/{} {}/{}\n'.format(f[0]+1, f[0]+1, f[1]+1, f[1]+1, f[2]+1, f[2]+1))
-            for f in triangles:
-                fh.write('f {} {} {}\n'.format(f[0]+1, f[1]+1, f[2]+1))
+        try:
+            with open(obj_filename, 'w') as fh:
+                for v in vertices:
+                    fh.write('v {} {} {}\n'.format(v[0], v[1], v[2]))
+                #for vn in vertex_normals:
+                #    fh.write('vn {} {} {}\n'.format(vn[0], vn[1], vn[2]))
+                #for f in triangles:
+                #    fh.write('f {}/{} {}/{} {}/{}\n'.format(f[0]+1, f[0]+1, f[1]+1, f[1]+1, f[2]+1, f[2]+1))
+                for f in triangles:
+                    fh.write('f {} {} {}\n'.format(f[0]+1, f[1]+1, f[2]+1))
+        except Exception as e:
+            QMessageBox.critical(self, self.tr("Error"), self.tr(f"Failed to save OBJ file: {e}"))
+            print(f"Error saving OBJ file: {e}")
 
     def save_result(self):
         # open dir dialog for save
@@ -1736,7 +1762,11 @@ class CTHarvesterMainWindow(QMainWindow):
                 orig_dirname = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(size_idx))
             fullpath = os.path.join(orig_dirname, filename)
             # open image
-            img = Image.open(fullpath)
+            try:
+                img = Image.open(fullpath)
+            except Exception as e:
+                print(f"Error opening image {fullpath}: {e}")
+                continue
             # crop image
             if from_x > -1:
                 img = img.crop((from_x, from_y, to_x, to_y))
@@ -1916,9 +1946,12 @@ class CTHarvesterMainWindow(QMainWindow):
                     self.progress_dialog.update()
                     QApplication.processEvents()
                     if size < MAX_THUMBNAIL_SIZE:
-                        img= Image.open(os.path.join(from_dir,filename3))
-                        #print("new_img_ops:", np.array(img).shape)
-                        self.minimum_volume.append(np.array(img))
+                        try:
+                            img= Image.open(os.path.join(from_dir,filename3))
+                            #print("new_img_ops:", np.array(img).shape)
+                            self.minimum_volume.append(np.array(img))
+                        except Exception as e:
+                            print(f"Error opening thumbnail image {filename3}: {e}")
                     continue
                 else:
                     self.progress_dialog.lbl_text.setText(self.progress_text_2_2.format(i+1, idx+1, int(total_count/2)))
@@ -1928,28 +1961,40 @@ class CTHarvesterMainWindow(QMainWindow):
                     # check if filename exist
                     img1 = None
                     if os.path.exists(os.path.join(from_dir, filename1)):
-                        img1 = Image.open(os.path.join(from_dir, filename1))
-                        if img1.mode[0] == 'I':
-                            img1 = Image.fromarray(np.divide(np.array(img1), 2**8-1)).convert('L')
-                        elif img1.mode == 'P':
-                            img1 = img1.convert('L')
+                        try:
+                            img1 = Image.open(os.path.join(from_dir, filename1))
+                            if img1.mode[0] == 'I':
+                                img1 = Image.fromarray(np.divide(np.array(img1), 2**8-1)).convert('L')
+                            elif img1.mode == 'P':
+                                img1 = img1.convert('L')
+                        except Exception as e:
+                            print(f"Error processing image {filename1}: {e}")
+                            img1 = None
                     img2 = None
                     if os.path.exists(os.path.join(from_dir, filename2)):
-                        img2 = Image.open(os.path.join(from_dir, filename2))
-                        if img2.mode[0] == 'I':
-                            img2 = Image.fromarray(np.divide(np.array(img2), 2**8-1)).convert('L')
-                        elif img2.mode == 'P':
-                            img2 = img2.convert('L')
+                        try:
+                            img2 = Image.open(os.path.join(from_dir, filename2))
+                            if img2.mode[0] == 'I':
+                                img2 = Image.fromarray(np.divide(np.array(img2), 2**8-1)).convert('L')
+                            elif img2.mode == 'P':
+                                img2 = img2.convert('L')
+                        except Exception as e:
+                            print(f"Error processing image {filename2}: {e}")
+                            img2 = None
                     # average two images
                     #print("img1:", img1.mode, "img2:", img2.mode)
                     if img1 is None or img2 is None:
                         last_count = -1
                         continue
-                    new_img_ops = ImageChops.add(img1, img2, scale=2.0)
-                    # resize to half
-                    new_img_ops = new_img_ops.resize((int(img1.width / 2), int(img1.height / 2)))
-                    # save to temporary directory
-                    new_img_ops.save(filename3)
+                    try:
+                        new_img_ops = ImageChops.add(img1, img2, scale=2.0)
+                        # resize to half
+                        new_img_ops = new_img_ops.resize((int(img1.width / 2), int(img1.height / 2)))
+                        # save to temporary directory
+                        new_img_ops.save(filename3)
+                    except Exception as e:
+                        print(f"Error creating thumbnail {filename3}: {e}")
+                        continue
 
                     if size < MAX_THUMBNAIL_SIZE:
                         #print("new_img_ops:", np.array(new_img_ops).shape)
@@ -2052,8 +2097,12 @@ class CTHarvesterMainWindow(QMainWindow):
             last_file = ct_stack_files[-1]
             imagefile_name = os.path.join(directory_path, first_file)
             # get width and height
-            img = Image.open(imagefile_name)
-            width, height = img.size
+            try:
+                img = Image.open(imagefile_name)
+                width, height = img.size
+            except Exception as e:
+                print(f"Error opening image {imagefile_name}: {e}")
+                return None
 
 
             match1 = re.match(pattern, first_file)
@@ -2100,7 +2149,12 @@ class CTHarvesterMainWindow(QMainWindow):
             image_file_list = []
             QApplication.setOverrideCursor(Qt.WaitCursor)
 
-            files = [f for f in os.listdir(ddir) if os.path.isfile(os.path.join(ddir, f))]
+            try:
+                files = [f for f in os.listdir(ddir) if os.path.isfile(os.path.join(ddir, f))]
+            except Exception as e:
+                QApplication.restoreOverrideCursor()
+                QMessageBox.critical(self, self.tr("Error"), self.tr(f"Failed to read directory: {e}"))
+                return
 
             for file in files:
                 # get extension
@@ -2108,25 +2162,29 @@ class CTHarvesterMainWindow(QMainWindow):
                 if ext in [".bmp", ".jpg", ".png", ".tif", ".tiff"]:
                     pass #image_file_list.append(file)
                 elif ext == '.log':
-                    settings = QSettings(os.path.join(ddir, file), QSettings.IniFormat)
-                    prefix = settings.value("File name convention/Filename Prefix")
-                    if not prefix:
-                        continue
-                    if file != prefix + ".log":
-                        continue
+                    try:
+                        settings = QSettings(os.path.join(ddir, file), QSettings.IniFormat)
+                        prefix = settings.value("File name convention/Filename Prefix")
+                        if not prefix:
+                            continue
+                        if file != prefix + ".log":
+                            continue
 
-                    self.settings_hash['prefix'] = settings.value("File name convention/Filename Prefix")
-                    self.settings_hash['image_width'] = settings.value("Reconstruction/Result Image Width (pixels)")
-                    self.settings_hash['image_height'] = settings.value("Reconstruction/Result Image Height (pixels)")
-                    self.settings_hash['file_type'] = settings.value("Reconstruction/Result File Type")
-                    self.settings_hash['index_length'] = settings.value("File name convention/Filename Index Length")
-                    self.settings_hash['seq_begin'] = settings.value("Reconstruction/First Section")
-                    self.settings_hash['seq_end'] = settings.value("Reconstruction/Last Section")
-                    self.settings_hash['index_length'] = int(self.settings_hash['index_length'])
-                    self.settings_hash['seq_begin'] = int(self.settings_hash['seq_begin'])
-                    self.settings_hash['seq_end'] = int(self.settings_hash['seq_end'])
-                    self.edtNumImages.setText(str(self.settings_hash['seq_end'] - self.settings_hash['seq_begin'] + 1))
-                    self.edtImageDimension.setText(str(self.settings_hash['image_width']) + " x " + str(self.settings_hash['image_height']))
+                        self.settings_hash['prefix'] = settings.value("File name convention/Filename Prefix")
+                        self.settings_hash['image_width'] = settings.value("Reconstruction/Result Image Width (pixels)")
+                        self.settings_hash['image_height'] = settings.value("Reconstruction/Result Image Height (pixels)")
+                        self.settings_hash['file_type'] = settings.value("Reconstruction/Result File Type")
+                        self.settings_hash['index_length'] = settings.value("File name convention/Filename Index Length")
+                        self.settings_hash['seq_begin'] = settings.value("Reconstruction/First Section")
+                        self.settings_hash['seq_end'] = settings.value("Reconstruction/Last Section")
+                        self.settings_hash['index_length'] = int(self.settings_hash['index_length'])
+                        self.settings_hash['seq_begin'] = int(self.settings_hash['seq_begin'])
+                        self.settings_hash['seq_end'] = int(self.settings_hash['seq_end'])
+                        self.edtNumImages.setText(str(self.settings_hash['seq_end'] - self.settings_hash['seq_begin'] + 1))
+                        self.edtImageDimension.setText(str(self.settings_hash['image_width']) + " x " + str(self.settings_hash['image_height']))
+                    except Exception as e:
+                        print(f"Error reading log file {file}: {e}")
+                        continue
 
             if 'prefix' not in self.settings_hash:
                 self.settings_hash = self.sort_file_list_from_dir(ddir)
@@ -2140,7 +2198,10 @@ class CTHarvesterMainWindow(QMainWindow):
                 image_file_list.append(filename)
             self.original_from_idx = 0
             self.original_to_idx = len(image_file_list) - 1
-            self.image_label.setPixmap(QPixmap(os.path.join(ddir,image_file_list[0])).scaledToWidth(512))
+            try:
+                self.image_label.setPixmap(QPixmap(os.path.join(ddir,image_file_list[0])).scaledToWidth(512))
+            except Exception as e:
+                print(f"Error loading initial image: {e}")
             self.level_info = []
             self.level_info.append( {'name': 'Original', 'width': self.settings_hash['image_width'], 'height': self.settings_hash['image_height'], 'seq_begin': self.settings_hash['seq_begin'], 'seq_end': self.settings_hash['seq_end']} )
             QApplication.restoreOverrideCursor()
@@ -2150,22 +2211,32 @@ class CTHarvesterMainWindow(QMainWindow):
             """
             Reads the application settings and updates the corresponding values in the application object.
             """
-            settings = self.m_app.settings
+            try:
+                settings = self.m_app.settings
 
-            self.m_app.remember_directory = value_to_bool(settings.value("Remember directory", True))
-            if self.m_app.remember_directory:
-                self.m_app.default_directory = settings.value("Default directory", ".")
-            else:
+                self.m_app.remember_directory = value_to_bool(settings.value("Remember directory", True))
+                if self.m_app.remember_directory:
+                    self.m_app.default_directory = settings.value("Default directory", ".")
+                else:
+                    self.m_app.default_directory = "."
+
+                self.m_app.remember_geometry = value_to_bool(settings.value("Remember geometry", True))
+                if self.m_app.remember_geometry:
+                    self.setGeometry(settings.value("MainWindow geometry", QRect(100, 100, 600, 550)))
+                    self.mcube_geometry = settings.value("mcube_widget geometry", QRect(0, 0, 150, 150))
+                else:
+                    self.setGeometry(QRect(100, 100, 600, 550))
+                    self.mcube_geometry = QRect(0, 0, 150, 150)
+                self.m_app.language = settings.value("Language", "en")
+            except Exception as e:
+                print(f"Error reading main window settings: {e}")
+                # Set defaults if reading fails
+                self.m_app.remember_directory = True
                 self.m_app.default_directory = "."
-
-            self.m_app.remember_geometry = value_to_bool(settings.value("Remember geometry", True))
-            if self.m_app.remember_geometry:
-                self.setGeometry(settings.value("MainWindow geometry", QRect(100, 100, 600, 550)))
-                self.mcube_geometry = settings.value("mcube_widget geometry", QRect(0, 0, 150, 150))
-            else:
+                self.m_app.remember_geometry = True
                 self.setGeometry(QRect(100, 100, 600, 550))
                 self.mcube_geometry = QRect(0, 0, 150, 150)
-            self.m_app.language = settings.value("Language", "en")
+                self.m_app.language = "en"
 
     def save_settings(self):
             """
@@ -2173,11 +2244,14 @@ class CTHarvesterMainWindow(QMainWindow):
             If the 'remember_directory' setting is enabled, saves the default directory.
             If the 'remember_geometry' setting is enabled, saves the main window and mcube widget geometries.
             """
-            if self.m_app.remember_directory:
-                self.m_app.settings.setValue("Default directory", self.m_app.default_directory)
-            if self.m_app.remember_geometry:
-                self.m_app.settings.setValue("MainWindow geometry", self.geometry())
-                self.m_app.settings.setValue("mcube_widget geometry", self.mcube_widget.geometry())
+            try:
+                if self.m_app.remember_directory:
+                    self.m_app.settings.setValue("Default directory", self.m_app.default_directory)
+                if self.m_app.remember_geometry:
+                    self.m_app.settings.setValue("MainWindow geometry", self.geometry())
+                    self.m_app.settings.setValue("mcube_widget geometry", self.mcube_widget.geometry())
+            except Exception as e:
+                print(f"Error saving main window settings: {e}")
 
     def closeEvent(self, event):
         """
