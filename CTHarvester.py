@@ -49,7 +49,7 @@ try:
 except ImportError:
     PROGRAM_VERSION = "0.2.0"  # Fallback version
 
-PROGRAM_NAME = "CT Harvester"
+PROGRAM_NAME = "CTHarvester"
 PROGRAM_AUTHOR = "Jikhan Jung"
 
 # Dynamic year for copyright
@@ -1488,8 +1488,10 @@ class CTHarvesterMainWindow(QMainWindow):
         self.image_label.setMouseTracking(True)
         self.slider = QLabeledSlider(Qt.Vertical)
         self.slider.setValue(0)
+        self.slider.setEnabled(False)  # Disable until data is loaded
         self.range_slider = QLabeledRangeSlider(Qt.Vertical)
         self.range_slider.setValue((0,99))
+        self.range_slider.setEnabled(False)  # Disable until data is loaded
         self.slider.setSingleStep(1)
         self.range_slider.setSingleStep(1)
         self.slider.valueChanged.connect(self.sliderValueChanged)
@@ -1856,7 +1858,7 @@ class CTHarvesterMainWindow(QMainWindow):
         try:
             # Check if necessary attributes are initialized
             if not hasattr(self, 'level_info') or not self.level_info:
-                logger.warning("level_info not initialized in rangeSliderValueChanged")
+                # This is expected during initialization when sliders are disabled
                 return
             
             (bottom_idx, top_idx) = self.range_slider.value()
@@ -1948,8 +1950,10 @@ class CTHarvesterMainWindow(QMainWindow):
             self.slider.setMaximum(image_count - 1)
             self.slider.setMinimum(0)
             self.slider.setValue(0)
+            self.slider.setEnabled(True)  # Enable slider now that data is loaded
             self.range_slider.setRange(0,image_count - 1)
             self.range_slider.setValue((0, image_count - 1))
+            self.range_slider.setEnabled(True)  # Enable range slider now that data is loaded
             self.curr_level_idx = 0
             self.prev_level_idx = 0
             self.initialized = True
