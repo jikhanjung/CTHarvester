@@ -20,7 +20,7 @@ WizardStyle=modern
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
+; Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"  ; Korean language file may not be available in CI environment
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
