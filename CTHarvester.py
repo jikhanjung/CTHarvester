@@ -57,6 +57,43 @@ from datetime import datetime
 CURRENT_YEAR = datetime.now().year
 PROGRAM_COPYRIGHT = f"© 2023-{CURRENT_YEAR} Jikhan Jung"
 
+# Directory setup
+USER_PROFILE_DIRECTORY = os.path.expanduser('~')
+DEFAULT_DB_DIRECTORY = os.path.join(USER_PROFILE_DIRECTORY, COMPANY_NAME, PROGRAM_NAME)
+DEFAULT_STORAGE_DIRECTORY = os.path.join(DEFAULT_DB_DIRECTORY, "data/")
+DEFAULT_LOG_DIRECTORY = os.path.join(DEFAULT_DB_DIRECTORY, "logs/")
+DB_BACKUP_DIRECTORY = os.path.join(DEFAULT_DB_DIRECTORY, "backups/")
+
+def ensure_directories():
+    """Safely create necessary directories with error handling."""
+    directories = [
+        DEFAULT_DB_DIRECTORY,
+        DEFAULT_STORAGE_DIRECTORY,
+        DEFAULT_LOG_DIRECTORY,
+        DB_BACKUP_DIRECTORY
+    ]
+    
+    for directory in directories:
+        try:
+            if not os.path.exists(directory):
+                os.makedirs(directory, exist_ok=True)
+        except (OSError, PermissionError) as e:
+            # Use print here since logger might not be initialized yet
+            print(f"Warning: Could not create directory {directory}: {e}")
+            # Don't fail completely, let the application try to continue
+
+# Try to create directories on import, but don't fail if it doesn't work
+try:
+    ensure_directories()
+except Exception as e:
+    # Use print here since logger might not be initialized yet
+    print(f"Warning: Directory initialization failed: {e}")
+    pass
+
+# Setup logger
+from CTLogger import setup_logger
+logger = setup_logger(PROGRAM_NAME)
+
 OBJECT_MODE = 1
 VIEW_MODE = 1
 PAN_MODE = 2
@@ -526,10 +563,10 @@ class MCubeWidget(QGLWidget):
                     if img is not None:
                         images.append(np.array(img))
                 except Exception as e:
-                    print(f"Error reading image {filename}: {e}")
+                    logger.error(f"Error reading image {filename}: {e}")
                     continue
         except Exception as e:
-            print(f"Error accessing folder {folder}: {e}")
+            logger.error(f"Error accessing folder {folder}: {e}")
             return np.array([])
         return np.array(images)
 
@@ -907,7 +944,7 @@ class PreferencesDialog(QDialog):
                 self.comboLang.setCurrentIndex(1)
             self.update_language()
         except Exception as e:
-            print(f"Error reading settings: {e}")
+            logger.error(f"Error reading settings: {e}")
             # Use default values if settings can't be read
             self.m_app.remember_geometry = True
             self.m_app.remember_directory = True
@@ -920,7 +957,7 @@ class PreferencesDialog(QDialog):
             self.m_app.settings.setValue("Language", self.m_app.language)
             self.update_language()
         except Exception as e:
-            print(f"Error saving settings: {e}")
+            logger.error(f"Error saving settings: {e}")
 
 class ProgressDialog(QDialog):
     def __init__(self,parent):
@@ -1694,11 +1731,14 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def export_3d_model(self):
         # open dir dialog for save
+        logger.info("export_3d_model method called")
         threed_volume = []
 
         obj_filename, _ = QFileDialog.getSaveFileName(self, "Save File As", self.edtDirname.text(), "OBJ format (*.obj)")
         if obj_filename == "":
+            logger.info("Export cancelled")
             return
+        logger.info(f"Exporting 3D model to: {obj_filename}")
 
         try:
             threed_volume, _ = self.get_cropped_volume()
@@ -1725,13 +1765,16 @@ class CTHarvesterMainWindow(QMainWindow):
                     fh.write('f {} {} {}\n'.format(f[0]+1, f[1]+1, f[2]+1))
         except Exception as e:
             QMessageBox.critical(self, self.tr("Error"), self.tr(f"Failed to save OBJ file: {e}"))
-            print(f"Error saving OBJ file: {e}")
+            logger.error(f"Error saving OBJ file: {e}")
 
     def save_result(self):
         # open dir dialog for save
+        logger.info("save_result method called")
         target_dirname = QFileDialog.getExistingDirectory(self, self.tr('Select directory to save'), self.edtDirname.text())
         if target_dirname == "":
+            logger.info("Save cancelled")
             return
+        logger.info(f"Saving results to: {target_dirname}")
         # get crop box info
         from_x = self.image_label.crop_from_x
         from_y = self.image_label.crop_from_y
@@ -1765,7 +1808,7 @@ class CTHarvesterMainWindow(QMainWindow):
             try:
                 img = Image.open(fullpath)
             except Exception as e:
-                print(f"Error opening image {fullpath}: {e}")
+                logger.error(f"Error opening image {fullpath}: {e}")
                 continue
             # crop image
             if from_x > -1:
@@ -1891,6 +1934,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.update_3D_view(True)
 
     def create_thumbnail(self):
+        logger.info("Starting thumbnail creation")
         """
         Creates a thumbnail of the image sequence by downsampling the images and averaging them.
         The resulting thumbnail is saved in a temporary directory and used to generate a mesh for visualization.
@@ -1951,7 +1995,7 @@ class CTHarvesterMainWindow(QMainWindow):
                             #print("new_img_ops:", np.array(img).shape)
                             self.minimum_volume.append(np.array(img))
                         except Exception as e:
-                            print(f"Error opening thumbnail image {filename3}: {e}")
+                            logger.error(f"Error opening thumbnail image {filename3}: {e}")
                     continue
                 else:
                     self.progress_dialog.lbl_text.setText(self.progress_text_2_2.format(i+1, idx+1, int(total_count/2)))
@@ -1968,7 +2012,7 @@ class CTHarvesterMainWindow(QMainWindow):
                             elif img1.mode == 'P':
                                 img1 = img1.convert('L')
                         except Exception as e:
-                            print(f"Error processing image {filename1}: {e}")
+                            logger.error(f"Error processing image {filename1}: {e}")
                             img1 = None
                     img2 = None
                     if os.path.exists(os.path.join(from_dir, filename2)):
@@ -1979,7 +2023,7 @@ class CTHarvesterMainWindow(QMainWindow):
                             elif img2.mode == 'P':
                                 img2 = img2.convert('L')
                         except Exception as e:
-                            print(f"Error processing image {filename2}: {e}")
+                            logger.error(f"Error processing image {filename2}: {e}")
                             img2 = None
                     # average two images
                     #print("img1:", img1.mode, "img2:", img2.mode)
@@ -1993,7 +2037,7 @@ class CTHarvesterMainWindow(QMainWindow):
                         # save to temporary directory
                         new_img_ops.save(filename3)
                     except Exception as e:
-                        print(f"Error creating thumbnail {filename3}: {e}")
+                        logger.error(f"Error creating thumbnail {filename3}: {e}")
                         continue
 
                     if size < MAX_THUMBNAIL_SIZE:
@@ -2101,7 +2145,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 img = Image.open(imagefile_name)
                 width, height = img.size
             except Exception as e:
-                print(f"Error opening image {imagefile_name}: {e}")
+                logger.error(f"Error opening image {imagefile_name}: {e}")
                 return None
 
 
@@ -2137,12 +2181,14 @@ class CTHarvesterMainWindow(QMainWindow):
             Opens a directory dialog to select a directory containing image files and log files.
             Parses the log file to extract settings information and updates the UI accordingly.
             """
-            #print("open_dir")
+            logger.info("open_dir method called")
             ddir = QFileDialog.getExistingDirectory(self, self.tr("Select directory"), self.m_app.default_directory)
             if ddir:
+                logger.info(f"Selected directory: {ddir}")
                 self.edtDirname.setText(ddir)
                 self.m_app.default_directory = os.path.dirname(ddir)
             else:
+                logger.info("Directory selection cancelled")
                 return
             self.settings_hash = {}
             self.initialized = False
@@ -2183,7 +2229,7 @@ class CTHarvesterMainWindow(QMainWindow):
                         self.edtNumImages.setText(str(self.settings_hash['seq_end'] - self.settings_hash['seq_begin'] + 1))
                         self.edtImageDimension.setText(str(self.settings_hash['image_width']) + " x " + str(self.settings_hash['image_height']))
                     except Exception as e:
-                        print(f"Error reading log file {file}: {e}")
+                        logger.error(f"Error reading log file {file}: {e}")
                         continue
 
             if 'prefix' not in self.settings_hash:
@@ -2201,10 +2247,11 @@ class CTHarvesterMainWindow(QMainWindow):
             try:
                 self.image_label.setPixmap(QPixmap(os.path.join(ddir,image_file_list[0])).scaledToWidth(512))
             except Exception as e:
-                print(f"Error loading initial image: {e}")
+                logger.error(f"Error loading initial image: {e}")
             self.level_info = []
             self.level_info.append( {'name': 'Original', 'width': self.settings_hash['image_width'], 'height': self.settings_hash['image_height'], 'seq_begin': self.settings_hash['seq_begin'], 'seq_end': self.settings_hash['seq_end']} )
             QApplication.restoreOverrideCursor()
+            logger.info(f"Successfully loaded directory with {len(image_file_list)} images")
             self.create_thumbnail()
 
     def read_settings(self):
@@ -2229,7 +2276,7 @@ class CTHarvesterMainWindow(QMainWindow):
                     self.mcube_geometry = QRect(0, 0, 150, 150)
                 self.m_app.language = settings.value("Language", "en")
             except Exception as e:
-                print(f"Error reading main window settings: {e}")
+                logger.error(f"Error reading main window settings: {e}")
                 # Set defaults if reading fails
                 self.m_app.remember_directory = True
                 self.m_app.default_directory = "."
@@ -2251,18 +2298,20 @@ class CTHarvesterMainWindow(QMainWindow):
                     self.m_app.settings.setValue("MainWindow geometry", self.geometry())
                     self.m_app.settings.setValue("mcube_widget geometry", self.mcube_widget.geometry())
             except Exception as e:
-                print(f"Error saving main window settings: {e}")
+                logger.error(f"Error saving main window settings: {e}")
 
     def closeEvent(self, event):
         """
         This method is called when the user closes the application window.
         It saves the current settings and accepts the close event.
         """
+        logger.info("Application closing")
         self.save_settings()
         event.accept()
         
 
 if __name__ == "__main__":
+    logger.info(f"Starting {PROGRAM_NAME} v{PROGRAM_VERSION}")
     app = QApplication(sys.argv)
 
     app.setWindowIcon(QIcon(resource_path('CTHarvester_48_2.png')))
@@ -2278,9 +2327,11 @@ if __name__ == "__main__":
 
     #프로그램 화면을 보여주는 코드
     myWindow.show()
+    logger.info(f"{PROGRAM_NAME} main window displayed")
 
     #프로그램을 이벤트루프로 진입시키는(프로그램을 작동시키는) 코드
     app.exec_()
+    logger.info(f"{PROGRAM_NAME} terminated")
 
 '''
 pyinstaller --onefile --noconsole --add-data "*.png;." --add-data "*.qm;." --icon="CTHarvester_48_2.png" CTHarvester.py
