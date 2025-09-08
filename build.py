@@ -72,6 +72,7 @@ def prepare_inno_setup_template():
     iss_content = iss_content.replace("..\\LICENSE", str(project_root / "LICENSE"))
     iss_content = iss_content.replace("..\\icon.ico", str(project_root / "icon.ico"))
     iss_content = iss_content.replace("..\\dist\\", str(project_root / "dist") + "\\")
+    iss_content = iss_content.replace("..\\InnoSetup\\Output", str(project_root / "InnoSetup" / "Output"))
     
     # Create temporary ISS file
     temp_dir = Path(tempfile.gettempdir())
