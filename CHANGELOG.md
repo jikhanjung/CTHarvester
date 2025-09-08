@@ -5,7 +5,44 @@ All notable changes to CTHarvester will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] - 2024-12-28
+
+## [0.2.2] - 2025-09-08
+
+### Added
+- Centralized logging system (CTLogger.py)
+  - Daily log rotation with date-based filenames
+  - Configurable log directory under user profile
+  - UTF-8 encoding support for better compatibility
+  - Automatic fallback to console output if file creation fails
+  - Separate error stream to console for critical issues
+- Comprehensive error handling throughout CTHarvester.py
+  - Try-catch blocks for all file I/O operations
+  - Error handling for image processing operations
+  - Protected 3D scene manipulations
+  - Safe settings load/save operations
+  - Robust volume and mesh processing
+
+### Changed
+- Replaced all print statements with proper logger calls
+  - Debug messages for verbose output
+  - Info messages for normal operations
+  - Warning messages for potential issues
+  - Error messages with full exception details
+- Improved error reporting with detailed exception logging
+
+### Fixed
+- IndexError in rangeSliderValueChanged when accessing level_info
+  - Added boundary checks for array access
+  - Validated curr_level_idx before use
+  - Protected against uninitialized level_info
+- Potential crashes from unhandled exceptions in:
+  - File operations (open, save, export)
+  - Image processing (thumbnail generation, screenshots)
+  - 3D operations (volume updates, mesh generation)
+  - Settings persistence
+
+
+## [0.2.1] - 2025-09-08
 
 ### Added
 - Comprehensive CI/CD pipeline with GitHub Actions
