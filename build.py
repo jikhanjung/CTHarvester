@@ -26,26 +26,30 @@ except ImportError:
         raise RuntimeError("Unable to find version string")
     VERSION = get_version_from_file()
 
-def run_pyinstaller():
-    """Run PyInstaller to build the executable"""
-    print(f"Building CTHarvester v{VERSION}")
+def run_pyinstaller(spec_file="CTHarvester.spec", build_type="onefile"):
+    """Run PyInstaller to build the executable
+    
+    Args:
+        spec_file: Path to the spec file to use
+        build_type: Type of build ("onefile" or "onedir")
+    """
+    print(f"Building CTHarvester v{VERSION} ({build_type})")
     
     # Check if spec file exists
-    spec_file = "CTHarvester.spec"
     if not Path(spec_file).exists():
         print(f"Error: {spec_file} not found")
         return False
     
     # Run PyInstaller
-    cmd = ["pyinstaller", spec_file]
+    cmd = ["pyinstaller", spec_file, "--clean"]
     
     try:
         print(f"Running: {' '.join(cmd)}")
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        print("PyInstaller build completed successfully")
+        print(f"PyInstaller {build_type} build completed successfully")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"PyInstaller build failed: {e}")
+        print(f"PyInstaller {build_type} build failed: {e}")
         print(f"stdout: {e.stdout}")
         print(f"stderr: {e.stderr}")
         return False
@@ -157,20 +161,66 @@ def main():
     print(f"Platform: {platform.system()}")
     print("=" * 60)
     
+    # Parse command line arguments
+    build_both = True  # Default: build both versions
+    build_onefile = False
+    build_onedir = False
+    
+    # Check for build type arguments
+    args = sys.argv[1:]
+    if '--onefile' in args:
+        build_both = False
+        build_onefile = True
+        args.remove('--onefile')
+    elif '--onedir' in args:
+        build_both = False
+        build_onedir = True
+        args.remove('--onedir')
+    
     # Set BUILD_NUMBER if provided as argument
-    if len(sys.argv) > 1:
-        os.environ['BUILD_NUMBER'] = sys.argv[1]
-        print(f"BUILD_NUMBER: {sys.argv[1]}")
+    if len(args) > 0:
+        os.environ['BUILD_NUMBER'] = args[0]
+        print(f"BUILD_NUMBER: {args[0]}")
     elif 'BUILD_NUMBER' not in os.environ:
         os.environ['BUILD_NUMBER'] = 'local'
         print("BUILD_NUMBER: local (default)")
     
-    # Step 1: Build executable with PyInstaller
-    if not run_pyinstaller():
+    # Determine what to build
+    if build_both:
+        print("Building both onefile and onedir versions...")
+        build_onefile = True
+        build_onedir = True
+    
+    success = True
+    
+    # Step 1: Build onefile executable if requested
+    if build_onefile:
+        print("\n" + "=" * 40)
+        print("Building ONEFILE version...")
+        print("=" * 40)
+        # Try both possible spec file names
+        if Path("CTHarvester_onefile.spec").exists():
+            success = run_pyinstaller("CTHarvester_onefile.spec", "onefile")
+        else:
+            success = run_pyinstaller("CTHarvester.spec", "onefile")
+        
+        if success and Path("dist/CTHarvester.exe").exists():
+            # Rename onefile executable to distinguish it
+            Path("dist/CTHarvester.exe").rename("dist/CTHarvester_onefile.exe")
+            print("Renamed: dist/CTHarvester.exe -> dist/CTHarvester_onefile.exe")
+    
+    # Step 2: Build onedir executable if requested
+    if build_onedir and success:
+        print("\n" + "=" * 40)
+        print("Building ONEDIR version...")
+        print("=" * 40)
+        success = run_pyinstaller("CTHarvester_onedir.spec", "onedir")
+    
+    if not success:
         print("\n[ERROR] Build failed")
         return 1
     
-    # Step 2: Build installer (Windows only)
+    # Step 3: Build installer (Windows only)
     if platform.system() == "Windows":
         if not build_installer():
             print("\n[WARNING]  Installer build failed, but executable was built")
@@ -178,7 +228,10 @@ def main():
     
     print("\n[SUCCESS] Build completed successfully!")
     print("\nOutput:")
-    print(f"  - Executable: dist/CTHarvester/")
+    if build_onefile:
+        print(f"  - Onefile executable: dist/CTHarvester_onefile.exe")
+    if build_onedir:
+        print(f"  - Onedir executable: dist/CTHarvester/CTHarvester.exe")
     
     if platform.system() == "Windows":
         build_number = os.environ.get('BUILD_NUMBER', 'local')

@@ -58,7 +58,7 @@ jobs:
           $env:BUILD_NUMBER = "${{ inputs.build_number }}"
           # Ensure Inno Setup is in PATH
           $env:PATH = "C:\Program Files (x86)\Inno Setup 6;$env:PATH"
-          python build.py
+          python build.py --onedir
           # List output directories to debug
           echo "=== Listing InnoSetup directory ==="
           if (Test-Path "InnoSetup") {
@@ -150,7 +150,7 @@ jobs:
       - name: Build macOS application
         run: |
           export PATH=/usr/local/opt/qt5/bin:$PATH
-          python build.py
+          python build.py --onedir
         env:
           BUILD_NUMBER: ${{ inputs.build_number }}
 
@@ -240,7 +240,7 @@ jobs:
 
       - name: Build Linux executable
         run: |
-          python build.py
+          python build.py --onedir
         env:
           BUILD_NUMBER: ${{ inputs.build_number }}
 

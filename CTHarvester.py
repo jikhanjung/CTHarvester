@@ -2380,6 +2380,7 @@ if __name__ == "__main__":
 
 '''
 pyinstaller --onefile --noconsole --add-data "*.png;." --add-data "*.qm;." --icon="CTHarvester_48_2.png" CTHarvester.py
+pyinstaller --onedir --noconsole --icon="CTHarvester_64.png" --noconfirm CTHarvester.py
 
 pylupdate5 CTHarvester.py -ts CTHarvester_en.ts
 pylupdate5 CTHarvester.py -ts CTHarvester_ko.ts
