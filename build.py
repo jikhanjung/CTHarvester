@@ -65,6 +65,14 @@ def prepare_inno_setup_template():
     # Replace version placeholder
     iss_content = template_content.replace("{{VERSION}}", VERSION)
     
+    # Get absolute path to project root
+    project_root = Path.cwd().resolve()
+    
+    # Replace relative paths with absolute paths
+    iss_content = iss_content.replace("..\\LICENSE", str(project_root / "LICENSE"))
+    iss_content = iss_content.replace("..\\icon.ico", str(project_root / "icon.ico"))
+    iss_content = iss_content.replace("..\\dist\\", str(project_root / "dist") + "\\")
+    
     # Create temporary ISS file
     temp_dir = Path(tempfile.gettempdir())
     temp_iss = temp_dir / f"CTHarvester_build_{os.getpid()}.iss"
