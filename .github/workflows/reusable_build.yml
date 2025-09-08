@@ -246,47 +246,9 @@ jobs:
 
       - name: Create Linux AppImage
         run: |
-          # Check if packaging script exists
-          if [ -f "packaging/linux/create_appimage.sh" ]; then
-            chmod +x packaging/linux/create_appimage.sh
-            packaging/linux/create_appimage.sh v${{ steps.get_version.outputs.VERSION }}-build${{ inputs.build_number }}
-          else
-            # Create a simple AppImage if no packaging script exists
-            mkdir -p AppDir/usr/bin
-            cp -r dist/* AppDir/usr/bin/
-            
-            # Always create a placeholder icon to avoid AppImage build errors
-            if [ -f "icon.png" ]; then
-              cp icon.png AppDir/CTHarvester.png
-            elif [ -f "icons/CTHarvester.png" ]; then
-              cp icons/CTHarvester.png AppDir/CTHarvester.png
-            else
-              # Create a simple placeholder icon using ImageMagick or a minimal PNG
-              if command -v convert &> /dev/null; then
-                convert -size 256x256 xc:blue -fill white -gravity center -pointsize 72 -annotate +0+0 'CT' AppDir/CTHarvester.png
-              else
-                # Create a minimal 1x1 transparent PNG as placeholder
-                echo -e '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05|%\xb6b\x00\x00\x00\x00IEND\xaeB`\x82' > AppDir/CTHarvester.png
-              fi
-            fi
-            
-            # Create desktop entry with icon
-            echo "[Desktop Entry]" > AppDir/CTHarvester.desktop
-            echo "Name=CTHarvester" >> AppDir/CTHarvester.desktop
-            echo "Exec=CTHarvester" >> AppDir/CTHarvester.desktop
-            echo "Icon=CTHarvester" >> AppDir/CTHarvester.desktop
-            echo "Type=Application" >> AppDir/CTHarvester.desktop
-            echo "Categories=Education;" >> AppDir/CTHarvester.desktop
-            
-            # Create AppRun script
-            echo '#!/bin/bash' > AppDir/AppRun
-            echo 'HERE="$(dirname "$(readlink -f "${0}")")"' >> AppDir/AppRun
-            echo 'exec "${HERE}/usr/bin/CTHarvester" "$@"' >> AppDir/AppRun
-            chmod +x AppDir/AppRun
-            
-            # Create AppImage
-            ARCH=x86_64 appimagetool AppDir CTHarvester-Linux-v${{ steps.get_version.outputs.VERSION }}-build${{ inputs.build_number }}.AppImage
-          fi
+          # Use the packaging script
+          chmod +x packaging/linux/create_appimage.sh
+          packaging/linux/create_appimage.sh v${{ steps.get_version.outputs.VERSION }}-build${{ inputs.build_number }}
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
