@@ -1751,6 +1751,14 @@ class CTHarvesterMainWindow(QMainWindow):
         to_x = int(to_x * smallest_level_info['width'])-1
         to_y = int(to_y * smallest_level_info['height'])-1
 
+        # Ensure minimum_volume is a numpy array
+        if isinstance(self.minimum_volume, list):
+            if len(self.minimum_volume) > 0:
+                self.minimum_volume = np.array(self.minimum_volume)
+            else:
+                logger.error("minimum_volume is empty list")
+                return np.array([]), []
+        
         volume = self.minimum_volume[bottom_idx:top_idx, from_y:to_y, from_x:to_x]
         return volume, [ bottom_idx, top_idx, from_y, to_y, from_x, to_x ]
 
