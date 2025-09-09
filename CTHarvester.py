@@ -2092,17 +2092,24 @@ class CTHarvesterMainWindow(QMainWindow):
             seq_end = int((seq_end - seq_begin) / 2) + seq_begin + last_count
             self.level_info.append( {'name': "Level " + str(i), 'width': width, 'height': height, 'seq_begin': seq_begin, 'seq_end': seq_end} )
             if size < MAX_THUMBNAIL_SIZE:
-                self.minimum_volume = np.array(self.minimum_volume)
-                bounding_box = self.minimum_volume.shape
-                bounding_box = np.array([ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ])
-                curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
+                if len(self.minimum_volume) > 0:
+                    self.minimum_volume = np.array(self.minimum_volume)
+                    bounding_box = self.minimum_volume.shape
+                    # Check if we have a valid 3D volume
+                    if len(bounding_box) >= 3:
+                        bounding_box = np.array([ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ])
+                        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
 
-                self.mcube_widget.update_boxes(bounding_box, bounding_box, curr_slice_val)
-                self.mcube_widget.adjust_boxes()
-                self.mcube_widget.update_volume(self.minimum_volume)
-                self.mcube_widget.generate_mesh()
-                self.mcube_widget.adjust_volume()
-                self.mcube_widget.show_buttons()
+                        self.mcube_widget.update_boxes(bounding_box, bounding_box, curr_slice_val)
+                        self.mcube_widget.adjust_boxes()
+                        self.mcube_widget.update_volume(self.minimum_volume)
+                        self.mcube_widget.generate_mesh()
+                        self.mcube_widget.adjust_volume()
+                        self.mcube_widget.show_buttons()
+                    else:
+                        logger.warning(f"Invalid volume shape: {bounding_box}. Expected 3D array.")
+                else:
+                    logger.warning("No volume data collected for thumbnail generation")
                 break
             
         QApplication.restoreOverrideCursor()
