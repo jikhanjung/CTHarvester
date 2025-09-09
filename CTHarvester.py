@@ -2063,7 +2063,7 @@ class CTHarvesterMainWindow(QMainWindow):
                         except Exception as e:
                             logger.error(f"Error opening thumbnail image {filename3}: {e}")
                     else:
-                        #logger.debug(f"Skipping thumbnail load (size={size} >= {MAX_THUMBNAIL_SIZE})")
+                        pass  #logger.debug(f"Skipping thumbnail load (size={size} >= {MAX_THUMBNAIL_SIZE})")
                     continue
                 else:
                     self.progress_dialog.lbl_text.setText(self.progress_text_2_2.format(i+1, idx+1, int(total_count/2)))
@@ -2123,7 +2123,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 self.level_info.append( {'name': level_name, 'width': width, 'height': height, 'seq_begin': seq_begin, 'seq_end': seq_end} )
                 #logger.info(f"Added new level to level_info: {level_name}")
             else:
-                #logger.info(f"Level {level_name} already exists in level_info, skipping")
+                pass  #logger.info(f"Level {level_name} already exists in level_info, skipping")
             if size < MAX_THUMBNAIL_SIZE:
                 #logger.info(f"Reached thumbnail size limit. Total images collected: {len(self.minimum_volume)}")
                 if len(self.minimum_volume) > 0:
@@ -2353,7 +2353,7 @@ class CTHarvesterMainWindow(QMainWindow):
             if hasattr(self, 'minimum_volume'):
                 #logger.info(f"Current minimum_volume state: type={type(self.minimum_volume)}, len={len(self.minimum_volume) if isinstance(self.minimum_volume, (list, np.ndarray)) else 'N/A'}")
             else:
-                #logger.info("minimum_volume not yet initialized")
+                pass  #logger.info("minimum_volume not yet initialized")
             
             ddir = QFileDialog.getExistingDirectory(self, self.tr("Select directory"), self.m_app.default_directory)
             if ddir:
@@ -2514,7 +2514,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 if isinstance(self.minimum_volume, list):
                     #logger.info(f"minimum_volume is list with length: {len(self.minimum_volume)}")
                 elif isinstance(self.minimum_volume, np.ndarray):
-                    #logger.info(f"minimum_volume is numpy array with shape: {self.minimum_volume.shape}")
+                    pass  #logger.info(f"minimum_volume is numpy array with shape: {self.minimum_volume.shape}")
 
     def read_settings(self):
             """
