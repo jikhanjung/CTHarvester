@@ -2366,10 +2366,10 @@ if __name__ == "__main__":
     translator.load(resource_path("CTHarvester_{}.qm".format(app.language)))
     app.installTranslator(translator)
 
-    #WindowClass의 인스턴스 생성
+    # Create instance of CTHarvesterMainWindow
     myWindow = CTHarvesterMainWindow()
 
-    #프로그램 화면을 보여주는 코드
+    # Show the main window
     myWindow.show()
     logger.info(f"{PROGRAM_NAME} main window displayed")
 
