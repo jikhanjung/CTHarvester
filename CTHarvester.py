@@ -2351,6 +2351,7 @@ class CTHarvesterMainWindow(QMainWindow):
             
             # Check current state
             if hasattr(self, 'minimum_volume'):
+                pass
                 #logger.info(f"Current minimum_volume state: type={type(self.minimum_volume)}, len={len(self.minimum_volume) if isinstance(self.minimum_volume, (list, np.ndarray)) else 'N/A'}")
             else:
                 pass  #logger.info("minimum_volume not yet initialized")
@@ -2512,6 +2513,7 @@ class CTHarvesterMainWindow(QMainWindow):
             #logger.info(f"After create_thumbnail, minimum_volume type: {type(self.minimum_volume) if hasattr(self, 'minimum_volume') else 'not set'}")
             if hasattr(self, 'minimum_volume'):
                 if isinstance(self.minimum_volume, list):
+                    pass
                     #logger.info(f"minimum_volume is list with length: {len(self.minimum_volume)}")
                 elif isinstance(self.minimum_volume, np.ndarray):
                     pass  #logger.info(f"minimum_volume is numpy array with shape: {self.minimum_volume.shape}")
