@@ -10,6 +10,7 @@ import sys
 import platform
 import tempfile
 from pathlib import Path
+from datetime import datetime
 
 # Import version from centralized version file
 try:
@@ -25,6 +26,33 @@ except ImportError:
                 return match.group(1)
         raise RuntimeError("Unable to find version string")
     VERSION = get_version_from_file()
+
+def update_build_year():
+    """Update BUILD_YEAR in CTHarvester.py with current year"""
+    current_year = datetime.now().year
+    print(f"Updating BUILD_YEAR to {current_year}...")
+    
+    ctharvester_path = Path("CTHarvester.py")
+    if not ctharvester_path.exists():
+        print(f"[ERROR] CTHarvester.py not found")
+        return False
+    
+    content = ctharvester_path.read_text()
+    
+    # Update BUILD_YEAR line
+    import re
+    pattern = r'BUILD_YEAR = \d+'
+    replacement = f'BUILD_YEAR = {current_year}'
+    
+    new_content = re.sub(pattern, replacement, content)
+    
+    if new_content != content:
+        ctharvester_path.write_text(new_content)
+        print(f"[OK] BUILD_YEAR updated to {current_year}")
+        return True
+    else:
+        print(f"[WARNING] BUILD_YEAR pattern not found or already up to date")
+        return True
 
 def run_pyinstaller(spec_file="CTHarvester.spec", build_type="onefile"):
     """Run PyInstaller to build the executable
@@ -160,6 +188,11 @@ def main():
     print(f"Version: {VERSION}")
     print(f"Platform: {platform.system()}")
     print("=" * 60)
+    
+    # Update BUILD_YEAR before building
+    if not update_build_year():
+        print("[ERROR] Failed to update BUILD_YEAR")
+        return 1
     
     # Parse command line arguments
     build_both = True  # Default: build both versions

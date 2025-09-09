@@ -52,10 +52,9 @@ except ImportError:
 PROGRAM_NAME = "CTHarvester"
 PROGRAM_AUTHOR = "Jikhan Jung"
 
-# Dynamic year for copyright
-from datetime import datetime
-CURRENT_YEAR = datetime.now().year
-PROGRAM_COPYRIGHT = f"© 2023-{CURRENT_YEAR} Jikhan Jung"
+# Build-time year for copyright
+BUILD_YEAR = 2025  # This will be set during build
+PROGRAM_COPYRIGHT = f"© 2023-{BUILD_YEAR} Jikhan Jung"
 
 # Directory setup
 USER_PROFILE_DIRECTORY = os.path.expanduser('~')
