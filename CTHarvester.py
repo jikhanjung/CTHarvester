@@ -1995,6 +1995,7 @@ class CTHarvesterMainWindow(QMainWindow):
         size =  max(int(self.settings_hash['image_width']), int(self.settings_hash['image_height']))
         width = int(self.settings_hash['image_width'])
         height = int(self.settings_hash['image_height'])
+        logger.info(f"Image dimensions: size={size}, width={width}, height={height}, MAX_THUMBNAIL_SIZE={MAX_THUMBNAIL_SIZE}")
 
         i = 0
         # create temporary directory for thumbnail
@@ -2003,6 +2004,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.minimum_volume = []
         seq_begin = self.settings_hash['seq_begin']
         seq_end = self.settings_hash['seq_end']
+        logger.info(f"Processing sequence: {seq_begin} to {seq_end}, directory: {dirname}")
 
         current_count = 0
         self.progress_dialog = ProgressDialog(self)
@@ -2036,19 +2038,24 @@ class CTHarvesterMainWindow(QMainWindow):
                 filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 filename3 = os.path.join(to_dir, self.settings_hash['prefix'] + str(seq_begin + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type'])
 
-                if os.path.exists(filename3):  
+                if os.path.exists(filename3):
+                    logger.debug(f"Found existing thumbnail: {filename3}")
                     self.progress_dialog.lbl_text.setText(self.progress_text_3_2.format(i+1, idx+1, int(total_count/2)))
                     self.progress_dialog.pb_progress.setValue(int(((idx+1)/float(int(total_count/2)))*100))
                     self.progress_dialog.update()
                     QApplication.processEvents()
                     if size < MAX_THUMBNAIL_SIZE:
+                        logger.info(f"Loading thumbnail (size={size} < {MAX_THUMBNAIL_SIZE}): {filename3}")
                         try:
                             # filename3 is already a full path, don't join with from_dir
                             img = Image.open(filename3)
-                            #print("new_img_ops:", np.array(img).shape)
-                            self.minimum_volume.append(np.array(img))
+                            img_array = np.array(img)
+                            logger.info(f"Loaded image shape: {img_array.shape}")
+                            self.minimum_volume.append(img_array)
                         except Exception as e:
                             logger.error(f"Error opening thumbnail image {filename3}: {e}")
+                    else:
+                        logger.debug(f"Skipping thumbnail load (size={size} >= {MAX_THUMBNAIL_SIZE})")
                     continue
                 else:
                     self.progress_dialog.lbl_text.setText(self.progress_text_2_2.format(i+1, idx+1, int(total_count/2)))
@@ -2094,16 +2101,19 @@ class CTHarvesterMainWindow(QMainWindow):
                         continue
 
                     if size < MAX_THUMBNAIL_SIZE:
-                        #print("new_img_ops:", np.array(new_img_ops).shape)
-                        self.minimum_volume.append(np.array(new_img_ops))
+                        img_array = np.array(new_img_ops)
+                        logger.info(f"Created new thumbnail, shape: {img_array.shape}")
+                        self.minimum_volume.append(img_array)
 
             i+= 1
             seq_end = int((seq_end - seq_begin) / 2) + seq_begin + last_count
             self.level_info.append( {'name': "Level " + str(i), 'width': width, 'height': height, 'seq_begin': seq_begin, 'seq_end': seq_end} )
             if size < MAX_THUMBNAIL_SIZE:
+                logger.info(f"Reached thumbnail size limit. Total images collected: {len(self.minimum_volume)}")
                 if len(self.minimum_volume) > 0:
                     self.minimum_volume = np.array(self.minimum_volume)
                     bounding_box = self.minimum_volume.shape
+                    logger.info(f"Final volume shape: {bounding_box}")
                     # Check if we have a valid 3D volume
                     if len(bounding_box) >= 3:
                         bounding_box = np.array([ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ])
