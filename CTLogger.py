@@ -63,9 +63,9 @@ def setup_logger(name, log_dir=None, level=logging.INFO):
     logger.setLevel(level)
     logger.addHandler(handler)
     
-    # Also add console handler for errors
+    # Also add console handler for all logs (not just errors)
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.ERROR)
+    console_handler.setLevel(logging.INFO)  # Changed from ERROR to INFO
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
     

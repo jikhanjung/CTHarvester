@@ -1366,18 +1366,25 @@ class ObjectViewer2D(QLabel):
 
     def set_image(self,file_path):
         #print("set_image", file_path)
-        # check if file exists
+        # check if file exists (try lowercase extension if original doesn't exist)
+        actual_path = file_path
         if not os.path.exists(file_path):
-            self.curr_pixmap = None
-            self.orig_pixmap = None
-            self.crop_from_x = -1
-            self.crop_from_y = -1
-            self.crop_to_x = -1
-            self.crop_to_y = -1
-            self.canvas_box = None
-            return
-        self.fullpath = file_path
-        self.curr_pixmap = self.orig_pixmap = QPixmap(file_path)
+            # Try with lowercase extension
+            base, ext = os.path.splitext(file_path)
+            alt_path = base + ext.lower()
+            if os.path.exists(alt_path):
+                actual_path = alt_path
+            else:
+                self.curr_pixmap = None
+                self.orig_pixmap = None
+                self.crop_from_x = -1
+                self.crop_from_y = -1
+                self.crop_to_x = -1
+                self.crop_to_y = -1
+                self.canvas_box = None
+                return
+        self.fullpath = actual_path
+        self.curr_pixmap = self.orig_pixmap = QPixmap(actual_path)
 
         self.setPixmap(self.curr_pixmap)
         self.calculate_resize()
@@ -1443,7 +1450,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.dirname_layout = QHBoxLayout()
         self.dirname_widget = QWidget()
         self.btnOpenDir = QPushButton(self.tr("Open Directory"))
-        self.btnOpenDir.clicked.connect(self.open_dir)
+        self.btnOpenDir.clicked.connect(lambda: logger.info("Open Directory button clicked") or self.open_dir())
         self.edtDirname = QLineEdit()
         self.edtDirname.setReadOnly(True)
         self.edtDirname.setText("")
@@ -2108,7 +2115,15 @@ class CTHarvesterMainWindow(QMainWindow):
 
             i+= 1
             seq_end = int((seq_end - seq_begin) / 2) + seq_begin + last_count
-            self.level_info.append( {'name': "Level " + str(i), 'width': width, 'height': height, 'seq_begin': seq_begin, 'seq_end': seq_end} )
+            
+            # Only add to level_info if this level doesn't already exist
+            level_name = f"Level {i}"
+            level_exists = any(level['name'] == level_name for level in self.level_info)
+            if not level_exists:
+                self.level_info.append( {'name': level_name, 'width': width, 'height': height, 'seq_begin': seq_begin, 'seq_end': seq_end} )
+                logger.info(f"Added new level to level_info: {level_name}")
+            else:
+                logger.info(f"Level {level_name} already exists in level_info, skipping")
             if size < MAX_THUMBNAIL_SIZE:
                 logger.info(f"Reached thumbnail size limit. Total images collected: {len(self.minimum_volume)}")
                 if len(self.minimum_volume) > 0:
@@ -2126,6 +2141,10 @@ class CTHarvesterMainWindow(QMainWindow):
                         self.mcube_widget.generate_mesh()
                         self.mcube_widget.adjust_volume()
                         self.mcube_widget.show_buttons()
+                        
+                        # Ensure the 3D widget doesn't cover the main image
+                        self.mcube_widget.setGeometry(QRect(0, 0, 150, 150))
+                        self.mcube_widget.recalculate_geometry()
                     else:
                         logger.warning(f"Invalid volume shape: {bounding_box}. Expected 3D array.")
                 else:
@@ -2137,43 +2156,72 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_dialog = None
         
         # If minimum_volume is still empty, try to load from the smallest existing thumbnail
-        if len(self.minimum_volume) == 0 and len(self.level_info) > 1:
+        if len(self.minimum_volume) == 0:
             logger.info("minimum_volume is empty, trying to load from existing thumbnails")
-            smallest_level = self.level_info[-1]
-            thumbnail_dir = os.path.join(self.edtDirname.text(), f".thumbnail/{len(self.level_info)-1}")
             
-            if os.path.exists(thumbnail_dir):
-                logger.info(f"Loading thumbnails from {thumbnail_dir}")
-                try:
-                    for seq in range(smallest_level['seq_begin'], smallest_level['seq_end'] + 1):
-                        filename = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
-                        filepath = os.path.join(thumbnail_dir, filename)
-                        if os.path.exists(filepath):
+            # Find the highest numbered thumbnail directory that exists
+            thumbnail_base = os.path.join(self.edtDirname.text(), ".thumbnail")
+            if os.path.exists(thumbnail_base):
+                level_dirs = []
+                for i in range(1, 10):  # Check up to level 9
+                    level_dir = os.path.join(thumbnail_base, str(i))
+                    if os.path.exists(level_dir):
+                        level_dirs.append((i, level_dir))
+                    else:
+                        break
+                
+                if level_dirs:
+                    # Use the highest level (smallest images)
+                    level_num, thumbnail_dir = level_dirs[-1]
+                    logger.info(f"Loading thumbnails from level {level_num}: {thumbnail_dir}")
+                    
+                    try:
+                        # List all image files in the directory
+                        files = sorted([f for f in os.listdir(thumbnail_dir) 
+                                      if f.endswith('.' + self.settings_hash['file_type'])])
+                        
+                        logger.info(f"Found {len(files)} files in {thumbnail_dir}")
+                        
+                        for file in files:
+                            filepath = os.path.join(thumbnail_dir, file)
                             img = Image.open(filepath)
                             self.minimum_volume.append(np.array(img))
                             img.close()
-                    
-                    if len(self.minimum_volume) > 0:
-                        self.minimum_volume = np.array(self.minimum_volume)
-                        logger.info(f"Loaded {len(self.minimum_volume)} thumbnails, shape: {self.minimum_volume.shape}")
                         
-                        # Update 3D view
-                        bounding_box = self.minimum_volume.shape
-                        if len(bounding_box) >= 3:
-                            bounding_box = np.array([ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ])
-                            curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
+                        if len(self.minimum_volume) > 0:
+                            self.minimum_volume = np.array(self.minimum_volume)
+                            logger.info(f"Loaded {len(self.minimum_volume)} thumbnails, shape: {self.minimum_volume.shape}")
                             
-                            self.mcube_widget.update_boxes(bounding_box, bounding_box, curr_slice_val)
-                            self.mcube_widget.adjust_boxes()
-                            self.mcube_widget.update_volume(self.minimum_volume)
-                            self.mcube_widget.generate_mesh()
-                            self.mcube_widget.adjust_volume()
-                            self.mcube_widget.show_buttons()
-                except Exception as e:
-                    logger.error(f"Error loading existing thumbnails: {e}")
+                            # Update 3D view
+                            bounding_box = self.minimum_volume.shape
+                            if len(bounding_box) >= 3:
+                                bounding_box = np.array([ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ])
+                                curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
+                                
+                                self.mcube_widget.update_boxes(bounding_box, bounding_box, curr_slice_val)
+                                self.mcube_widget.adjust_boxes()
+                                self.mcube_widget.update_volume(self.minimum_volume)
+                                self.mcube_widget.generate_mesh()
+                                self.mcube_widget.adjust_volume()
+                                self.mcube_widget.show_buttons()
+                                
+                                # Ensure the 3D widget doesn't cover the main image
+                                self.mcube_widget.setGeometry(QRect(0, 0, 150, 150))
+                                self.mcube_widget.recalculate_geometry()
+                    except Exception as e:
+                        logger.error(f"Error loading existing thumbnails: {e}")
         
         self.initializeComboSize()
         self.reset_crop()
+        
+        # Trigger initial display by setting combo index if items exist
+        if self.comboLevel.count() > 0:
+            logger.info("Triggering initial display by setting combo index to 0")
+            self.comboLevel.setCurrentIndex(0)
+            # If comboLevelIndexChanged doesn't trigger, call it manually
+            if not self.initialized:
+                logger.info("Manually calling comboLevelIndexChanged")
+                self.comboLevelIndexChanged()
 
     def slider2ValueChanged(self, value):
             """
@@ -2223,17 +2271,24 @@ class CTHarvesterMainWindow(QMainWindow):
 
         # determine prefix
         max_prefix_count = 0
+        max_prefix = ""
         for prefix in prefix_hash:
             if prefix_hash[prefix] > max_prefix_count:
                 max_prefix_count = prefix_hash[prefix]
                 max_prefix = prefix
+        
+        logger.info(f"Detected prefixes: {list(prefix_hash.keys())[:5]}")
+        logger.info(f"Most common prefix: '{max_prefix}' with {max_prefix_count} files")
 
         # determine extension
         max_extension_count = 0
+        max_extension = ""
         for extension in extension_hash:
             if extension_hash[extension] > max_extension_count:
                 max_extension_count = extension_hash[extension]
                 max_extension = extension
+        
+        logger.info(f"Most common extension: '{max_extension}' with {max_extension_count} files")
 
         if matching_files:
             for file in matching_files:
@@ -2267,7 +2322,7 @@ class CTHarvesterMainWindow(QMainWindow):
             number_of_images = len(ct_stack_files)
             seq_length = len(match1.group(2))
 
-            settings_hash['prefix'] = prefix
+            settings_hash['prefix'] = max_prefix
             settings_hash['image_width'] = width
             settings_hash['image_height'] = height
             settings_hash['file_type'] = max_extension
@@ -2289,7 +2344,17 @@ class CTHarvesterMainWindow(QMainWindow):
             Opens a directory dialog to select a directory containing image files and log files.
             Parses the log file to extract settings information and updates the UI accordingly.
             """
-            logger.info("open_dir method called")
+            print("open_dir method called")
+            logger.info("=" * 60)
+            logger.info("open_dir method called - START")
+            logger.info("=" * 60)
+            
+            # Check current state
+            if hasattr(self, 'minimum_volume'):
+                logger.info(f"Current minimum_volume state: type={type(self.minimum_volume)}, len={len(self.minimum_volume) if isinstance(self.minimum_volume, (list, np.ndarray)) else 'N/A'}")
+            else:
+                logger.info("minimum_volume not yet initialized")
+            
             ddir = QFileDialog.getExistingDirectory(self, self.tr("Select directory"), self.m_app.default_directory)
             if ddir:
                 logger.info(f"Selected directory: {ddir}")
@@ -2298,6 +2363,8 @@ class CTHarvesterMainWindow(QMainWindow):
             else:
                 logger.info("Directory selection cancelled")
                 return
+            
+            logger.info("Resetting settings_hash and image_file_list")
             self.settings_hash = {}
             self.initialized = False
             image_file_list = []
@@ -2305,17 +2372,21 @@ class CTHarvesterMainWindow(QMainWindow):
 
             try:
                 files = [f for f in os.listdir(ddir) if os.path.isfile(os.path.join(ddir, f))]
+                logger.info(f"Found {len(files)} files in directory")
             except Exception as e:
                 QApplication.restoreOverrideCursor()
                 QMessageBox.critical(self, self.tr("Error"), self.tr(f"Failed to read directory: {e}"))
+                logger.error(f"Failed to read directory: {e}")
                 return
 
+            log_files_found = 0
             for file in files:
                 # get extension
                 ext = os.path.splitext(file)[-1].lower()
                 if ext in [".bmp", ".jpg", ".png", ".tif", ".tiff"]:
                     pass #image_file_list.append(file)
                 elif ext == '.log':
+                    log_files_found += 1
                     try:
                         settings = QSettings(os.path.join(ddir, file), QSettings.IniFormat)
                         prefix = settings.value("File name convention/Filename Prefix")
@@ -2323,7 +2394,8 @@ class CTHarvesterMainWindow(QMainWindow):
                             continue
                         if file != prefix + ".log":
                             continue
-
+                        
+                        logger.info(f"Found valid log file: {file}")
                         self.settings_hash['prefix'] = settings.value("File name convention/Filename Prefix")
                         self.settings_hash['image_width'] = settings.value("Reconstruction/Result Image Width (pixels)")
                         self.settings_hash['image_height'] = settings.value("Reconstruction/Result Image Height (pixels)")
@@ -2340,22 +2412,58 @@ class CTHarvesterMainWindow(QMainWindow):
                         logger.error(f"Error reading log file {file}: {e}")
                         continue
 
+            logger.info(f"Log files found: {log_files_found}")
+            
             if 'prefix' not in self.settings_hash:
+                logger.info("No valid log file found, trying to detect image sequence...")
                 self.settings_hash = self.sort_file_list_from_dir(ddir)
                 if self.settings_hash is None:
                     QApplication.restoreOverrideCursor()
                     QMessageBox.warning(self, self.tr("Warning"), self.tr("No valid image files found in the selected directory."))
+                    logger.warning("No valid image files found")
                     return
+                logger.info(f"Detected image sequence: prefix={self.settings_hash.get('prefix')}, range={self.settings_hash.get('seq_begin')}-{self.settings_hash.get('seq_end')}")
 
             for seq in range(self.settings_hash['seq_begin'], self.settings_hash['seq_end']+1):
                 filename = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
                 image_file_list.append(filename)
+            
+            logger.info(f"Created image list with {len(image_file_list)} files")
+            logger.info(f"First image: {image_file_list[0] if image_file_list else 'None'}")
+            
             self.original_from_idx = 0
             self.original_to_idx = len(image_file_list) - 1
-            try:
-                self.image_label.setPixmap(QPixmap(os.path.join(ddir,image_file_list[0])).scaledToWidth(512))
-            except Exception as e:
-                logger.error(f"Error loading initial image: {e}")
+            
+            # Try to load the first image
+            if image_file_list:
+                first_image_path = os.path.join(ddir, image_file_list[0])
+                logger.info(f"Trying to load first image: {first_image_path}")
+                
+                # Check if file exists (case-insensitive on Windows)
+                actual_path = None
+                if os.path.exists(first_image_path):
+                    actual_path = first_image_path
+                else:
+                    # Try with lowercase extension
+                    base, ext = os.path.splitext(first_image_path)
+                    alt_path = base + ext.lower()
+                    if os.path.exists(alt_path):
+                        actual_path = alt_path
+                        logger.info(f"Found file with lowercase extension: {alt_path}")
+                
+                if actual_path:
+                    logger.info(f"Image file exists: {actual_path}")
+                    try:
+                        pixmap = QPixmap(actual_path)
+                        if pixmap.isNull():
+                            logger.error(f"QPixmap is null for {actual_path}")
+                        else:
+                            logger.info(f"Successfully loaded pixmap, size: {pixmap.width()}x{pixmap.height()}")
+                            self.image_label.setPixmap(pixmap.scaledToWidth(512))
+                    except Exception as e:
+                        logger.error(f"Error loading initial image: {e}")
+                else:
+                    logger.error(f"Image file does not exist: {first_image_path} (also tried lowercase extension)")
             self.level_info = []
             self.level_info.append( {'name': 'Original', 'width': self.settings_hash['image_width'], 'height': self.settings_hash['image_height'], 'seq_begin': self.settings_hash['seq_begin'], 'seq_end': self.settings_hash['seq_end']} )
             
