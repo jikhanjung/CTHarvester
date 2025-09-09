@@ -37,7 +37,7 @@ def update_build_year():
         print(f"[ERROR] CTHarvester.py not found")
         return False
     
-    content = ctharvester_path.read_text()
+    content = ctharvester_path.read_text(encoding='utf-8')
     
     # Update BUILD_YEAR line
     import re
@@ -47,7 +47,7 @@ def update_build_year():
     new_content = re.sub(pattern, replacement, content)
     
     if new_content != content:
-        ctharvester_path.write_text(new_content)
+        ctharvester_path.write_text(new_content, encoding='utf-8')
         print(f"[OK] BUILD_YEAR updated to {current_year}")
         return True
     else:
