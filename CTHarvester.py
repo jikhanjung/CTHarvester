@@ -2043,7 +2043,8 @@ class CTHarvesterMainWindow(QMainWindow):
                     QApplication.processEvents()
                     if size < MAX_THUMBNAIL_SIZE:
                         try:
-                            img= Image.open(os.path.join(from_dir,filename3))
+                            # filename3 is already a full path, don't join with from_dir
+                            img = Image.open(filename3)
                             #print("new_img_ops:", np.array(img).shape)
                             self.minimum_volume.append(np.array(img))
                         except Exception as e:
