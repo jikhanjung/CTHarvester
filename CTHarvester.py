@@ -2134,6 +2134,43 @@ class CTHarvesterMainWindow(QMainWindow):
         QApplication.restoreOverrideCursor()
         self.progress_dialog.close()
         self.progress_dialog = None
+        
+        # If minimum_volume is still empty, try to load from the smallest existing thumbnail
+        if len(self.minimum_volume) == 0 and len(self.level_info) > 1:
+            logger.info("minimum_volume is empty, trying to load from existing thumbnails")
+            smallest_level = self.level_info[-1]
+            thumbnail_dir = os.path.join(self.edtDirname.text(), f".thumbnail/{len(self.level_info)-1}")
+            
+            if os.path.exists(thumbnail_dir):
+                logger.info(f"Loading thumbnails from {thumbnail_dir}")
+                try:
+                    for seq in range(smallest_level['seq_begin'], smallest_level['seq_end'] + 1):
+                        filename = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+                        filepath = os.path.join(thumbnail_dir, filename)
+                        if os.path.exists(filepath):
+                            img = Image.open(filepath)
+                            self.minimum_volume.append(np.array(img))
+                            img.close()
+                    
+                    if len(self.minimum_volume) > 0:
+                        self.minimum_volume = np.array(self.minimum_volume)
+                        logger.info(f"Loaded {len(self.minimum_volume)} thumbnails, shape: {self.minimum_volume.shape}")
+                        
+                        # Update 3D view
+                        bounding_box = self.minimum_volume.shape
+                        if len(bounding_box) >= 3:
+                            bounding_box = np.array([ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ])
+                            curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
+                            
+                            self.mcube_widget.update_boxes(bounding_box, bounding_box, curr_slice_val)
+                            self.mcube_widget.adjust_boxes()
+                            self.mcube_widget.update_volume(self.minimum_volume)
+                            self.mcube_widget.generate_mesh()
+                            self.mcube_widget.adjust_volume()
+                            self.mcube_widget.show_buttons()
+                except Exception as e:
+                    logger.error(f"Error loading existing thumbnails: {e}")
+        
         self.initializeComboSize()
         self.reset_crop()
 
@@ -2320,6 +2357,44 @@ class CTHarvesterMainWindow(QMainWindow):
                 logger.error(f"Error loading initial image: {e}")
             self.level_info = []
             self.level_info.append( {'name': 'Original', 'width': self.settings_hash['image_width'], 'height': self.settings_hash['image_height'], 'seq_begin': self.settings_hash['seq_begin'], 'seq_end': self.settings_hash['seq_end']} )
+            
+            # Check for existing thumbnail directories and populate level_info
+            thumbnail_base = os.path.join(self.edtDirname.text(), ".thumbnail")
+            if os.path.exists(thumbnail_base):
+                logger.info(f"Found existing thumbnail directory: {thumbnail_base}")
+                level_idx = 1
+                while True:
+                    level_dir = os.path.join(thumbnail_base, str(level_idx))
+                    if not os.path.exists(level_dir):
+                        break
+                    
+                    # Get first image from this level to determine dimensions
+                    try:
+                        files = sorted([f for f in os.listdir(level_dir) if f.endswith(('.' + self.settings_hash['file_type']))])
+                        if files:
+                            first_img_path = os.path.join(level_dir, files[0])
+                            img = Image.open(first_img_path)
+                            width, height = img.size
+                            img.close()
+                            
+                            # Calculate sequence range for this level
+                            seq_begin = self.settings_hash['seq_begin']
+                            seq_end = seq_begin + len(files) - 1
+                            
+                            self.level_info.append({
+                                'name': f"Level {level_idx}",
+                                'width': width,
+                                'height': height,
+                                'seq_begin': seq_begin,
+                                'seq_end': seq_end
+                            })
+                            logger.info(f"Added level {level_idx}: {width}x{height}, {len(files)} images")
+                    except Exception as e:
+                        logger.error(f"Error reading thumbnail level {level_idx}: {e}")
+                        break
+                    
+                    level_idx += 1
+            
             QApplication.restoreOverrideCursor()
             logger.info(f"Successfully loaded directory with {len(image_file_list)} images")
             self.create_thumbnail()
