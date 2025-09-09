@@ -1920,10 +1920,11 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtStatus.setText(status_text)
 
     def initializeComboSize(self):
-        #print("initializeComboSize")
+        logger.info(f"initializeComboSize called, level_info count: {len(self.level_info) if hasattr(self, 'level_info') else 'not set'}")
         self.comboLevel.clear()
         for level in self.level_info:
             self.comboLevel.addItem( level['name'])
+            logger.info(f"Added level: {level['name']}, size: {level['width']}x{level['height']}, seq: {level['seq_begin']}-{level['seq_end']}")
 
     def comboLevelIndexChanged(self):
         """
@@ -2397,7 +2398,15 @@ class CTHarvesterMainWindow(QMainWindow):
             
             QApplication.restoreOverrideCursor()
             logger.info(f"Successfully loaded directory with {len(image_file_list)} images")
+            logger.info(f"Level info count: {len(self.level_info)}")
+            logger.info("Calling create_thumbnail...")
             self.create_thumbnail()
+            logger.info(f"After create_thumbnail, minimum_volume type: {type(self.minimum_volume) if hasattr(self, 'minimum_volume') else 'not set'}")
+            if hasattr(self, 'minimum_volume'):
+                if isinstance(self.minimum_volume, list):
+                    logger.info(f"minimum_volume is list with length: {len(self.minimum_volume)}")
+                elif isinstance(self.minimum_volume, np.ndarray):
+                    logger.info(f"minimum_volume is numpy array with shape: {self.minimum_volume.shape}")
 
     def read_settings(self):
             """
