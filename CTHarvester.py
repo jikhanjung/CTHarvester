@@ -2373,7 +2373,7 @@ if __name__ == "__main__":
     myWindow.show()
     logger.info(f"{PROGRAM_NAME} main window displayed")
 
-    #프로그램을 이벤트루프로 진입시키는(프로그램을 작동시키는) 코드
+    # Enter the event loop (start the application)
     app.exec_()
     logger.info(f"{PROGRAM_NAME} terminated")
 
