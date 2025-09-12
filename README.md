@@ -136,7 +136,6 @@ The project uses GitHub Actions for continuous integration and deployment:
 ```
 CTHarvester/
 ├── CTHarvester.py          # Main application
-├── CTHarvester_mt.py       # Multithreading utilities
 ├── version.py              # Version management
 ├── build.py                # Build script
 ├── bump_version.py         # Version bump utility

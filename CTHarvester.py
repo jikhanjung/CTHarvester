@@ -2,7 +2,7 @@ from PyQt5.QtGui import QIcon, QColor, QPainter, QPen, QPixmap, QPainter, QMouse
 from PyQt5.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QRadioButton, QComboBox, \
                             QFileDialog, QWidget, QHBoxLayout, QVBoxLayout, QProgressBar, QApplication, \
                             QDialog, QLineEdit, QLabel, QPushButton, QAbstractItemView, \
-                            QSizePolicy, QGroupBox, QListWidget, QFormLayout, QCheckBox, QMessageBox
+                            QSizePolicy, QGroupBox, QListWidget, QFormLayout, QCheckBox, QMessageBox, QSlider
 from PyQt5.QtCore import Qt, QRect, QPoint, QSettings, QTranslator, QMargins, QTimer, QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot, QEvent, QThread, QMutex, QMutexLocker
 #from PyQt5.QtCore import QT_TR_NOOP as tr
 from PyQt5.QtOpenGL import *
@@ -11,7 +11,7 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from queue import Queue
 
-from superqt import QLabeledRangeSlider, QLabeledSlider
+from vertical_stack_slider import VerticalTimeline
 
 import os, sys, re
 from PIL import Image, ImageChops
@@ -1508,6 +1508,25 @@ class ObjectViewer2D(QLabel):
         self.edit_y1 = False
         self.edit_y2 = False
         self.canvas_box = None
+        # If an image is loaded, default ROI to full image
+        if self.orig_pixmap is not None:
+            self.set_full_roi()
+
+    def set_full_roi(self):
+        if self.orig_pixmap is None:
+            return
+        self.crop_from_x = 0
+        self.crop_from_y = 0
+        self.crop_to_x = self.orig_pixmap.width()
+        self.crop_to_y = self.orig_pixmap.height()
+        # canvas_box will be set on next calculate_resize; ensure it's available now as well
+        if self.image_canvas_ratio != 0:
+            self.canvas_box = QRect(
+                self._2canx(self.crop_from_x),
+                self._2cany(self.crop_from_y),
+                self._2canx(self.crop_to_x - self.crop_from_x),
+                self._2cany(self.crop_to_y - self.crop_from_y),
+            )
 
     def _2canx(self, coord):
         return round((float(coord) / self.image_canvas_ratio) * self.scale)
@@ -1754,6 +1773,9 @@ class ObjectViewer2D(QLabel):
             else:
                 return [self._2imgx(from_x), self._2imgy(from_y), self._2imgx(to_x), self._2imgy(to_y)]
         else:
+            # default to full canvas if ROI not yet defined
+            if from_x <= 0 and from_y <= 0 and to_x <= 0 and to_y <= 0 and self.curr_pixmap:
+                return [0, 0, self.curr_pixmap.width(), self.curr_pixmap.height()]
             return [from_x, from_y, to_x, to_y]
 
 
@@ -1838,6 +1860,9 @@ class ObjectViewer2D(QLabel):
 
         self.setPixmap(self.curr_pixmap)
         self.calculate_resize()
+        # If ROI not yet set, set to full image by default
+        if self.crop_from_x < 0 or self.crop_to_x < 0 or self.crop_from_y < 0 or self.crop_to_y < 0:
+            self.set_full_roi()
         if self.canvas_box:
             self.crop_from_x = self._2imgx(self.canvas_box.x())
             self.crop_from_y = self._2imgy(self.canvas_box.y())
@@ -1867,7 +1892,11 @@ class ObjectViewer2D(QLabel):
                 self.image_canvas_ratio = self.orig_height / self.height()
 
             self.curr_pixmap = self.orig_pixmap.scaled(int(self.orig_width*self.scale/self.image_canvas_ratio),int(self.orig_width*self.scale/self.image_canvas_ratio), Qt.KeepAspectRatio)
-            if self.isovalue > 0 and self.curr_idx >= self.bottom_idx and self.curr_idx <= self.top_idx:
+            # Always colorize current slice by threshold. If range not set, treat as full stack
+            if self.isovalue > 0:
+                if self.bottom_idx < 0 or self.top_idx < 0 or self.bottom_idx > self.top_idx:
+                    # default to full range
+                    pass
                 self.curr_pixmap = self.apply_threshold_and_colorize(self.curr_pixmap, self.isovalue)
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
@@ -1944,32 +1973,38 @@ class CTHarvesterMainWindow(QMainWindow):
         self.image_label = ObjectViewer2D(self.image_widget)
         self.image_label.object_dialog = self
         self.image_label.setMouseTracking(True)
-        self.slider = QLabeledSlider(Qt.Vertical)
-        self.slider.setValue(0)
-        self.slider.setEnabled(False)  # Disable until data is loaded
-        self.range_slider = QLabeledRangeSlider(Qt.Vertical)
-        self.range_slider.setValue((0,99))
-        self.range_slider.setEnabled(False)  # Disable until data is loaded
-        self.slider.setSingleStep(1)
-        self.range_slider.setSingleStep(1)
-        self.slider.valueChanged.connect(self.sliderValueChanged)
-        self.range_slider.valueChanged.connect(self.rangeSliderValueChanged)
-        self.range_slider._slider.sliderReleased.connect(self.rangeSliderReleased)
-        self.range_slider.setMinimumWidth(100)
+        # Unified timeline slider (replaces single + range sliders)
+        self.timeline = VerticalTimeline(0, 0)
+        self.timeline.setStep(1, 10)
+        self.timeline.setEnabled(False)  # Disable until data is loaded
+        self.timeline.currentChanged.connect(self.sliderValueChanged)
+        self.timeline.rangeChanged.connect(self.rangeSliderValueChanged)
 
         self.image_layout.addWidget(self.image_label,stretch=1)
-        self.image_layout.addWidget(self.slider)
-        self.image_layout.addWidget(self.range_slider)
+        self.image_layout.addWidget(self.timeline)
         self.image_widget.setLayout(self.image_layout)
         self.image_layout.setContentsMargins(margin)
 
-        self.threshold_slider = QLabeledSlider(Qt.Vertical)
+        self.threshold_slider = QSlider(Qt.Vertical)
+        # Ensure full 0-255 range is visible on the labeled slider
+        self.threshold_slider.setRange(0, 255)
         self.threshold_slider.setValue(60)
-        self.threshold_slider.setMaximum(255)
         self.threshold_slider.setSingleStep(1)
         self.threshold_slider.valueChanged.connect(self.slider2ValueChanged)
         self.threshold_slider.sliderReleased.connect(self.slider2SliderReleased)
-        self.image_layout.addWidget(self.threshold_slider)
+        # external numeric readout to avoid any internal 0-99 label limit
+        self.threshold_value_label = QLabel(str(self.threshold_slider.value()))
+        self.threshold_value_label.setAlignment(Qt.AlignHCenter)
+        self.threshold_value_label.setMinimumWidth(30)
+        self.threshold_value_label.setStyleSheet("QLabel { color: #202020; }")
+        self.threshold_container = QWidget()
+        _vl = QVBoxLayout()
+        _vl.setContentsMargins(0,0,0,0)
+        _vl.setSpacing(4)
+        _vl.addWidget(self.threshold_slider)
+        _vl.addWidget(self.threshold_value_label)
+        self.threshold_container.setLayout(_vl)
+        self.image_layout.addWidget(self.threshold_container)
 
         ''' crop layout '''
         self.crop_layout = QHBoxLayout()
@@ -2113,10 +2148,14 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_text_3_2 = self.tr("Loading thumbnails (Level {}) - {}/{}")
 
     def set_bottom(self):
-        self.range_slider.setValue((self.slider.value(), self.range_slider.value()[1]))
+        # set lower bound to current index
+        _, curr, _ = self.timeline.values()
+        self.timeline.setLower(curr)
         self.update_status()
     def set_top(self):
-        self.range_slider.setValue((self.range_slider.value()[0], self.slider.value()))
+        # set upper bound to current index
+        _, curr, _ = self.timeline.values()
+        self.timeline.setUpper(curr)
         self.update_status()
 
     #def resizeEvent(self, a0: QResizeEvent) -> None:
@@ -2157,7 +2196,12 @@ class CTHarvesterMainWindow(QMainWindow):
         bounding_box = [0, scaled_depth-1, 0, scaled_height-1, 0, scaled_width-1]
         
         # Scale the current slice value as well
-        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * scaled_depth
+        try:
+            _, curr, _ = self.timeline.values()
+            denom = float(self.timeline.maximum()) if self.timeline.maximum() > 0 else 1.0
+            curr_slice_val = curr / denom * scaled_depth
+        except Exception:
+            curr_slice_val = 0
         
         self.mcube_widget.update_boxes(bounding_box, roi_box, curr_slice_val)
         self.mcube_widget.adjust_boxes()
@@ -2192,7 +2236,12 @@ class CTHarvesterMainWindow(QMainWindow):
         scaled_width = base_shape[2] * scale_factor
         
         bounding_box = [0, scaled_depth-1, 0, scaled_height-1, 0, scaled_width-1]
-        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * scaled_depth
+        try:
+            _, curr, _ = self.timeline.values()
+            denom = float(self.timeline.maximum()) if self.timeline.maximum() > 0 else 1.0
+            curr_slice_val = curr / denom * scaled_depth
+        except Exception:
+            curr_slice_val = 0
         
         self.update_3D_view(False)
 
@@ -2220,9 +2269,12 @@ class CTHarvesterMainWindow(QMainWindow):
         curr_width = level_info['width']
         curr_height = level_info['height']
 
-        # get top and bottom idx
+        # get top and bottom idx; default to full range if not set
         top_idx = self.image_label.top_idx
         bottom_idx = self.image_label.bottom_idx
+        if top_idx < 0 or bottom_idx < 0 or top_idx < bottom_idx:
+            bottom_idx = 0
+            top_idx = image_count - 1
 
         #get current crop box
         crop_box = self.image_label.get_crop_area(imgxy=True)
@@ -2243,6 +2295,11 @@ class CTHarvesterMainWindow(QMainWindow):
         smallest_count = smallest_level_info['seq_end'] - smallest_level_info['seq_begin'] + 1
         bottom_idx = int(bottom_idx * smallest_count)
         top_idx = int(top_idx * smallest_count)
+        # clamp
+        bottom_idx = max(0, min(bottom_idx, smallest_count-1))
+        top_idx = max(0, min(top_idx, smallest_count))
+        if top_idx <= bottom_idx:
+            top_idx = min(bottom_idx+1, smallest_count)
         from_x = int(from_x * smallest_level_info['width'])
         from_y = int(from_y * smallest_level_info['height'])
         to_x = int(to_x * smallest_level_info['width'])-1
@@ -2382,7 +2439,8 @@ class CTHarvesterMainWindow(QMainWindow):
                 # This is expected during initialization when sliders are disabled
                 return
             
-            (bottom_idx, top_idx) = self.range_slider.value()
+            lo, _, hi = self.timeline.values()
+            bottom_idx, top_idx = lo, hi
             self.image_label.set_bottom_idx(bottom_idx)
             self.image_label.set_top_idx(top_idx)
             self.image_label.calculate_resize()
@@ -2401,32 +2459,35 @@ class CTHarvesterMainWindow(QMainWindow):
         if not self.initialized:
             return
         size_idx = self.comboLevel.currentIndex()
-        curr_image_idx = self.slider.value()
+        _, curr_image_idx, _ = self.timeline.values()
         if size_idx < 0:
             size_idx = 0
 
         # get directory for size idx
         if size_idx == 0:
             dirname = self.edtDirname.text()
-            filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + self.slider.value()).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+            filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + curr_image_idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
         else:
             dirname = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(size_idx))
             # get filename from level from idx
-            filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + self.slider.value()).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+            filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + curr_image_idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
 
         self.image_label.set_image(os.path.join(dirname, filename))
-        self.image_label.set_curr_idx(self.slider.value())
+        self.image_label.set_curr_idx(curr_image_idx)
         self.update_curr_slice()
 
     def reset_crop(self):
-        self.image_label.set_curr_idx(self.slider.value())
+        _, curr, _ = self.timeline.values()
+        self.image_label.set_curr_idx(curr)
         self.image_label.reset_crop()
-        self.range_slider.setValue((self.slider.minimum(), self.slider.maximum()))
+        self.timeline.setLower(self.timeline.minimum())
+        self.timeline.setUpper(self.timeline.maximum())
         self.canvas_box = None
         self.update_status()
 
     def update_status(self):
-        ( bottom_idx, top_idx ) = self.range_slider.value()
+        lo, _, hi = self.timeline.values()
+        bottom_idx, top_idx = lo, hi
         [ x1, y1, x2, y2 ] = self.image_label.get_crop_area(imgxy=True)
         count = ( top_idx - bottom_idx + 1 )
         #self.status_format = self.tr("Crop indices: {}~{}    Cropped image size: {}x{}    Estimated stack size: {} MB [{}]")
@@ -2469,32 +2530,35 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtNumImages.setText(str(image_count))
 
         if not self.initialized:
-            self.slider.setMaximum(image_count - 1)
-            self.slider.setMinimum(0)
-            self.slider.setValue(0)
-            self.slider.setEnabled(True)  # Enable slider now that data is loaded
-            self.range_slider.setRange(0,image_count - 1)
-            self.range_slider.setValue((0, image_count - 1))
-            self.range_slider.setEnabled(True)  # Enable range slider now that data is loaded
+            self.timeline.setRange(0, image_count - 1)
+            self.timeline.setLower(0)
+            self.timeline.setUpper(image_count - 1)
+            self.timeline.setCurrent(0)
+            self.timeline.setEnabled(True)  # Enable timeline now that data is loaded
             self.curr_level_idx = 0
             self.prev_level_idx = 0
             self.initialized = True
 
 
-        level_diff = self.prev_level_idx-self.curr_level_idx
-        curr_idx = self.slider.value()
-        curr_idx = int(curr_idx * (2**level_diff))
+        level_diff = self.prev_level_idx - self.curr_level_idx
+        _, curr_idx, _ = self.timeline.values()
+        curr_idx = int(curr_idx * (2 ** level_diff))
 
-        (bottom_idx, top_idx) = self.range_slider.value()
-        bottom_idx = int(bottom_idx * (2**level_diff))
-        top_idx = int(top_idx * (2**level_diff))
+        lo, _, hi = self.timeline.values()
+        bottom_idx = int(lo * (2 ** level_diff))
+        top_idx = int(hi * (2 ** level_diff))
 
-        self.range_slider.setRange(0, image_count - 1)
-        self.range_slider.setValue((bottom_idx, top_idx))
-
-        self.slider.setMaximum(image_count -1)
-        self.slider.setMinimum(0)
-        self.slider.setValue(curr_idx)
+        # apply new range and values to timeline
+        self.timeline.setRange(0, image_count - 1)
+        # clamp to range
+        bottom_idx = max(0, min(bottom_idx, image_count - 1))
+        top_idx = max(0, min(top_idx, image_count - 1))
+        if bottom_idx > top_idx:
+            bottom_idx, top_idx = top_idx, bottom_idx
+        curr_idx = max(bottom_idx, min(curr_idx, top_idx))
+        self.timeline.setLower(bottom_idx)
+        self.timeline.setUpper(top_idx)
+        self.timeline.setCurrent(curr_idx)
 
         self.sliderValueChanged()
         self.update_status()
@@ -2659,7 +2723,12 @@ class CTHarvesterMainWindow(QMainWindow):
                         scaled_width = bounding_box[2] * scale_factor
                         
                         scaled_bounding_box = np.array([0, scaled_depth-1, 0, scaled_height-1, 0, scaled_width-1])
-                        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * scaled_depth
+                        try:
+                            _, curr, _ = self.timeline.values()
+                            denom = float(self.timeline.maximum()) if self.timeline.maximum() > 0 else 1.0
+                            curr_slice_val = curr / denom * scaled_depth
+                        except Exception:
+                            curr_slice_val = 0
 
                         self.mcube_widget.update_boxes(scaled_bounding_box, scaled_bounding_box, curr_slice_val)
                         self.mcube_widget.adjust_boxes()
@@ -2740,7 +2809,12 @@ class CTHarvesterMainWindow(QMainWindow):
                                 scaled_width = bounding_box[2] * scale_factor
                                 
                                 scaled_bounding_box = np.array([0, scaled_depth-1, 0, scaled_height-1, 0, scaled_width-1])
-                                curr_slice_val = self.slider.value()/float(self.slider.maximum()) * scaled_depth
+                                try:
+                                    _, curr, _ = self.timeline.values()
+                                    denom = float(self.timeline.maximum()) if self.timeline.maximum() > 0 else 1.0
+                                    curr_slice_val = curr / denom * scaled_depth
+                                except Exception:
+                                    curr_slice_val = 0
                                 
                                 self.mcube_widget.update_boxes(scaled_bounding_box, scaled_bounding_box, curr_slice_val)
                                 self.mcube_widget.adjust_boxes()
@@ -2776,6 +2850,9 @@ class CTHarvesterMainWindow(QMainWindow):
                 value (float): The new value of the slider.
             """
             #print("value:", value)
+            # update external readout to reflect 0-255 range accurately
+            if hasattr(self, 'threshold_value_label'):
+                self.threshold_value_label.setText(str(int(value)))
             self.image_label.set_isovalue(value)
             self.mcube_widget.set_isovalue(value)
             self.image_label.calculate_resize()

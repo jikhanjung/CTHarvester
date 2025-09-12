@@ -136,7 +136,6 @@ pytest tests/
 ```
 CTHarvester/
 ├── CTHarvester.py          # 메인 애플리케이션
-├── CTHarvester_mt.py       # 멀티스레딩 유틸리티
 ├── version.py              # 버전 관리
 ├── build.py                # 빌드 스크립트
 ├── bump_version.py         # 버전 업데이트 유틸리티
