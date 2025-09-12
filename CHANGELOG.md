@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+
+## [0.2.3-alpha.1] - 2025-09-13
+
+### Added
+- Multithreading support for thumbnail generation
+  - Parallel processing of multiple thumbnails
+  - Improved performance for large image stacks
+
+### Changed
+- Improved thumbnail generation process
+  - Better handling of bounding box scaling
+  - More efficient image processing pipeline
+
+### Fixed
+- Bounding box scaling issues in thumbnail generation
+- Windows Defender false positive by disabling UPX compression
+- IndentationError issues in commented-out debug logs
+- Thumbnail loading when minimum_volume is empty
+- File path handling when loading existing thumbnails
+
+
 ## [0.2.2] - 2025-09-08
 
 ### Added
