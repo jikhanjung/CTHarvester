@@ -39,6 +39,7 @@ class VerticalTimeline(QtWidgets.QWidget):
         self._drag_target = self.Thumb.NONE
         self._drag_offset = 0
         self._shift_slip  = False
+        self._hover_target = self.Thumb.NONE
 
         # snap
         self._snap_points = []
@@ -190,37 +191,62 @@ class VerticalTimeline(QtWidgets.QWidget):
         self._shift_slip = ev.modifiers() & QtCore.Qt.ShiftModifier
         self._drag_offset = 0
         self.setCursor(QtCore.Qt.ClosedHandCursor)
+        # show tooltip for the pressed handle
+        self._show_handle_tooltip(self._drag_target, ev.globalPos())
 
     def mouseMoveEvent(self, ev):
-        if self._drag_target == self.Thumb.NONE:
-            return
         track = self._track_rect()
-        v = self._y_to_val(ev.pos().y(), track)
-        v = self._apply_snap(v)
-        if self._drag_target == self.Thumb.CURRENT:
-            self.setCurrent(v)
-        elif self._drag_target == self.Thumb.LOWER:
-            if self._shift_slip:
-                # move both,保持폭
-                span = self._upper - self._lower
-                v = min(v, self._max - span)
-                self.setLower(v)
-                self.setUpper(v + span)
+        if self._drag_target != self.Thumb.NONE:
+            v = self._y_to_val(ev.pos().y(), track)
+            v = self._apply_snap(v)
+            if self._drag_target == self.Thumb.CURRENT:
+                self.setCurrent(v)
+            elif self._drag_target == self.Thumb.LOWER:
+                if self._shift_slip:
+                    # move both,保持폭
+                    span = self._upper - self._lower
+                    v = min(v, self._max - span)
+                    self.setLower(v)
+                    self.setUpper(v + span)
+                else:
+                    self.setLower(v)
+            elif self._drag_target == self.Thumb.UPPER:
+                if self._shift_slip:
+                    span = self._upper - self._lower
+                    v = max(v, self._min + span)
+                    self.setUpper(v)
+                    self.setLower(v - span)
+                else:
+                    self.setUpper(v)
+            # update tooltip during drag
+            self._show_handle_tooltip(self._drag_target, ev.globalPos())
+            return
+        # hover tooltips when not dragging
+        y = ev.pos().y()
+        new_hover = self.Thumb.NONE
+        if self._hit_diamond(y, track, self._current):
+            new_hover = self.Thumb.CURRENT
+        elif self._hit_thumb(y, track, self._lower):
+            new_hover = self.Thumb.LOWER
+        elif self._hit_thumb(y, track, self._upper):
+            new_hover = self.Thumb.UPPER
+        if new_hover != self._hover_target:
+            self._hover_target = new_hover
+            if new_hover == self.Thumb.NONE:
+                QtWidgets.QToolTip.hideText()
             else:
-                self.setLower(v)
-        elif self._drag_target == self.Thumb.UPPER:
-            if self._shift_slip:
-                span = self._upper - self._lower
-                v = max(v, self._min + span)
-                self.setUpper(v)
-                self.setLower(v - span)
-            else:
-                self.setUpper(v)
+                self._show_handle_tooltip(new_hover, self.mapToGlobal(ev.pos()))
 
     def mouseReleaseEvent(self, ev):
         self._drag_target = self.Thumb.NONE
         self._shift_slip = False
         self.unsetCursor()
+        QtWidgets.QToolTip.hideText()
+
+    def leaveEvent(self, ev):
+        self._hover_target = self.Thumb.NONE
+        QtWidgets.QToolTip.hideText()
+        super().leaveEvent(ev)
 
     def wheelEvent(self, ev):
         delta = ev.angleDelta().y()
@@ -339,3 +365,17 @@ class VerticalTimeline(QtWidgets.QWidget):
             if d < best_d:
                 best_d, best = d, sp
         return best if best is not None and best_d <= self._snap_tol else v
+
+    # ---------- tooltip helpers ----------
+    def _show_handle_tooltip(self, target, global_pos=None):
+        if target == self.Thumb.NONE:
+            QtWidgets.QToolTip.hideText()
+            return
+        if target == self.Thumb.CURRENT:
+            text = f"Current: {self._current}"
+        elif target == self.Thumb.LOWER:
+            text = f"Lower: {self._lower}"
+        else:
+            text = f"Upper: {self._upper}"
+        pos = global_pos if global_pos is not None else QtGui.QCursor.pos()
+        QtWidgets.QToolTip.showText(pos, text, self)

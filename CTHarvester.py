@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QIcon, QColor, QPainter, QPen, QPixmap, QPainter, QMouseEvent, QResizeEvent, QImage, QCursor
+from PyQt5.QtGui import QIcon, QColor, QPainter, QPen, QPixmap, QPainter, QMouseEvent, QResizeEvent, QImage, QCursor, QFont, QFontMetrics
 from PyQt5.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QRadioButton, QComboBox, \
                             QFileDialog, QWidget, QHBoxLayout, QVBoxLayout, QProgressBar, QApplication, \
                             QDialog, QLineEdit, QLabel, QPushButton, QAbstractItemView, \
@@ -1783,6 +1783,53 @@ class ObjectViewer2D(QLabel):
         painter = QPainter(self)
         if self.curr_pixmap is not None:
             painter.drawPixmap(0,0,self.curr_pixmap)
+
+        # overlay: filename, current index, bounds on separate lines
+        try:
+            file_name = os.path.basename(getattr(self, 'fullpath', '') or '')
+        except Exception:
+            file_name = ''
+        curr_txt = str(self.curr_idx) if isinstance(self.curr_idx, int) else '-'
+        low_txt = str(self.bottom_idx) if isinstance(self.bottom_idx, int) and self.bottom_idx >= 0 else '-'
+        up_txt  = str(self.top_idx) if isinstance(self.top_idx, int) and self.top_idx >= 0 else '-'
+        lines = [
+            f"filename: {file_name}",
+            f"index: {curr_txt}",
+            f"bounds: {low_txt}~{up_txt}",
+        ]
+        if any(s.strip() for s in lines):
+            painter.setRenderHint(QPainter.Antialiasing)
+            font = QFont()
+            font.setPointSize(9)
+            painter.setFont(font)
+            fm = QFontMetrics(font)
+            pad_x, pad_y, vgap = 8, 4, 2
+            tw = max(fm.width(s) for s in lines)
+            line_h = fm.height()
+            total_h = len(lines) * line_h + (len(lines)-1) * vgap
+
+            # Decide left/right based on 3D preview position. Use top row, opposite x side.
+            x_left = 6
+            x_right = max(6, self.width() - (tw + pad_x*2) - 6)
+            x = x_left
+            if self.threed_view is not None:
+                try:
+                    tv = self.threed_view
+                    # treat preview on left half → place overlay on right, else left
+                    if tv.x() <= self.width() // 2:
+                        x = x_right
+                    else:
+                        x = x_left
+                except Exception:
+                    x = x_left
+            y = 6
+            bg_rect = QRect(x, y, tw + pad_x*2, total_h + pad_y*2)
+            painter.fillRect(bg_rect, QColor(0, 0, 0, 140))
+            painter.setPen(QPen(QColor(255, 255, 255)))
+            tx = x + pad_x
+            ty = y + pad_y + fm.ascent()
+            for i, s in enumerate(lines):
+                painter.drawText(tx, ty + i*(line_h + vgap), s)
 
         if self.curr_idx > self.top_idx or self.curr_idx < self.bottom_idx:
             painter.setPen(QPen(QColor(128,0,0), 2, Qt.DotLine))
