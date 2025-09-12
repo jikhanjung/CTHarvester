@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QRadio
                             QFileDialog, QWidget, QHBoxLayout, QVBoxLayout, QProgressBar, QApplication, \
                             QDialog, QLineEdit, QLabel, QPushButton, QAbstractItemView, \
                             QSizePolicy, QGroupBox, QListWidget, QFormLayout, QCheckBox, QMessageBox
-from PyQt5.QtCore import Qt, QRect, QPoint, QSettings, QTranslator, QMargins, QTimer, QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot, QEvent
+from PyQt5.QtCore import Qt, QRect, QPoint, QSettings, QTranslator, QMargins, QTimer, QObject, QRunnable, QThreadPool, pyqtSignal, pyqtSlot, QEvent, QThread, QMutex, QMutexLocker
 #from PyQt5.QtCore import QT_TR_NOOP as tr
 from PyQt5.QtOpenGL import *
 from OpenGL.GL import *
@@ -169,6 +169,300 @@ class Worker(QRunnable):
             self.signals.result.emit(result)  # Return the result of the processing
         finally:
             self.signals.finished.emit()  # Done
+
+
+class ThumbnailWorkerSignals(QObject):
+    """Signals for thumbnail worker threads"""
+    finished = pyqtSignal()
+    error = pyqtSignal(tuple)
+    result = pyqtSignal(object)  # (idx, img_array or None)
+    progress = pyqtSignal(int)  # idx
+
+
+class ThumbnailWorker(QRunnable):
+    """Worker thread for processing individual thumbnail image pairs"""
+    
+    def __init__(self, idx, seq, seq_begin, from_dir, to_dir, settings_hash, size, max_thumbnail_size, progress_dialog):
+        super(ThumbnailWorker, self).__init__()
+        
+        self.idx = idx
+        self.seq = seq
+        self.seq_begin = seq_begin
+        self.from_dir = from_dir
+        self.to_dir = to_dir
+        self.settings_hash = settings_hash
+        self.size = size
+        self.max_thumbnail_size = max_thumbnail_size
+        self.progress_dialog = progress_dialog
+        self.signals = ThumbnailWorkerSignals()
+        
+        # Generate filenames
+        self.filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+        self.filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+        self.filename3 = os.path.join(to_dir, self.settings_hash['prefix'] + str(seq_begin + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type'])
+
+    @pyqtSlot()
+    def run(self):
+        """Process a single image pair"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.debug(f"ThumbnailWorker.run: Starting worker for idx={self.idx}, seq={self.seq}")
+        
+        try:
+            # Check for cancellation before starting work
+            if self.progress_dialog.is_cancelled:
+                logger.debug(f"ThumbnailWorker.run: Cancelled before start, idx={self.idx}")
+                return
+                
+            img_array = None
+            
+            # Check if thumbnail already exists
+            if os.path.exists(self.filename3):
+                logger.debug(f"Found existing thumbnail: {self.filename3}")
+                if self.size < self.max_thumbnail_size:
+                    try:
+                        img = Image.open(self.filename3)
+                        img_array = np.array(img)
+                        logger.debug(f"Loaded existing thumbnail shape: {img_array.shape}")
+                    except Exception as e:
+                        logger.error(f"Error opening existing thumbnail {self.filename3}: {e}")
+            else:
+                # Check for cancellation before expensive image processing
+                if self.progress_dialog.is_cancelled:
+                    return
+                    
+                # Create new thumbnail
+                img1 = None
+                if os.path.exists(os.path.join(self.from_dir, self.filename1)):
+                    try:
+                        img1 = Image.open(os.path.join(self.from_dir, self.filename1))
+                        if img1.mode[0] == 'I':
+                            img1 = Image.fromarray(np.divide(np.array(img1), 2**8-1)).convert('L')
+                        elif img1.mode == 'P':
+                            img1 = img1.convert('L')
+                    except Exception as e:
+                        logger.error(f"Error processing image {self.filename1}: {e}")
+                        img1 = None
+                
+                img2 = None
+                if os.path.exists(os.path.join(self.from_dir, self.filename2)):
+                    try:
+                        img2 = Image.open(os.path.join(self.from_dir, self.filename2))
+                        if img2.mode[0] == 'I':
+                            img2 = Image.fromarray(np.divide(np.array(img2), 2**8-1)).convert('L')
+                        elif img2.mode == 'P':
+                            img2 = img2.convert('L')
+                    except Exception as e:
+                        logger.error(f"Error processing image {self.filename2}: {e}")
+                        img2 = None
+                
+                # Average two images
+                if img1 is not None and img2 is not None:
+                    try:
+                        from PIL import ImageChops
+                        new_img_ops = ImageChops.add(img1, img2, scale=2.0)
+                        # Resize to half
+                        new_img_ops = new_img_ops.resize((int(img1.width / 2), int(img1.height / 2)))
+                        # Save to temporary directory
+                        new_img_ops.save(self.filename3)
+                        
+                        if self.size < self.max_thumbnail_size:
+                            img_array = np.array(new_img_ops)
+                            logger.debug(f"Created new thumbnail shape: {img_array.shape}")
+                            
+                    except Exception as e:
+                        logger.error(f"Error creating thumbnail {self.filename3}: {e}")
+            
+            # Emit progress signal first
+            logger.debug(f"ThumbnailWorker.run: Emitting progress for idx={self.idx}")
+            self.signals.progress.emit(self.idx)
+            # Then emit result
+            logger.debug(f"ThumbnailWorker.run: Emitting result for idx={self.idx}, has_image={img_array is not None}")
+            self.signals.result.emit((self.idx, img_array))
+            
+        except Exception as e:
+            import traceback
+            exctype, value = sys.exc_info()[:2]
+            self.signals.error.emit((exctype, value, traceback.format_exc()))
+        finally:
+            # Always emit finished signal
+            logger.debug(f"ThumbnailWorker.run: Finished worker for idx={self.idx}")
+            self.signals.finished.emit()
+
+
+class ThumbnailManager(QObject):
+    """Manager class to coordinate multiple thumbnail workers and progress tracking"""
+    
+    def __init__(self, parent, progress_dialog, threadpool):
+        super().__init__()
+        self.parent = parent
+        self.progress_dialog = progress_dialog
+        self.threadpool = threadpool
+        
+        # Progress tracking
+        self.total_tasks = 0
+        self.completed_tasks = 0
+        self.global_step_counter = 0
+        self.level = 0
+        self.results = {}  # idx -> img_array
+        self.is_cancelled = False
+        
+        # Synchronization
+        self.lock = QMutex()
+        
+    def process_level(self, level, from_dir, to_dir, seq_begin, seq_end, settings_hash, size, max_thumbnail_size, global_step_offset):
+        """Process a complete thumbnail level using multiple worker threads"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        self.level = level
+        self.global_step_counter = global_step_offset
+        self.results.clear()
+        self.is_cancelled = False
+        
+        # Calculate number of tasks
+        total_count = seq_end - seq_begin + 1
+        num_tasks = int(total_count / 2)
+        self.total_tasks = num_tasks
+        self.completed_tasks = 0
+        
+        logger.info(f"ThumbnailManager.process_level: Starting Level {level+1}, tasks={num_tasks}, offset={global_step_offset}")
+        logger.debug(f"ThreadPool: maxThreadCount={self.threadpool.maxThreadCount()}, activeThreadCount={self.threadpool.activeThreadCount()}")
+        
+        # Ensure threadpool has enough threads
+        if self.threadpool.maxThreadCount() < 4:
+            self.threadpool.setMaxThreadCount(4)
+            logger.info(f"Increased threadpool max threads to {self.threadpool.maxThreadCount()}")
+        
+        # Create and submit workers
+        workers_submitted = 0
+        for idx in range(num_tasks):
+            if self.progress_dialog.is_cancelled:
+                self.is_cancelled = True
+                break
+                
+            seq = seq_begin + (idx * 2)
+            
+            # Create worker
+            worker = ThumbnailWorker(
+                idx, seq, seq_begin, from_dir, to_dir, 
+                settings_hash, size, max_thumbnail_size, self.progress_dialog
+            )
+            
+            # Connect signals with Qt.QueuedConnection to ensure thread safety
+            worker.signals.progress.connect(self.on_worker_progress, Qt.QueuedConnection)
+            worker.signals.result.connect(self.on_worker_result, Qt.QueuedConnection) 
+            worker.signals.error.connect(self.on_worker_error, Qt.QueuedConnection)
+            worker.signals.finished.connect(self.on_worker_finished, Qt.QueuedConnection)
+            
+            # Submit to thread pool
+            self.threadpool.start(worker)
+            workers_submitted += 1
+            
+            # Process events periodically to keep UI responsive
+            if workers_submitted % 10 == 0:
+                QApplication.processEvents()
+                logger.debug(f"Submitted {workers_submitted}/{num_tasks} workers")
+        
+        logger.info(f"Submitted {workers_submitted} workers to threadpool")
+        
+        # Wait for all workers to complete or cancellation
+        import time
+        start_wait = time.time()
+        timeout = 300  # 5 minutes timeout for large operations
+        last_progress_log = time.time()
+        
+        while self.completed_tasks < self.total_tasks and not self.progress_dialog.is_cancelled:
+            QApplication.processEvents()
+            
+            # Log progress periodically
+            if time.time() - last_progress_log > 2:  # Every 2 seconds
+                logger.debug(f"Progress: {self.completed_tasks}/{self.total_tasks} tasks completed, active threads: {self.threadpool.activeThreadCount()}")
+                last_progress_log = time.time()
+            
+            # Check timeout
+            if time.time() - start_wait > timeout:
+                logger.warning(f"Timeout waiting for level {level+1} workers to complete after {timeout}s")
+                break
+                
+            QThread.msleep(10)  # Reduced delay for better responsiveness
+        
+        if self.progress_dialog.is_cancelled:
+            self.is_cancelled = True
+            logger.info(f"ThumbnailManager.process_level: Level {level+1} cancelled by user")
+            
+            # Wait a short time for any running workers to complete their current task
+            # Note: QThreadPool doesn't have a way to forcibly cancel individual QRunnable tasks
+            # but workers will check cancellation status and exit gracefully
+            max_wait_time = 2000  # 2 seconds
+            wait_time = 0
+            while self.completed_tasks < self.total_tasks and wait_time < max_wait_time:
+                QApplication.processEvents()
+                QThread.msleep(50)
+                wait_time += 50
+            
+            if self.completed_tasks < self.total_tasks:
+                logger.warning(f"Some thumbnail workers may still be running after cancellation")
+        
+        # Collect results in order
+        img_arrays = []
+        for idx in range(num_tasks):
+            if idx in self.results and self.results[idx] is not None:
+                img_arrays.append(self.results[idx])
+        
+        if not self.is_cancelled:
+            logger.info(f"ThumbnailManager.process_level: Level {level+1} completed successfully, collected {len(img_arrays)} images")
+        
+        return img_arrays, self.is_cancelled
+    
+    @pyqtSlot(int)
+    def on_worker_progress(self, idx):
+        """Handle progress updates from worker threads"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        with QMutexLocker(self.lock):
+            self.global_step_counter += 1
+            current_step = self.global_step_counter
+            
+        # Update UI in main thread
+        detail_text = f"Level {self.level+1}: Image {idx+1}/{self.total_tasks}"
+        logger.debug(f"ThumbnailManager.on_worker_progress: Level {self.level+1}, idx={idx}, step={current_step}, detail={detail_text}")
+        self.progress_dialog.lbl_text.setText(f"Generating thumbnails")
+        self.progress_dialog.update_unified_progress(current_step, detail_text)
+    
+    @pyqtSlot(object)
+    def on_worker_result(self, result):
+        """Handle results from worker threads"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        idx, img_array = result
+        with QMutexLocker(self.lock):
+            self.results[idx] = img_array
+            self.completed_tasks += 1
+            completed = self.completed_tasks
+            total = self.total_tasks
+            
+        # Just log the result, don't update UI (already done in on_worker_progress)
+        logger.debug(f"ThumbnailManager.on_worker_result: Level {self.level+1}, completed={completed}/{total}, has_image={img_array is not None}")
+    
+    @pyqtSlot(tuple)
+    def on_worker_error(self, error_tuple):
+        """Handle errors from worker threads"""
+        import logging
+        logger = logging.getLogger(__name__)
+        exctype, value, traceback_str = error_tuple
+        logger.error(f"Thumbnail worker error: {exctype.__name__}: {value}")
+        logger.debug(f"Traceback: {traceback_str}")
+    
+    @pyqtSlot()
+    def on_worker_finished(self):
+        """Handle finished signal from worker threads"""
+        # This is just a placeholder to properly handle the finished signal
+        pass
+
 
 # Define a custom OpenGL widget using QOpenGLWidget
 class MCubeWidget(QGLWidget):
@@ -971,17 +1265,47 @@ class ProgressDialog(QDialog):
         self.layout.setContentsMargins(50,50, 50, 50)
 
         self.lbl_text = QLabel(self)
+        self.lbl_detail = QLabel(self)  # Additional label for ETA
         self.pb_progress = QProgressBar(self)
         self.pb_progress.setValue(0)
         self.stop_progress = False
+        self.is_cancelled = False
+        
+        # Cancel button (visible by default)
+        self.btnCancel = QPushButton(self)
+        self.btnCancel.setText(self.tr("Cancel"))
+        self.btnCancel.clicked.connect(self.set_cancelled)
+        
+        # Legacy stop button (hidden)
         self.btnStop = QPushButton(self)
         self.btnStop.setText(self.tr("Stop"))
         self.btnStop.clicked.connect(self.set_stop_progress)
         self.btnStop.hide()
+        
         self.layout.addWidget(self.lbl_text)
+        self.layout.addWidget(self.lbl_detail)
         self.layout.addWidget(self.pb_progress)
+        self.layout.addWidget(self.btnCancel)
         self.setLayout(self.layout)
+        
+        # For time estimation
+        self.start_time = None
+        self.total_steps = 0
+        self.current_step = 0
+        
+        # Advanced ETA calculation
+        from collections import deque
+        self.step_times = deque(maxlen=50)  # Keep last 50 step times
+        self.last_update_time = None
+        self.smoothed_eta = None  # Exponentially smoothed ETA
+        self.ema_alpha = 0.3  # EMA smoothing factor (0.3 = 30% new, 70% old)
+        self.min_samples_for_eta = 5  # Minimum samples before showing ETA
+        self.step_history = []  # Store (timestamp, step_number) tuples
 
+    def set_cancelled(self):
+        self.is_cancelled = True
+        self.stop_progress = True
+        
     def set_stop_progress(self):
         self.stop_progress = True
 
@@ -998,6 +1322,132 @@ class ProgressDialog(QDialog):
         self.update()
         QApplication.processEvents()
 
+    def setup_unified_progress(self, total_steps):
+        """Setup for unified progress tracking"""
+        import time
+        import logging
+        from collections import deque
+        logger = logging.getLogger(__name__)
+        
+        self.total_steps = total_steps
+        self.current_step = 0
+        self.start_time = time.time()
+        self.last_update_time = self.start_time
+        self.pb_progress.setMaximum(100)
+        self.pb_progress.setValue(0)
+        
+        # Reset ETA calculation state
+        self.step_times = deque(maxlen=50)
+        self.smoothed_eta = None
+        self.step_history = []
+        
+        logger.info(f"ProgressDialog.setup_unified_progress: total_steps={total_steps}")
+        
+    def update_unified_progress(self, step, detail_text=""):
+        """Update unified progress with sophisticated ETA calculation"""
+        import time
+        import logging
+        import numpy as np
+        logger = logging.getLogger(__name__)
+        
+        current_time = time.time()
+        self.current_step = step
+        
+        if self.total_steps > 0:
+            percentage = int((self.current_step / self.total_steps) * 100)
+            self.pb_progress.setValue(percentage)
+            
+            # Record step timing (skip first few for warm-up)
+            if self.last_update_time and step > 3:  # Skip first 3 steps for warm-up
+                step_duration = current_time - self.last_update_time
+                # Filter out outliers (>5x median)
+                if len(self.step_times) == 0 or step_duration < np.median(list(self.step_times)) * 5:
+                    self.step_times.append(step_duration)
+                    self.step_history.append((current_time, step))
+            
+            # Calculate sophisticated ETA
+            eta_text = self._calculate_eta(current_time)
+            
+            if eta_text:
+                self.lbl_detail.setText(f"ETA: {eta_text} - {detail_text}")
+            else:
+                self.lbl_detail.setText(detail_text)
+            
+            logger.debug(f"ProgressDialog.update: step={step}/{self.total_steps}, {percentage}%, ETA={eta_text}, {detail_text}")
+            
+        self.last_update_time = current_time
+        self.update()
+        
+        # Process events periodically to maintain UI responsiveness
+        if step % 10 == 0:  # Every 10 steps
+            QApplication.processEvents()
+    
+    def _calculate_eta(self, current_time):
+        """Calculate ETA using multiple methods for stability"""
+        import numpy as np
+        
+        remaining_steps = self.total_steps - self.current_step
+        if remaining_steps <= 0:
+            return None
+            
+        # Method 1: Moving average of recent step times
+        if len(self.step_times) >= self.min_samples_for_eta:
+            # Use weighted average giving more weight to recent samples
+            weights = np.linspace(0.5, 1.0, len(self.step_times))
+            weighted_avg_time = np.average(list(self.step_times), weights=weights)
+            eta_moving_avg = weighted_avg_time * remaining_steps
+        else:
+            eta_moving_avg = None
+        
+        # Method 2: Overall average from start
+        if self.current_step > 0:
+            elapsed = current_time - self.start_time
+            eta_overall = (elapsed / self.current_step) * remaining_steps
+        else:
+            eta_overall = None
+        
+        # Method 3: Recent velocity (last 10 steps)
+        if len(self.step_history) >= 10:
+            recent_history = self.step_history[-10:]
+            time_span = recent_history[-1][0] - recent_history[0][0]
+            steps_done = recent_history[-1][1] - recent_history[0][1]
+            if steps_done > 0:
+                velocity = steps_done / time_span
+                eta_velocity = remaining_steps / velocity
+            else:
+                eta_velocity = None
+        else:
+            eta_velocity = None
+        
+        # Combine estimates with exponential smoothing
+        estimates = [e for e in [eta_moving_avg, eta_overall, eta_velocity] if e is not None]
+        
+        if not estimates:
+            return None
+            
+        # Use median for robustness
+        current_estimate = np.median(estimates)
+        
+        # Apply exponential smoothing to reduce fluctuation
+        if self.smoothed_eta is None:
+            self.smoothed_eta = current_estimate
+        else:
+            # Smooth the estimate to avoid jumps
+            self.smoothed_eta = (self.ema_alpha * current_estimate + 
+                                (1 - self.ema_alpha) * self.smoothed_eta)
+        
+        # Format time
+        eta_seconds = max(0, self.smoothed_eta)  # Never show negative
+        
+        if eta_seconds < 60:
+            return f"{int(eta_seconds)}s"
+        elif eta_seconds < 3600:
+            return f"{int(eta_seconds/60)}m {int(eta_seconds%60)}s"
+        else:
+            hours = int(eta_seconds/3600)
+            minutes = int((eta_seconds%3600)/60)
+            return f"{hours}h {minutes}m"
+            
     def update_language(self):
         translator = QTranslator()
         translator.load(resource_path('CTHarvester_{}.qm').format(self.m_app.language))
@@ -1442,6 +1892,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.curr_level_idx = 0
         self.prev_level_idx = 0
         self.default_directory = "."
+        self.threadpool = QThreadPool()  # Initialize threadpool for multithreading
+        logger.info(f"Initialized ThreadPool with maxThreadCount={self.threadpool.maxThreadCount()}")
         self.read_settings()
 
         margin = QMargins(11,0,11,0)
@@ -1596,10 +2048,10 @@ class CTHarvesterMainWindow(QMainWindow):
         self.status_text_format = self.tr("Crop indices: {}~{} Cropped image size: {}x{} ({},{})-({},{}) Estimated stack size: {} MB [{}]")
         self.progress_text_1_1 = self.tr("Saving image stack...")
         self.progress_text_1_2 = self.tr("Saving image stack... {}/{}")
-        self.progress_text_2_1 = self.tr("Creating rescaled images level {}...")
-        self.progress_text_2_2 = self.tr("Creating rescaled images level {}... {}/{}")
-        self.progress_text_3_1 = self.tr("Checking rescaled images level {}...")
-        self.progress_text_3_2 = self.tr("Checking rescaled images level {}... {}/{}")
+        self.progress_text_2_1 = self.tr("Generating thumbnails (Level {})")
+        self.progress_text_2_2 = self.tr("Generating thumbnails (Level {}) - {}/{}")
+        self.progress_text_3_1 = self.tr("Loading thumbnails (Level {})")
+        self.progress_text_3_2 = self.tr("Loading thumbnails (Level {}) - {}/{}")
 
         self.setCentralWidget(self.main_widget)
 
@@ -1655,10 +2107,10 @@ class CTHarvesterMainWindow(QMainWindow):
         self.status_text_format = self.tr("Crop indices: {}~{} Cropped image size: {}x{} ({},{})-({},{}) Estimated stack size: {} MB [{}]")
         self.progress_text_1_2 = self.tr("Saving image stack... {}/{}")
         self.progress_text_1_1 = self.tr("Saving image stack...")
-        self.progress_text_2_1 = self.tr("Creating rescaled images level {}...")
-        self.progress_text_2_2 = self.tr("Creating rescaled images level {}... {}/{}")
-        self.progress_text_3_1 = self.tr("Checking rescaled images level {}...")
-        self.progress_text_3_2 = self.tr("Checking rescaled images level {}... {}/{}")
+        self.progress_text_2_1 = self.tr("Generating thumbnails (Level {})")
+        self.progress_text_2_2 = self.tr("Generating thumbnails (Level {}) - {}/{}")
+        self.progress_text_3_1 = self.tr("Loading thumbnails (Level {})")
+        self.progress_text_3_2 = self.tr("Loading thumbnails (Level {}) - {}/{}")
 
     def set_bottom(self):
         self.range_slider.setValue((self.slider.value(), self.range_slider.value()[1]))
@@ -1682,9 +2134,31 @@ class CTHarvesterMainWindow(QMainWindow):
         if volume.size == 0:
             logger.warning("Empty volume in update_3D_view, skipping update")
             return
-        bounding_box = self.minimum_volume.shape
-        bounding_box = [ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ]
-        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
+            
+        # Calculate bounding box based on current level
+        # The minimum_volume is always the smallest level, but we need to scale it
+        # based on the current viewing level
+        if hasattr(self, 'level_info') and self.level_info:
+            smallest_level_idx = len(self.level_info) - 1
+            level_diff = smallest_level_idx - self.curr_level_idx
+            scale_factor = 2 ** level_diff  # Each level is 2x the size of the next
+        else:
+            # Default to no scaling if level_info is not available
+            scale_factor = 1
+        
+        # Get the base dimensions from minimum_volume
+        base_shape = self.minimum_volume.shape
+        
+        # Scale the dimensions according to current level
+        scaled_depth = base_shape[0] * scale_factor
+        scaled_height = base_shape[1] * scale_factor
+        scaled_width = base_shape[2] * scale_factor
+        
+        bounding_box = [0, scaled_depth-1, 0, scaled_height-1, 0, scaled_width-1]
+        
+        # Scale the current slice value as well
+        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * scaled_depth
+        
         self.mcube_widget.update_boxes(bounding_box, roi_box, curr_slice_val)
         self.mcube_widget.adjust_boxes()
 
@@ -1700,10 +2174,26 @@ class CTHarvesterMainWindow(QMainWindow):
         if not hasattr(self, 'minimum_volume') or self.minimum_volume is None or len(self.minimum_volume) == 0:
             logger.warning("minimum_volume not initialized in update_curr_slice")
             return
+            
+        # Calculate bounding box based on current level
+        if hasattr(self, 'level_info') and self.level_info:
+            smallest_level_idx = len(self.level_info) - 1
+            level_diff = smallest_level_idx - self.curr_level_idx
+            scale_factor = 2 ** level_diff
+        else:
+            scale_factor = 1
         
-        bounding_box = self.minimum_volume.shape
-        bounding_box = [ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ]
-        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
+        # Get the base dimensions from minimum_volume
+        base_shape = self.minimum_volume.shape
+        
+        # Scale the dimensions according to current level
+        scaled_depth = base_shape[0] * scale_factor
+        scaled_height = base_shape[1] * scale_factor
+        scaled_width = base_shape[2] * scale_factor
+        
+        bounding_box = [0, scaled_depth-1, 0, scaled_height-1, 0, scaled_width-1]
+        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * scaled_depth
+        
         self.update_3D_view(False)
 
     def get_cropped_volume(self):
@@ -1767,7 +2257,24 @@ class CTHarvesterMainWindow(QMainWindow):
                 return np.array([]), []
         
         volume = self.minimum_volume[bottom_idx:top_idx, from_y:to_y, from_x:to_x]
-        return volume, [ bottom_idx, top_idx, from_y, to_y, from_x, to_x ]
+        
+        # Scale ROI box to current level coordinates
+        # The ROI is currently in smallest level coordinates, need to scale to current level
+        smallest_level_idx = len(self.level_info) - 1
+        level_diff = smallest_level_idx - self.curr_level_idx
+        scale_factor = 2 ** level_diff
+        
+        # Scale the ROI coordinates
+        scaled_roi = [
+            bottom_idx * scale_factor,
+            top_idx * scale_factor,
+            from_y * scale_factor,
+            to_y * scale_factor,
+            from_x * scale_factor,
+            to_x * scale_factor
+        ]
+        
+        return volume, scaled_roi
 
     def export_3d_model(self):
         # open dir dialog for save
@@ -1993,6 +2500,43 @@ class CTHarvesterMainWindow(QMainWindow):
         self.update_status()
         self.update_3D_view(True)
 
+    def calculate_total_thumbnail_work(self, seq_begin, seq_end, size, max_size):
+        """Calculate total number of operations for all LoD levels with size weighting"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        total_work = 0
+        weighted_work = 0  # Work weighted by image size
+        temp_seq_begin = seq_begin
+        temp_seq_end = seq_end
+        temp_size = size
+        level_count = 0
+        level_details = []
+        self.level_sizes = []  # Store size info for each level
+        
+        while temp_size >= max_size:
+            temp_size /= 2
+            level_count += 1
+            # Each level processes half the images from previous level
+            images_to_process = (temp_seq_end - temp_seq_begin + 1) // 2 + 1
+            total_work += images_to_process
+            
+            # Weight by relative image size (smaller images process faster)
+            size_factor = (temp_size / size) ** 2  # Quadratic because it's 2D
+            weighted_work += images_to_process * size_factor
+            
+            level_details.append(f"Level {level_count}: {images_to_process} images, size={int(temp_size)}px, weight={size_factor:.2f}")
+            self.level_sizes.append((level_count, temp_size, images_to_process))
+            temp_seq_end = int((temp_seq_end - temp_seq_begin) / 2) + temp_seq_begin
+        
+        logger.info(f"Thumbnail work: {level_count} levels, {total_work} operations, weighted={weighted_work:.1f}")
+        for detail in level_details:
+            logger.debug(f"  {detail}")
+            
+        # Return both for compatibility, store weighted for internal use
+        self.weighted_total_work = weighted_work
+        return total_work
+    
     def create_thumbnail(self):
         #logger.info("Starting thumbnail creation")
         """
@@ -2013,12 +2557,32 @@ class CTHarvesterMainWindow(QMainWindow):
         seq_begin = self.settings_hash['seq_begin']
         seq_end = self.settings_hash['seq_end']
         #logger.info(f"Processing sequence: {seq_begin} to {seq_end}, directory: {dirname}")
+        
+        # Calculate total work amount for all LoD levels
+        total_work = self.calculate_total_thumbnail_work(seq_begin, seq_end, size, MAX_THUMBNAIL_SIZE)
+        
+        # Estimate time based on average of 50ms per image
+        estimated_seconds = total_work * 0.05
+        if estimated_seconds < 60:
+            time_estimate = f"{int(estimated_seconds)}s"
+        elif estimated_seconds < 3600:
+            time_estimate = f"{int(estimated_seconds/60)}m {int(estimated_seconds%60)}s"
+        else:
+            time_estimate = f"{int(estimated_seconds/3600)}h {int((estimated_seconds%3600)/60)}m"
+        
+        logger.info(f"Starting thumbnail generation: {total_work} operations, estimated time: {time_estimate}")
 
         current_count = 0
+        global_step_counter = 0  # Track overall progress
         self.progress_dialog = ProgressDialog(self)
         self.progress_dialog.update_language()
         self.progress_dialog.setModal(True)
         self.progress_dialog.show()
+        
+        # Setup unified progress
+        self.progress_dialog.setup_unified_progress(total_work)
+        self.progress_dialog.lbl_text.setText(self.tr("Generating thumbnails"))
+        
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
         while True:
@@ -2032,87 +2596,40 @@ class CTHarvesterMainWindow(QMainWindow):
                 from_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i))
 
             total_count = seq_end - seq_begin + 1
-            self.progress_dialog.lbl_text.setText(self.progress_text_2_1.format(i+1))
-            self.progress_dialog.pb_progress.setValue(0)
-
+            
             # create thumbnail
             to_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i+1))
             if not os.path.exists(to_dir):
                 os.makedirs(to_dir)
             last_count = 0
 
-            for idx, seq in enumerate(range(seq_begin, seq_end+1, 2)):
-                filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
-                filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
-                filename3 = os.path.join(to_dir, self.settings_hash['prefix'] + str(seq_begin + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type'])
-
-                if os.path.exists(filename3):
-                    logger.debug(f"Found existing thumbnail: {filename3}")
-                    self.progress_dialog.lbl_text.setText(self.progress_text_3_2.format(i+1, idx+1, int(total_count/2)))
-                    self.progress_dialog.pb_progress.setValue(int(((idx+1)/float(int(total_count/2)))*100))
-                    self.progress_dialog.update()
-                    QApplication.processEvents()
-                    if size < MAX_THUMBNAIL_SIZE:
-                        #logger.info(f"Loading thumbnail (size={size} < {MAX_THUMBNAIL_SIZE}): {filename3}")
-                        try:
-                            # filename3 is already a full path, don't join with from_dir
-                            img = Image.open(filename3)
-                            img_array = np.array(img)
-                            #logger.info(f"Loaded image shape: {img_array.shape}")
-                            self.minimum_volume.append(img_array)
-                        except Exception as e:
-                            logger.error(f"Error opening thumbnail image {filename3}: {e}")
-                    else:
-                        pass  #logger.debug(f"Skipping thumbnail load (size={size} >= {MAX_THUMBNAIL_SIZE})")
-                    continue
-                else:
-                    self.progress_dialog.lbl_text.setText(self.progress_text_2_2.format(i+1, idx+1, int(total_count/2)))
-                    self.progress_dialog.pb_progress.setValue(int(((idx+1)/float(int(total_count/2)))*100))
-                    self.progress_dialog.update()
-                    QApplication.processEvents()
-                    # check if filename exist
-                    img1 = None
-                    if os.path.exists(os.path.join(from_dir, filename1)):
-                        try:
-                            img1 = Image.open(os.path.join(from_dir, filename1))
-                            if img1.mode[0] == 'I':
-                                img1 = Image.fromarray(np.divide(np.array(img1), 2**8-1)).convert('L')
-                            elif img1.mode == 'P':
-                                img1 = img1.convert('L')
-                        except Exception as e:
-                            logger.error(f"Error processing image {filename1}: {e}")
-                            img1 = None
-                    img2 = None
-                    if os.path.exists(os.path.join(from_dir, filename2)):
-                        try:
-                            img2 = Image.open(os.path.join(from_dir, filename2))
-                            if img2.mode[0] == 'I':
-                                img2 = Image.fromarray(np.divide(np.array(img2), 2**8-1)).convert('L')
-                            elif img2.mode == 'P':
-                                img2 = img2.convert('L')
-                        except Exception as e:
-                            logger.error(f"Error processing image {filename2}: {e}")
-                            img2 = None
-                    # average two images
-                    #print("img1:", img1.mode, "img2:", img2.mode)
-                    if img1 is None or img2 is None:
-                        last_count = -1
-                        continue
-                    try:
-                        new_img_ops = ImageChops.add(img1, img2, scale=2.0)
-                        # resize to half
-                        new_img_ops = new_img_ops.resize((int(img1.width / 2), int(img1.height / 2)))
-                        # save to temporary directory
-                        new_img_ops.save(filename3)
-                    except Exception as e:
-                        logger.error(f"Error creating thumbnail {filename3}: {e}")
-                        continue
-
-                    if size < MAX_THUMBNAIL_SIZE:
-                        img_array = np.array(new_img_ops)
-                        #logger.info(f"Created new thumbnail, shape: {img_array.shape}")
-                        self.minimum_volume.append(img_array)
-
+            # Initialize thumbnail manager for multithreaded processing
+            # Always create a new thumbnail manager to ensure it uses the current progress_dialog
+            self.thumbnail_manager = ThumbnailManager(self, self.progress_dialog, self.threadpool)
+            
+            # Use multithreaded processing for this level
+            level_img_arrays, was_cancelled = self.thumbnail_manager.process_level(
+                i, from_dir, to_dir, seq_begin, seq_end, 
+                self.settings_hash, size, MAX_THUMBNAIL_SIZE, global_step_counter
+            )
+            
+            # Update global step counter based on actual progress made
+            global_step_counter = self.thumbnail_manager.global_step_counter
+            
+            # Add collected images to minimum_volume if within size limit
+            if size < MAX_THUMBNAIL_SIZE:
+                for img_array in level_img_arrays:
+                    self.minimum_volume.append(img_array)
+                logger.info(f"Level {i+1}: Added {len(level_img_arrays)} images to minimum_volume")
+            
+            # Check for cancellation
+            if was_cancelled or self.progress_dialog.is_cancelled:
+                logger.info("Thumbnail generation cancelled by user")
+                break
+            
+            # Set last_count for next level calculation (assume successful processing)
+            last_count = 0
+                
             i+= 1
             seq_end = int((seq_end - seq_begin) / 2) + seq_begin + last_count
             
@@ -2132,10 +2649,19 @@ class CTHarvesterMainWindow(QMainWindow):
                     #logger.info(f"Final volume shape: {bounding_box}")
                     # Check if we have a valid 3D volume
                     if len(bounding_box) >= 3:
-                        bounding_box = np.array([ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ])
-                        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
+                        # Calculate proper bounding box for current level
+                        smallest_level_idx = len(self.level_info) - 1
+                        level_diff = smallest_level_idx - self.curr_level_idx
+                        scale_factor = 2 ** level_diff
+                        
+                        scaled_depth = bounding_box[0] * scale_factor
+                        scaled_height = bounding_box[1] * scale_factor
+                        scaled_width = bounding_box[2] * scale_factor
+                        
+                        scaled_bounding_box = np.array([0, scaled_depth-1, 0, scaled_height-1, 0, scaled_width-1])
+                        curr_slice_val = self.slider.value()/float(self.slider.maximum()) * scaled_depth
 
-                        self.mcube_widget.update_boxes(bounding_box, bounding_box, curr_slice_val)
+                        self.mcube_widget.update_boxes(scaled_bounding_box, scaled_bounding_box, curr_slice_val)
                         self.mcube_widget.adjust_boxes()
                         self.mcube_widget.update_volume(self.minimum_volume)
                         self.mcube_widget.generate_mesh()
@@ -2152,6 +2678,15 @@ class CTHarvesterMainWindow(QMainWindow):
                 break
             
         QApplication.restoreOverrideCursor()
+        
+        # Show completion or cancellation message
+        if self.progress_dialog.is_cancelled:
+            self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation cancelled"))
+            self.progress_dialog.lbl_detail.setText("")
+        else:
+            self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
+            self.progress_dialog.lbl_detail.setText("")
+            
         self.progress_dialog.close()
         self.progress_dialog = None
         
@@ -2195,10 +2730,19 @@ class CTHarvesterMainWindow(QMainWindow):
                             # Update 3D view
                             bounding_box = self.minimum_volume.shape
                             if len(bounding_box) >= 3:
-                                bounding_box = np.array([ 0, bounding_box[0]-1, 0, bounding_box[1]-1, 0, bounding_box[2]-1 ])
-                                curr_slice_val = self.slider.value()/float(self.slider.maximum()) * self.minimum_volume.shape[0]
+                                # Calculate proper bounding box for current level
+                                smallest_level_idx = len(self.level_info) - 1
+                                level_diff = smallest_level_idx - self.curr_level_idx
+                                scale_factor = 2 ** level_diff
                                 
-                                self.mcube_widget.update_boxes(bounding_box, bounding_box, curr_slice_val)
+                                scaled_depth = bounding_box[0] * scale_factor
+                                scaled_height = bounding_box[1] * scale_factor
+                                scaled_width = bounding_box[2] * scale_factor
+                                
+                                scaled_bounding_box = np.array([0, scaled_depth-1, 0, scaled_height-1, 0, scaled_width-1])
+                                curr_slice_val = self.slider.value()/float(self.slider.maximum()) * scaled_depth
+                                
+                                self.mcube_widget.update_boxes(scaled_bounding_box, scaled_bounding_box, curr_slice_val)
                                 self.mcube_widget.adjust_boxes()
                                 self.mcube_widget.update_volume(self.minimum_volume)
                                 self.mcube_widget.generate_mesh()
