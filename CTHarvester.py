@@ -175,16 +175,16 @@ class ThumbnailWorkerSignals(QObject):
     """Signals for thumbnail worker threads"""
     finished = pyqtSignal()
     error = pyqtSignal(tuple)
-    result = pyqtSignal(object)  # (idx, img_array or None)
+    result = pyqtSignal(object)  # (idx, img_array or None, was_generated)
     progress = pyqtSignal(int)  # idx
 
 
 class ThumbnailWorker(QRunnable):
     """Worker thread for processing individual thumbnail image pairs"""
-    
-    def __init__(self, idx, seq, seq_begin, from_dir, to_dir, settings_hash, size, max_thumbnail_size, progress_dialog):
+
+    def __init__(self, idx, seq, seq_begin, from_dir, to_dir, settings_hash, size, max_thumbnail_size, progress_dialog, level=0):
         super(ThumbnailWorker, self).__init__()
-        
+
         self.idx = idx
         self.seq = seq
         self.seq_begin = seq_begin
@@ -195,6 +195,7 @@ class ThumbnailWorker(QRunnable):
         self.max_thumbnail_size = max_thumbnail_size
         self.progress_dialog = progress_dialog
         self.signals = ThumbnailWorkerSignals()
+        self.level = level  # Track which level this worker belongs to
         
         # Generate filenames
         self.filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
@@ -207,7 +208,7 @@ class ThumbnailWorker(QRunnable):
         import logging
         logger = logging.getLogger(__name__)
         
-        logger.debug(f"ThumbnailWorker.run: Starting worker for idx={self.idx}, seq={self.seq}")
+        logger.debug(f"ThumbnailWorker.run: Starting Level {self.level+1} worker for idx={self.idx}, seq={self.seq}")
         
         try:
             # Check for cancellation before starting work
@@ -216,10 +217,12 @@ class ThumbnailWorker(QRunnable):
                 return
                 
             img_array = None
-            
+            was_generated = False  # Track if we generated or loaded
+
             # Check if thumbnail already exists
             if os.path.exists(self.filename3):
                 logger.debug(f"Found existing thumbnail: {self.filename3}")
+                was_generated = False  # Loaded from disk
                 if self.size < self.max_thumbnail_size:
                     try:
                         img = Image.open(self.filename3)
@@ -233,6 +236,7 @@ class ThumbnailWorker(QRunnable):
                     return
                     
                 # Create new thumbnail
+                was_generated = True  # We're generating a new thumbnail
                 img1 = None
                 if os.path.exists(os.path.join(self.from_dir, self.filename1)):
                     try:
@@ -277,9 +281,9 @@ class ThumbnailWorker(QRunnable):
             # Emit progress signal first
             logger.debug(f"ThumbnailWorker.run: Emitting progress for idx={self.idx}")
             self.signals.progress.emit(self.idx)
-            # Then emit result
-            logger.debug(f"ThumbnailWorker.run: Emitting result for idx={self.idx}, has_image={img_array is not None}")
-            self.signals.result.emit((self.idx, img_array))
+            # Then emit result with generation flag
+            logger.debug(f"ThumbnailWorker.run: Emitting result for idx={self.idx}, has_image={img_array is not None}, was_generated={was_generated}")
+            self.signals.result.emit((self.idx, img_array, was_generated))
             
         except Exception as e:
             import traceback
@@ -293,13 +297,13 @@ class ThumbnailWorker(QRunnable):
 
 class ThumbnailManager(QObject):
     """Manager class to coordinate multiple thumbnail workers and progress tracking"""
-    
+
     def __init__(self, parent, progress_dialog, threadpool):
         super().__init__()
         self.parent = parent
         self.progress_dialog = progress_dialog
         self.threadpool = threadpool
-        
+
         # Progress tracking
         self.total_tasks = 0
         self.completed_tasks = 0
@@ -307,26 +311,131 @@ class ThumbnailManager(QObject):
         self.level = 0
         self.results = {}  # idx -> img_array
         self.is_cancelled = False
-        
+
         # Synchronization
         self.lock = QMutex()
-        
+
+        # Dynamic time estimation
+        self.sample_start_time = None
+        self.images_per_second = None
+        self.is_sampling = False
+
+        # Track actual generation vs loading
+        self.generated_count = 0  # Number of thumbnails actually generated
+        self.loaded_count = 0      # Number of thumbnails loaded from disk
+
+        # Get sample_size from parent if it exists (for first level sampling)
+        self.sample_size = getattr(parent, 'sample_size', 0)
+
+        # Inherit performance data from parent if exists (from previous levels)
+        if hasattr(parent, 'measured_images_per_second'):
+            self.images_per_second = parent.measured_images_per_second
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"ThumbnailManager created: sample_size={self.sample_size}, inherited speed={self.images_per_second:.1f} img/s")
+        else:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"ThumbnailManager created: sample_size={self.sample_size}, no inherited speed")
+
+    def update_eta_and_progress(self):
+        """Centralized method to update ETA and progress display"""
+        import time
+        import logging
+        logger = logging.getLogger(__name__)
+
+        if not self.progress_dialog or not hasattr(self.progress_dialog, 'lbl_detail'):
+            return
+
+        # Build progress detail text
+        detail_text = f"Level {self.level+1}: {self.completed_tasks}/{self.total_tasks}"
+
+        # If still sampling, show "Estimating..."
+        if self.is_sampling:
+            self.progress_dialog.lbl_detail.setText(f"Estimating... - {detail_text}")
+            return
+
+        # If we don't have performance data yet, just show progress
+        if self.images_per_second is None:
+            self.progress_dialog.lbl_detail.setText(detail_text)
+            return
+
+        # Calculate ETA based on current performance and global work amount
+        global_total = self.parent.progress_dialog.total_steps if hasattr(self.parent.progress_dialog, 'total_steps') else self.total_tasks
+        global_completed = self.global_step_counter  # This is the global counter, not per-level
+        global_remaining = global_total - global_completed
+
+        if global_remaining <= 0:
+            self.progress_dialog.lbl_detail.setText(f"Completing... - {detail_text}")
+            return
+
+        # Calculate blended speed based on global progress
+        # Since total_steps already includes weighted work (size-based),
+        # we use the speed as-is without level adjustment
+        elapsed_time = time.time() - self.parent.thumbnail_start_time if hasattr(self.parent, 'thumbnail_start_time') else 0
+        if elapsed_time > 0 and global_completed > 0:
+            # Actual speed in weighted units per second
+            actual_speed = global_completed / elapsed_time
+            # Blend with initial measured speed (also in weighted units)
+            progress_ratio = global_completed / global_total if global_total > 0 else 0
+            weight = min(0.7, progress_ratio * 0.7)  # Up to 70% weight on actual
+            blended_speed = actual_speed * weight + self.images_per_second * (1 - weight)
+        else:
+            blended_speed = self.images_per_second
+
+        # Calculate remaining time based on weighted work amount
+        remaining_time = global_remaining / blended_speed if blended_speed > 0 else 0
+
+        # Format ETA
+        if remaining_time < 60:
+            eta_text = f"{int(remaining_time)}s"
+        elif remaining_time < 3600:
+            eta_text = f"{int(remaining_time/60)}m {int(remaining_time%60)}s"
+        else:
+            eta_text = f"{int(remaining_time/3600)}h {int((remaining_time%3600)/60)}m"
+
+        # Update display
+        self.progress_dialog.lbl_detail.setText(f"ETA: {eta_text} - {detail_text}")
+
+        # Log periodically (every 10% of progress)
+        if self.completed_tasks % max(1, int(self.total_tasks * 0.1)) == 0:
+            logger.debug(f"Progress update: ETA={eta_text}, {detail_text}, speed={blended_speed:.1f} img/s")
+
     def process_level(self, level, from_dir, to_dir, seq_begin, seq_end, settings_hash, size, max_thumbnail_size, global_step_offset):
         """Process a complete thumbnail level using multiple worker threads"""
         import logging
+        import time
         logger = logging.getLogger(__name__)
-        
+
         self.level = level
         self.global_step_counter = global_step_offset
+
+        # Get weight factor for this level from parent's level_work_distribution
+        self.level_weight = 1.0  # Default
+        if hasattr(self.parent, 'level_work_distribution'):
+            for level_info in self.parent.level_work_distribution:
+                if level_info['level'] == level + 1:  # level is 0-indexed, but stored as 1-indexed
+                    self.level_weight = level_info['weight']
+                    logger.info(f"Level {level+1}: Using weight factor {self.level_weight:.2f}")
+                    break
         self.results.clear()
         self.is_cancelled = False
-        
+
         # Calculate number of tasks
         total_count = seq_end - seq_begin + 1
         num_tasks = int(total_count / 2)
         self.total_tasks = num_tasks
         self.completed_tasks = 0
-        
+
+        # Enable sampling for level 0 (first level)
+        logger.info(f"Sampling check: level={level}, sample_size={self.sample_size}")
+        if level == 0 and self.sample_size > 0:
+            self.is_sampling = True
+            self.sample_start_time = time.time()
+            logger.info(f"Level {level+1}: Starting with performance sampling (first {self.sample_size} images)")
+        else:
+            logger.info(f"Not sampling: level={level} (need 0), sample_size={self.sample_size} (need >0)")
+
         logger.info(f"ThumbnailManager.process_level: Starting Level {level+1}, tasks={num_tasks}, offset={global_step_offset}")
         logger.debug(f"ThreadPool: maxThreadCount={self.threadpool.maxThreadCount()}, activeThreadCount={self.threadpool.activeThreadCount()}")
         
@@ -334,6 +443,16 @@ class ThumbnailManager(QObject):
         if self.threadpool.maxThreadCount() < 4:
             self.threadpool.setMaxThreadCount(4)
             logger.info(f"Increased threadpool max threads to {self.threadpool.maxThreadCount()}")
+
+        # Wait for any previous level's workers to complete
+        if self.threadpool.activeThreadCount() > 0:
+            logger.info(f"Waiting for {self.threadpool.activeThreadCount()} active threads from previous level to complete...")
+            wait_start = time.time()
+            while self.threadpool.activeThreadCount() > 0 and time.time() - wait_start < 30:
+                QApplication.processEvents()
+                QThread.msleep(100)
+            if self.threadpool.activeThreadCount() > 0:
+                logger.warning(f"Still {self.threadpool.activeThreadCount()} active threads after 30s wait")
         
         # Create and submit workers
         workers_submitted = 0
@@ -344,10 +463,10 @@ class ThumbnailManager(QObject):
                 
             seq = seq_begin + (idx * 2)
             
-            # Create worker
+            # Create worker with level information
             worker = ThumbnailWorker(
-                idx, seq, seq_begin, from_dir, to_dir, 
-                settings_hash, size, max_thumbnail_size, self.progress_dialog
+                idx, seq, seq_begin, from_dir, to_dir,
+                settings_hash, size, max_thumbnail_size, self.progress_dialog, level
             )
             
             # Connect signals with Qt.QueuedConnection to ensure thread safety
@@ -370,22 +489,40 @@ class ThumbnailManager(QObject):
         # Wait for all workers to complete or cancellation
         import time
         start_wait = time.time()
-        timeout = 300  # 5 minutes timeout for large operations
         last_progress_log = time.time()
-        
+        last_detailed_log = time.time()
+        stalled_count = 0
+        last_completed_count = self.completed_tasks
+
         while self.completed_tasks < self.total_tasks and not self.progress_dialog.is_cancelled:
             QApplication.processEvents()
-            
+
+            current_time = time.time()
+
             # Log progress periodically
-            if time.time() - last_progress_log > 2:  # Every 2 seconds
-                logger.debug(f"Progress: {self.completed_tasks}/{self.total_tasks} tasks completed, active threads: {self.threadpool.activeThreadCount()}")
-                last_progress_log = time.time()
-            
-            # Check timeout
-            if time.time() - start_wait > timeout:
-                logger.warning(f"Timeout waiting for level {level+1} workers to complete after {timeout}s")
-                break
-                
+            if current_time - last_progress_log > 5:  # Every 5 seconds
+                active_threads = self.threadpool.activeThreadCount()
+                elapsed = current_time - start_wait
+                progress_pct = (self.completed_tasks / self.total_tasks * 100) if self.total_tasks > 0 else 0
+
+                logger.debug(f"Level {level+1}: {self.completed_tasks}/{self.total_tasks} ({progress_pct:.1f}%) completed, "
+                           f"{active_threads} active threads, elapsed: {elapsed:.1f}s")
+                last_progress_log = current_time
+
+                # Check if progress is stalled
+                if self.completed_tasks == last_completed_count:
+                    stalled_count += 1
+                    if stalled_count >= 12:  # No progress for 60 seconds
+                        logger.warning(f"Level {level+1}: No progress for 60 seconds. {active_threads} threads still active")
+                        # Log more details every 30 seconds when stalled
+                        if current_time - last_detailed_log > 30:
+                            logger.info(f"Level {level+1} status: {self.completed_tasks}/{self.total_tasks} tasks completed after {elapsed:.1f}s")
+                            logger.info(f"Consider checking disk I/O performance or available storage space")
+                            last_detailed_log = current_time
+                else:
+                    stalled_count = 0
+                    last_completed_count = self.completed_tasks
+
             QThread.msleep(10)  # Reduced delay for better responsiveness
         
         if self.progress_dialog.is_cancelled:
@@ -411,8 +548,22 @@ class ThumbnailManager(QObject):
             if idx in self.results and self.results[idx] is not None:
                 img_arrays.append(self.results[idx])
         
+        # Log final statistics for this level
+        total_time = time.time() - start_wait
         if not self.is_cancelled:
-            logger.info(f"ThumbnailManager.process_level: Level {level+1} completed successfully, collected {len(img_arrays)} images")
+            avg_time_per_task = total_time / self.total_tasks if self.total_tasks > 0 else 0
+            tasks_per_second = self.total_tasks / total_time if total_time > 0 else 0
+            generation_ratio = self.generated_count / self.total_tasks * 100 if self.total_tasks > 0 else 0
+
+            logger.info(f"ThumbnailManager.process_level: Level {level+1} completed successfully")
+            logger.info(f"  - Tasks completed: {self.completed_tasks}/{self.total_tasks}")
+            logger.info(f"  - Generated: {self.generated_count}, Loaded: {self.loaded_count} ({generation_ratio:.1f}% generated)")
+            logger.info(f"  - Images collected: {len(img_arrays)}")
+            logger.info(f"  - Total time: {total_time:.2f}s")
+            logger.info(f"  - Average: {avg_time_per_task:.3f}s per task, {tasks_per_second:.1f} tasks/second")
+
+            # Store generation ratio for coefficient calculation decision
+            self.generation_ratio = generation_ratio
         
         return img_arrays, self.is_cancelled
     
@@ -421,30 +572,180 @@ class ThumbnailManager(QObject):
         """Handle progress updates from worker threads"""
         import logging
         logger = logging.getLogger(__name__)
-        
+
         with QMutexLocker(self.lock):
-            self.global_step_counter += 1
+            # Increment by weight factor to account for different processing costs per level
+            self.global_step_counter += self.level_weight
             current_step = self.global_step_counter
-            
-        # Update UI in main thread
-        detail_text = f"Level {self.level+1}: Image {idx+1}/{self.total_tasks}"
-        logger.debug(f"ThumbnailManager.on_worker_progress: Level {self.level+1}, idx={idx}, step={current_step}, detail={detail_text}")
+
+        # Update progress bar
         self.progress_dialog.lbl_text.setText(f"Generating thumbnails")
-        self.progress_dialog.update_unified_progress(current_step, detail_text)
+        if hasattr(self.parent.progress_dialog, 'total_steps') and self.parent.progress_dialog.total_steps > 0:
+            percentage = int((current_step / self.parent.progress_dialog.total_steps) * 100)
+            self.progress_dialog.pb_progress.setValue(percentage)
+
+        # Use centralized ETA and progress update
+        self.update_eta_and_progress()
+
+        # Process events periodically to keep UI responsive
+        if current_step % 10 == 0:
+            QApplication.processEvents()
+
+        logger.debug(f"ThumbnailManager.on_worker_progress: Level {self.level+1}, idx={idx}, step={current_step}")
     
     @pyqtSlot(object)
     def on_worker_result(self, result):
         """Handle results from worker threads"""
         import logging
+        import time
         logger = logging.getLogger(__name__)
-        
-        idx, img_array = result
+
+        # Unpack result with generation flag
+        if len(result) == 3:
+            idx, img_array, was_generated = result
+        else:
+            # Backward compatibility
+            idx, img_array = result
+            was_generated = False
+
         with QMutexLocker(self.lock):
             self.results[idx] = img_array
             self.completed_tasks += 1
             completed = self.completed_tasks
             total = self.total_tasks
-            
+
+            # Track generation vs loading
+            if was_generated:
+                self.generated_count += 1
+            else:
+                self.loaded_count += 1
+
+            # Multi-stage sampling for better accuracy
+            # Stage 1: Initial sampling (first sample_size images)
+            if self.is_sampling and self.level == 0 and completed == self.sample_size:
+                sample_elapsed = time.time() - self.sample_start_time
+                time_per_image = sample_elapsed / self.sample_size
+
+                # First estimate
+                level1_time = total * time_per_image
+                total_estimate = level1_time
+                remaining_time = level1_time
+                for i in range(1, self.parent.total_levels):
+                    remaining_time *= 0.25
+                    total_estimate += remaining_time
+
+                if total_estimate < 60:
+                    formatted = f"{int(total_estimate)}s"
+                elif total_estimate < 3600:
+                    formatted = f"{int(total_estimate/60)}m {int(total_estimate%60)}s"
+                else:
+                    formatted = f"{int(total_estimate/3600)}h {int((total_estimate%3600)/60)}m"
+
+                logger.info(f"=== Stage 1 Sampling ({self.sample_size} images in {sample_elapsed:.2f}s) ===")
+                logger.info(f"Speed: {time_per_image:.3f}s per image")
+                logger.info(f"Initial estimate: {formatted} ({total_estimate:.1f}s)")
+
+                # Store for comparison
+                self.stage1_estimate = total_estimate
+                self.stage1_speed = time_per_image
+
+            # Stage 2: Extended sampling (after 2x sample_size)
+            elif self.is_sampling and self.level == 0 and completed == self.sample_size * 2:
+                sample_elapsed = time.time() - self.sample_start_time
+                time_per_image = sample_elapsed / (self.sample_size * 2)
+
+                # Second estimate
+                level1_time = total * time_per_image
+                total_estimate = level1_time
+                remaining_time = level1_time
+                for i in range(1, self.parent.total_levels):
+                    remaining_time *= 0.25
+                    total_estimate += remaining_time
+
+                if total_estimate < 60:
+                    formatted = f"{int(total_estimate)}s"
+                elif total_estimate < 3600:
+                    formatted = f"{int(total_estimate/60)}m {int(total_estimate%60)}s"
+                else:
+                    formatted = f"{int(total_estimate/3600)}h {int((total_estimate%3600)/60)}m"
+
+                logger.info(f"=== Stage 2 Sampling ({self.sample_size * 2} images in {sample_elapsed:.2f}s) ===")
+                logger.info(f"Speed: {time_per_image:.3f}s per image")
+                logger.info(f"Revised estimate: {formatted} ({total_estimate:.1f}s)")
+
+                # Compare with stage 1
+                if hasattr(self, 'stage1_estimate'):
+                    diff_percent = ((total_estimate - self.stage1_estimate) / self.stage1_estimate) * 100
+                    logger.info(f"Difference from stage 1: {diff_percent:+.1f}%")
+                    speed_change = ((time_per_image - self.stage1_speed) / self.stage1_speed) * 100
+                    logger.info(f"Speed change: {speed_change:+.1f}%")
+
+                # Store stage 2 results
+                self.stage2_estimate = total_estimate
+
+            # Stage 3: Final sampling (after 3x sample_size)
+            elif self.is_sampling and self.level == 0 and completed >= self.sample_size * 3:
+                sample_elapsed = time.time() - self.sample_start_time
+
+                # Calculate weighted units per second
+                weighted_units_completed = (self.sample_size * 3) * self.level_weight
+                self.images_per_second = weighted_units_completed / sample_elapsed if sample_elapsed > 0 else 20
+
+                # Calculate time per image from sampling
+                time_per_image = sample_elapsed / (self.sample_size * 3)
+
+                # Final estimate
+                level1_time = total * time_per_image
+                total_estimate = level1_time
+                remaining_time = level1_time
+                for i in range(1, self.parent.total_levels):
+                    remaining_time *= 0.25
+                    total_estimate += remaining_time
+
+                logger.info(f"=== Stage 3 Sampling ({self.sample_size * 3} images in {sample_elapsed:.2f}s) ===")
+                logger.info(f"Speed: {time_per_image:.3f}s per image")
+                logger.info(f"Performance sampling complete: {self.images_per_second:.1f} weighted units/second")
+
+                # Compare all stages
+                if hasattr(self, 'stage1_estimate') and hasattr(self, 'stage2_estimate'):
+                    logger.info(f"Estimate progression: Stage1={self.stage1_estimate:.1f}s -> Stage2={self.stage2_estimate:.1f}s -> Stage3={total_estimate:.1f}s")
+
+                    # If estimates are increasing significantly, apply adjustment
+                    if total_estimate > self.stage1_estimate * 1.5:
+                        # Trend suggests further slowdown, apply correction
+                        trend_factor = total_estimate / self.stage1_estimate
+                        adjusted_estimate = total_estimate * (1 + (trend_factor - 1) * 0.3)  # Apply 30% of the trend
+                        logger.info(f"Trend adjustment applied: {total_estimate:.1f}s -> {adjusted_estimate:.1f}s")
+                        total_estimate = adjusted_estimate
+
+                storage_type = 'SSD' if self.images_per_second > 10 else 'HDD' if self.images_per_second > 2 else 'Network/Slow'
+                drive_label = f"{self.parent.current_drive}" if hasattr(self.parent, 'current_drive') else "unknown"
+                logger.info(f"Drive {drive_label} estimated as: {storage_type}")
+
+                # Log the final estimated time
+                if total_estimate < 60:
+                    formatted_estimate = f"{int(total_estimate)}s"
+                elif total_estimate < 3600:
+                    formatted_estimate = f"{int(total_estimate/60)}m {int(total_estimate%60)}s"
+                else:
+                    formatted_estimate = f"{int(total_estimate/3600)}h {int((total_estimate%3600)/60)}m"
+                logger.info(f"=== FINAL ESTIMATED TOTAL TIME: {formatted_estimate} ===")
+
+                # Store sampled estimate for comparison
+                self.parent.sampled_estimate_seconds = total_estimate
+                self.parent.sampled_estimate_str = formatted_estimate
+
+                # Update parent's estimate and save performance data for next levels
+                self.parent.estimated_time_per_image = 1.0 / self.images_per_second if self.images_per_second > 0 else 0.05
+                self.parent.estimated_total_time = total_estimate
+                self.parent.measured_images_per_second = self.images_per_second
+
+                self.is_sampling = False
+                logger.info(f"Multi-stage sampling completed")
+
+            # Always update ETA and progress display
+            self.update_eta_and_progress()
+
         # Just log the result, don't update UI (already done in on_worker_progress)
         logger.debug(f"ThumbnailManager.on_worker_result: Level {self.level+1}, completed={completed}/{total}, has_image={img_array is not None}")
     
@@ -1293,14 +1594,17 @@ class ProgressDialog(QDialog):
         self.total_steps = 0
         self.current_step = 0
         
-        # Advanced ETA calculation
+        # Advanced ETA calculation with improved stability
         from collections import deque
-        self.step_times = deque(maxlen=50)  # Keep last 50 step times
+        self.step_times = deque(maxlen=100)  # Keep last 100 step times for better averaging
         self.last_update_time = None
         self.smoothed_eta = None  # Exponentially smoothed ETA
-        self.ema_alpha = 0.3  # EMA smoothing factor (0.3 = 30% new, 70% old)
-        self.min_samples_for_eta = 5  # Minimum samples before showing ETA
+        self.ema_alpha = 0.1  # Reduced EMA smoothing factor for more stability (0.1 = 10% new, 90% old)
+        self.min_samples_for_eta = 10  # Increased minimum samples before showing ETA
         self.step_history = []  # Store (timestamp, step_number) tuples
+        self.last_eta_update = 0  # Track last ETA update time
+        self.eta_update_interval = 1.0  # Update ETA at most once per second
+        self.velocity_history = deque(maxlen=30)  # Track processing velocity
 
     def set_cancelled(self):
         self.is_cancelled = True
@@ -1322,25 +1626,42 @@ class ProgressDialog(QDialog):
         self.update()
         QApplication.processEvents()
 
-    def setup_unified_progress(self, total_steps):
-        """Setup for unified progress tracking"""
+    def setup_unified_progress(self, total_steps, initial_estimate_seconds=None):
+        """Setup for unified progress tracking with optional initial estimate"""
         import time
         import logging
         from collections import deque
         logger = logging.getLogger(__name__)
-        
+
         self.total_steps = total_steps
         self.current_step = 0
         self.start_time = time.time()
         self.last_update_time = self.start_time
         self.pb_progress.setMaximum(100)
         self.pb_progress.setValue(0)
-        
+
         # Reset ETA calculation state
-        self.step_times = deque(maxlen=50)
-        self.smoothed_eta = None
+        from collections import deque
+        self.step_times = deque(maxlen=100)
+        self.smoothed_eta = initial_estimate_seconds  # Use provided initial estimate
         self.step_history = []
-        
+        self.velocity_history = deque(maxlen=30)
+        self.last_eta_update = 0
+
+        # Display initial estimate if provided, otherwise show "Estimating..."
+        if initial_estimate_seconds:
+            if initial_estimate_seconds < 60:
+                eta_text = f"{int(initial_estimate_seconds)}s"
+            elif initial_estimate_seconds < 3600:
+                eta_text = f"{int(initial_estimate_seconds/60)}m {int(initial_estimate_seconds%60)}s"
+            else:
+                eta_text = f"{int(initial_estimate_seconds/3600)}h {int((initial_estimate_seconds%3600)/60)}m"
+            self.lbl_detail.setText(f"ETA: {eta_text}")
+            logger.info(f"ProgressDialog initial ETA: {eta_text} ({initial_estimate_seconds:.1f}s)")
+        else:
+            self.lbl_detail.setText("Estimating...")
+            logger.info("ProgressDialog showing 'Estimating...' until sampling completes")
+
         logger.info(f"ProgressDialog.setup_unified_progress: total_steps={total_steps}")
         
     def update_unified_progress(self, step, detail_text=""):
@@ -1349,14 +1670,14 @@ class ProgressDialog(QDialog):
         import logging
         import numpy as np
         logger = logging.getLogger(__name__)
-        
+
         current_time = time.time()
         self.current_step = step
-        
+
         if self.total_steps > 0:
             percentage = int((self.current_step / self.total_steps) * 100)
             self.pb_progress.setValue(percentage)
-            
+
             # Record step timing (skip first few for warm-up)
             if self.last_update_time and step > 3:  # Skip first 3 steps for warm-up
                 step_duration = current_time - self.last_update_time
@@ -1364,16 +1685,29 @@ class ProgressDialog(QDialog):
                 if len(self.step_times) == 0 or step_duration < np.median(list(self.step_times)) * 5:
                     self.step_times.append(step_duration)
                     self.step_history.append((current_time, step))
+
+            # Don't calculate ETA here - it will be set externally by ThumbnailManager
+            # after sampling or periodic updates
+            # Just keep the existing text if no new one is provided
+            current_text = self.lbl_detail.text()
+            if not current_text.startswith("ETA:") and not current_text == "Estimating...":
+                # Only calculate if we don't have an externally set ETA
+                eta_text = self._calculate_eta(current_time)
+                if eta_text:
+                    self.lbl_detail.setText(f"ETA: {eta_text} - {detail_text}")
+                else:
+                    self.lbl_detail.setText(detail_text)
+            elif detail_text:
+                # Keep existing ETA, just update detail text
+                if "ETA:" in current_text:
+                    eta_part = current_text.split(" - ")[0] if " - " in current_text else current_text
+                    self.lbl_detail.setText(f"{eta_part} - {detail_text}")
+                else:
+                    self.lbl_detail.setText(f"{current_text} - {detail_text}")
             
-            # Calculate sophisticated ETA
-            eta_text = self._calculate_eta(current_time)
-            
-            if eta_text:
-                self.lbl_detail.setText(f"ETA: {eta_text} - {detail_text}")
-            else:
-                self.lbl_detail.setText(detail_text)
-            
-            logger.debug(f"ProgressDialog.update: step={step}/{self.total_steps}, {percentage}%, ETA={eta_text}, {detail_text}")
+            # Log current state
+            current_eta = self.lbl_detail.text().split(" - ")[0] if " - " in self.lbl_detail.text() else self.lbl_detail.text()
+            logger.debug(f"ProgressDialog.update: step={step}/{self.total_steps}, {percentage}%, {current_eta}, {detail_text}")
             
         self.last_update_time = current_time
         self.update()
@@ -1383,62 +1717,105 @@ class ProgressDialog(QDialog):
             QApplication.processEvents()
     
     def _calculate_eta(self, current_time):
-        """Calculate ETA using multiple methods for stability"""
+        """Calculate ETA using multiple methods with improved stability"""
         import numpy as np
-        
+
         remaining_steps = self.total_steps - self.current_step
         if remaining_steps <= 0:
             return None
-            
-        # Method 1: Moving average of recent step times
+
+        # Don't update ETA too frequently to avoid jitter
+        if current_time - self.last_eta_update < self.eta_update_interval:
+            # Return last calculated ETA formatted
+            if self.smoothed_eta:
+                eta_seconds = max(0, self.smoothed_eta)
+                if eta_seconds < 60:
+                    return f"{int(eta_seconds)}s"
+                elif eta_seconds < 3600:
+                    return f"{int(eta_seconds/60)}m {int(eta_seconds%60)}s"
+                else:
+                    return f"{int(eta_seconds/3600)}h {int((eta_seconds%3600)/60)}m"
+            return None
+
+        self.last_eta_update = current_time
+
+        # Calculate current velocity
+        if len(self.step_history) >= 2:
+            recent_time = self.step_history[-1][0] - self.step_history[-2][0]
+            recent_steps = self.step_history[-1][1] - self.step_history[-2][1]
+            if recent_time > 0 and recent_steps > 0:
+                current_velocity = recent_steps / recent_time
+                self.velocity_history.append(current_velocity)
+
+        # Method 1: Stable moving average of step times
         if len(self.step_times) >= self.min_samples_for_eta:
-            # Use weighted average giving more weight to recent samples
-            weights = np.linspace(0.5, 1.0, len(self.step_times))
-            weighted_avg_time = np.average(list(self.step_times), weights=weights)
-            eta_moving_avg = weighted_avg_time * remaining_steps
+            # Use trimmed mean to remove outliers
+            sorted_times = sorted(list(self.step_times))
+            trim_count = max(1, len(sorted_times) // 10)  # Trim 10% from each end
+            trimmed_times = sorted_times[trim_count:-trim_count] if len(sorted_times) > 2 * trim_count else sorted_times
+            avg_step_time = np.mean(trimmed_times) if trimmed_times else np.mean(sorted_times)
+            eta_moving_avg = avg_step_time * remaining_steps
         else:
             eta_moving_avg = None
-        
-        # Method 2: Overall average from start
+
+        # Method 2: Overall average from start (most stable)
         if self.current_step > 0:
             elapsed = current_time - self.start_time
             eta_overall = (elapsed / self.current_step) * remaining_steps
         else:
             eta_overall = None
-        
-        # Method 3: Recent velocity (last 10 steps)
-        if len(self.step_history) >= 10:
-            recent_history = self.step_history[-10:]
-            time_span = recent_history[-1][0] - recent_history[0][0]
-            steps_done = recent_history[-1][1] - recent_history[0][1]
-            if steps_done > 0:
-                velocity = steps_done / time_span
-                eta_velocity = remaining_steps / velocity
+
+        # Method 3: Smoothed velocity (last 30 velocity samples)
+        if len(self.velocity_history) >= 5:
+            # Use median velocity for stability
+            median_velocity = np.median(list(self.velocity_history))
+            if median_velocity > 0:
+                eta_velocity = remaining_steps / median_velocity
             else:
                 eta_velocity = None
         else:
             eta_velocity = None
-        
-        # Combine estimates with exponential smoothing
-        estimates = [e for e in [eta_moving_avg, eta_overall, eta_velocity] if e is not None]
-        
+
+        # Combine estimates with weighted average
+        estimates = []
+        weights = []
+
+        if eta_overall is not None:
+            estimates.append(eta_overall)
+            weights.append(0.5)  # Most stable, highest weight
+
+        if eta_moving_avg is not None:
+            estimates.append(eta_moving_avg)
+            weights.append(0.3)  # Second most stable
+
+        if eta_velocity is not None:
+            estimates.append(eta_velocity)
+            weights.append(0.2)  # Most responsive but less stable
+
         if not estimates:
             return None
-            
-        # Use median for robustness
-        current_estimate = np.median(estimates)
-        
-        # Apply exponential smoothing to reduce fluctuation
+
+        # Weighted average instead of median for smoother transitions
+        current_estimate = np.average(estimates, weights=weights[:len(estimates)])
+
+        # Apply stronger exponential smoothing
         if self.smoothed_eta is None:
             self.smoothed_eta = current_estimate
         else:
-            # Smooth the estimate to avoid jumps
-            self.smoothed_eta = (self.ema_alpha * current_estimate + 
-                                (1 - self.ema_alpha) * self.smoothed_eta)
-        
+            # Limit the change rate to prevent jumps
+            max_change_rate = 0.2  # Maximum 20% change per update
+            change = current_estimate - self.smoothed_eta
+            max_change = self.smoothed_eta * max_change_rate
+
+            if abs(change) > max_change:
+                change = max_change if change > 0 else -max_change
+
+            # Apply limited change with EMA
+            self.smoothed_eta = self.smoothed_eta + self.ema_alpha * change
+
         # Format time
-        eta_seconds = max(0, self.smoothed_eta)  # Never show negative
-        
+        eta_seconds = max(0, self.smoothed_eta)
+
         if eta_seconds < 60:
             return f"{int(eta_seconds)}s"
         elif eta_seconds < 3600:
@@ -2615,7 +2992,7 @@ class CTHarvesterMainWindow(QMainWindow):
         """Calculate total number of operations for all LoD levels with size weighting"""
         import logging
         logger = logging.getLogger(__name__)
-        
+
         total_work = 0
         weighted_work = 0  # Work weighted by image size
         temp_seq_begin = seq_begin
@@ -2624,26 +3001,42 @@ class CTHarvesterMainWindow(QMainWindow):
         level_count = 0
         level_details = []
         self.level_sizes = []  # Store size info for each level
-        
+        self.level_work_distribution = []  # Store work distribution per level
+
         while temp_size >= max_size:
             temp_size /= 2
             level_count += 1
             # Each level processes half the images from previous level
             images_to_process = (temp_seq_end - temp_seq_begin + 1) // 2 + 1
             total_work += images_to_process
-            
+
             # Weight by relative image size (smaller images process faster)
             size_factor = (temp_size / size) ** 2  # Quadratic because it's 2D
+
+            # Additional weight for first level due to reading original images from disk
+            if level_count == 1:
+                size_factor *= 1.5  # First level is 50% slower due to I/O overhead
+
             weighted_work += images_to_process * size_factor
-            
+
             level_details.append(f"Level {level_count}: {images_to_process} images, size={int(temp_size)}px, weight={size_factor:.2f}")
             self.level_sizes.append((level_count, temp_size, images_to_process))
+            self.level_work_distribution.append({
+                'level': level_count,
+                'images': images_to_process,
+                'size': int(temp_size),
+                'weight': size_factor
+            })
             temp_seq_end = int((temp_seq_end - temp_seq_begin) / 2) + temp_seq_begin
-        
-        logger.info(f"Thumbnail work: {level_count} levels, {total_work} operations, weighted={weighted_work:.1f}")
+
+        # Store total level count for better estimation
+        self.total_levels = level_count
+
+        logger.info(f"Thumbnail generation will create {level_count} levels")
+        logger.info(f"Total operations: {total_work}, Weighted work: {weighted_work:.1f}")
         for detail in level_details:
-            logger.debug(f"  {detail}")
-            
+            logger.info(f"  {detail}")
+
         # Return both for compatibility, store weighted for internal use
         self.weighted_total_work = weighted_work
         return total_work
@@ -2654,11 +3047,21 @@ class CTHarvesterMainWindow(QMainWindow):
         Creates a thumbnail of the image sequence by downsampling the images and averaging them.
         The resulting thumbnail is saved in a temporary directory and used to generate a mesh for visualization.
         """
+        import time
+        from datetime import datetime
+
+        # Start timing for entire thumbnail generation
+        self.thumbnail_start_time = time.time()  # Store as instance variable for access in ThumbnailManager
+        thumbnail_start_time = self.thumbnail_start_time  # Keep local variable for backward compatibility
+        thumbnail_start_datetime = datetime.now()
+
         MAX_THUMBNAIL_SIZE = 512
         size =  max(int(self.settings_hash['image_width']), int(self.settings_hash['image_height']))
         width = int(self.settings_hash['image_width'])
         height = int(self.settings_hash['image_height'])
-        #logger.info(f"Image dimensions: size={size}, width={width}, height={height}, MAX_THUMBNAIL_SIZE={MAX_THUMBNAIL_SIZE}")
+        logger.info(f"=== Starting thumbnail generation ===")
+        logger.info(f"Start time: {thumbnail_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
+        logger.info(f"Image dimensions: width={width}, height={height}, size={size}")
 
         i = 0
         # create temporary directory for thumbnail
@@ -2667,36 +3070,57 @@ class CTHarvesterMainWindow(QMainWindow):
         self.minimum_volume = []
         seq_begin = self.settings_hash['seq_begin']
         seq_end = self.settings_hash['seq_end']
-        #logger.info(f"Processing sequence: {seq_begin} to {seq_end}, directory: {dirname}")
+        logger.info(f"Processing sequence: {seq_begin} to {seq_end}, directory: {dirname}")
         
         # Calculate total work amount for all LoD levels
         total_work = self.calculate_total_thumbnail_work(seq_begin, seq_end, size, MAX_THUMBNAIL_SIZE)
-        
-        # Estimate time based on average of 50ms per image
-        estimated_seconds = total_work * 0.05
-        if estimated_seconds < 60:
-            time_estimate = f"{int(estimated_seconds)}s"
-        elif estimated_seconds < 3600:
-            time_estimate = f"{int(estimated_seconds/60)}m {int(estimated_seconds%60)}s"
-        else:
-            time_estimate = f"{int(estimated_seconds/3600)}h {int((estimated_seconds%3600)/60)}m"
-        
-        logger.info(f"Starting thumbnail generation: {total_work} operations, estimated time: {time_estimate}")
+
+        # Don't show initial estimate - will show "Estimating..." instead
+        estimated_seconds = None  # Will be calculated after sampling
+        time_estimate = "Estimating..."  # Show this initially
+
+        # Store initial estimates for comparison at the end
+        self.initial_estimate_seconds = 0  # No initial estimate since we're using sampling
+        self.initial_estimate_str = time_estimate
+        self.sampled_estimate_seconds = None  # Will be updated after sampling
+        self.sampled_estimate_str = None
+
+        logger.info(f"Starting thumbnail generation: {self.total_levels} levels, {total_work} operations")
+        logger.info(f"Initial estimate: {time_estimate} (will be refined after sampling)")
 
         current_count = 0
         global_step_counter = 0  # Track overall progress
+
+        # Variables for dynamic time estimation
+        # For 3-stage sampling, we need at least 3x the base sample size
+        base_sample = max(20, min(30, int(total_work * 0.02)))  # Base: 20-30 images
+        self.sample_size = base_sample  # This is the base unit for each stage
+        total_sample = base_sample * 3  # Total samples across all stages
+        logger.info(f"Multi-stage sampling: {base_sample} images per stage, {total_sample} total images")
         self.progress_dialog = ProgressDialog(self)
         self.progress_dialog.update_language()
         self.progress_dialog.setModal(True)
         self.progress_dialog.show()
         
-        # Setup unified progress
-        self.progress_dialog.setup_unified_progress(total_work)
+        # Setup unified progress with weighted work amount
+        # Use weighted_total_work if available for accurate progress tracking
+        progress_total = self.weighted_total_work if hasattr(self, 'weighted_total_work') else total_work
+        self.progress_dialog.setup_unified_progress(progress_total, None)  # Pass None to show "Estimating..."
         self.progress_dialog.lbl_text.setText(self.tr("Generating thumbnails"))
+        self.progress_dialog.lbl_detail.setText("Estimating...")
+
+        # Pass level work distribution to progress dialog for better ETA calculation
+        if hasattr(self, 'level_work_distribution'):
+            self.progress_dialog.level_work_distribution = self.level_work_distribution
+            self.progress_dialog.weighted_total_work = self.weighted_total_work
         
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
         while True:
+            # Start timing for this level
+            level_start_time = time.time()
+            level_start_datetime = datetime.now()
+
             size /= 2
             width = int(width / 2)
             height = int(height / 2)
@@ -2707,26 +3131,36 @@ class CTHarvesterMainWindow(QMainWindow):
                 from_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i))
 
             total_count = seq_end - seq_begin + 1
-            
+
             # create thumbnail
             to_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i+1))
             if not os.path.exists(to_dir):
                 os.makedirs(to_dir)
             last_count = 0
 
+            logger.info(f"--- Level {i+1} ---")
+            logger.info(f"Level {i+1} start time: {level_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
+            logger.info(f"Level {i+1}: Processing {total_count} images (size: {int(size)}x{int(size)})")
+
             # Initialize thumbnail manager for multithreaded processing
             # Always create a new thumbnail manager to ensure it uses the current progress_dialog
             self.thumbnail_manager = ThumbnailManager(self, self.progress_dialog, self.threadpool)
-            
+
             # Use multithreaded processing for this level
             level_img_arrays, was_cancelled = self.thumbnail_manager.process_level(
-                i, from_dir, to_dir, seq_begin, seq_end, 
+                i, from_dir, to_dir, seq_begin, seq_end,
                 self.settings_hash, size, MAX_THUMBNAIL_SIZE, global_step_counter
             )
-            
+
+            # Calculate and log time for this level
+            level_end_datetime = datetime.now()
+            level_elapsed = time.time() - level_start_time
+            logger.info(f"Level {i+1} end time: {level_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
+            logger.info(f"Level {i+1}: Completed in {level_elapsed:.2f} seconds")
+
             # Update global step counter based on actual progress made
             global_step_counter = self.thumbnail_manager.global_step_counter
-            
+
             # Add collected images to minimum_volume if within size limit
             if size < MAX_THUMBNAIL_SIZE:
                 for img_array in level_img_arrays:
@@ -2794,15 +3228,67 @@ class CTHarvesterMainWindow(QMainWindow):
                 break
             
         QApplication.restoreOverrideCursor()
-        
+
+        # Calculate and log total time for entire thumbnail generation
+        thumbnail_end_datetime = datetime.now()
+        total_elapsed = time.time() - thumbnail_start_time
+
+        logger.info(f"=== Thumbnail generation completed ===")
+        logger.info(f"End time: {thumbnail_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
+        logger.info(f"Total duration: {total_elapsed:.2f} seconds ({total_elapsed/60:.2f} minutes)")
+        logger.info(f"Total levels processed: {i + 1}")
+        if total_elapsed > 0:
+            images_per_second = total_work / total_elapsed if 'total_work' in locals() else 0
+            logger.info(f"Average processing speed: {images_per_second:.1f} images/second")
+
+        # Compare estimated vs actual time
+        logger.info(f"=== Time Estimation Accuracy ===")
+        if self.initial_estimate_seconds > 0:
+            logger.info(f"Initial estimate (before sampling): {self.initial_estimate_str} ({self.initial_estimate_seconds:.1f}s)")
+            initial_accuracy = (1 - abs(self.initial_estimate_seconds - total_elapsed) / total_elapsed) * 100 if total_elapsed > 0 else 0
+            logger.info(f"Initial estimate accuracy: {initial_accuracy:.1f}%")
+        else:
+            logger.info(f"No initial estimate was provided (used sampling instead)")
+
+        if self.sampled_estimate_str:
+            logger.info(f"Estimate after sampling: {self.sampled_estimate_str} ({self.sampled_estimate_seconds:.1f}s)")
+            sampled_accuracy = (1 - abs(self.sampled_estimate_seconds - total_elapsed) / total_elapsed) * 100 if total_elapsed > 0 else 0
+            logger.info(f"Sampling estimate accuracy: {sampled_accuracy:.1f}%")
+
+        actual_time_str = f"{int(total_elapsed)}s" if total_elapsed < 60 else f"{int(total_elapsed/60)}m {int(total_elapsed%60)}s"
+        logger.info(f"Actual time taken: {actual_time_str} ({total_elapsed:.1f}s)")
+
+        # Calculate overall generation statistics
+        total_generated = 0
+        total_loaded = 0
+        if hasattr(self, 'thumbnail_manager'):
+            total_generated = self.thumbnail_manager.generated_count
+            total_loaded = self.thumbnail_manager.loaded_count
+            generation_percentage = total_generated / (total_generated + total_loaded) * 100 if (total_generated + total_loaded) > 0 else 0
+            logger.info(f"Overall: {total_generated} generated, {total_loaded} loaded ({generation_percentage:.1f}% generated)")
+
+        # No longer saving coefficients - real-time sampling provides better accuracy
+        # Each run measures actual performance including all variables:
+        # - Drive speed (SSD/HDD/Network)
+        # - Image dimensions
+        # - Bit depth (8-bit, 16-bit, etc.)
+        # - File format and compression
+        # - Current CPU load
+        # - Available memory
+        if hasattr(self, 'weighted_total_work') and self.weighted_total_work > 0:
+            actual_coefficient = total_elapsed / self.weighted_total_work
+            logger.info(f"Actual performance: {actual_coefficient:.3f}s per weighted unit")
+            logger.info(f"This varies based on image size, bit depth, drive speed, and system load")
+
         # Show completion or cancellation message
         if self.progress_dialog.is_cancelled:
             self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation cancelled"))
             self.progress_dialog.lbl_detail.setText("")
+            logger.info("Thumbnail generation was cancelled by user")
         else:
             self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
             self.progress_dialog.lbl_detail.setText("")
-            
+
         self.progress_dialog.close()
         self.progress_dialog = None
         
