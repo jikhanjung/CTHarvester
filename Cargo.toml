@@ -1,0 +1,19 @@
+[package]
+name = "ct_thumbnail"
+version = "0.1.0"
+edition = "2021"   # ← 2021 또는 2024 중 하나. 2025 금지!
+
+[lib]
+name = "ct_thumbnail"
+crate-type = ["cdylib"]
+path = "src/lib_final.rs"
+
+[dependencies]
+pyo3  = { version = "0.22", features = ["extension-module"] }
+numpy = "0.22"  # (지금 코드에선 직접 사용하진 않지만, 향후 NumPy 연동 시 호환 위해 0.22로 맞춤)
+rayon = "1"
+image = { version = "0.25", features = ["bmp","tiff"] }
+walkdir = "2"
+natord = "1"
+thiserror = "1"
+parking_lot = "0.12"

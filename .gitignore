@@ -1,3 +1,88 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# PyInstaller
 dist/
 build/
-*.pyc
+*.spec
+!CTHarvester.spec
+!CTHarvester_onedir.spec
+!CTHarvester_onefile.spec
+!CTScape.spec
+
+# Rust / Cargo
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Project specific
+*.whl
+test_*.py
+test_images/
+test_*/
+.thumbnail/
+*.tps
+*.x1y1
+loading.txt
+rotated_matrix.txt
+devlog/
+packaging/
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+*.orig
+
+# Images (test data)
+M2Preferences_*.png
+Estaingia_*.tps
+Phacops_*.tps
+Tf-*.x1y1
+
+# Test files
+*_test.py
+*_test2.py
+mcube_test.py
+pymcubes_test.py
+vtk_test*.py
+PCA_test*.py
+
+# Build artifacts
+*.egg-info/
+.eggs/
+
+# Documentation build
+docs/_build/
+docs/_static/
+docs/_templates/
