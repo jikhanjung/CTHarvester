@@ -200,7 +200,8 @@ class ThumbnailWorker(QRunnable):
         # Generate filenames
         self.filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
         self.filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
-        self.filename3 = os.path.join(to_dir, self.settings_hash['prefix'] + str(seq_begin + idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type'])
+        # Match Rust naming: simple sequential numbering without prefix
+        self.filename3 = os.path.join(to_dir, "{:06}.tif".format(idx))
 
     @pyqtSlot()
     def run(self):
@@ -238,38 +239,117 @@ class ThumbnailWorker(QRunnable):
                 # Create new thumbnail
                 was_generated = True  # We're generating a new thumbnail
                 img1 = None
+                img1_is_16bit = False
                 if os.path.exists(os.path.join(self.from_dir, self.filename1)):
                     try:
                         img1 = Image.open(os.path.join(self.from_dir, self.filename1))
-                        if img1.mode[0] == 'I':
-                            img1 = Image.fromarray(np.divide(np.array(img1), 2**8-1)).convert('L')
+                        # Check if 16-bit image
+                        if img1.mode == 'I;16' or img1.mode == 'I;16L' or img1.mode == 'I;16B':
+                            img1_is_16bit = True
+                            # Keep as 16-bit, don't convert
+                        elif img1.mode[0] == 'I':
+                            # Some other I mode, convert to L
+                            img1 = img1.convert('L')
                         elif img1.mode == 'P':
                             img1 = img1.convert('L')
+                        # For L (8-bit grayscale), keep as is
                     except Exception as e:
                         logger.error(f"Error processing image {self.filename1}: {e}")
                         img1 = None
-                
+
                 img2 = None
+                img2_is_16bit = False
                 if os.path.exists(os.path.join(self.from_dir, self.filename2)):
                     try:
                         img2 = Image.open(os.path.join(self.from_dir, self.filename2))
-                        if img2.mode[0] == 'I':
-                            img2 = Image.fromarray(np.divide(np.array(img2), 2**8-1)).convert('L')
+                        # Check if 16-bit image
+                        if img2.mode == 'I;16' or img2.mode == 'I;16L' or img2.mode == 'I;16B':
+                            img2_is_16bit = True
+                            # Keep as 16-bit, don't convert
+                        elif img2.mode[0] == 'I':
+                            # Some other I mode, convert to L
+                            img2 = img2.convert('L')
                         elif img2.mode == 'P':
                             img2 = img2.convert('L')
+                        # For L (8-bit grayscale), keep as is
                     except Exception as e:
                         logger.error(f"Error processing image {self.filename2}: {e}")
                         img2 = None
-                
-                # Average two images
+
+                # Average two images preserving bit depth
                 if img1 is not None and img2 is not None:
                     try:
-                        from PIL import ImageChops
-                        new_img_ops = ImageChops.add(img1, img2, scale=2.0)
-                        # Resize to half
-                        new_img_ops = new_img_ops.resize((int(img1.width / 2), int(img1.height / 2)))
-                        # Save to temporary directory
-                        new_img_ops.save(self.filename3)
+                        # If both are 16-bit, process as 16-bit
+                        if img1_is_16bit and img2_is_16bit:
+                            # Process as 16-bit numpy arrays
+                            arr1 = np.array(img1, dtype=np.uint16)
+                            arr2 = np.array(img2, dtype=np.uint16)
+
+                            # Average the two arrays
+                            avg_arr = ((arr1.astype(np.uint32) + arr2.astype(np.uint32)) // 2).astype(np.uint16)
+
+                            # Downscale by 2x2 averaging
+                            h, w = avg_arr.shape
+                            new_h, new_w = h // 2, w // 2
+                            downscaled = np.zeros((new_h, new_w), dtype=np.uint16)
+
+                            for y in range(new_h):
+                                for x in range(new_w):
+                                    y0, x0 = y * 2, x * 2
+                                    # Average 2x2 block
+                                    block_sum = (avg_arr[y0, x0].astype(np.uint32) +
+                                               avg_arr[y0, x0+1].astype(np.uint32) +
+                                               avg_arr[y0+1, x0].astype(np.uint32) +
+                                               avg_arr[y0+1, x0+1].astype(np.uint32))
+                                    downscaled[y, x] = (block_sum // 4).astype(np.uint16)
+
+                            # Save as 16-bit image
+                            new_img_ops = Image.fromarray(downscaled, mode='I;16')
+                            new_img_ops.save(self.filename3)
+
+                        # If either is 16-bit, convert both to 16-bit
+                        elif img1_is_16bit or img2_is_16bit:
+                            # Convert to 16-bit arrays
+                            if img1_is_16bit:
+                                arr1 = np.array(img1, dtype=np.uint16)
+                            else:
+                                arr1 = (np.array(img1, dtype=np.uint8).astype(np.uint16) << 8)
+
+                            if img2_is_16bit:
+                                arr2 = np.array(img2, dtype=np.uint16)
+                            else:
+                                arr2 = (np.array(img2, dtype=np.uint8).astype(np.uint16) << 8)
+
+                            # Average the two arrays
+                            avg_arr = ((arr1.astype(np.uint32) + arr2.astype(np.uint32)) // 2).astype(np.uint16)
+
+                            # Downscale by 2x2 averaging
+                            h, w = avg_arr.shape
+                            new_h, new_w = h // 2, w // 2
+                            downscaled = np.zeros((new_h, new_w), dtype=np.uint16)
+
+                            for y in range(new_h):
+                                for x in range(new_w):
+                                    y0, x0 = y * 2, x * 2
+                                    # Average 2x2 block
+                                    block_sum = (avg_arr[y0, x0].astype(np.uint32) +
+                                               avg_arr[y0, x0+1].astype(np.uint32) +
+                                               avg_arr[y0+1, x0].astype(np.uint32) +
+                                               avg_arr[y0+1, x0+1].astype(np.uint32))
+                                    downscaled[y, x] = (block_sum // 4).astype(np.uint16)
+
+                            # Save as 16-bit image
+                            new_img_ops = Image.fromarray(downscaled, mode='I;16')
+                            new_img_ops.save(self.filename3)
+
+                        else:
+                            # Both are 8-bit, use existing method
+                            from PIL import ImageChops
+                            new_img_ops = ImageChops.add(img1, img2, scale=2.0)
+                            # Resize to half
+                            new_img_ops = new_img_ops.resize((int(img1.width / 2), int(img1.height / 2)))
+                            # Save to temporary directory
+                            new_img_ops.save(self.filename3)
                         
                         if self.size < self.max_thumbnail_size:
                             img_array = np.array(new_img_ops)
@@ -2362,7 +2442,14 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtDirname.setPlaceholderText(self.tr("Select directory to load CT data"))
         self.edtDirname.setMinimumWidth(400)
         self.edtDirname.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        # Add checkbox for Rust module
+        self.cbxUseRust = QCheckBox(self.tr("Use Rust"))
+        self.cbxUseRust.setChecked(True)  # Default to using Rust if available
+        self.cbxUseRust.setToolTip(self.tr("Use high-performance Rust module for thumbnail generation"))
+
         self.dirname_layout.addWidget(self.edtDirname,stretch=1)
+        self.dirname_layout.addWidget(self.cbxUseRust,stretch=0)
         self.dirname_layout.addWidget(self.btnOpenDir,stretch=0)
         self.dirname_widget.setLayout(self.dirname_layout)
         self.dirname_layout.setContentsMargins(margin)
@@ -2893,8 +2980,8 @@ class CTHarvesterMainWindow(QMainWindow):
             filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + curr_image_idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
         else:
             dirname = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(size_idx))
-            # get filename from level from idx
-            filename = self.settings_hash['prefix'] + str(self.level_info[size_idx]['seq_begin'] + curr_image_idx).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+            # Match Rust naming: simple sequential numbering without prefix
+            filename = "{:06}.tif".format(curr_image_idx)
 
         self.image_label.set_image(os.path.join(dirname, filename))
         self.image_label.set_curr_idx(curr_image_idx)
@@ -3042,10 +3129,325 @@ class CTHarvesterMainWindow(QMainWindow):
         return total_work
     
     def create_thumbnail(self):
+        """
+        Creates a thumbnail using Rust module if available and enabled, otherwise falls back to Python implementation.
+        """
+        import time
+        from datetime import datetime
+
+        # Check if user wants to use Rust module
+        use_rust_preference = self.cbxUseRust.isChecked() if hasattr(self, 'cbxUseRust') else True
+
+        # Try to use Rust module if preferred
+        if use_rust_preference:
+            try:
+                from ct_thumbnail import build_thumbnails
+                use_rust = True
+                logger.info("Using Rust-based thumbnail generation")
+            except ImportError:
+                use_rust = False
+                logger.warning("ct_thumbnail module not found, falling back to Python implementation")
+        else:
+            use_rust = False
+            logger.info("Using Python implementation (Rust module disabled by user)")
+
+        if use_rust:
+            return self.create_thumbnail_rust()
+        else:
+            return self.create_thumbnail_python()
+
+    def create_thumbnail_rust(self):
+        """
+        Creates a thumbnail using Rust-based high-performance module.
+        """
+        import time
+        from datetime import datetime
+        from ct_thumbnail import build_thumbnails
+
+        # Start timing
+        self.thumbnail_start_time = time.time()
+        thumbnail_start_datetime = datetime.now()
+
+        dirname = self.edtDirname.text()
+
+        logger.info(f"=== Starting Rust thumbnail generation ===")
+        logger.info(f"Start time: {thumbnail_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
+        logger.info(f"Directory: {dirname}")
+
+        # Initialize progress dialog
+        self.progress_dialog = ProgressDialog(self)
+        self.progress_dialog.update_language()
+        self.progress_dialog.setModal(True)
+        self.progress_dialog.show()
+
+        # Set initial progress text
+        self.progress_dialog.lbl_text.setText(self.tr("Generating thumbnails"))
+        self.progress_dialog.lbl_detail.setText(self.tr("Initializing..."))
+
+        # Setup progress bar (0-100%)
+        self.progress_dialog.pb_progress.setMinimum(0)
+        self.progress_dialog.pb_progress.setMaximum(100)
+        self.progress_dialog.pb_progress.setValue(0)
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
+        # Variables for progress tracking
+        self.last_progress = 0
+        self.progress_start_time = time.time()
+        self.rust_cancelled = False
+
+        def progress_callback(percentage):
+            """Progress callback from Rust module"""
+            # Update progress bar
+            self.progress_dialog.pb_progress.setValue(int(percentage))
+
+            # Calculate elapsed time and ETA
+            elapsed = time.time() - self.progress_start_time
+            if percentage > 0 and percentage < 100:
+                eta = elapsed * (100 - percentage) / percentage
+                eta_str = f"{int(eta)}s" if eta < 60 else f"{int(eta/60)}m {int(eta%60)}s"
+                elapsed_str = f"{int(elapsed)}s" if elapsed < 60 else f"{int(elapsed/60)}m {int(elapsed%60)}s"
+
+                # Update detail text
+                self.progress_dialog.lbl_detail.setText(
+                    f"{percentage:.1f}% - Elapsed: {elapsed_str} - ETA: {eta_str}"
+                )
+            else:
+                self.progress_dialog.lbl_detail.setText(f"{percentage:.1f}%")
+
+            # Check for cancellation
+            if self.progress_dialog.is_cancelled:
+                self.rust_cancelled = True
+                return False  # Signal Rust to stop (if it supports this)
+
+            # Process events to keep UI responsive
+            QApplication.processEvents()
+
+            self.last_progress = percentage
+            return True
+
+        # Run Rust thumbnail generation with file pattern info
+        success = False
+        try:
+            # Pass the file pattern information to Rust
+            prefix = self.settings_hash.get('prefix', '')
+            file_type = self.settings_hash.get('file_type', 'tif')
+            seq_begin = int(self.settings_hash.get('seq_begin', 0))
+            seq_end = int(self.settings_hash.get('seq_end', 0))
+            index_length = int(self.settings_hash.get('index_length', 0))
+
+            # Call Rust with pattern parameters
+            build_thumbnails(
+                dirname,
+                progress_callback,
+                prefix,
+                file_type,
+                seq_begin,
+                seq_end,
+                index_length
+            )
+            success = True
+        except Exception as e:
+            logger.error(f"Error during Rust thumbnail generation: {e}")
+            QMessageBox.warning(self, self.tr("Warning"),
+                               self.tr(f"Rust thumbnail generation failed: {e}\nFalling back to Python implementation."))
+
+        QApplication.restoreOverrideCursor()
+
+        # Calculate total time
+        total_elapsed = time.time() - self.thumbnail_start_time
+        thumbnail_end_datetime = datetime.now()
+
+        logger.info(f"=== Rust thumbnail generation completed ===")
+        logger.info(f"End time: {thumbnail_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
+        logger.info(f"Total duration: {total_elapsed:.2f} seconds ({total_elapsed/60:.2f} minutes)")
+
+        if success and not self.rust_cancelled:
+            # Load the generated thumbnails
+            self.load_rust_thumbnail_data()
+
+            # Update progress dialog
+            self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
+            self.progress_dialog.lbl_detail.setText(f"Completed in {int(total_elapsed)}s")
+        else:
+            if self.rust_cancelled:
+                self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation cancelled"))
+            else:
+                self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation failed"))
+
+            # Initialize minimum_volume as empty to prevent errors
+            if not hasattr(self, 'minimum_volume'):
+                self.minimum_volume = []
+                logger.warning("Initialized empty minimum_volume after Rust thumbnail generation failure")
+
+        # Close progress dialog
+        self.progress_dialog.close()
+        self.progress_dialog = None
+
+        # Initialize combo boxes
+        self.initializeComboSize()
+        self.reset_crop()
+
+        # Trigger initial display
+        if self.comboLevel.count() > 0:
+            self.comboLevel.setCurrentIndex(0)
+            if not self.initialized:
+                self.comboLevelIndexChanged()
+
+    def load_rust_thumbnail_data(self):
+        """Load generated thumbnail data from Rust module into minimum_volume for 3D visualization"""
+
+        MAX_THUMBNAIL_SIZE = 512  # Must match Python's MAX_THUMBNAIL_SIZE
+
+        # Find the highest level thumbnail directory
+        thumbnail_base = os.path.join(self.edtDirname.text(), ".thumbnail")
+
+        if not os.path.exists(thumbnail_base):
+            logger.warning("No thumbnail directory found")
+            return
+
+        # Find all level directories
+        level_dirs = []
+        for i in range(1, 20):  # Check up to level 20
+            level_dir = os.path.join(thumbnail_base, str(i))
+            if os.path.exists(level_dir):
+                level_dirs.append((i, level_dir))
+            else:
+                break
+
+        if not level_dirs:
+            logger.warning("No thumbnail levels found")
+            return
+
+        # Find the appropriate level to load (first level with size < MAX_THUMBNAIL_SIZE)
+        level_num = None
+        thumbnail_dir = None
+
+        for ln, ld in level_dirs:
+            # Check the size of images in this level
+            files = [f for f in os.listdir(ld) if f.endswith('.tif')]
+            if files:
+                img = Image.open(os.path.join(ld, files[0]))
+                width, height = img.size
+                img.close()
+
+                size = max(width, height)
+                if size < MAX_THUMBNAIL_SIZE:
+                    level_num = ln
+                    thumbnail_dir = ld
+                    logger.info(f"Found appropriate level {level_num} with size {width}x{height} (< {MAX_THUMBNAIL_SIZE})")
+                    break
+                else:
+                    logger.debug(f"Level {ln} size {width}x{height} is >= {MAX_THUMBNAIL_SIZE}, continuing...")
+
+        if level_num is None or thumbnail_dir is None:
+            # Fallback to highest level if none meet the criteria
+            level_num, thumbnail_dir = level_dirs[-1]
+            logger.warning(f"No level with size < {MAX_THUMBNAIL_SIZE} found, using highest level {level_num}")
+
+        logger.info(f"Loading thumbnails from level {level_num}: {thumbnail_dir}")
+
+        try:
+            # List all tif files in the directory
+            files = sorted([f for f in os.listdir(thumbnail_dir) if f.endswith('.tif')])
+
+            logger.info(f"Found {len(files)} thumbnail files")
+
+            self.minimum_volume = []
+            for file in files:
+                filepath = os.path.join(thumbnail_dir, file)
+                img = Image.open(filepath)
+                img_array = np.array(img)
+
+                # Normalize to 8-bit range (0-255) for marching cubes
+                # Check if image is 16-bit
+                if img_array.dtype == np.uint16:
+                    # Convert 16-bit to 8-bit
+                    img_array = (img_array / 256).astype(np.uint8)
+                elif img_array.dtype != np.uint8:
+                    # For other types, normalize to 0-255
+                    img_min = img_array.min()
+                    img_max = img_array.max()
+                    if img_max > img_min:
+                        img_array = ((img_array - img_min) / (img_max - img_min) * 255).astype(np.uint8)
+                    else:
+                        img_array = np.zeros_like(img_array, dtype=np.uint8)
+
+                self.minimum_volume.append(img_array)
+                img.close()
+
+            if len(self.minimum_volume) > 0:
+                self.minimum_volume = np.array(self.minimum_volume)
+                logger.info(f"Loaded {len(self.minimum_volume)} thumbnails, shape: {self.minimum_volume.shape}")
+
+                # Update level_info to match what Python implementation expects
+                self.level_info = []
+
+                # Add level 0 (original images) info if we have settings_hash
+                if hasattr(self, 'settings_hash'):
+                    self.level_info.append({
+                        'name': 'Level 0',
+                        'width': int(self.settings_hash.get('image_width', 0)),
+                        'height': int(self.settings_hash.get('image_height', 0)),
+                        'seq_begin': int(self.settings_hash.get('seq_begin', 0)),
+                        'seq_end': int(self.settings_hash.get('seq_end', 0))
+                    })
+
+                # Add thumbnail levels
+                for i, (level_num, level_dir) in enumerate(level_dirs):
+                    # Get dimensions from first file in level
+                    files = [f for f in os.listdir(level_dir) if f.endswith('.tif')]
+                    if files:
+                        img = Image.open(os.path.join(level_dir, files[0]))
+                        width, height = img.size
+                        img.close()
+
+                        self.level_info.append({
+                            'name': f"Level {level_num}",
+                            'width': width,
+                            'height': height,
+                            'seq_begin': 0,
+                            'seq_end': len(files) - 1
+                        })
+
+                # Update 3D view with loaded thumbnails
+                bounding_box = self.minimum_volume.shape
+                if len(bounding_box) >= 3:
+                    # Calculate proper bounding box
+                    scaled_depth = bounding_box[0]
+                    scaled_height = bounding_box[1]
+                    scaled_width = bounding_box[2]
+
+                    scaled_bounding_box = np.array([0, scaled_depth-1, 0, scaled_height-1, 0, scaled_width-1])
+
+                    try:
+                        _, curr, _ = self.timeline.values()
+                        denom = float(self.timeline.maximum()) if self.timeline.maximum() > 0 else 1.0
+                        curr_slice_val = curr / denom * scaled_depth
+                    except Exception:
+                        curr_slice_val = 0
+
+                    self.mcube_widget.update_boxes(scaled_bounding_box, scaled_bounding_box, curr_slice_val)
+                    self.mcube_widget.adjust_boxes()
+                    self.mcube_widget.update_volume(self.minimum_volume)
+                    self.mcube_widget.generate_mesh()
+                    self.mcube_widget.adjust_volume()
+                    self.mcube_widget.show_buttons()
+
+                    # Ensure the 3D widget doesn't cover the main image
+                    self.mcube_widget.setGeometry(QRect(0, 0, 150, 150))
+                    self.mcube_widget.recalculate_geometry()
+
+        except Exception as e:
+            logger.error(f"Error loading Rust thumbnails: {e}")
+
+    # Keep existing Python implementation as fallback
+    def create_thumbnail_python(self):
         #logger.info("Starting thumbnail creation")
         """
         Creates a thumbnail of the image sequence by downsampling the images and averaging them.
         The resulting thumbnail is saved in a temporary directory and used to generate a mesh for visualization.
+        This is the original Python implementation kept as fallback.
         """
         import time
         from datetime import datetime
@@ -3059,7 +3461,7 @@ class CTHarvesterMainWindow(QMainWindow):
         size =  max(int(self.settings_hash['image_width']), int(self.settings_hash['image_height']))
         width = int(self.settings_hash['image_width'])
         height = int(self.settings_hash['image_height'])
-        logger.info(f"=== Starting thumbnail generation ===")
+        logger.info(f"=== Starting Python thumbnail generation (fallback) ===")
         logger.info(f"Start time: {thumbnail_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
         logger.info(f"Image dimensions: width={width}, height={height}, size={size}")
 
@@ -3322,9 +3724,24 @@ class CTHarvesterMainWindow(QMainWindow):
                         for file in files:
                             filepath = os.path.join(thumbnail_dir, file)
                             img = Image.open(filepath)
-                            self.minimum_volume.append(np.array(img))
+                            img_array = np.array(img)
+
+                            # Normalize to 8-bit range (0-255) for marching cubes
+                            if img_array.dtype == np.uint16:
+                                # Convert 16-bit to 8-bit
+                                img_array = (img_array / 256).astype(np.uint8)
+                            elif img_array.dtype != np.uint8:
+                                # For other types, normalize to 0-255
+                                img_min = img_array.min()
+                                img_max = img_array.max()
+                                if img_max > img_min:
+                                    img_array = ((img_array - img_min) / (img_max - img_min) * 255).astype(np.uint8)
+                                else:
+                                    img_array = np.zeros_like(img_array, dtype=np.uint8)
+
+                            self.minimum_volume.append(img_array)
                             img.close()
-                        
+
                         if len(self.minimum_volume) > 0:
                             self.minimum_volume = np.array(self.minimum_volume)
                             #logger.info(f"Loaded {len(self.minimum_volume)} thumbnails, shape: {self.minimum_volume.shape}")
@@ -3558,6 +3975,8 @@ class CTHarvesterMainWindow(QMainWindow):
                         self.settings_hash['index_length'] = settings.value("File name convention/Filename Index Length")
                         self.settings_hash['seq_begin'] = settings.value("Reconstruction/First Section")
                         self.settings_hash['seq_end'] = settings.value("Reconstruction/Last Section")
+                        self.settings_hash['image_width'] = int(self.settings_hash['image_width'])
+                        self.settings_hash['image_height'] = int(self.settings_hash['image_height'])
                         self.settings_hash['index_length'] = int(self.settings_hash['index_length'])
                         self.settings_hash['seq_begin'] = int(self.settings_hash['seq_begin'])
                         self.settings_hash['seq_end'] = int(self.settings_hash['seq_end'])
@@ -3693,6 +4112,12 @@ class CTHarvesterMainWindow(QMainWindow):
                     self.setGeometry(QRect(100, 100, 600, 550))
                     self.mcube_geometry = QRect(0, 0, 150, 150)
                 self.m_app.language = settings.value("Language", "en")
+
+                # Read Rust module preference
+                use_rust_default = value_to_bool(settings.value("Use Rust Module", True))
+                if hasattr(self, 'cbxUseRust'):
+                    self.cbxUseRust.setChecked(use_rust_default)
+
             except Exception as e:
                 logger.error(f"Error reading main window settings: {e}")
                 # Set defaults if reading fails
@@ -3702,6 +4127,8 @@ class CTHarvesterMainWindow(QMainWindow):
                 self.setGeometry(QRect(100, 100, 600, 550))
                 self.mcube_geometry = QRect(0, 0, 150, 150)
                 self.m_app.language = "en"
+                if hasattr(self, 'cbxUseRust'):
+                    self.cbxUseRust.setChecked(True)
 
     def save_settings(self):
             """
@@ -3715,6 +4142,11 @@ class CTHarvesterMainWindow(QMainWindow):
                 if self.m_app.remember_geometry:
                     self.m_app.settings.setValue("MainWindow geometry", self.geometry())
                     self.m_app.settings.setValue("mcube_widget geometry", self.mcube_widget.geometry())
+
+                # Save Rust module preference
+                if hasattr(self, 'cbxUseRust'):
+                    self.m_app.settings.setValue("Use Rust Module", self.cbxUseRust.isChecked())
+
             except Exception as e:
                 logger.error(f"Error saving main window settings: {e}")
 

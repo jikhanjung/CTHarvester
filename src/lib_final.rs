@@ -4,6 +4,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::{wrap_pyfunction, Bound};
 use rayon::prelude::*;
+use std::env;
 use std::cmp::min;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -27,9 +28,83 @@ fn to_pyerr(e: ThumbError) -> PyErr {
     pyo3::exceptions::PyRuntimeError::new_err(e.to_string())
 }
 
+// Enum to handle different bit depths
+enum ImageDepth {
+    Luma8(Vec<u8>),
+    Luma16(Vec<u16>),
+}
+
 #[inline]
-fn to_luma16(img: DynamicImage) -> ImageBuffer<Luma<u16>, Vec<u16>> {
-    img.to_luma16()
+fn to_luma_preserve_depth(img: DynamicImage) -> (ImageDepth, u32, u32) {
+    match img {
+        // 8-bit images
+        DynamicImage::ImageLuma8(gray) => {
+            let (w, h) = gray.dimensions();
+            (ImageDepth::Luma8(gray.into_raw()), w, h)
+        },
+        DynamicImage::ImageRgb8(_) => {
+            let gray = img.to_luma8();
+            let (w, h) = gray.dimensions();
+            (ImageDepth::Luma8(gray.into_raw()), w, h)
+        },
+        DynamicImage::ImageRgba8(_) => {
+            let gray = img.to_luma8();
+            let (w, h) = gray.dimensions();
+            (ImageDepth::Luma8(gray.into_raw()), w, h)
+        },
+        // 16-bit images
+        DynamicImage::ImageLuma16(gray) => {
+            let (w, h) = gray.dimensions();
+            (ImageDepth::Luma16(gray.into_raw()), w, h)
+        },
+        DynamicImage::ImageRgb16(_) => {
+            let gray = img.to_luma16();
+            let (w, h) = gray.dimensions();
+            (ImageDepth::Luma16(gray.into_raw()), w, h)
+        },
+        DynamicImage::ImageRgba16(_) => {
+            let gray = img.to_luma16();
+            let (w, h) = gray.dimensions();
+            (ImageDepth::Luma16(gray.into_raw()), w, h)
+        },
+        // 32-bit float images - convert to 16-bit
+        DynamicImage::ImageRgb32F(_) => {
+            let gray = img.to_luma16();
+            let (w, h) = gray.dimensions();
+            (ImageDepth::Luma16(gray.into_raw()), w, h)
+        },
+        DynamicImage::ImageRgba32F(_) => {
+            let gray = img.to_luma16();
+            let (w, h) = gray.dimensions();
+            (ImageDepth::Luma16(gray.into_raw()), w, h)
+        },
+        _ => {
+            // Default fallback to 8-bit
+            let gray = img.to_luma8();
+            let (w, h) = gray.dimensions();
+            (ImageDepth::Luma8(gray.into_raw()), w, h)
+        }
+    }
+}
+
+#[inline]
+fn downscale_half_u8(src: &[u8], sw: usize, _sh: usize, dst: &mut [u8]) {
+    let dw = sw >> 1;
+    dst.par_chunks_mut(dw).enumerate().for_each(|(y, row)| {
+        let sy0 = y << 1;
+        let sy1 = sy0 + 1;
+        let base0 = sy0 * sw;
+        let base1 = sy1 * sw;
+        for x in 0..dw {
+            let sx0 = x << 1;
+            let sx1 = sx0 + 1;
+            let a = src[base0 + sx0] as u32;
+            let b = src[base0 + sx1] as u32;
+            let c = src[base1 + sx0] as u32;
+            let d = src[base1 + sx1] as u32;
+            row[x] = ((a + b + c + d + 2) >> 2) as u8;
+        }
+    });
 }
 
 #[inline]
@@ -53,6 +128,13 @@ fn downscale_half_u16(src: &[u16], sw: usize, _sh: usize, dst: &mut [u16]) {
 }
 
 #[inline]
+fn avg_two_u8_inplace(dst: &mut [u8], src: &[u8]) {
+    dst.par_iter_mut().zip(src.par_iter()).for_each(|(d, &s)| {
+        *d = (((*d as u16 + s as u16) + 1) >> 1) as u8;
+    });
+}
+
+#[inline]
 fn avg_two_u16_inplace(dst: &mut [u16], src: &[u16]) {
     dst.par_iter_mut().zip(src.par_iter()).for_each(|(d, &s)| {
         *d = (((*d as u32 + s as u32) + 1) >> 1) as u16;
@@ -67,6 +149,15 @@ fn list_slices_sorted(input_dir: &Path) -> Result<Vec<PathBuf>, ThumbError> {
         .filter_map(|e| e.ok())
         .filter(|e| e.file_type().is_file())
         .map(|e| e.path().to_path_buf())
+        .filter(|p| {
+            // Only include image files (tif, tiff, bmp, jpg, jpeg, png)
+            if let Some(ext) = p.extension() {
+                let ext_lower = ext.to_string_lossy().to_lowercase();
+                matches!(ext_lower.as_str(), "tif" | "tiff" | "bmp" | "jpg" | "jpeg" | "png")
+            } else {
+                false
+            }
+        })
         .collect();
 
     files.sort_by(|a, b| natord_compare(&a.to_string_lossy(), &b.to_string_lossy()));
@@ -76,17 +167,25 @@ fn list_slices_sorted(input_dir: &Path) -> Result<Vec<PathBuf>, ThumbError> {
     Ok(files)
 }
 
-fn read_luma16(path: &Path) -> Result<(usize, usize, Vec<u16>), ThumbError> {
+fn read_luma_preserve_depth(path: &Path) -> Result<(usize, usize, ImageDepth), ThumbError> {
     let img = ImageReader::open(path)?.with_guessed_format()?.decode()?;
-    let img16 = to_luma16(img);
-    let (w, h) = img16.dimensions();
-    Ok((w as usize, h as usize, img16.into_raw()))
+    let (depth, w, h) = to_luma_preserve_depth(img);
+    Ok((w as usize, h as usize, depth))
 }
 
-fn write_tiff_luma16(path: &Path, w: u32, h: u32, buf: &[u16]) -> Result<(), ThumbError> {
-    let img = ImageBuffer::<Luma<u16>, _>::from_raw(w, h, buf.to_vec())
-        .ok_or_else(|| ThumbError::Dim(w as usize, h as usize, 0, 0))?;
-    img.save(path)?;
+fn write_tiff_preserve_depth(path: &Path, w: u32, h: u32, depth: &ImageDepth) -> Result<(), ThumbError> {
+    match depth {
+        ImageDepth::Luma8(buf) => {
+            let img = ImageBuffer::<Luma<u8>, _>::from_raw(w, h, buf.to_vec())
+                .ok_or_else(|| ThumbError::Dim(w as usize, h as usize, 0, 0))?;
+            img.save(path)?;
+        },
+        ImageDepth::Luma16(buf) => {
+            let img = ImageBuffer::<Luma<u16>, _>::from_raw(w, h, buf.to_vec())
+                .ok_or_else(|| ThumbError::Dim(w as usize, h as usize, 0, 0))?;
+            img.save(path)?;
+        }
+    }
     Ok(())
 }
 
@@ -181,22 +280,55 @@ fn process_level_with_callback(
         let i0 = pair_i * 2;
         let i1 = i0 + 1;
 
-        let (w0, h0, buf0) = read_luma16(&input_files[i0])?;
-        let (w1, h1, buf1) = read_luma16(&input_files[i1])?;
+        let (w0, h0, depth0) = read_luma_preserve_depth(&input_files[i0])?;
+        let (w1, h1, depth1) = read_luma_preserve_depth(&input_files[i1])?;
 
         if w0 != input_w || h0 != input_h || w1 != input_w || h1 != input_h {
             return Err(ThumbError::Dim(input_w, input_h, w0, h0));
         }
 
-        let mut d0 = vec![0u16; dw * dh];
-        let mut d1 = vec![0u16; dw * dh];
-        downscale_half_u16(&buf0, input_w, input_h, &mut d0);
-        downscale_half_u16(&buf1, input_w, input_h, &mut d1);
-        avg_two_u16_inplace(&mut d0, &d1);
+        // Process based on bit depth
+        let result_depth = match (depth0, depth1) {
+            (ImageDepth::Luma8(buf0), ImageDepth::Luma8(buf1)) => {
+                let mut d0 = vec![0u8; dw * dh];
+                let mut d1 = vec![0u8; dw * dh];
+                downscale_half_u8(&buf0, input_w, input_h, &mut d0);
+                downscale_half_u8(&buf1, input_w, input_h, &mut d1);
+                avg_two_u8_inplace(&mut d0, &d1);
+                ImageDepth::Luma8(d0)
+            },
+            (ImageDepth::Luma16(buf0), ImageDepth::Luma16(buf1)) => {
+                let mut d0 = vec![0u16; dw * dh];
+                let mut d1 = vec![0u16; dw * dh];
+                downscale_half_u16(&buf0, input_w, input_h, &mut d0);
+                downscale_half_u16(&buf1, input_w, input_h, &mut d1);
+                avg_two_u16_inplace(&mut d0, &d1);
+                ImageDepth::Luma16(d0)
+            },
+            // Mixed depth - convert to 16-bit
+            (ImageDepth::Luma8(buf0), ImageDepth::Luma16(buf1)) => {
+                let buf0_16: Vec<u16> = buf0.iter().map(|&x| (x as u16) << 8).collect();
+                let mut d0 = vec![0u16; dw * dh];
+                let mut d1 = vec![0u16; dw * dh];
+                downscale_half_u16(&buf0_16, input_w, input_h, &mut d0);
+                downscale_half_u16(&buf1, input_w, input_h, &mut d1);
+                avg_two_u16_inplace(&mut d0, &d1);
+                ImageDepth::Luma16(d0)
+            },
+            (ImageDepth::Luma16(buf0), ImageDepth::Luma8(buf1)) => {
+                let buf1_16: Vec<u16> = buf1.iter().map(|&x| (x as u16) << 8).collect();
+                let mut d0 = vec![0u16; dw * dh];
+                let mut d1 = vec![0u16; dw * dh];
+                downscale_half_u16(&buf0, input_w, input_h, &mut d0);
+                downscale_half_u16(&buf1_16, input_w, input_h, &mut d1);
+                avg_two_u16_inplace(&mut d0, &d1);
+                ImageDepth::Luma16(d0)
+            }
+        };
 
         let out_name = format!("{:06}.tif", pair_i);
         let out_path = out_dir.join(out_name);
-        write_tiff_luma16(&out_path, dw as u32, dh as u32, &d0)?;
+        write_tiff_preserve_depth(&out_path, dw as u32, dh as u32, &result_depth)?;
 
         // Update progress after each pair
         let new_done = {
@@ -228,14 +360,44 @@ fn process_level_with_callback(
 /// # Arguments
 /// * `input_dir` - Directory containing input images
 /// * `py_progress_cb` - Optional Python callback function(percentage: float)
+/// * `prefix` - Optional file prefix filter (e.g., "CO-1__rec")
+/// * `file_type` - Optional file extension filter (e.g., "bmp")
+/// * `seq_begin` - Optional starting sequence number
+/// * `seq_end` - Optional ending sequence number
+/// * `index_length` - Optional number of digits in sequence
 #[pyfunction]
-#[pyo3(signature = (input_dir, py_progress_cb=None))]
+#[pyo3(signature = (input_dir, py_progress_cb=None, prefix=None, file_type=None, seq_begin=None, seq_end=None, index_length=None))]
 fn build_thumbnails(
     input_dir: String,
     py_progress_cb: Option<PyObject>,
+    prefix: Option<String>,
+    file_type: Option<String>,
+    seq_begin: Option<usize>,
+    seq_end: Option<usize>,
+    index_length: Option<usize>,
 ) -> PyResult<()> {
     let input_dir = PathBuf::from(&input_dir);
-    let files = list_slices_sorted(&input_dir).map_err(to_pyerr)?;
+
+    // Get all image files and filter by pattern if provided
+    let files = if let (Some(prefix), Some(file_type), Some(seq_begin), Some(seq_end), Some(index_length)) =
+        (prefix.as_ref(), file_type.as_ref(), seq_begin, seq_end, index_length) {
+        // Build specific file list based on pattern
+        let mut file_list = Vec::new();
+        for seq in seq_begin..=seq_end {
+            let filename = format!("{}{:0width$}.{}", prefix, seq, file_type, width = index_length);
+            let filepath = input_dir.join(&filename);
+            if filepath.exists() {
+                file_list.push(filepath);
+            }
+        }
+        eprintln!("Using pattern filter: prefix={}, type={}, range={}-{}", prefix, file_type, seq_begin, seq_end);
+        eprintln!("Found {} files matching pattern", file_list.len());
+        file_list
+    } else {
+        // Fallback to all image files (original behavior)
+        eprintln!("No pattern filter provided, using all image files");
+        list_slices_sorted(&input_dir).map_err(to_pyerr)?
+    };
 
     if files.is_empty() {
         if let Some(cb) = &py_progress_cb {
@@ -244,8 +406,12 @@ fn build_thumbnails(
         return Ok(());
     }
 
-    let (w0, h0, _) = read_luma16(&files[0]).map_err(to_pyerr)?;
+    // Debug: log first file and its dimensions
+    eprintln!("First file: {:?}", files[0]);
+    let (w0, h0, _) = read_luma_preserve_depth(&files[0]).map_err(to_pyerr)?;
+    eprintln!("First file dimensions: {}x{}", w0, h0);
     let n0 = files.len();
+    eprintln!("Total files: {}", n0);
 
     let base_out = input_dir.join(".thumbnail");
     ensure_dir(&base_out).map_err(to_pyerr)?;
