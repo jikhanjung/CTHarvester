@@ -6,7 +6,7 @@ edition = "2021"   # ← 2021 또는 2024 중 하나. 2025 금지!
 [lib]
 name = "ct_thumbnail"
 crate-type = ["cdylib"]
-path = "src/lib_final.rs"
+path = "src/lib_optimized.rs"
 
 [dependencies]
 pyo3  = { version = "0.22", features = ["extension-module"] }
