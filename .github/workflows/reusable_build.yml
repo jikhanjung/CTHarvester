@@ -18,11 +18,23 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
       - name: Install Windows dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
+          pip install maturin
+
+      - name: Build Rust module
+        run: |
+          maturin build --release --interpreter python3.12
+          pip install target/wheels/*.whl
 
       - name: Get Version String
         id: get_version
@@ -126,6 +138,12 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
       - name: Install macOS system dependencies
         run: |
           brew install qt5 create-dmg
@@ -138,6 +156,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
+          pip install maturin
+
+      - name: Build Rust module
+        run: |
+          maturin build --release --interpreter python3.12
+          pip install target/wheels/*.whl
 
       - name: Get Version String
         id: get_version
@@ -197,6 +221,12 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
       - name: Install Linux system dependencies
         run: |
           sudo apt-get update
@@ -233,6 +263,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
+          pip install maturin
+
+      - name: Build Rust module
+        run: |
+          maturin build --release --interpreter python3.12
+          pip install target/wheels/*.whl
 
       - name: Get Version String
         id: get_version
