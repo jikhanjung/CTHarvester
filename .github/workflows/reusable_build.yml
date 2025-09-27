@@ -32,9 +32,11 @@ jobs:
           pip install maturin
 
       - name: Build Rust module
+        shell: pwsh
         run: |
           maturin build --release --interpreter python3.12
-          pip install target/wheels/*.whl
+          $wheel = Get-ChildItem -Path "target\wheels\*.whl" | Select-Object -First 1
+          pip install $wheel.FullName
 
       - name: Get Version String
         id: get_version
@@ -161,7 +163,8 @@ jobs:
       - name: Build Rust module
         run: |
           maturin build --release --interpreter python3.12
-          pip install target/wheels/*.whl
+          WHEEL=$(find target/wheels -name "*.whl" | head -1)
+          pip install "$WHEEL"
 
       - name: Get Version String
         id: get_version
@@ -268,7 +271,8 @@ jobs:
       - name: Build Rust module
         run: |
           maturin build --release --interpreter python3.12
-          pip install target/wheels/*.whl
+          WHEEL=$(find target/wheels -name "*.whl" | head -1)
+          pip install "$WHEEL"
 
       - name: Get Version String
         id: get_version
