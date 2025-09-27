@@ -207,42 +207,70 @@ class ThumbnailWorker(QRunnable):
     def run(self):
         """Process a single image pair"""
         import logging
-        logger = logging.getLogger(__name__)
-        
-        logger.debug(f"ThumbnailWorker.run: Starting Level {self.level+1} worker for idx={self.idx}, seq={self.seq}")
-        
+        import time
+        logger = logging.getLogger('CTHarvester')
+
+        worker_start_time = time.time()
+        if self.idx < 5:  # Log first 5 workers in detail
+            logger.info(f"ThumbnailWorker.run: Starting Level {self.level+1} worker for idx={self.idx}, seq={self.seq}")
+            logger.info(f"  Files to process: {self.filename1}, {self.filename2}")
+            logger.info(f"  From dir: {self.from_dir}")
+            logger.info(f"  To dir: {self.to_dir}")
+            logger.info(f"  Output file: {self.filename3}")
+        else:
+            logger.debug(f"ThumbnailWorker.run: Starting Level {self.level+1} worker for idx={self.idx}, seq={self.seq}")
+
         try:
             # Check for cancellation before starting work
             if self.progress_dialog.is_cancelled:
                 logger.debug(f"ThumbnailWorker.run: Cancelled before start, idx={self.idx}")
                 return
-                
+
             img_array = None
             was_generated = False  # Track if we generated or loaded
 
             # Check if thumbnail already exists
+            check_start = time.time()
             if os.path.exists(self.filename3):
-                logger.debug(f"Found existing thumbnail: {self.filename3}")
+                check_time = (time.time()-check_start)*1000
+                if self.idx < 5:
+                    logger.info(f"Found existing thumbnail: {self.filename3} (check took {check_time:.1f}ms)")
+                else:
+                    logger.debug(f"Found existing thumbnail: {self.filename3} (check took {check_time:.1f}ms)")
                 was_generated = False  # Loaded from disk
                 if self.size < self.max_thumbnail_size:
                     try:
+                        load_start = time.time()
                         img = Image.open(self.filename3)
                         img_array = np.array(img)
-                        logger.debug(f"Loaded existing thumbnail shape: {img_array.shape}")
+                        load_time = (time.time() - load_start) * 1000
+                        logger.debug(f"Loaded existing thumbnail shape: {img_array.shape} in {load_time:.1f}ms")
                     except Exception as e:
                         logger.error(f"Error opening existing thumbnail {self.filename3}: {e}")
             else:
+                check_time = (time.time()-check_start)*1000
+                if self.idx < 5:
+                    logger.info(f"Thumbnail doesn't exist: {self.filename3} (check took {check_time:.1f}ms)")
+                else:
+                    logger.debug(f"Thumbnail doesn't exist: {self.filename3} (check took {check_time:.1f}ms)")
                 # Check for cancellation before expensive image processing
                 if self.progress_dialog.is_cancelled:
                     return
-                    
+
                 # Create new thumbnail
                 was_generated = True  # We're generating a new thumbnail
                 img1 = None
                 img1_is_16bit = False
-                if os.path.exists(os.path.join(self.from_dir, self.filename1)):
+                file1_path = os.path.join(self.from_dir, self.filename1)
+                if os.path.exists(file1_path):
                     try:
-                        img1 = Image.open(os.path.join(self.from_dir, self.filename1))
+                        open_start = time.time()
+                        img1 = Image.open(file1_path)
+                        open_time = (time.time() - open_start) * 1000
+                        if self.idx < 5:
+                            logger.info(f"Opened image1 {self.filename1} in {open_time:.1f}ms, mode={img1.mode}, size={img1.size}")
+                        else:
+                            logger.debug(f"Opened image1 {self.filename1} in {open_time:.1f}ms, mode={img1.mode}, size={img1.size}")
                         # Check if 16-bit image
                         if img1.mode == 'I;16' or img1.mode == 'I;16L' or img1.mode == 'I;16B':
                             img1_is_16bit = True
@@ -259,9 +287,13 @@ class ThumbnailWorker(QRunnable):
 
                 img2 = None
                 img2_is_16bit = False
-                if os.path.exists(os.path.join(self.from_dir, self.filename2)):
+                file2_path = os.path.join(self.from_dir, self.filename2)
+                if os.path.exists(file2_path):
                     try:
-                        img2 = Image.open(os.path.join(self.from_dir, self.filename2))
+                        open_start = time.time()
+                        img2 = Image.open(file2_path)
+                        open_time = (time.time() - open_start) * 1000
+                        logger.debug(f"Opened image2 {self.filename2} in {open_time:.1f}ms, mode={img2.mode}, size={img2.size}")
                         # Check if 16-bit image
                         if img2.mode == 'I;16' or img2.mode == 'I;16L' or img2.mode == 'I;16B':
                             img2_is_16bit = True
@@ -279,33 +311,45 @@ class ThumbnailWorker(QRunnable):
                 # Average two images preserving bit depth
                 if img1 is not None and img2 is not None:
                     try:
+                        process_start = time.time()
                         # If both are 16-bit, process as 16-bit
                         if img1_is_16bit and img2_is_16bit:
+                            logger.debug(f"Processing as 16-bit images")
                             # Process as 16-bit numpy arrays
                             arr1 = np.array(img1, dtype=np.uint16)
                             arr2 = np.array(img2, dtype=np.uint16)
 
                             # Average the two arrays
+                            avg_start = time.time()
                             avg_arr = ((arr1.astype(np.uint32) + arr2.astype(np.uint32)) // 2).astype(np.uint16)
+                            avg_time = (time.time() - avg_start) * 1000
+                            if self.idx < 5:
+                                logger.debug(f"Averaged 16-bit images in {avg_time:.1f}ms")
 
-                            # Downscale by 2x2 averaging
+                            # Downscale by 2x2 averaging using numpy vectorized operations
+                            downscale_start = time.time()
                             h, w = avg_arr.shape
                             new_h, new_w = h // 2, w // 2
-                            downscaled = np.zeros((new_h, new_w), dtype=np.uint16)
 
-                            for y in range(new_h):
-                                for x in range(new_w):
-                                    y0, x0 = y * 2, x * 2
-                                    # Average 2x2 block
-                                    block_sum = (avg_arr[y0, x0].astype(np.uint32) +
-                                               avg_arr[y0, x0+1].astype(np.uint32) +
-                                               avg_arr[y0+1, x0].astype(np.uint32) +
-                                               avg_arr[y0+1, x0+1].astype(np.uint32))
-                                    downscaled[y, x] = (block_sum // 4).astype(np.uint16)
+                            # Much faster numpy-based downscaling
+                            avg_arr_32 = avg_arr.astype(np.uint32)
+                            downscaled = (
+                                avg_arr_32[0:2*new_h:2, 0:2*new_w:2] +
+                                avg_arr_32[0:2*new_h:2, 1:2*new_w:2] +
+                                avg_arr_32[1:2*new_h:2, 0:2*new_w:2] +
+                                avg_arr_32[1:2*new_h:2, 1:2*new_w:2]
+                            ) // 4
+                            downscaled = downscaled.astype(np.uint16)
+                            downscale_time = (time.time() - downscale_start) * 1000
+                            if self.idx < 5:
+                                logger.debug(f"Downscaled using numpy in {downscale_time:.1f}ms (output: {downscaled.shape})")
 
                             # Save as 16-bit image
                             new_img_ops = Image.fromarray(downscaled, mode='I;16')
+                            save_start = time.time()
                             new_img_ops.save(self.filename3)
+                            save_time = (time.time() - save_start) * 1000
+                            logger.debug(f"Saved 16-bit thumbnail to {self.filename3} in {save_time:.1f}ms")
 
                         # If either is 16-bit, convert both to 16-bit
                         elif img1_is_16bit or img2_is_16bit:
@@ -321,45 +365,73 @@ class ThumbnailWorker(QRunnable):
                                 arr2 = (np.array(img2, dtype=np.uint8).astype(np.uint16) << 8)
 
                             # Average the two arrays
+                            avg_start = time.time()
                             avg_arr = ((arr1.astype(np.uint32) + arr2.astype(np.uint32)) // 2).astype(np.uint16)
+                            avg_time = (time.time() - avg_start) * 1000
+                            if self.idx < 5:
+                                logger.debug(f"Averaged 16-bit images in {avg_time:.1f}ms")
 
-                            # Downscale by 2x2 averaging
+                            # Downscale by 2x2 averaging using numpy vectorized operations
+                            downscale_start = time.time()
                             h, w = avg_arr.shape
                             new_h, new_w = h // 2, w // 2
-                            downscaled = np.zeros((new_h, new_w), dtype=np.uint16)
 
-                            for y in range(new_h):
-                                for x in range(new_w):
-                                    y0, x0 = y * 2, x * 2
-                                    # Average 2x2 block
-                                    block_sum = (avg_arr[y0, x0].astype(np.uint32) +
-                                               avg_arr[y0, x0+1].astype(np.uint32) +
-                                               avg_arr[y0+1, x0].astype(np.uint32) +
-                                               avg_arr[y0+1, x0+1].astype(np.uint32))
-                                    downscaled[y, x] = (block_sum // 4).astype(np.uint16)
+                            # Much faster numpy-based downscaling
+                            avg_arr_32 = avg_arr.astype(np.uint32)
+                            downscaled = (
+                                avg_arr_32[0:2*new_h:2, 0:2*new_w:2] +
+                                avg_arr_32[0:2*new_h:2, 1:2*new_w:2] +
+                                avg_arr_32[1:2*new_h:2, 0:2*new_w:2] +
+                                avg_arr_32[1:2*new_h:2, 1:2*new_w:2]
+                            ) // 4
+                            downscaled = downscaled.astype(np.uint16)
+                            downscale_time = (time.time() - downscale_start) * 1000
+                            if self.idx < 5:
+                                logger.debug(f"Downscaled using numpy in {downscale_time:.1f}ms (output: {downscaled.shape})")
 
                             # Save as 16-bit image
                             new_img_ops = Image.fromarray(downscaled, mode='I;16')
+                            save_start = time.time()
                             new_img_ops.save(self.filename3)
+                            save_time = (time.time() - save_start) * 1000
+                            logger.debug(f"Saved 16-bit thumbnail to {self.filename3} in {save_time:.1f}ms")
 
                         else:
                             # Both are 8-bit, use existing method
+                            logger.debug(f"Processing as 8-bit images")
                             from PIL import ImageChops
+                            avg_start = time.time()
                             new_img_ops = ImageChops.add(img1, img2, scale=2.0)
+                            avg_time = (time.time() - avg_start) * 1000
                             # Resize to half
+                            resize_start = time.time()
                             new_img_ops = new_img_ops.resize((int(img1.width / 2), int(img1.height / 2)))
+                            resize_time = (time.time() - resize_start) * 1000
                             # Save to temporary directory
+                            save_start = time.time()
                             new_img_ops.save(self.filename3)
+                            save_time = (time.time() - save_start) * 1000
+                            logger.debug(f"8-bit processing: avg={avg_time:.1f}ms, resize={resize_time:.1f}ms, save={save_time:.1f}ms")
                         
+                        process_time = (time.time() - process_start) * 1000
+                        logger.debug(f"Total image processing took {process_time:.1f}ms")
+
                         if self.size < self.max_thumbnail_size:
+                            array_start = time.time()
                             img_array = np.array(new_img_ops)
-                            logger.debug(f"Created new thumbnail shape: {img_array.shape}")
-                            
+                            array_time = (time.time() - array_start) * 1000
+                            logger.debug(f"Created new thumbnail shape: {img_array.shape} in {array_time:.1f}ms")
+
                     except Exception as e:
                         logger.error(f"Error creating thumbnail {self.filename3}: {e}")
             
             # Emit progress signal first
-            logger.debug(f"ThumbnailWorker.run: Emitting progress for idx={self.idx}")
+            worker_time = (time.time() - worker_start_time) * 1000
+            status = "generated" if was_generated else "loaded"
+            if self.idx < 5 or worker_time > 5000:  # Log first 5 or slow workers
+                logger.info(f"ThumbnailWorker.run: Completed idx={self.idx} ({status}) in {worker_time:.1f}ms")
+            else:
+                logger.debug(f"ThumbnailWorker.run: Completed idx={self.idx} ({status}) in {worker_time:.1f}ms")
             self.signals.progress.emit(self.idx)
             # Then emit result with generation flag
             logger.debug(f"ThumbnailWorker.run: Emitting result for idx={self.idx}, has_image={img_array is not None}, was_generated={was_generated}")
@@ -411,18 +483,18 @@ class ThumbnailManager(QObject):
         if hasattr(parent, 'measured_images_per_second'):
             self.images_per_second = parent.measured_images_per_second
             import logging
-            logger = logging.getLogger(__name__)
+            logger = logging.getLogger('CTHarvester')
             logger.info(f"ThumbnailManager created: sample_size={self.sample_size}, inherited speed={self.images_per_second:.1f} img/s")
         else:
             import logging
-            logger = logging.getLogger(__name__)
+            logger = logging.getLogger('CTHarvester')
             logger.info(f"ThumbnailManager created: sample_size={self.sample_size}, no inherited speed")
 
     def update_eta_and_progress(self):
         """Centralized method to update ETA and progress display"""
         import time
         import logging
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger('CTHarvester')
 
         if not self.progress_dialog or not hasattr(self.progress_dialog, 'lbl_detail'):
             return
@@ -485,7 +557,14 @@ class ThumbnailManager(QObject):
         """Process a complete thumbnail level using multiple worker threads"""
         import logging
         import time
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger('CTHarvester')
+
+        level_start_time = time.time()
+        logger.info(f"\n=== Starting Level {level+1} Processing ===")
+        logger.info(f"From: {from_dir}")
+        logger.info(f"To: {to_dir}")
+        logger.info(f"Size: {size}x{size}")
+        logger.info(f"Range: {seq_begin} to {seq_end}")
 
         self.level = level
         self.global_step_counter = global_step_offset
@@ -536,18 +615,23 @@ class ThumbnailManager(QObject):
         
         # Create and submit workers
         workers_submitted = 0
+        submit_start = time.time()
+        logger.info(f"Starting to submit {num_tasks} workers to thread pool")
+
         for idx in range(num_tasks):
             if self.progress_dialog.is_cancelled:
                 self.is_cancelled = True
                 break
-                
+
             seq = seq_begin + (idx * 2)
-            
+
             # Create worker with level information
             worker = ThumbnailWorker(
                 idx, seq, seq_begin, from_dir, to_dir,
                 settings_hash, size, max_thumbnail_size, self.progress_dialog, level
             )
+            if idx == 0 or idx % 100 == 0:
+                logger.debug(f"Creating worker {idx}: seq={seq}, files={worker.filename1}, {worker.filename2}")
             
             # Connect signals with Qt.QueuedConnection to ensure thread safety
             worker.signals.progress.connect(self.on_worker_progress, Qt.QueuedConnection)
@@ -556,16 +640,26 @@ class ThumbnailManager(QObject):
             worker.signals.finished.connect(self.on_worker_finished, Qt.QueuedConnection)
             
             # Submit to thread pool
+            if idx == 0:
+                logger.info(f"Submitting first worker to threadpool")
+                logger.info(f"Threadpool status before: active={self.threadpool.activeThreadCount()}, max={self.threadpool.maxThreadCount()}")
+
             self.threadpool.start(worker)
             workers_submitted += 1
+
+            if idx == 0:
+                logger.info(f"First worker submitted. Threadpool status after: active={self.threadpool.activeThreadCount()}")
             
             # Process events periodically to keep UI responsive
-            if workers_submitted % 10 == 0:
+            if workers_submitted % 10 == 0 or workers_submitted <= 5:
                 QApplication.processEvents()
-                logger.debug(f"Submitted {workers_submitted}/{num_tasks} workers")
+                logger.info(f"Submitted {workers_submitted}/{num_tasks} workers, active threads: {self.threadpool.activeThreadCount()}")
         
-        logger.info(f"Submitted {workers_submitted} workers to threadpool")
-        
+        submit_time = time.time() - submit_start
+        logger.info(f"Submitted {workers_submitted} workers to threadpool in {submit_time*1000:.1f}ms")
+        logger.info(f"Final threadpool status: active={self.threadpool.activeThreadCount()}, max={self.threadpool.maxThreadCount()}")
+        logger.info(f"Waiting for workers to start processing...")
+
         # Wait for all workers to complete or cancellation
         import time
         start_wait = time.time()
@@ -574,7 +668,11 @@ class ThumbnailManager(QObject):
         stalled_count = 0
         last_completed_count = self.completed_tasks
 
+        first_log = True
         while self.completed_tasks < self.total_tasks and not self.progress_dialog.is_cancelled:
+            if first_log:
+                logger.info(f"Starting main wait loop. Completed: {self.completed_tasks}, Total: {self.total_tasks}")
+                first_log = False
             QApplication.processEvents()
 
             current_time = time.time()
@@ -630,28 +728,30 @@ class ThumbnailManager(QObject):
         
         # Log final statistics for this level
         total_time = time.time() - start_wait
+        level_total_time = time.time() - level_start_time
         if not self.is_cancelled:
             avg_time_per_task = total_time / self.total_tasks if self.total_tasks > 0 else 0
             tasks_per_second = self.total_tasks / total_time if total_time > 0 else 0
             generation_ratio = self.generated_count / self.total_tasks * 100 if self.total_tasks > 0 else 0
 
-            logger.info(f"ThumbnailManager.process_level: Level {level+1} completed successfully")
-            logger.info(f"  - Tasks completed: {self.completed_tasks}/{self.total_tasks}")
-            logger.info(f"  - Generated: {self.generated_count}, Loaded: {self.loaded_count} ({generation_ratio:.1f}% generated)")
-            logger.info(f"  - Images collected: {len(img_arrays)}")
-            logger.info(f"  - Total time: {total_time:.2f}s")
-            logger.info(f"  - Average: {avg_time_per_task:.3f}s per task, {tasks_per_second:.1f} tasks/second")
+            logger.info(f"\n=== Level {level+1} Complete ===")
+            logger.info(f"Tasks completed: {self.completed_tasks}/{self.total_tasks}")
+            logger.info(f"Generated: {self.generated_count}, Loaded: {self.loaded_count} ({generation_ratio:.1f}% generated)")
+            logger.info(f"Images collected: {len(img_arrays)}")
+            logger.info(f"Worker time: {total_time:.2f}s")
+            logger.info(f"Total level time: {level_total_time:.2f}s (including submission)")
+            logger.info(f"Average: {avg_time_per_task:.3f}s per task, {tasks_per_second:.1f} tasks/second")
 
             # Store generation ratio for coefficient calculation decision
             self.generation_ratio = generation_ratio
-        
+
         return img_arrays, self.is_cancelled
     
     @pyqtSlot(int)
     def on_worker_progress(self, idx):
         """Handle progress updates from worker threads"""
         import logging
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger('CTHarvester')
 
         with QMutexLocker(self.lock):
             # Increment by weight factor to account for different processing costs per level
@@ -678,7 +778,7 @@ class ThumbnailManager(QObject):
         """Handle results from worker threads"""
         import logging
         import time
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger('CTHarvester')
 
         # Unpack result with generation flag
         if len(result) == 3:
@@ -833,7 +933,7 @@ class ThumbnailManager(QObject):
     def on_worker_error(self, error_tuple):
         """Handle errors from worker threads"""
         import logging
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger('CTHarvester')
         exctype, value, traceback_str = error_tuple
         logger.error(f"Thumbnail worker error: {exctype.__name__}: {value}")
         logger.debug(f"Traceback: {traceback_str}")
@@ -1711,7 +1811,7 @@ class ProgressDialog(QDialog):
         import time
         import logging
         from collections import deque
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger('CTHarvester')
 
         self.total_steps = total_steps
         self.current_step = 0
@@ -1749,7 +1849,7 @@ class ProgressDialog(QDialog):
         import time
         import logging
         import numpy as np
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger('CTHarvester')
 
         current_time = time.time()
         self.current_step = step
@@ -3078,7 +3178,7 @@ class CTHarvesterMainWindow(QMainWindow):
     def calculate_total_thumbnail_work(self, seq_begin, seq_end, size, max_size):
         """Calculate total number of operations for all LoD levels with size weighting"""
         import logging
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger('CTHarvester')
 
         total_work = 0
         weighted_work = 0  # Work weighted by image size
@@ -3457,17 +3557,52 @@ class CTHarvesterMainWindow(QMainWindow):
         thumbnail_start_time = self.thumbnail_start_time  # Keep local variable for backward compatibility
         thumbnail_start_datetime = datetime.now()
 
+        # Log system information
+        import platform
+        try:
+            import psutil 
+            has_psutil = True
+        except ImportError:
+            has_psutil = False
+            logger.warning("psutil not installed - cannot get detailed system info")
+
         MAX_THUMBNAIL_SIZE = 512
         size =  max(int(self.settings_hash['image_width']), int(self.settings_hash['image_height']))
         width = int(self.settings_hash['image_width'])
         height = int(self.settings_hash['image_height'])
+
         logger.info(f"=== Starting Python thumbnail generation (fallback) ===")
         logger.info(f"Start time: {thumbnail_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
         logger.info(f"Image dimensions: width={width}, height={height}, size={size}")
 
+        # System information
+        try:
+            cpu_count = os.cpu_count()
+            logger.info(f"System: {platform.system()} {platform.release()}")
+            logger.info(f"CPU cores: {cpu_count}")
+            if has_psutil:
+                mem = psutil.virtual_memory()
+                disk = psutil.disk_usage(self.edtDirname.text())
+                logger.info(f"Memory: {mem.total/1024**3:.1f}GB total, {mem.available/1024**3:.1f}GB available ({mem.percent:.1f}% used)")
+                logger.info(f"Disk: {disk.total/1024**3:.1f}GB total, {disk.free/1024**3:.1f}GB free ({disk.percent:.1f}% used)")
+            logger.info(f"Thread pool: max={self.threadpool.maxThreadCount()}, active={self.threadpool.activeThreadCount()}")
+        except Exception as e:
+            logger.warning(f"Could not get system info: {e}")
+
         i = 0
         # create temporary directory for thumbnail
         dirname = self.edtDirname.text()
+        logger.info(f"Working directory: {dirname}")
+
+        # Check if directory is on network drive (common cause of slowness)
+        try:
+            drive = os.path.splitdrive(dirname)[0]
+            if drive and drive.startswith('\\\\'):
+                logger.warning(f"Working on network drive: {drive} - this may cause slow performance")
+            elif drive:
+                logger.info(f"Working on local drive: {drive}")
+        except Exception as e:
+            logger.debug(f"Could not determine drive type: {e}")
 
         self.minimum_volume = []
         seq_begin = self.settings_hash['seq_begin']
@@ -3527,17 +3662,28 @@ class CTHarvesterMainWindow(QMainWindow):
             width = int(width / 2)
             height = int(height / 2)
 
+            if size < 2:
+                logger.info(f"Stopping at level {i+1}: size {size} is too small to continue")
+                break
+
             if i == 0:
                 from_dir = dirname
+                logger.debug(f"Level {i+1}: Reading from original directory: {from_dir}")
             else:
                 from_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i))
+                logger.debug(f"Level {i+1}: Reading from thumbnail directory: {from_dir}")
 
             total_count = seq_end - seq_begin + 1
 
             # create thumbnail
             to_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i+1))
             if not os.path.exists(to_dir):
+                mkdir_start = time.time()
                 os.makedirs(to_dir)
+                mkdir_time = (time.time() - mkdir_start) * 1000
+                logger.debug(f"Created directory {to_dir} in {mkdir_time:.1f}ms")
+            else:
+                logger.debug(f"Directory already exists: {to_dir}")
             last_count = 0
 
             logger.info(f"--- Level {i+1} ---")
@@ -3546,13 +3692,18 @@ class CTHarvesterMainWindow(QMainWindow):
 
             # Initialize thumbnail manager for multithreaded processing
             # Always create a new thumbnail manager to ensure it uses the current progress_dialog
+            logger.info(f"Creating ThumbnailManager for level {i+1}")
             self.thumbnail_manager = ThumbnailManager(self, self.progress_dialog, self.threadpool)
+            logger.info(f"ThumbnailManager created, starting process_level")
 
             # Use multithreaded processing for this level
+            process_start = time.time()
             level_img_arrays, was_cancelled = self.thumbnail_manager.process_level(
                 i, from_dir, to_dir, seq_begin, seq_end,
                 self.settings_hash, size, MAX_THUMBNAIL_SIZE, global_step_counter
             )
+            process_time = time.time() - process_start
+            logger.info(f"Level {i+1}: process_level completed in {process_time:.2f}s")
 
             # Calculate and log time for this level
             level_end_datetime = datetime.now()
@@ -3565,9 +3716,11 @@ class CTHarvesterMainWindow(QMainWindow):
 
             # Add collected images to minimum_volume if within size limit
             if size < MAX_THUMBNAIL_SIZE:
+                add_start = time.time()
                 for img_array in level_img_arrays:
                     self.minimum_volume.append(img_array)
-                logger.info(f"Level {i+1}: Added {len(level_img_arrays)} images to minimum_volume")
+                add_time = (time.time() - add_start) * 1000
+                logger.info(f"Level {i+1}: Added {len(level_img_arrays)} images to minimum_volume in {add_time:.1f}ms. Total: {len(self.minimum_volume)}")
             
             # Check for cancellation
             if was_cancelled or self.progress_dialog.is_cancelled:
@@ -3589,9 +3742,12 @@ class CTHarvesterMainWindow(QMainWindow):
             else:
                 pass  #logger.info(f"Level {level_name} already exists in level_info, skipping")
             if size < MAX_THUMBNAIL_SIZE:
-                #logger.info(f"Reached thumbnail size limit. Total images collected: {len(self.minimum_volume)}")
+                logger.info(f"Reached thumbnail size limit at level {i+1}. Total images collected: {len(self.minimum_volume)}")
                 if len(self.minimum_volume) > 0:
+                    array_start = time.time()
                     self.minimum_volume = np.array(self.minimum_volume)
+                    array_time = (time.time() - array_start) * 1000
+                    logger.info(f"Converted to numpy array in {array_time:.1f}ms, shape: {self.minimum_volume.shape}")
                     bounding_box = self.minimum_volume.shape
                     #logger.info(f"Final volume shape: {bounding_box}")
                     # Check if we have a valid 3D volume
@@ -3628,7 +3784,8 @@ class CTHarvesterMainWindow(QMainWindow):
                 else:
                     logger.warning("No volume data collected for thumbnail generation")
                 break
-            
+
+        logger.info(f"Exited thumbnail generation loop at level {i+1}")
         QApplication.restoreOverrideCursor()
 
         # Calculate and log total time for entire thumbnail generation
