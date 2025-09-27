@@ -163,11 +163,6 @@ fn get_group_size(levels: usize) -> usize {
     1 << levels
 }
 
-// Calculate global pair index for a given level
-fn calc_global_pair_idx(level_k: usize, group_start: usize, local_idx: usize) -> usize {
-    (group_start >> level_k) + local_idx
-}
-
 fn list_slices_sorted(input_dir: &Path) -> Result<Vec<PathBuf>, ThumbError> {
     let mut files: Vec<_> = WalkDir::new(input_dir)
         .min_depth(1)
@@ -265,8 +260,67 @@ fn process_group_all_levels(
     }
 
     let group_size = group_files.len();
-    eprintln!("Processing group starting at index {}, size {}, levels {}",
-             group_start_idx, group_size, levels_needed);
+
+    // Check if all output files for this group already exist
+    let mut all_exist = true;
+    for level in 1..=levels_needed {
+        let pairs_at_level = group_size >> level;
+        let has_odd = (group_size >> (level - 1)) & 1 == 1;
+        let total_at_level = if has_odd { pairs_at_level + 1 } else { pairs_at_level };
+
+        for pair_idx in 0..total_at_level {
+            let global_pair_offset = group_start_idx >> level;
+            let global_idx = global_pair_offset + pair_idx;
+            let output_name = format!("{:06}.tif", global_idx);
+
+            if !existing_files[level - 1].contains(&output_name) {
+                all_exist = false;
+                break;
+            }
+        }
+
+        if !all_exist {
+            break;
+        }
+    }
+
+    // If all thumbnails exist, update progress and skip
+    if all_exist {
+        // Log that we're skipping this group
+        eprintln!("Skipping group starting at index {} - all thumbnails already exist", group_start_idx);
+
+        // Calculate weight for all levels of this group
+        let mut group_weight = 0.0;
+        for level in 1..=levels_needed {
+            group_weight += weight_per_level[level - 1];
+        }
+
+        // Update progress
+        let mut done = done_units.lock();
+        *done += group_weight;
+        let pct = (*done / total_units * 100.0).min(100.0);
+        drop(done);
+
+        if let Some(cb) = py_callback {
+            let should_continue = Python::with_gil(|py| {
+                match cb.call1(py, (pct,)) {
+                    Ok(result) => {
+                        if let Ok(should_continue) = result.extract::<bool>(py) {
+                            should_continue
+                        } else {
+                            true
+                        }
+                    }
+                    Err(_) => true
+                }
+            });
+            if !should_continue {
+                return Ok(());  // Early exit on cancellation
+            }
+        }
+
+        return Ok(()); // Skip this group as all thumbnails exist
+    }
 
     // Read all images in the group
     let mut group_images = Vec::new();
@@ -321,9 +375,43 @@ fn process_group_all_levels(
         let mut next_images = Vec::new();
 
         // Process pairs in this level
+
         for pair_idx in 0..pairs_in_level {
-            let global_idx = calc_global_pair_idx(level, group_start_idx, pair_idx);
+            // Check cancellation at the beginning of each pair
+            // Report progress frequently to check for cancellation
+            if let Some(cb) = py_callback {
+                // Calculate current progress
+                let current_done = {
+                    let g = done_units.lock();
+                    *g
+                };
+                let check_pct = (current_done / total_units * 100.0).min(100.0);
+                let should_continue = Python::with_gil(|py| {
+                    match cb.call1(py, (check_pct,)) {
+                        Ok(result) => {
+                            if let Ok(should_continue) = result.extract::<bool>(py) {
+                                should_continue
+                            } else {
+                                true
+                            }
+                        }
+                        Err(_) => true
+                    }
+                });
+                if !should_continue {
+                    return Ok(());  // Early exit on cancellation
+                }
+            }
+
+            // Calculate the actual global pair index for this level
+            // At level 1: group starting at image 0 has pairs 0,1,2,3
+            //             group starting at image 8 has pairs 4,5,6,7
+            // At level 2: group starting at image 0 has pairs 0,1
+            //             group starting at image 8 has pairs 2,3
+            let global_pair_offset = group_start_idx >> level; // Starting pair index for this group at this level
+            let global_idx = global_pair_offset + pair_idx;
             let output_name = format!("{:06}.tif", global_idx);
+
 
             // Check if file already exists (resume support)
             if !existing_files[level - 1].contains(&output_name) {
@@ -398,9 +486,26 @@ fn process_group_all_levels(
             if let Some(cb) = py_callback {
                 if (pct - last_reported_pct).abs() > 1.0 ||
                    (pair_idx == pairs_in_level - 1 && level == levels_needed) {
-                    Python::with_gil(|py| {
-                        let _ = cb.call1(py, (pct,));
+                    let should_continue = Python::with_gil(|py| {
+                        match cb.call1(py, (pct,)) {
+                            Ok(result) => {
+                                // Check if callback returned False (cancel signal)
+                                if let Ok(should_continue) = result.extract::<bool>(py) {
+                                    should_continue
+                                } else {
+                                    // If not a bool, assume continue
+                                    true
+                                }
+                            }
+                            Err(_) => true  // Continue on error
+                        }
                     });
+
+                    if !should_continue {
+                        // User cancelled, exit early
+                        return Ok(());
+                    }
+
                     last_reported_pct = pct;
                 }
             }
@@ -410,7 +515,8 @@ fn process_group_all_levels(
         if current_images.len() % 2 == 1 {
             // For odd images, just copy the last one to next level with downscaling
             let last_idx = current_images.len() - 1;
-            let global_idx = calc_global_pair_idx(level, group_start_idx, pairs_in_level);
+            let global_pair_offset = group_start_idx >> level;
+            let global_idx = global_pair_offset + pairs_in_level; // Next index after all pairs
             let output_name = format!("{:06}.tif", global_idx);
 
             if !existing_files[level - 1].contains(&output_name) {
@@ -473,12 +579,10 @@ fn build_thumbnails_optimized(
 
     // For compatibility, allow fallback to original implementation
     if !use_optimized {
-        eprintln!("Using original sequential implementation");
         // Would call original implementation here
         return Ok(());
     }
 
-    eprintln!("Using optimized group-based implementation");
     let input_dir = PathBuf::from(&input_dir);
 
     // Get all image files
@@ -492,10 +596,8 @@ fn build_thumbnails_optimized(
                 file_list.push(filepath);
             }
         }
-        eprintln!("Using pattern filter: found {} files", file_list.len());
         file_list
     } else {
-        eprintln!("No pattern filter, using all image files");
         list_slices_sorted(&input_dir).map_err(to_pyerr)?
     };
 
@@ -508,16 +610,12 @@ fn build_thumbnails_optimized(
 
     // Analyze first image to determine dimensions and levels
     let (w0, h0, _) = read_luma_preserve_depth(&files[0]).map_err(to_pyerr)?;
-    eprintln!("First file dimensions: {}x{}", w0, h0);
 
     let n_files = files.len();
-    eprintln!("Total files: {}", n_files);
 
     let levels_needed = calc_levels_needed(w0, h0);
-    eprintln!("Levels needed: {}", levels_needed);
 
     if levels_needed == 0 {
-        eprintln!("Image already small enough, no processing needed");
         if let Some(cb) = &py_progress_cb {
             Python::with_gil(|py| { let _ = cb.call1(py, (100.0_f64,)); });
         }
@@ -525,7 +623,6 @@ fn build_thumbnails_optimized(
     }
 
     let group_size = get_group_size(levels_needed);
-    eprintln!("Optimal group size: {}", group_size);
 
     let base_out = input_dir.join(".thumbnail");
     ensure_dir(&base_out).map_err(to_pyerr)?;
@@ -555,35 +652,35 @@ fn build_thumbnails_optimized(
 
     // Process groups
     let n_groups = (n_files + group_size - 1) / group_size;
-    eprintln!("Processing {} groups", n_groups);
 
     // Limit concurrent groups for I/O efficiency
-    let max_concurrent = env::var("THUMB_MAX_CONCURRENT")
+    // Set to 1 to avoid Python GIL deadlock issues
+    let _max_concurrent = env::var("THUMB_MAX_CONCURRENT")
         .ok()
         .and_then(|s| s.parse().ok())
-        .unwrap_or(2);
+        .unwrap_or(1);
 
-    // Process groups with limited parallelism
-    for group_batch in (0..n_groups).collect::<Vec<_>>().chunks(max_concurrent) {
-        group_batch.par_iter().try_for_each(|&group_idx| -> Result<(), ThumbError> {
-            let group_start = group_idx * group_size;
-            let group_end = min(group_start + group_size, n_files);
-            let group_files = &files[group_start..group_end];
+    // Process groups sequentially to avoid Python GIL issues
+    // But still use parallelism within each group's processing
+    for group_idx in 0..n_groups {
+        let group_start = group_idx * group_size;
+        let group_end = min(group_start + group_size, n_files);
+        let group_files = &files[group_start..group_end];
 
-            process_group_all_levels(
-                group_files,
-                group_start,
-                w0,
-                h0,
-                levels_needed,
-                &base_out,
-                &existing_files,
-                &weight_per_level,
-                total_units,
-                done_units.clone(),
-                py_progress_cb.as_ref(),
-            )
-        }).map_err(to_pyerr)?;
+
+        process_group_all_levels(
+            group_files,
+            group_start,
+            w0,
+            h0,
+            levels_needed,
+            &base_out,
+            &existing_files,
+            &weight_per_level,
+            total_units,
+            done_units.clone(),
+            py_progress_cb.as_ref(),
+        ).map_err(to_pyerr)?;
     }
 
     // Final callback

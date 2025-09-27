@@ -198,9 +198,18 @@ class ThumbnailWorker(QRunnable):
         self.level = level  # Track which level this worker belongs to
         
         # Generate filenames
-        self.filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
-        self.filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
-        # Match Rust naming: simple sequential numbering without prefix
+        # For level 0 (original images), use the original naming with prefix
+        # For levels 1+, use simple sequential numbering to match saved thumbnails
+        if level == 0:
+            # Reading from original images
+            self.filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+            self.filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+        else:
+            # Reading from thumbnail directory - use simple numbering
+            self.filename1 = "{:06}.tif".format(seq)
+            self.filename2 = "{:06}.tif".format(seq+1)
+
+        # Output always uses simple sequential numbering without prefix
         self.filename3 = os.path.join(to_dir, "{:06}.tif".format(idx))
 
     @pyqtSlot()
@@ -653,7 +662,7 @@ class ThumbnailManager(QObject):
             # Process events periodically to keep UI responsive
             if workers_submitted % 10 == 0 or workers_submitted <= 5:
                 QApplication.processEvents()
-                logger.info(f"Submitted {workers_submitted}/{num_tasks} workers, active threads: {self.threadpool.activeThreadCount()}")
+                #logger.info(f"Submitted {workers_submitted}/{num_tasks} workers, active threads: {self.threadpool.activeThreadCount()}")
         
         submit_time = time.time() - submit_start
         logger.info(f"Submitted {workers_submitted} workers to threadpool in {submit_time*1000:.1f}ms")
@@ -3364,7 +3373,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
         if success and not self.rust_cancelled:
             # Load the generated thumbnails
-            self.load_rust_thumbnail_data()
+            self.load_thumbnail_data_from_disk()
 
             # Update progress dialog
             self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
@@ -3394,8 +3403,9 @@ class CTHarvesterMainWindow(QMainWindow):
             if not self.initialized:
                 self.comboLevelIndexChanged()
 
-    def load_rust_thumbnail_data(self):
-        """Load generated thumbnail data from Rust module into minimum_volume for 3D visualization"""
+    def load_thumbnail_data_from_disk(self):
+        """Load generated thumbnail data from disk into minimum_volume for 3D visualization
+        This is used by both Rust and Python thumbnail generation"""
 
         MAX_THUMBNAIL_SIZE = 512  # Must match Python's MAX_THUMBNAIL_SIZE
 
@@ -3654,6 +3664,11 @@ class CTHarvesterMainWindow(QMainWindow):
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
         while True:
+            # Check for cancellation before starting new level
+            if self.progress_dialog.is_cancelled:
+                logger.info("Thumbnail generation cancelled by user before level start")
+                break
+
             # Start timing for this level
             level_start_time = time.time()
             level_start_datetime = datetime.now()
@@ -3661,6 +3676,9 @@ class CTHarvesterMainWindow(QMainWindow):
             size /= 2
             width = int(width / 2)
             height = int(height / 2)
+
+            # Store the current level size for checking later
+            current_level_size = size
 
             if size < 2:
                 logger.info(f"Stopping at level {i+1}: size {size} is too small to continue")
@@ -3714,13 +3732,9 @@ class CTHarvesterMainWindow(QMainWindow):
             # Update global step counter based on actual progress made
             global_step_counter = self.thumbnail_manager.global_step_counter
 
-            # Add collected images to minimum_volume if within size limit
-            if size < MAX_THUMBNAIL_SIZE:
-                add_start = time.time()
-                for img_array in level_img_arrays:
-                    self.minimum_volume.append(img_array)
-                add_time = (time.time() - add_start) * 1000
-                logger.info(f"Level {i+1}: Added {len(level_img_arrays)} images to minimum_volume in {add_time:.1f}ms. Total: {len(self.minimum_volume)}")
+            # Note: We no longer add images to minimum_volume here
+            # Instead, we'll load them from disk later, just like Rust does
+            # This ensures both Python and Rust follow the same path
             
             # Check for cancellation
             if was_cancelled or self.progress_dialog.is_cancelled:
@@ -3741,48 +3755,10 @@ class CTHarvesterMainWindow(QMainWindow):
                 #logger.info(f"Added new level to level_info: {level_name}")
             else:
                 pass  #logger.info(f"Level {level_name} already exists in level_info, skipping")
-            if size < MAX_THUMBNAIL_SIZE:
-                logger.info(f"Reached thumbnail size limit at level {i+1}. Total images collected: {len(self.minimum_volume)}")
-                if len(self.minimum_volume) > 0:
-                    array_start = time.time()
-                    self.minimum_volume = np.array(self.minimum_volume)
-                    array_time = (time.time() - array_start) * 1000
-                    logger.info(f"Converted to numpy array in {array_time:.1f}ms, shape: {self.minimum_volume.shape}")
-                    bounding_box = self.minimum_volume.shape
-                    #logger.info(f"Final volume shape: {bounding_box}")
-                    # Check if we have a valid 3D volume
-                    if len(bounding_box) >= 3:
-                        # Calculate proper bounding box for current level
-                        smallest_level_idx = len(self.level_info) - 1
-                        level_diff = smallest_level_idx - self.curr_level_idx
-                        scale_factor = 2 ** level_diff
-                        
-                        scaled_depth = bounding_box[0] * scale_factor
-                        scaled_height = bounding_box[1] * scale_factor
-                        scaled_width = bounding_box[2] * scale_factor
-                        
-                        scaled_bounding_box = np.array([0, scaled_depth-1, 0, scaled_height-1, 0, scaled_width-1])
-                        try:
-                            _, curr, _ = self.timeline.values()
-                            denom = float(self.timeline.maximum()) if self.timeline.maximum() > 0 else 1.0
-                            curr_slice_val = curr / denom * scaled_depth
-                        except Exception:
-                            curr_slice_val = 0
-
-                        self.mcube_widget.update_boxes(scaled_bounding_box, scaled_bounding_box, curr_slice_val)
-                        self.mcube_widget.adjust_boxes()
-                        self.mcube_widget.update_volume(self.minimum_volume)
-                        self.mcube_widget.generate_mesh()
-                        self.mcube_widget.adjust_volume()
-                        self.mcube_widget.show_buttons()
-                        
-                        # Ensure the 3D widget doesn't cover the main image
-                        self.mcube_widget.setGeometry(QRect(0, 0, 150, 150))
-                        self.mcube_widget.recalculate_geometry()
-                    else:
-                        logger.warning(f"Invalid volume shape: {bounding_box}. Expected 3D array.")
-                else:
-                    logger.warning("No volume data collected for thumbnail generation")
+            # Check if we've reached the size limit
+            # Stop when images are small enough (< MAX_THUMBNAIL_SIZE)
+            if current_level_size < MAX_THUMBNAIL_SIZE:
+                logger.info(f"Reached target thumbnail size at level {i}")
                 break
 
         logger.info(f"Exited thumbnail generation loop at level {i+1}")
@@ -3850,91 +3826,14 @@ class CTHarvesterMainWindow(QMainWindow):
 
         self.progress_dialog.close()
         self.progress_dialog = None
-        
-        # If minimum_volume is still empty, try to load from the smallest existing thumbnail
+
+        # Load thumbnail data from disk (same as Rust does)
+        # This will load the thumbnails that were just saved to disk and update the 3D view
+        self.load_thumbnail_data_from_disk()
+
+        # If loading from disk failed and minimum_volume is still empty
         if len(self.minimum_volume) == 0:
-            logger.info("minimum_volume is empty, trying to load from existing thumbnails")
-            
-            # Find the highest numbered thumbnail directory that exists
-            thumbnail_base = os.path.join(self.edtDirname.text(), ".thumbnail")
-            if os.path.exists(thumbnail_base):
-                level_dirs = []
-                for i in range(1, 10):  # Check up to level 9
-                    level_dir = os.path.join(thumbnail_base, str(i))
-                    if os.path.exists(level_dir):
-                        level_dirs.append((i, level_dir))
-                    else:
-                        break
-                
-                if level_dirs:
-                    # Use the highest level (smallest images)
-                    level_num, thumbnail_dir = level_dirs[-1]
-                    #logger.info(f"Loading thumbnails from level {level_num}: {thumbnail_dir}")
-                    
-                    try:
-                        # List all image files in the directory
-                        files = sorted([f for f in os.listdir(thumbnail_dir) 
-                                      if f.endswith('.' + self.settings_hash['file_type'])])
-                        
-                        #logger.info(f"Found {len(files)} files in {thumbnail_dir}")
-                        
-                        for file in files:
-                            filepath = os.path.join(thumbnail_dir, file)
-                            img = Image.open(filepath)
-                            img_array = np.array(img)
-
-                            # Normalize to 8-bit range (0-255) for marching cubes
-                            if img_array.dtype == np.uint16:
-                                # Convert 16-bit to 8-bit
-                                img_array = (img_array / 256).astype(np.uint8)
-                            elif img_array.dtype != np.uint8:
-                                # For other types, normalize to 0-255
-                                img_min = img_array.min()
-                                img_max = img_array.max()
-                                if img_max > img_min:
-                                    img_array = ((img_array - img_min) / (img_max - img_min) * 255).astype(np.uint8)
-                                else:
-                                    img_array = np.zeros_like(img_array, dtype=np.uint8)
-
-                            self.minimum_volume.append(img_array)
-                            img.close()
-
-                        if len(self.minimum_volume) > 0:
-                            self.minimum_volume = np.array(self.minimum_volume)
-                            #logger.info(f"Loaded {len(self.minimum_volume)} thumbnails, shape: {self.minimum_volume.shape}")
-                            
-                            # Update 3D view
-                            bounding_box = self.minimum_volume.shape
-                            if len(bounding_box) >= 3:
-                                # Calculate proper bounding box for current level
-                                smallest_level_idx = len(self.level_info) - 1
-                                level_diff = smallest_level_idx - self.curr_level_idx
-                                scale_factor = 2 ** level_diff
-                                
-                                scaled_depth = bounding_box[0] * scale_factor
-                                scaled_height = bounding_box[1] * scale_factor
-                                scaled_width = bounding_box[2] * scale_factor
-                                
-                                scaled_bounding_box = np.array([0, scaled_depth-1, 0, scaled_height-1, 0, scaled_width-1])
-                                try:
-                                    _, curr, _ = self.timeline.values()
-                                    denom = float(self.timeline.maximum()) if self.timeline.maximum() > 0 else 1.0
-                                    curr_slice_val = curr / denom * scaled_depth
-                                except Exception:
-                                    curr_slice_val = 0
-                                
-                                self.mcube_widget.update_boxes(scaled_bounding_box, scaled_bounding_box, curr_slice_val)
-                                self.mcube_widget.adjust_boxes()
-                                self.mcube_widget.update_volume(self.minimum_volume)
-                                self.mcube_widget.generate_mesh()
-                                self.mcube_widget.adjust_volume()
-                                self.mcube_widget.show_buttons()
-                                
-                                # Ensure the 3D widget doesn't cover the main image
-                                self.mcube_widget.setGeometry(QRect(0, 0, 150, 150))
-                                self.mcube_widget.recalculate_geometry()
-                    except Exception as e:
-                        logger.error(f"Error loading existing thumbnails: {e}")
+            logger.warning("Failed to load thumbnails from disk after Python generation")
         
         self.initializeComboSize()
         self.reset_crop()
