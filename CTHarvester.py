@@ -21,6 +21,7 @@ from scipy import ndimage  # For interpolation
 import math
 from copy import deepcopy
 import datetime
+import time
 
 # Python fallback implementation uses only PIL and NumPy for simplicity
 # No additional libraries needed - maximum compatibility
@@ -174,6 +175,111 @@ class Worker(QRunnable):
             self.signals.finished.emit()  # Done
 
 
+class ProgressManager(QObject):
+    """Centralized progress and ETA management"""
+
+    # Signals
+    progress_updated = pyqtSignal(int)  # percentage
+    eta_updated = pyqtSignal(str)  # ETA text
+    detail_updated = pyqtSignal(str)  # detail text
+
+    def __init__(self):
+        super().__init__()
+        self.current = 0
+        self.total = 0
+        self.start_time = None
+        self.is_sampling = False
+        self.speed = None  # units per second
+        self.level_work_distribution = None  # Store level work info
+        self.weighted_total_work = None  # Store weighted total
+
+    def start(self, total):
+        """Initialize progress tracking"""
+        self.total = total
+        self.current = 0
+        self.start_time = time.time()
+        self.is_sampling = False
+
+    def update(self, value=None, delta=1):
+        """Update progress by delta or to specific value"""
+        if value is not None:
+            self.current = value
+        else:
+            self.current += delta
+
+        percentage = int((self.current / self.total * 100)) if self.total > 0 else 0
+        self.progress_updated.emit(percentage)
+
+        # Calculate and emit ETA
+        eta_text = self.calculate_eta()
+        if eta_text:
+            self.eta_updated.emit(eta_text)
+
+    def set_sampling(self, is_sampling):
+        """Set whether we're in sampling phase"""
+        self.is_sampling = is_sampling
+        if is_sampling:
+            self.eta_updated.emit("Estimating...")
+
+    def set_speed(self, speed):
+        """Set processing speed (units per second)"""
+        self.speed = speed
+
+    def calculate_eta(self):
+        """Calculate estimated time of arrival"""
+        if self.is_sampling:
+            return "Estimating..."
+
+        if not self.start_time:
+            return ""
+
+        elapsed = time.time() - self.start_time
+        if elapsed <= 0:
+            return ""
+
+        # If we have weighted work distribution, the current value is already weighted
+        if self.weighted_total_work and self.weighted_total_work > 0:
+            # self.current is already the weighted progress (global_step_counter with level_weight)
+            weighted_progress = self.current
+            remaining_weighted_work = self.weighted_total_work - weighted_progress
+
+            if remaining_weighted_work <= 0:
+                return "Completing..."
+
+            # Calculate weighted speed
+            weighted_speed = weighted_progress / elapsed
+
+            if weighted_speed > 0:
+                remaining_time = remaining_weighted_work / weighted_speed
+            else:
+                return ""
+        else:
+            # Fallback to simple calculation
+            remaining = self.total - self.current
+            if remaining <= 0:
+                return "Completing..."
+
+            if self.current > 0:
+                actual_speed = self.current / elapsed
+                remaining_time = remaining / actual_speed
+            else:
+                return ""
+
+        # Format time with ETA prefix
+        if remaining_time < 60:
+            return f"ETA: {int(remaining_time)}s"
+        elif remaining_time < 3600:
+            return f"ETA: {int(remaining_time/60)}m {int(remaining_time%60)}s"
+        else:
+            return f"ETA: {int(remaining_time/3600)}h {int((remaining_time%3600)/60)}m"
+
+    def get_detail_text(self, level=None, completed=None, total=None):
+        """Get detail text for current state"""
+        if level is not None and completed is not None and total is not None:
+            return f"Level {level+1}: {completed}/{total}"
+        return ""
+
+
 class ThumbnailWorkerSignals(QObject):
     """Signals for thumbnail worker threads"""
     finished = pyqtSignal()
@@ -185,12 +291,13 @@ class ThumbnailWorkerSignals(QObject):
 class ThumbnailWorker(QRunnable):
     """Worker thread for processing individual thumbnail image pairs"""
 
-    def __init__(self, idx, seq, seq_begin, from_dir, to_dir, settings_hash, size, max_thumbnail_size, progress_dialog, level=0):
+    def __init__(self, idx, seq, seq_begin, from_dir, to_dir, settings_hash, size, max_thumbnail_size, progress_dialog, level=0, seq_end=None):
         super(ThumbnailWorker, self).__init__()
 
         self.idx = idx
         self.seq = seq
         self.seq_begin = seq_begin
+        self.seq_end = seq_end if seq_end is not None else settings_hash.get('seq_end', 999999)
         self.from_dir = from_dir
         self.to_dir = to_dir
         self.settings_hash = settings_hash
@@ -206,11 +313,19 @@ class ThumbnailWorker(QRunnable):
         if level == 0:
             # Reading from original images
             self.filename1 = self.settings_hash['prefix'] + str(seq).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
-            self.filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+            # Check if seq+1 exceeds seq_end (handling odd number of images)
+            if seq + 1 <= self.seq_end:
+                self.filename2 = self.settings_hash['prefix'] + str(seq+1).zfill(self.settings_hash['index_length']) + "." + self.settings_hash['file_type']
+            else:
+                self.filename2 = None  # No second image for odd case
         else:
             # Reading from thumbnail directory - use simple numbering
-            self.filename1 = "{:06}.tif".format(seq)
-            self.filename2 = "{:06}.tif".format(seq+1)
+            relative_seq = seq - self.seq_begin
+            self.filename1 = "{:06}.tif".format(relative_seq)
+            if seq + 1 <= self.seq_end:
+                self.filename2 = "{:06}.tif".format(relative_seq + 1)
+            else:
+                self.filename2 = None  # No second image for odd case
 
         # Output always uses simple sequential numbering without prefix
         self.filename3 = os.path.join(to_dir, "{:06}.tif".format(idx))
@@ -253,8 +368,8 @@ class ThumbnailWorker(QRunnable):
                 if self.size < self.max_thumbnail_size:
                     try:
                         load_start = time.time()
-                        img = Image.open(self.filename3)
-                        img_array = np.array(img)
+                        with Image.open(self.filename3) as img:
+                            img_array = np.array(img)
                         load_time = (time.time() - load_start) * 1000
                         logger.debug(f"Loaded existing thumbnail shape: {img_array.shape} in {load_time:.1f}ms")
                     except Exception as e:
@@ -277,24 +392,26 @@ class ThumbnailWorker(QRunnable):
                 file1_path = os.path.join(self.from_dir, self.filename1)
                 if os.path.exists(file1_path):
                     try:
-                        # Simple PIL loading - works with all formats
+                        # Simple PIL loading with context manager for proper resource cleanup
                         open_start = time.time()
-                        img1 = Image.open(file1_path)
-                        open_time = (time.time() - open_start) * 1000
+                        with Image.open(file1_path) as img1_temp:
+                            # Copy the image data to keep it after context exits
+                            if img1_temp.mode == 'I;16' or img1_temp.mode == 'I;16L' or img1_temp.mode == 'I;16B':
+                                img1_is_16bit = True
+                                img1 = img1_temp.copy()  # Keep original 16-bit
+                            elif img1_temp.mode[0] == 'I':
+                                # Some other I mode, convert to L
+                                img1 = img1_temp.convert('L')
+                            elif img1_temp.mode == 'P':
+                                img1 = img1_temp.convert('L')
+                            else:
+                                img1 = img1_temp.copy()
 
+                        open_time = (time.time() - open_start) * 1000
                         if self.idx < 5:
-                            logger.info(f"Opened {self.filename1} in {open_time:.1f}ms, mode={img1.mode}, size={img1.size}")
+                            logger.info(f"Opened {self.filename1} in {open_time:.1f}ms")
                         else:
                             logger.debug(f"Opened {self.filename1} in {open_time:.1f}ms")
-
-                        # Check if 16-bit image
-                        if img1.mode == 'I;16' or img1.mode == 'I;16L' or img1.mode == 'I;16B':
-                            img1_is_16bit = True
-                        elif img1.mode[0] == 'I':
-                            # Some other I mode, convert to L
-                            img1 = img1.convert('L')
-                        elif img1.mode == 'P':
-                            img1 = img1.convert('L')
                     except Exception as e:
                         logger.error(f"Error processing image {self.filename1}: {e}")
                         img1 = None
@@ -303,36 +420,77 @@ class ThumbnailWorker(QRunnable):
                 img2 = None
                 arr2 = None
                 img2_is_16bit = False
-                file2_path = os.path.join(self.from_dir, self.filename2)
-                if os.path.exists(file2_path):
+                # Check if filename2 exists (might be None for odd number case)
+                if self.filename2:
+                    file2_path = os.path.join(self.from_dir, self.filename2)
+                else:
+                    file2_path = None
+
+                if file2_path and os.path.exists(file2_path):
                     try:
-                        # Simple PIL loading
+                        # Simple PIL loading with context manager
                         open_start = time.time()
-                        img2 = Image.open(file2_path)
+                        with Image.open(file2_path) as img2_temp:
+                            # Copy the image data to keep it after context exits
+                            if img2_temp.mode == 'I;16' or img2_temp.mode == 'I;16L' or img2_temp.mode == 'I;16B':
+                                img2_is_16bit = True
+                                img2 = img2_temp.copy()  # Keep original 16-bit
+                            elif img2_temp.mode[0] == 'I':
+                                # Some other I mode, convert to L
+                                img2 = img2_temp.convert('L')
+                            elif img2_temp.mode == 'P':
+                                img2 = img2_temp.convert('L')
+                            else:
+                                img2 = img2_temp.copy()
+
                         open_time = (time.time() - open_start) * 1000
-
-                        logger.debug(f"Opened {self.filename2} in {open_time:.1f}ms, mode={img2.mode}")
-
-                        # Check if 16-bit image
-                        if img2.mode == 'I;16' or img2.mode == 'I;16L' or img2.mode == 'I;16B':
-                            img2_is_16bit = True
-                        elif img2.mode[0] == 'I':
-                            # Some other I mode, convert to L
-                            img2 = img2.convert('L')
-                        elif img2.mode == 'P':
-                            img2 = img2.convert('L')
+                        logger.debug(f"Opened {self.filename2} in {open_time:.1f}ms")
                     except Exception as e:
                         logger.error(f"Error processing image {self.filename2}: {e}")
                         img2 = None
                         arr2 = None
 
                 # Average two images preserving bit depth
-                # Check if we have either PIL images or numpy arrays
-                if (img1 is not None or arr1 is not None) and (img2 is not None or arr2 is not None):
+                # Check if we have at least one image
+                # Handle odd number case where only img1 exists for the last thumbnail
+                if (img1 is not None or arr1 is not None):
                     try:
                         process_start = time.time()
+                        # Handle case where only img1 exists (odd number of images)
+                        if img2 is None and arr2 is None:
+                            logger.debug(f"Processing single image (odd case) at idx={self.idx}")
+
+                            if img1_is_16bit:
+                                # Process single 16-bit image
+                                if arr1 is None and img1 is not None:
+                                    arr1 = np.array(img1, dtype=np.uint16)
+
+                                # Downscale single image by 2x2 averaging
+                                h, w = arr1.shape
+                                new_h, new_w = h // 2, w // 2
+                                arr1_32 = arr1.astype(np.uint32)
+                                downscaled = (
+                                    arr1_32[0:2*new_h:2, 0:2*new_w:2] +
+                                    arr1_32[0:2*new_h:2, 1:2*new_w:2] +
+                                    arr1_32[1:2*new_h:2, 0:2*new_w:2] +
+                                    arr1_32[1:2*new_h:2, 1:2*new_w:2]
+                                ) // 4
+                                downscaled = downscaled.astype(np.uint16)
+                                new_img_ops = Image.fromarray(downscaled, mode='I;16')
+                            else:
+                                # Process single 8-bit image
+                                if img1 is None:
+                                    logger.error(f"No img1 for single image processing at idx={self.idx}")
+                                else:
+                                    new_img_ops = img1.resize((img1.width // 2, img1.height // 2))
+
+                            # Save the thumbnail
+                            new_img_ops.save(self.filename3)
+                            if self.size < self.max_thumbnail_size:
+                                img_array = np.array(new_img_ops)
+
                         # If both are 16-bit, process as 16-bit
-                        if img1_is_16bit and img2_is_16bit:
+                        elif img1_is_16bit and img2_is_16bit:
                             logger.debug(f"Processing as 16-bit images")
 
                             # If we don't already have arrays (from tifffile), convert from PIL
@@ -493,13 +651,34 @@ class ThumbnailWorker(QRunnable):
 class ThumbnailManager(QObject):
     """Manager class to coordinate multiple thumbnail workers and progress tracking"""
 
-    def __init__(self, parent, progress_dialog, threadpool):
+    def __init__(self, parent, progress_dialog, threadpool, shared_progress_manager=None):
         super().__init__()
         self.parent = parent
         self.progress_dialog = progress_dialog
         self.threadpool = threadpool
 
-        # Progress tracking
+        # Use shared progress manager if provided, otherwise create a new one
+        if shared_progress_manager:
+            self.progress_manager = shared_progress_manager
+        else:
+            # Create new progress manager as fallback
+            self.progress_manager = ProgressManager()
+            # Pass weighted work distribution if available
+            if hasattr(parent, 'level_work_distribution'):
+                self.progress_manager.level_work_distribution = parent.level_work_distribution
+            if hasattr(parent, 'weighted_total_work'):
+                self.progress_manager.weighted_total_work = parent.weighted_total_work
+
+        # Connect progress manager signals to UI
+        if progress_dialog:
+            self.progress_manager.progress_updated.connect(
+                lambda p: progress_dialog.pb_progress.setValue(p)
+            )
+            self.progress_manager.eta_updated.connect(
+                lambda eta: self._update_progress_text(eta)
+            )
+
+        # Progress tracking (legacy compatibility)
         self.total_tasks = 0
         self.completed_tasks = 0
         self.global_step_counter = 0
@@ -533,68 +712,34 @@ class ThumbnailManager(QObject):
             logger = logging.getLogger('CTHarvester')
             logger.info(f"ThumbnailManager created: sample_size={self.sample_size}, no inherited speed")
 
+    def _update_progress_text(self, eta_text):
+        """Helper to update progress dialog text"""
+        if self.progress_dialog and hasattr(self.progress_dialog, 'lbl_detail'):
+            detail_text = self.progress_manager.get_detail_text(
+                self.level, self.completed_tasks, self.total_tasks
+            )
+            if eta_text and detail_text:
+                self.progress_dialog.lbl_detail.setText(f"{eta_text} - {detail_text}")
+            elif detail_text:
+                self.progress_dialog.lbl_detail.setText(detail_text)
+            elif eta_text:
+                self.progress_dialog.lbl_detail.setText(eta_text)
+
     def update_eta_and_progress(self):
-        """Centralized method to update ETA and progress display"""
-        import time
-        import logging
-        logger = logging.getLogger('CTHarvester')
+        """Delegate to centralized progress manager"""
+        # Update progress manager state
+        if self.is_sampling != self.progress_manager.is_sampling:
+            self.progress_manager.set_sampling(self.is_sampling)
 
-        if not self.progress_dialog or not hasattr(self.progress_dialog, 'lbl_detail'):
-            return
+        if self.images_per_second:
+            self.progress_manager.set_speed(self.images_per_second)
 
-        # Build progress detail text
-        detail_text = f"Level {self.level+1}: {self.completed_tasks}/{self.total_tasks}"
+        # Only initialize if not already started (for shared progress manager)
+        if not self.progress_manager.total and not self.progress_manager.start_time:
+            total_to_use = self.progress_manager.weighted_total_work if self.progress_manager.weighted_total_work else self.total_tasks
+            self.progress_manager.start(total_to_use)
 
-        # If still sampling, show "Estimating..."
-        if self.is_sampling:
-            self.progress_dialog.lbl_detail.setText(f"Estimating... - {detail_text}")
-            return
-
-        # If we don't have performance data yet, just show progress
-        if self.images_per_second is None:
-            self.progress_dialog.lbl_detail.setText(detail_text)
-            return
-
-        # Calculate ETA based on current performance and global work amount
-        global_total = self.parent.progress_dialog.total_steps if hasattr(self.parent.progress_dialog, 'total_steps') else self.total_tasks
-        global_completed = self.global_step_counter  # This is the global counter, not per-level
-        global_remaining = global_total - global_completed
-
-        if global_remaining <= 0:
-            self.progress_dialog.lbl_detail.setText(f"Completing... - {detail_text}")
-            return
-
-        # Calculate blended speed based on global progress
-        # Since total_steps already includes weighted work (size-based),
-        # we use the speed as-is without level adjustment
-        elapsed_time = time.time() - self.parent.thumbnail_start_time if hasattr(self.parent, 'thumbnail_start_time') else 0
-        if elapsed_time > 0 and global_completed > 0:
-            # Actual speed in weighted units per second
-            actual_speed = global_completed / elapsed_time
-            # Blend with initial measured speed (also in weighted units)
-            progress_ratio = global_completed / global_total if global_total > 0 else 0
-            weight = min(0.7, progress_ratio * 0.7)  # Up to 70% weight on actual
-            blended_speed = actual_speed * weight + self.images_per_second * (1 - weight)
-        else:
-            blended_speed = self.images_per_second
-
-        # Calculate remaining time based on weighted work amount
-        remaining_time = global_remaining / blended_speed if blended_speed > 0 else 0
-
-        # Format ETA
-        if remaining_time < 60:
-            eta_text = f"{int(remaining_time)}s"
-        elif remaining_time < 3600:
-            eta_text = f"{int(remaining_time/60)}m {int(remaining_time%60)}s"
-        else:
-            eta_text = f"{int(remaining_time/3600)}h {int((remaining_time%3600)/60)}m"
-
-        # Update display
-        self.progress_dialog.lbl_detail.setText(f"ETA: {eta_text} - {detail_text}")
-
-        # Log periodically (every 10% of progress)
-        if self.completed_tasks % max(1, int(self.total_tasks * 0.1)) == 0:
-            logger.debug(f"Progress update: ETA={eta_text}, {detail_text}, speed={blended_speed:.1f} img/s")
+        self.progress_manager.update(value=self.global_step_counter)
 
     def process_level_sequential(self, level, from_dir, to_dir, seq_begin, seq_end, settings_hash, size, max_thumbnail_size, num_tasks):
         """Process thumbnails sequentially without threadpool - no threading issues"""
@@ -618,9 +763,25 @@ class ThumbnailManager(QObject):
             seq = seq_begin + (idx * 2)
 
             # Generate filenames (same logic as ThumbnailWorker)
-            filename1 = f"{settings_hash['file_base_name']}_{str(seq).zfill(settings_hash['digit_n'])}.{settings_hash['extension_id']}"
-            filename2 = f"{settings_hash['file_base_name']}_{str(seq + 1).zfill(settings_hash['digit_n'])}.{settings_hash['extension_id']}"
-            filename3 = os.path.join(to_dir, f"{str(idx).zfill(5)}.png")
+            if level == 0:
+                # Reading from original images
+                filename1 = settings_hash['prefix'] + str(seq).zfill(settings_hash['index_length']) + "." + settings_hash['file_type']
+                # Check if seq+1 exceeds seq_end
+                if seq + 1 <= seq_end:
+                    filename2 = settings_hash['prefix'] + str(seq+1).zfill(settings_hash['index_length']) + "." + settings_hash['file_type']
+                else:
+                    filename2 = None  # Odd number case
+            else:
+                # Reading from thumbnail directory - use simple numbering
+                relative_seq = seq - seq_begin
+                filename1 = "{:06}.tif".format(relative_seq)
+                if seq + 1 <= seq_end:
+                    filename2 = "{:06}.tif".format(relative_seq + 1)
+                else:
+                    filename2 = None  # Odd number case
+
+            # Output always uses simple sequential numbering
+            filename3 = os.path.join(to_dir, "{:06}.tif".format(idx))
 
             # Check if thumbnail exists
             img_array = None
@@ -638,7 +799,10 @@ class ThumbnailManager(QObject):
                 # Generate new thumbnail
                 was_generated = True
                 file1_path = os.path.join(from_dir, filename1)
-                file2_path = os.path.join(from_dir, filename2)
+                if filename2:
+                    file2_path = os.path.join(from_dir, filename2)
+                else:
+                    file2_path = None
 
                 img1 = None
                 img2 = None
@@ -656,7 +820,7 @@ class ThumbnailManager(QObject):
                     except Exception as e:
                         logger.error(f"Error loading {filename1}: {e}")
 
-                if os.path.exists(file2_path):
+                if file2_path and os.path.exists(file2_path):
                     try:
                         load2_start = time.time()
                         img2 = Image.open(file2_path)
@@ -669,11 +833,18 @@ class ThumbnailManager(QObject):
                         logger.error(f"Error loading {filename2}: {e}")
 
                 # Average and resize
-                if img1 and img2:
+                if img1:  # Process even if img2 is None (odd number case)
                     try:
-                        from PIL import ImageChops
-                        new_img = ImageChops.add(img1, img2, scale=2.0)
-                        new_img = new_img.resize((int(img1.width / 2), int(img1.height / 2)))
+                        if img2:
+                            # Both images exist - average them
+                            from PIL import ImageChops
+                            new_img = ImageChops.add(img1, img2, scale=2.0)
+                            new_img = new_img.resize((int(img1.width / 2), int(img1.height / 2)))
+                        else:
+                            # Only img1 exists (odd case) - just resize
+                            logger.debug(f"Processing single image at idx={idx}")
+                            new_img = img1.resize((int(img1.width / 2), int(img1.height / 2)))
+
                         new_img.save(filename3)
                         if size < max_thumbnail_size:
                             img_array = np.array(new_img)
@@ -689,7 +860,7 @@ class ThumbnailManager(QObject):
 
             # Update progress bar
             self.global_step_counter += self.level_weight
-            self.progress_dialog.setValue(int(self.global_step_counter))
+            self.progress_manager.update(value=self.global_step_counter)
 
             # Store result
             if img_array is not None:
@@ -749,9 +920,11 @@ class ThumbnailManager(QObject):
         self.results.clear()
         self.is_cancelled = False
 
-        # Calculate number of tasks
+        # Calculate number of tasks (pairs of images to process)
+        # Each task processes 2 images to create 1 thumbnail
+        # If odd number, the last image needs special handling
         total_count = seq_end - seq_begin + 1
-        num_tasks = int(total_count / 2)
+        num_tasks = (total_count + 1) // 2  # Round up for odd numbers
         self.total_tasks = num_tasks
         self.completed_tasks = 0
 
@@ -760,8 +933,13 @@ class ThumbnailManager(QObject):
         if level == 0 and self.sample_size > 0:
             self.is_sampling = True
             self.sample_start_time = time.time()
+            # Tell ProgressManager we're sampling so it shows "Estimating..."
+            self.progress_manager.set_sampling(True)
             logger.info(f"Level {level+1}: Starting with performance sampling (first {self.sample_size} images)")
         else:
+            self.is_sampling = False
+            # Not sampling, use any existing speed data
+            self.progress_manager.set_sampling(False)
             logger.info(f"Not sampling: level={level} (need 0), sample_size={self.sample_size} (need >0)")
 
         logger.info(f"ThumbnailManager.process_level: Starting Level {level+1}, tasks={num_tasks}, offset={global_step_offset}")
@@ -795,10 +973,18 @@ class ThumbnailManager(QObject):
 
             seq = seq_begin + (idx * 2)
 
-            # Create worker with level information
+            # Skip if seq would exceed available images
+            if seq > seq_end:
+                logger.warning(f"Skipping idx={idx}, seq={seq} exceeds seq_end={seq_end}")
+                continue
+
+            # For the last task, check if we have both images
+            # If seq+1 > seq_end, the worker will handle it as a single image
+
+            # Create worker with level information and seq_end
             worker = ThumbnailWorker(
                 idx, seq, seq_begin, from_dir, to_dir,
-                settings_hash, size, max_thumbnail_size, self.progress_dialog, level
+                settings_hash, size, max_thumbnail_size, self.progress_dialog, level, seq_end
             )
             if idx == 0 or idx % 100 == 0:
                 logger.debug(f"Creating worker {idx}: seq={seq}, files={worker.filename1}, {worker.filename2}")
@@ -930,8 +1116,9 @@ class ThumbnailManager(QObject):
 
         # Update progress bar
         self.progress_dialog.lbl_text.setText(f"Generating thumbnails")
-        if hasattr(self.parent.progress_dialog, 'total_steps') and self.parent.progress_dialog.total_steps > 0:
-            percentage = int((current_step / self.parent.progress_dialog.total_steps) * 100)
+        # Update progress bar percentage using progress manager's data
+        if self.progress_manager.total > 0:
+            percentage = int((current_step / self.progress_manager.total) * 100)
             self.progress_dialog.pb_progress.setValue(percentage)
 
         # Use centralized ETA and progress update
@@ -995,6 +1182,11 @@ class ThumbnailManager(QObject):
                 logger.info(f"Speed: {time_per_image:.3f}s per image")
                 logger.info(f"Initial estimate: {formatted} ({total_estimate:.1f}s)")
 
+                # Update ProgressManager with sampled speed - stop showing "Estimating..."
+                weighted_speed = (self.sample_size * self.level_weight) / sample_elapsed if sample_elapsed > 0 else 1.0
+                self.progress_manager.set_speed(weighted_speed)
+                self.progress_manager.set_sampling(False)  # Show actual ETA now
+
                 # Store for comparison
                 self.stage1_estimate = total_estimate
                 self.stage1_speed = time_per_image
@@ -1022,6 +1214,10 @@ class ThumbnailManager(QObject):
                 logger.info(f"=== Stage 2 Sampling ({self.sample_size * 2} images in {sample_elapsed:.2f}s) ===")
                 logger.info(f"Speed: {time_per_image:.3f}s per image")
                 logger.info(f"Revised estimate: {formatted} ({total_estimate:.1f}s)")
+
+                # Update ProgressManager with improved speed estimate
+                weighted_speed = (self.sample_size * 2 * self.level_weight) / sample_elapsed if sample_elapsed > 0 else 1.0
+                self.progress_manager.set_speed(weighted_speed)
 
                 # Compare with stage 1
                 if hasattr(self, 'stage1_estimate'):
@@ -1055,6 +1251,9 @@ class ThumbnailManager(QObject):
                 logger.info(f"=== Stage 3 Sampling ({self.sample_size * 3} images in {sample_elapsed:.2f}s) ===")
                 logger.info(f"Speed: {time_per_image:.3f}s per image")
                 logger.info(f"Performance sampling complete: {self.images_per_second:.1f} weighted units/second")
+
+                # Final update to ProgressManager with most accurate speed
+                self.progress_manager.set_speed(self.images_per_second)
 
                 # Compare all stages
                 if hasattr(self, 'stage1_estimate') and hasattr(self, 'stage2_estimate'):
@@ -3053,7 +3252,7 @@ class CTHarvesterMainWindow(QMainWindow):
         # get top and bottom idx; default to full range if not set
         top_idx = self.image_label.top_idx
         bottom_idx = self.image_label.bottom_idx
-        if top_idx < 0 or bottom_idx < 0 or top_idx < bottom_idx:
+        if top_idx < 0 or bottom_idx < 0 or bottom_idx > top_idx:
             bottom_idx = 0
             top_idx = image_count - 1
 
@@ -3468,6 +3667,12 @@ class CTHarvesterMainWindow(QMainWindow):
 
         def progress_callback(percentage):
             """Progress callback from Rust module"""
+            # Check for cancellation first
+            if self.progress_dialog.is_cancelled:
+                self.rust_cancelled = True
+                logger.info(f"Cancellation requested at {percentage:.1f}%")
+                return False  # Signal Rust to stop
+
             # Update progress bar
             self.progress_dialog.pb_progress.setValue(int(percentage))
 
@@ -3485,16 +3690,11 @@ class CTHarvesterMainWindow(QMainWindow):
             else:
                 self.progress_dialog.lbl_detail.setText(f"{percentage:.1f}%")
 
-            # Check for cancellation
-            if self.progress_dialog.is_cancelled:
-                self.rust_cancelled = True
-                return False  # Signal Rust to stop (if it supports this)
-
             # Process events to keep UI responsive
             QApplication.processEvents()
 
             self.last_progress = percentage
-            return True
+            return True  # Continue processing
 
         # Run Rust thumbnail generation with file pattern info
         success = False
@@ -3507,7 +3707,7 @@ class CTHarvesterMainWindow(QMainWindow):
             index_length = int(self.settings_hash.get('index_length', 0))
 
             # Call Rust with pattern parameters
-            build_thumbnails(
+            result = build_thumbnails(
                 dirname,
                 progress_callback,
                 prefix,
@@ -3516,11 +3716,23 @@ class CTHarvesterMainWindow(QMainWindow):
                 seq_end,
                 index_length
             )
-            success = True
+
+            # Check if user cancelled
+            if self.rust_cancelled:
+                success = False
+                logger.info("Rust thumbnail generation cancelled by user")
+                # Give Rust threads a moment to clean up
+                QApplication.processEvents()
+                QThread.msleep(100)  # Small delay for thread cleanup
+            else:
+                success = True
+
         except Exception as e:
-            logger.error(f"Error during Rust thumbnail generation: {e}")
-            QMessageBox.warning(self, self.tr("Warning"),
-                               self.tr(f"Rust thumbnail generation failed: {e}\nFalling back to Python implementation."))
+            success = False
+            if not self.rust_cancelled:  # Only show error if not cancelled
+                logger.error(f"Error during Rust thumbnail generation: {e}")
+                QMessageBox.warning(self, self.tr("Warning"),
+                                   self.tr(f"Rust thumbnail generation failed: {e}\nFalling back to Python implementation."))
 
         QApplication.restoreOverrideCursor()
 
@@ -3682,7 +3894,9 @@ class CTHarvesterMainWindow(QMainWindow):
                         })
 
                 # Update 3D view with loaded thumbnails
+                logger.info("Updating 3D view after loading thumbnails")
                 bounding_box = self.minimum_volume.shape
+                logger.info(f"Bounding box shape: {bounding_box}")
                 if len(bounding_box) >= 3:
                     # Calculate proper bounding box
                     scaled_depth = bounding_box[0]
@@ -3698,19 +3912,26 @@ class CTHarvesterMainWindow(QMainWindow):
                     except Exception:
                         curr_slice_val = 0
 
+                    logger.info(f"Updating mcube_widget with scaled_bounding_box: {scaled_bounding_box}")
+
+                    if not hasattr(self, 'mcube_widget'):
+                        logger.error("mcube_widget not initialized!")
+                        return
+
                     self.mcube_widget.update_boxes(scaled_bounding_box, scaled_bounding_box, curr_slice_val)
                     self.mcube_widget.adjust_boxes()
                     self.mcube_widget.update_volume(self.minimum_volume)
                     self.mcube_widget.generate_mesh()
                     self.mcube_widget.adjust_volume()
                     self.mcube_widget.show_buttons()
+                    logger.info("3D view update complete")
 
                     # Ensure the 3D widget doesn't cover the main image
                     self.mcube_widget.setGeometry(QRect(0, 0, 150, 150))
                     self.mcube_widget.recalculate_geometry()
 
         except Exception as e:
-            logger.error(f"Error loading Rust thumbnails: {e}")
+            logger.error(f"Error loading thumbnails and updating 3D view: {e}", exc_info=True)
 
     # Keep existing Python implementation as fallback
     def create_thumbnail_python(self):
@@ -3806,6 +4027,17 @@ class CTHarvesterMainWindow(QMainWindow):
         self.sample_size = base_sample  # This is the base unit for each stage
         total_sample = base_sample * 3  # Total samples across all stages
         logger.info(f"Multi-stage sampling: {base_sample} images per stage, {total_sample} total images")
+
+        # Create a shared ProgressManager that will be reused across levels
+        self.shared_progress_manager = ProgressManager()
+        self.shared_progress_manager.level_work_distribution = self.level_work_distribution if hasattr(self, 'level_work_distribution') else None
+        self.shared_progress_manager.weighted_total_work = self.weighted_total_work if hasattr(self, 'weighted_total_work') else None
+        # Initialize with the weighted total
+        if self.shared_progress_manager.weighted_total_work:
+            self.shared_progress_manager.start(self.shared_progress_manager.weighted_total_work)
+        else:
+            self.shared_progress_manager.start(total_work)
+
         self.progress_dialog = ProgressDialog(self)
         self.progress_dialog.update_language()
         self.progress_dialog.setModal(True)
@@ -3849,11 +4081,21 @@ class CTHarvesterMainWindow(QMainWindow):
             if i == 0:
                 from_dir = dirname
                 logger.debug(f"Level {i+1}: Reading from original directory: {from_dir}")
+                total_count = seq_end - seq_begin + 1
             else:
                 from_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i))
                 logger.debug(f"Level {i+1}: Reading from thumbnail directory: {from_dir}")
 
-            total_count = seq_end - seq_begin + 1
+                # For levels > 0, count actual files in the previous level directory
+                if os.path.exists(from_dir):
+                    actual_files = [f for f in os.listdir(from_dir) if f.endswith('.tif')]
+                    total_count = len(actual_files)
+                    # Update seq_end based on actual file count
+                    seq_end = seq_begin + total_count - 1
+                    logger.info(f"Level {i+1}: Found {total_count} actual files in previous level")
+                else:
+                    total_count = seq_end - seq_begin + 1
+                    logger.warning(f"Level {i+1}: Previous level directory not found, using calculated count: {total_count}")
 
             # create thumbnail
             to_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i+1))
@@ -3871,9 +4113,10 @@ class CTHarvesterMainWindow(QMainWindow):
             logger.info(f"Level {i+1}: Processing {total_count} images (size: {int(size)}x{int(size)})")
 
             # Initialize thumbnail manager for multithreaded processing
-            # Always create a new thumbnail manager to ensure it uses the current progress_dialog
+            # Pass the shared progress manager to maintain ETA across levels
             logger.info(f"Creating ThumbnailManager for level {i+1}")
-            self.thumbnail_manager = ThumbnailManager(self, self.progress_dialog, self.threadpool)
+            shared_pm = self.shared_progress_manager if hasattr(self, 'shared_progress_manager') else None
+            self.thumbnail_manager = ThumbnailManager(self, self.progress_dialog, self.threadpool, shared_pm)
             logger.info(f"ThumbnailManager created, starting process_level")
 
             # Use multithreaded processing for this level
@@ -3903,11 +4146,15 @@ class CTHarvesterMainWindow(QMainWindow):
                 logger.info("Thumbnail generation cancelled by user")
                 break
             
-            # Set last_count for next level calculation (assume successful processing)
-            last_count = 0
-                
-            i+= 1
-            seq_end = int((seq_end - seq_begin) / 2) + seq_begin + last_count
+            # Update seq_end for next level (each level has half the images of the previous)
+            # Number of thumbnails generated = (current_count // 2) + 1 if odd
+            current_count = seq_end - seq_begin + 1
+            next_count = (current_count // 2) + (current_count % 2)  # Add 1 if odd number
+            seq_end = seq_begin + next_count - 1
+            logger.info(f"Level {i+1}: {current_count} images -> {next_count} thumbnails generated")
+            logger.info(f"Next level will process range: {seq_begin}-{seq_end}")
+
+            i += 1
             
             # Only add to level_info if this level doesn't already exist
             level_name = f"Level {i}"
@@ -3996,7 +4243,7 @@ class CTHarvesterMainWindow(QMainWindow):
         # If loading from disk failed and minimum_volume is still empty
         if len(self.minimum_volume) == 0:
             logger.warning("Failed to load thumbnails from disk after Python generation")
-        
+
         self.initializeComboSize()
         self.reset_crop()
         
@@ -4008,6 +4255,9 @@ class CTHarvesterMainWindow(QMainWindow):
             if not self.initialized:
                 #logger.info("Manually calling comboLevelIndexChanged")
                 self.comboLevelIndexChanged()
+
+            # Update 3D view after initializing combo level
+            self.update_3D_view(False)
 
     def slider2ValueChanged(self, value):
             """
@@ -4158,6 +4408,38 @@ class CTHarvesterMainWindow(QMainWindow):
             self.settings_hash = {}
             self.initialized = False
             image_file_list = []
+
+            # Reset upper/lower bounds, bounding box, threshold, and inversion settings
+            logger.info("Resetting bounds, bounding box, and threshold settings")
+
+            # Reset timeline/range slider to full range
+            if hasattr(self, 'timeline'):
+                self.timeline.setLower(self.timeline.minimum())
+                self.timeline.setUpper(self.timeline.maximum())
+
+            # Reset bounding box
+            self.bounding_box = None
+            if hasattr(self, 'bounding_box_vertices'):
+                self.bounding_box_vertices = None
+            if hasattr(self, 'bounding_box_edges'):
+                self.bounding_box_edges = None
+
+            # Reset threshold values if they exist
+            if hasattr(self, 'lower_threshold'):
+                self.lower_threshold = 0
+            if hasattr(self, 'upper_threshold'):
+                self.upper_threshold = 255
+
+            # Reset inversion setting if it exists
+            if hasattr(self, 'invert_image'):
+                self.invert_image = False
+
+            # Clear any existing 3D scene data
+            if hasattr(self, 'minimum_volume'):
+                self.minimum_volume = None
+            if hasattr(self, 'level_volumes'):
+                self.level_volumes = {}
+
             QApplication.setOverrideCursor(Qt.WaitCursor)
 
             try:

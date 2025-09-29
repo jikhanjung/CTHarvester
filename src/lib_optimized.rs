@@ -564,7 +564,7 @@ fn process_group_all_levels(
 
 /// Build thumbnails with optimized group-based processing
 #[pyfunction]
-#[pyo3(signature = (input_dir, py_progress_cb=None, prefix=None, file_type=None, seq_begin=None, seq_end=None, index_length=None, use_optimized=None))]
+#[pyo3(signature = (input_dir, py_progress_cb=None, prefix=None, file_type=None, seq_begin=None, seq_end=None, index_length=None))]
 fn build_thumbnails_optimized(
     input_dir: String,
     py_progress_cb: Option<PyObject>,
@@ -573,15 +573,7 @@ fn build_thumbnails_optimized(
     seq_begin: Option<usize>,
     seq_end: Option<usize>,
     index_length: Option<usize>,
-    use_optimized: Option<bool>,
 ) -> PyResult<()> {
-    let use_optimized = use_optimized.unwrap_or(true);
-
-    // For compatibility, allow fallback to original implementation
-    if !use_optimized {
-        // Would call original implementation here
-        return Ok(());
-    }
 
     let input_dir = PathBuf::from(&input_dir);
 
@@ -653,12 +645,8 @@ fn build_thumbnails_optimized(
     // Process groups
     let n_groups = (n_files + group_size - 1) / group_size;
 
-    // Limit concurrent groups for I/O efficiency
-    // Set to 1 to avoid Python GIL deadlock issues
-    let _max_concurrent = env::var("THUMB_MAX_CONCURRENT")
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(1);
+    // Process groups sequentially to avoid Python GIL deadlock issues
+    // Parallel processing within groups is still enabled
 
     // Process groups sequentially to avoid Python GIL issues
     // But still use parallelism within each group's processing
@@ -714,7 +702,6 @@ fn build_thumbnails(
         seq_begin,
         seq_end,
         index_length,
-        Some(true),
     )
 }
 
