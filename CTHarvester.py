@@ -22,6 +22,9 @@ import math
 from copy import deepcopy
 import datetime
 
+# Python fallback implementation uses only PIL and NumPy for simplicity
+# No additional libraries needed - maximum compatibility
+
 def value_to_bool(value):
     return value.lower() == 'true' if isinstance(value, str) else bool(value)
 
@@ -269,64 +272,81 @@ class ThumbnailWorker(QRunnable):
                 # Create new thumbnail
                 was_generated = True  # We're generating a new thumbnail
                 img1 = None
+                arr1 = None
                 img1_is_16bit = False
                 file1_path = os.path.join(self.from_dir, self.filename1)
                 if os.path.exists(file1_path):
                     try:
+                        # Simple PIL loading - works with all formats
                         open_start = time.time()
                         img1 = Image.open(file1_path)
                         open_time = (time.time() - open_start) * 1000
+
                         if self.idx < 5:
-                            logger.info(f"Opened image1 {self.filename1} in {open_time:.1f}ms, mode={img1.mode}, size={img1.size}")
+                            logger.info(f"Opened {self.filename1} in {open_time:.1f}ms, mode={img1.mode}, size={img1.size}")
                         else:
-                            logger.debug(f"Opened image1 {self.filename1} in {open_time:.1f}ms, mode={img1.mode}, size={img1.size}")
+                            logger.debug(f"Opened {self.filename1} in {open_time:.1f}ms")
+
                         # Check if 16-bit image
                         if img1.mode == 'I;16' or img1.mode == 'I;16L' or img1.mode == 'I;16B':
                             img1_is_16bit = True
-                            # Keep as 16-bit, don't convert
                         elif img1.mode[0] == 'I':
                             # Some other I mode, convert to L
                             img1 = img1.convert('L')
                         elif img1.mode == 'P':
                             img1 = img1.convert('L')
-                        # For L (8-bit grayscale), keep as is
                     except Exception as e:
                         logger.error(f"Error processing image {self.filename1}: {e}")
                         img1 = None
+                        arr1 = None
 
                 img2 = None
+                arr2 = None
                 img2_is_16bit = False
                 file2_path = os.path.join(self.from_dir, self.filename2)
                 if os.path.exists(file2_path):
                     try:
+                        # Simple PIL loading
                         open_start = time.time()
                         img2 = Image.open(file2_path)
                         open_time = (time.time() - open_start) * 1000
-                        logger.debug(f"Opened image2 {self.filename2} in {open_time:.1f}ms, mode={img2.mode}, size={img2.size}")
+
+                        logger.debug(f"Opened {self.filename2} in {open_time:.1f}ms, mode={img2.mode}")
+
                         # Check if 16-bit image
                         if img2.mode == 'I;16' or img2.mode == 'I;16L' or img2.mode == 'I;16B':
                             img2_is_16bit = True
-                            # Keep as 16-bit, don't convert
                         elif img2.mode[0] == 'I':
                             # Some other I mode, convert to L
                             img2 = img2.convert('L')
                         elif img2.mode == 'P':
                             img2 = img2.convert('L')
-                        # For L (8-bit grayscale), keep as is
                     except Exception as e:
                         logger.error(f"Error processing image {self.filename2}: {e}")
                         img2 = None
+                        arr2 = None
 
                 # Average two images preserving bit depth
-                if img1 is not None and img2 is not None:
+                # Check if we have either PIL images or numpy arrays
+                if (img1 is not None or arr1 is not None) and (img2 is not None or arr2 is not None):
                     try:
                         process_start = time.time()
                         # If both are 16-bit, process as 16-bit
                         if img1_is_16bit and img2_is_16bit:
                             logger.debug(f"Processing as 16-bit images")
-                            # Process as 16-bit numpy arrays
-                            arr1 = np.array(img1, dtype=np.uint16)
-                            arr2 = np.array(img2, dtype=np.uint16)
+
+                            # If we don't already have arrays (from tifffile), convert from PIL
+                            if arr1 is None and img1 is not None:
+                                array_start = time.time()
+                                arr1 = np.array(img1, dtype=np.uint16)
+                                array1_time = (time.time() - array_start) * 1000
+                                logger.debug(f"Converting img1 to numpy array took {array1_time:.1f}ms (PIL fallback)")
+
+                            if arr2 is None and img2 is not None:
+                                array_start = time.time()
+                                arr2 = np.array(img2, dtype=np.uint16)
+                                array2_time = (time.time() - array_start) * 1000
+                                logger.debug(f"Converting img2 to numpy array took {array2_time:.1f}ms (PIL fallback)")
 
                             # Average the two arrays
                             avg_start = time.time()
@@ -362,16 +382,20 @@ class ThumbnailWorker(QRunnable):
 
                         # If either is 16-bit, convert both to 16-bit
                         elif img1_is_16bit or img2_is_16bit:
-                            # Convert to 16-bit arrays
-                            if img1_is_16bit:
-                                arr1 = np.array(img1, dtype=np.uint16)
-                            else:
-                                arr1 = (np.array(img1, dtype=np.uint8).astype(np.uint16) << 8)
+                            logger.debug(f"Processing mixed bit depth images")
 
-                            if img2_is_16bit:
-                                arr2 = np.array(img2, dtype=np.uint16)
-                            else:
-                                arr2 = (np.array(img2, dtype=np.uint8).astype(np.uint16) << 8)
+                            # Convert to 16-bit arrays if not already arrays
+                            if arr1 is None:
+                                if img1_is_16bit and img1 is not None:
+                                    arr1 = np.array(img1, dtype=np.uint16)
+                                elif img1 is not None:
+                                    arr1 = (np.array(img1, dtype=np.uint8).astype(np.uint16) << 8)
+
+                            if arr2 is None:
+                                if img2_is_16bit and img2 is not None:
+                                    arr2 = np.array(img2, dtype=np.uint16)
+                                elif img2 is not None:
+                                    arr2 = (np.array(img2, dtype=np.uint8).astype(np.uint16) << 8)
 
                             # Average the two arrays
                             avg_start = time.time()
@@ -408,6 +432,13 @@ class ThumbnailWorker(QRunnable):
                         else:
                             # Both are 8-bit, use existing method
                             logger.debug(f"Processing as 8-bit images")
+
+                            # If we have arrays from tifffile, convert to PIL images
+                            if arr1 is not None and img1 is None:
+                                img1 = Image.fromarray(arr1)
+                            if arr2 is not None and img2 is None:
+                                img2 = Image.fromarray(arr2)
+
                             from PIL import ImageChops
                             avg_start = time.time()
                             new_img_ops = ImageChops.add(img1, img2, scale=2.0)
@@ -437,8 +468,11 @@ class ThumbnailWorker(QRunnable):
             # Emit progress signal first
             worker_time = (time.time() - worker_start_time) * 1000
             status = "generated" if was_generated else "loaded"
-            if self.idx < 5 or worker_time > 5000:  # Log first 5 or slow workers
-                logger.info(f"ThumbnailWorker.run: Completed idx={self.idx} ({status}) in {worker_time:.1f}ms")
+            # Log only abnormal operations
+            if worker_time > 5000:  # Log operations over 5 seconds as warning
+                logger.warning(f"ThumbnailWorker.run: SLOW - idx={self.idx} ({status}) took {worker_time:.1f}ms")
+            elif worker_time > 3000:  # Log operations over 3 seconds as info
+                logger.info(f"ThumbnailWorker.run: idx={self.idx} ({status}) took {worker_time:.1f}ms")
             else:
                 logger.debug(f"ThumbnailWorker.run: Completed idx={self.idx} ({status}) in {worker_time:.1f}ms")
             self.signals.progress.emit(self.idx)
@@ -562,6 +596,132 @@ class ThumbnailManager(QObject):
         if self.completed_tasks % max(1, int(self.total_tasks * 0.1)) == 0:
             logger.debug(f"Progress update: ETA={eta_text}, {detail_text}, speed={blended_speed:.1f} img/s")
 
+    def process_level_sequential(self, level, from_dir, to_dir, seq_begin, seq_end, settings_hash, size, max_thumbnail_size, num_tasks):
+        """Process thumbnails sequentially without threadpool - no threading issues"""
+        import logging
+        import time
+        from PIL import Image
+        import numpy as np
+        import os
+
+        logger = logging.getLogger('CTHarvester')
+        logger.info("Starting sequential processing - no threads")
+
+        seq_start_time = time.time()
+
+        for idx in range(num_tasks):
+            if self.progress_dialog.is_cancelled:
+                self.is_cancelled = True
+                break
+
+            task_start_time = time.time()
+            seq = seq_begin + (idx * 2)
+
+            # Generate filenames (same logic as ThumbnailWorker)
+            filename1 = f"{settings_hash['file_base_name']}_{str(seq).zfill(settings_hash['digit_n'])}.{settings_hash['extension_id']}"
+            filename2 = f"{settings_hash['file_base_name']}_{str(seq + 1).zfill(settings_hash['digit_n'])}.{settings_hash['extension_id']}"
+            filename3 = os.path.join(to_dir, f"{str(idx).zfill(5)}.png")
+
+            # Check if thumbnail exists
+            img_array = None
+            was_generated = False
+
+            if os.path.exists(filename3):
+                # Load existing
+                if size < max_thumbnail_size:
+                    try:
+                        img = Image.open(filename3)
+                        img_array = np.array(img)
+                    except Exception as e:
+                        logger.error(f"Error loading thumbnail {filename3}: {e}")
+            else:
+                # Generate new thumbnail
+                was_generated = True
+                file1_path = os.path.join(from_dir, filename1)
+                file2_path = os.path.join(from_dir, filename2)
+
+                img1 = None
+                img2 = None
+
+                # Load images
+                if os.path.exists(file1_path):
+                    try:
+                        load1_start = time.time()
+                        img1 = Image.open(file1_path)
+                        load1_time = (time.time() - load1_start) * 1000
+                        if load1_time > 1000:
+                            logger.warning(f"SLOW load img1: {load1_time:.1f}ms")
+                        if img1.mode == 'P':
+                            img1 = img1.convert('L')
+                    except Exception as e:
+                        logger.error(f"Error loading {filename1}: {e}")
+
+                if os.path.exists(file2_path):
+                    try:
+                        load2_start = time.time()
+                        img2 = Image.open(file2_path)
+                        load2_time = (time.time() - load2_start) * 1000
+                        if load2_time > 1000:
+                            logger.warning(f"SLOW load img2: {load2_time:.1f}ms")
+                        if img2.mode == 'P':
+                            img2 = img2.convert('L')
+                    except Exception as e:
+                        logger.error(f"Error loading {filename2}: {e}")
+
+                # Average and resize
+                if img1 and img2:
+                    try:
+                        from PIL import ImageChops
+                        new_img = ImageChops.add(img1, img2, scale=2.0)
+                        new_img = new_img.resize((int(img1.width / 2), int(img1.height / 2)))
+                        new_img.save(filename3)
+                        if size < max_thumbnail_size:
+                            img_array = np.array(new_img)
+                    except Exception as e:
+                        logger.error(f"Error creating thumbnail: {e}")
+
+            # Update progress
+            self.completed_tasks += 1
+            if was_generated:
+                self.generated_count += 1
+            else:
+                self.loaded_count += 1
+
+            # Update progress bar
+            self.global_step_counter += self.level_weight
+            self.progress_dialog.setValue(int(self.global_step_counter))
+
+            # Store result
+            if img_array is not None:
+                self.results[idx] = img_array
+
+            # Performance logging
+            task_time = (time.time() - task_start_time) * 1000
+            if task_time > 5000:
+                logger.warning(f"SLOW task {idx}: {task_time:.1f}ms")
+            elif task_time > 3000:
+                logger.info(f"Task {idx}: {task_time:.1f}ms")
+
+            # Update ETA periodically
+            if self.completed_tasks % 10 == 0 or self.completed_tasks <= 5:
+                self.update_eta_and_progress()
+                QApplication.processEvents()
+
+            # Performance sampling (for first level)
+            if self.is_sampling and self.completed_tasks >= self.sample_size:
+                elapsed = time.time() - self.sample_start_time
+                self.images_per_second = self.level_weight * self.sample_size / elapsed
+                self.is_sampling = False
+                logger.info(f"Sampling complete: {self.images_per_second:.2f} weighted units/s")
+                # Store for parent
+                if hasattr(self.parent, 'measured_images_per_second'):
+                    self.parent.measured_images_per_second = self.images_per_second
+
+        seq_total_time = time.time() - seq_start_time
+        logger.info(f"Sequential processing complete: {self.completed_tasks} tasks in {seq_total_time:.1f}s")
+        logger.info(f"Average: {seq_total_time/num_tasks*1000:.1f}ms per task")
+        logger.info(f"Generated: {self.generated_count}, Loaded: {self.loaded_count}")
+
     def process_level(self, level, from_dir, to_dir, seq_begin, seq_end, settings_hash, size, max_thumbnail_size, global_step_offset):
         """Process a complete thumbnail level using multiple worker threads"""
         import logging
@@ -607,10 +767,11 @@ class ThumbnailManager(QObject):
         logger.info(f"ThumbnailManager.process_level: Starting Level {level+1}, tasks={num_tasks}, offset={global_step_offset}")
         logger.debug(f"ThreadPool: maxThreadCount={self.threadpool.maxThreadCount()}, activeThreadCount={self.threadpool.activeThreadCount()}")
         
-        # Ensure threadpool has enough threads
-        if self.threadpool.maxThreadCount() < 4:
-            self.threadpool.setMaxThreadCount(4)
-            logger.info(f"Increased threadpool max threads to {self.threadpool.maxThreadCount()}")
+        # Single thread for Python implementation
+        # Simple, predictable, no thread contention issues
+        if self.threadpool.maxThreadCount() != 1:
+            self.threadpool.setMaxThreadCount(1)
+            logger.info(f"Python fallback using single thread for stability")
 
         # Wait for any previous level's workers to complete
         if self.threadpool.activeThreadCount() > 0:
@@ -3582,6 +3743,7 @@ class CTHarvesterMainWindow(QMainWindow):
         height = int(self.settings_hash['image_height'])
 
         logger.info(f"=== Starting Python thumbnail generation (fallback) ===")
+        logger.info(f"Thread configuration: maxThreadCount={self.threadpool.maxThreadCount()}")
         logger.info(f"Start time: {thumbnail_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
         logger.info(f"Image dimensions: width={width}, height={height}, size={size}")
 

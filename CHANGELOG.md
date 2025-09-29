@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.2.3-alpha.2] - 2025-09-29
+
+### Changed
+- Python fallback implementation simplified to use only PIL and NumPy
+  - Removed tifffile and OpenCV dependencies for better compatibility
+  - Single-threaded processing for predictable performance
+  - Focus on code simplicity and maintainability as fallback solution
+
+### Fixed
+- Python thumbnail generation performance issues
+  - Identified and documented np.array() conversion bottleneck
+  - Reduced thread contention by using single thread
+  - Improved logging to better track performance issues
+
+### Performance
+- Python fallback: ~25-30 minutes for 3000 images (acceptable for backup)
+- Rust module remains primary solution: 2-3 minutes (10x faster)
+
+
 ## [0.2.3-alpha.1] - 2025-09-13
 
 ### Added
