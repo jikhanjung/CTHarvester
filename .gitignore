@@ -49,9 +49,10 @@ Cargo.lock
 
 # Project specific
 *.whl
-test_*.py
+/test_*.py
 test_images/
 test_*/
+!tests/test_*.py
 .thumbnail/
 *.tps
 *.x1y1
