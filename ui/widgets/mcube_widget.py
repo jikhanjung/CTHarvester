@@ -472,10 +472,26 @@ class MCubeWidget(QGLWidget):
         self.update()  # Trigger OpenGL repaint
 
     def _on_mesh_error(self, error_msg):
-        """Handle mesh generation error"""
+        """Handle mesh generation error with user-friendly dialog"""
         self.generate_mesh_under_way = False
         logger.error(f"Mesh generation error: {error_msg}")
-        # TODO: Show user-friendly error dialog (Phase 1.3)
+
+        # Show user-friendly error dialog (Phase 1.3)
+        from utils.error_messages import UserError, show_error_dialog
+
+        user_error = UserError(
+            title="3D Mesh Generation Failed",
+            message="Failed to generate 3D visualization from the image stack.",
+            solutions=[
+                "Try adjusting the threshold value",
+                "Check if the image stack has sufficient data",
+                "Verify the images are not corrupted",
+                "Try processing a smaller region"
+            ],
+            technical_details=error_msg
+        )
+
+        show_error_dialog(self, user_error)
 
     def _on_mesh_progress(self, percentage):
         """Handle mesh generation progress update"""
