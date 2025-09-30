@@ -66,6 +66,47 @@ class TestDetectBitDepth:
         with pytest.raises(ValueError):
             detect_bit_depth("/nonexistent/file.tif")
 
+    def test_detect_rgb(self):
+        """Should detect RGB image as 8-bit"""
+        self.temp_dir = tempfile.mkdtemp()
+
+        # Create RGB image
+        img_rgb = Image.fromarray(np.ones((10, 10, 3), dtype=np.uint8) * 128, mode='RGB')
+        image_rgb = os.path.join(self.temp_dir, "image_rgb.png")
+        img_rgb.save(image_rgb)
+
+        assert detect_bit_depth(image_rgb) == 8
+
+        shutil.rmtree(self.temp_dir)
+
+    def test_detect_rgba(self):
+        """Should detect RGBA image as 8-bit"""
+        self.temp_dir = tempfile.mkdtemp()
+
+        # Create RGBA image
+        img_rgba = Image.fromarray(np.ones((10, 10, 4), dtype=np.uint8) * 128, mode='RGBA')
+        image_rgba = os.path.join(self.temp_dir, "image_rgba.png")
+        img_rgba.save(image_rgba)
+
+        assert detect_bit_depth(image_rgba) == 8
+
+        shutil.rmtree(self.temp_dir)
+
+    def test_unsupported_mode_warning(self):
+        """Should return 8 for unsupported modes with warning"""
+        self.temp_dir = tempfile.mkdtemp()
+
+        # Create image with unusual mode
+        img = Image.new('1', (10, 10))  # 1-bit mode
+        image_path = os.path.join(self.temp_dir, "image_1bit.png")
+        img.save(image_path)
+
+        # Should default to 8 with warning
+        result = detect_bit_depth(image_path)
+        assert result == 8
+
+        shutil.rmtree(self.temp_dir)
+
 
 @pytest.mark.skipif(not PIL_AVAILABLE, reason="PIL not available")
 class TestLoadImageAsArray:
@@ -102,6 +143,23 @@ class TestLoadImageAsArray:
         arr = load_image_as_array(self.test_image, target_dtype=np.uint16)
         assert arr.dtype == np.uint16
 
+    def test_load_16bit_image(self):
+        """Should load 16-bit image with correct dtype"""
+        # Create 16-bit test image
+        test_array = np.arange(100, dtype=np.uint16).reshape(10, 10) * 256
+        img = Image.fromarray(test_array, mode='I;16')
+        test_16bit = os.path.join(self.temp_dir, "test_16bit.tif")
+        img.save(test_16bit)
+
+        # Load and verify
+        arr = load_image_as_array(test_16bit)
+        assert arr.dtype == np.uint16
+
+    def test_load_error_handling(self):
+        """Should raise exception on load error"""
+        with pytest.raises(Exception):
+            load_image_as_array("/nonexistent/image.tif")
+
 
 @pytest.mark.skipif(not PIL_AVAILABLE, reason="PIL not available")
 class TestDownsampleImage:
@@ -125,6 +183,25 @@ class TestDownsampleImage:
         result = downsample_image(img_array, factor=2)
         # Note: dtype might change depending on method, so just check it's a valid type
         assert result.dtype in [np.uint8, np.uint16, np.uint32, np.float32, np.float64]
+
+    def test_downsample_average_method(self):
+        """Should downsample using average method"""
+        img_array = np.ones((100, 100), dtype=np.uint8) * 128
+        result = downsample_image(img_array, factor=2, method='average')
+        assert result.shape == (50, 50)
+        assert np.all(result == 128)
+
+    def test_downsample_color_image(self):
+        """Should downsample color image"""
+        img_array = np.ones((100, 100, 3), dtype=np.uint8) * 128
+        result = downsample_image(img_array, factor=2, method='average')
+        assert result.shape == (50, 50, 3)
+
+    def test_invalid_method(self):
+        """Should raise error for invalid method"""
+        img_array = np.ones((100, 100), dtype=np.uint8) * 128
+        with pytest.raises(ValueError):
+            downsample_image(img_array, factor=2, method='invalid')
 
 
 @pytest.mark.skipif(not PIL_AVAILABLE, reason="PIL not available")
@@ -152,6 +229,14 @@ class TestAverageImages:
         arr2 = np.ones((10, 10), dtype=np.uint16) * 40000
         result = average_images(arr1, arr2)
         assert np.all(result == 35000)
+
+    def test_float_averaging(self):
+        """Should work with float images"""
+        arr1 = np.ones((10, 10), dtype=np.float32) * 0.5
+        arr2 = np.ones((10, 10), dtype=np.float32) * 1.5
+        result = average_images(arr1, arr2)
+        assert np.allclose(result, 1.0)
+        assert result.dtype == np.float32
 
 
 @pytest.mark.skipif(not PIL_AVAILABLE, reason="PIL not available")
@@ -185,6 +270,51 @@ class TestSaveImageFromArray:
         output_path = os.path.join(self.temp_dir, "output.tif")
         save_image_from_array(arr, output_path)
         assert os.path.exists(output_path)
+
+    def test_save_with_compression(self):
+        """Should save with TIFF compression"""
+        arr = np.ones((10, 10), dtype=np.uint8) * 128
+        output_path = os.path.join(self.temp_dir, "compressed.tif")
+        result = save_image_from_array(arr, output_path, compress=True)
+        assert result is True
+        assert os.path.exists(output_path)
+
+    def test_save_without_compression(self):
+        """Should save without compression"""
+        arr = np.ones((10, 10), dtype=np.uint8) * 128
+        output_path = os.path.join(self.temp_dir, "uncompressed.tiff")
+        result = save_image_from_array(arr, output_path, compress=False)
+        assert result is True
+        assert os.path.exists(output_path)
+
+    def test_save_non_tiff_format(self):
+        """Should save non-TIFF formats"""
+        arr = np.ones((10, 10), dtype=np.uint8) * 128
+        output_path = os.path.join(self.temp_dir, "output.png")
+        result = save_image_from_array(arr, output_path)
+        assert result is True
+        assert os.path.exists(output_path)
+
+    def test_save_rgb_image(self):
+        """Should save RGB image"""
+        arr = np.ones((10, 10, 3), dtype=np.uint8) * 128
+        output_path = os.path.join(self.temp_dir, "rgb.png")
+        result = save_image_from_array(arr, output_path)
+        assert result is True
+
+    def test_save_converts_unsupported_dtype(self):
+        """Should convert unsupported dtype to uint8"""
+        arr = np.ones((10, 10), dtype=np.float64) * 0.5
+        output_path = os.path.join(self.temp_dir, "converted.tif")
+        result = save_image_from_array(arr, output_path)
+        assert result is True
+
+    def test_save_error_handling(self):
+        """Should return False on save error"""
+        arr = np.ones((10, 10), dtype=np.uint8) * 128
+        # Invalid path
+        result = save_image_from_array(arr, "/invalid/path/image.tif")
+        assert result is False
 
 
 @pytest.mark.skipif(not PIL_AVAILABLE, reason="PIL not available")
