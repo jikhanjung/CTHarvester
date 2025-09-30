@@ -1077,13 +1077,18 @@ class CTHarvesterMainWindow(QMainWindow):
                         logger.error("mcube_widget not initialized!")
                         return
 
-                    self.mcube_widget.update_boxes(scaled_bounding_box, scaled_bounding_box, curr_slice_val)
-                    self.mcube_widget.adjust_boxes()
-                    self.mcube_widget.update_volume(self.minimum_volume)
-                    self.mcube_widget.generate_mesh()
-                    self.mcube_widget.adjust_volume()
-                    self.mcube_widget.show_buttons()
-                    logger.info("3D view update complete")
+                    # Show wait cursor during 3D model generation
+                    QApplication.setOverrideCursor(Qt.WaitCursor)
+                    try:
+                        self.mcube_widget.update_boxes(scaled_bounding_box, scaled_bounding_box, curr_slice_val)
+                        self.mcube_widget.adjust_boxes()
+                        self.mcube_widget.update_volume(self.minimum_volume)
+                        self.mcube_widget.generate_mesh()
+                        self.mcube_widget.adjust_volume()
+                        self.mcube_widget.show_buttons()
+                        logger.info("3D view update complete")
+                    finally:
+                        QApplication.restoreOverrideCursor()
 
                     # Ensure the 3D widget doesn't cover the main image
                     self.mcube_widget.setGeometry(QRect(0, 0, 150, 150))
