@@ -170,13 +170,112 @@ pytest tests/ -v -m "not slow"     # Exclude slow tests
 pytest tests/ -v --ignore=tests/test_basic.py
 ```
 
+## Update: Additional Coverage Improvements (2025-09-30)
+
+### Completed Tasks
+1. ✅ Document test results (this document)
+2. ✅ Add tests for utils/worker.py (0% → 100%) - 22 tests
+3. ✅ Improve utils/image_utils.py coverage (68% → 100%) - 15 additional tests
+
+### New Statistics
+- **Total Tests**: 166 (129 → 166)
+- **New Tests Added**: 37
+- **All Tests Passing**: ✅ 166/166
+
+### Module Coverage (Updated)
+| Module | Previous | Current | Change | Status |
+|--------|----------|---------|--------|--------|
+| utils/common.py | 100% | 100% | - | ⭐ Perfect |
+| security/file_validator.py | 90% | 90% | - | ✅ Excellent |
+| utils/file_utils.py | 81% | 81% | - | ✅ Good |
+| **utils/worker.py** | **0%** | **100%** | **+100%** | ⭐ **Perfect** |
+| **utils/image_utils.py** | **68%** | **100%** | **+32%** | ⭐ **Perfect** |
+| core/progress_manager.py | 25% | 77% | +52% | ✅ Good |
+
+### utils/worker.py Tests (22 tests)
+**Coverage**: 0% → 100% ⭐
+
+Added comprehensive tests for:
+- WorkerSignals initialization and emission (6 tests)
+  - Signal availability and callability
+  - Finished, result, progress, error signal emission
+- Worker initialization (3 tests)
+  - With args, kwargs, and no arguments
+- Worker execution (13 tests)
+  - Successful execution with result emission
+  - Error handling and exception capture
+  - Traceback generation
+  - Various callback types (functions, lambdas, class methods)
+  - Worker reusability
+
+Key test scenarios:
+```python
+def test_run_error_handling(self):
+    """Should catch exceptions and emit error signal"""
+    def error_func():
+        raise ValueError("Test error")
+
+    worker = Worker(error_func)
+    errors = []
+    worker.signals.error.connect(errors.append)
+    worker.run()
+
+    assert len(errors) == 1
+    assert errors[0][0] == ValueError
+```
+
+### utils/image_utils.py Tests (15 additional tests)
+**Coverage**: 68% → 100% ⭐
+
+Added tests for previously uncovered branches:
+
+**detect_bit_depth()** (3 tests):
+- RGB image detection → 8-bit
+- RGBA image detection → 8-bit
+- Unsupported mode warning → defaults to 8-bit
+
+**load_image_as_array()** (2 tests):
+- 16-bit image loading with auto dtype detection
+- Error handling for nonexistent files
+
+**downsample_image()** (3 tests):
+- Average method downsampling
+- Color (RGB) image downsampling
+- Invalid method error handling
+
+**average_images()** (1 test):
+- Float dtype averaging
+
+**save_image_from_array()** (6 tests):
+- TIFF compression (with/without)
+- Non-TIFF format (PNG)
+- RGB image saving
+- Unsupported dtype conversion
+- Error handling for invalid paths
+
+Coverage completion examples:
+```python
+def test_downsample_average_method(self):
+    """Should downsample using average method"""
+    img_array = np.ones((100, 100), dtype=np.uint8) * 128
+    result = downsample_image(img_array, factor=2, method='average')
+    assert result.shape == (50, 50)
+
+def test_save_with_compression(self):
+    """Should save with TIFF compression"""
+    arr = np.ones((10, 10), dtype=np.uint8) * 128
+    output_path = os.path.join(self.temp_dir, "compressed.tif")
+    result = save_image_from_array(arr, output_path, compress=True)
+    assert result is True
+```
+
 ## Next Steps
 
 ### Immediate (Priority: High)
 1. ✅ Document test results (this document)
-2. 🔲 Add tests for utils/worker.py (0% → 80%+)
-3. 🔲 Improve utils/image_utils.py coverage (68% → 80%+)
-4. 🔲 Install pytest-qt and expand progress_manager tests (25% → 80%+)
+2. ✅ Add tests for utils/worker.py (0% → 100%)
+3. ✅ Improve utils/image_utils.py coverage (68% → 100%)
+4. 🔲 Install pytest-qt and expand progress_manager tests (77% → 85%+)
 
 ### Short-term (Priority: Medium)
 5. 🔲 Add integration tests for thumbnail generation workflow
