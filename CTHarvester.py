@@ -2,7 +2,6 @@ import sys
 
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QSettings
 
 # Project modules
 from config.constants import (
@@ -39,23 +38,21 @@ def main():
     app.setApplicationName(PROGRAM_NAME)
     app.setOrganizationName(COMPANY_NAME)
     app.setOrganizationDomain("github.com/jikhanjung")
-    
+
     # Set application icon
     app.setWindowIcon(QIcon(resource_path("icon.png")))
-    
-    # Create settings object
-    app.settings = QSettings(COMPANY_NAME, PROGRAM_NAME)
-    
-    # Initialize application attributes
+
+    # Initialize application attributes (no longer using QSettings)
+    # Settings are now managed by SettingsManager (YAML-based)
     app.remember_geometry = True
     app.remember_directory = True
     app.language = "en"
     app.use_rust_thumbnail = True  # Default to Rust (fast) thumbnail generation
-    
+
     # Create and show main window
     window = CTHarvesterMainWindow()
     window.show()
-    
+
     sys.exit(app.exec_())
 
 

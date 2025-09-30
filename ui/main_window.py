@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import (
     QFormLayout, QCheckBox, QSlider
 )
 from PyQt5.QtCore import (
-    Qt, QSettings, QTranslator, QRect, QThreadPool, QPoint,
+    Qt, QTranslator, QRect, QThreadPool, QPoint,
     QMargins, QTimer, QObject
 )
 from PyQt5.QtGui import QIcon, QPixmap, QCursor
@@ -28,8 +28,7 @@ from config.constants import (
     PROGRAM_NAME, PROGRAM_VERSION, COMPANY_NAME,
     SUPPORTED_IMAGE_EXTENSIONS, THUMBNAIL_DIR_NAME
 )
-from ui.dialogs import InfoDialog, PreferencesDialog, ProgressDialog
-from ui.dialogs.settings_dialog import SettingsDialog
+from ui.dialogs import InfoDialog, ProgressDialog, SettingsDialog
 from ui.widgets import MCubeWidget, ObjectViewer2D
 from core.thumbnail_manager import ThumbnailManager
 from core.progress_manager import ProgressManager
@@ -61,12 +60,6 @@ class CTHarvesterMainWindow(QMainWindow):
         # Initialize YAML-based settings manager (Phase 2.1)
         self.settings_manager = SettingsManager()
         logger.info(f"Settings file: {self.settings_manager.get_config_file_path()}")
-
-        # Migrate old QSettings to YAML (one-time, Phase 2)
-        from utils.settings_migration import migrate_qsettings_to_yaml
-        migrated = migrate_qsettings_to_yaml(self.m_app.settings, self.settings_manager)
-        if migrated:
-            logger.info("QSettings migrated to YAML successfully")
 
         self.read_settings()
 
@@ -265,12 +258,6 @@ class CTHarvesterMainWindow(QMainWindow):
         self.image_label.calculate_resize()
         self.image_label.repaint()
         self.update_3D_view(True)
-
-    def show_preferences(self):
-        """Show preferences dialog (old simple version)"""
-        self.settings_dialog = PreferencesDialog(self)
-        self.settings_dialog.setModal(True)
-        self.settings_dialog.show()
 
     def show_advanced_settings(self):
         """Show advanced settings dialog (new comprehensive version - Phase 2.2)"""
@@ -1664,21 +1651,30 @@ class CTHarvesterMainWindow(QMainWindow):
                 elif ext == '.log':
                     log_files_found += 1
                     try:
-                        settings = QSettings(os.path.join(ddir, file), QSettings.IniFormat)
-                        prefix = settings.value("File name convention/Filename Prefix")
+                        # Parse INI-format log files manually (no longer using QSettings)
+                        import configparser
+                        config = configparser.ConfigParser()
+                        log_path = os.path.join(ddir, file)
+                        config.read(log_path)
+
+                        # Check if file has required sections
+                        if not config.has_section('File name convention'):
+                            continue
+
+                        prefix = config.get('File name convention', 'Filename Prefix', fallback=None)
                         if not prefix:
                             continue
                         if file != prefix + ".log":
                             continue
-                        
+
                         logger.info(f"Found valid log file: {file}")
-                        self.settings_hash['prefix'] = settings.value("File name convention/Filename Prefix")
-                        self.settings_hash['image_width'] = settings.value("Reconstruction/Result Image Width (pixels)")
-                        self.settings_hash['image_height'] = settings.value("Reconstruction/Result Image Height (pixels)")
-                        self.settings_hash['file_type'] = settings.value("Reconstruction/Result File Type")
-                        self.settings_hash['index_length'] = settings.value("File name convention/Filename Index Length")
-                        self.settings_hash['seq_begin'] = settings.value("Reconstruction/First Section")
-                        self.settings_hash['seq_end'] = settings.value("Reconstruction/Last Section")
+                        self.settings_hash['prefix'] = prefix
+                        self.settings_hash['image_width'] = config.get('Reconstruction', 'Result Image Width (pixels)')
+                        self.settings_hash['image_height'] = config.get('Reconstruction', 'Result Image Height (pixels)')
+                        self.settings_hash['file_type'] = config.get('Reconstruction', 'Result File Type')
+                        self.settings_hash['index_length'] = config.get('File name convention', 'Filename Index Length')
+                        self.settings_hash['seq_begin'] = config.get('Reconstruction', 'First Section')
+                        self.settings_hash['seq_end'] = config.get('Reconstruction', 'Last Section')
                         self.settings_hash['image_width'] = int(self.settings_hash['image_width'])
                         self.settings_hash['image_height'] = int(self.settings_hash['image_height'])
                         self.settings_hash['index_length'] = int(self.settings_hash['index_length'])
@@ -1797,28 +1793,51 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def read_settings(self):
             """
-            Reads the application settings and updates the corresponding values in the application object.
+            Reads the application settings from YAML and updates the corresponding values in the application object.
             """
             try:
-                settings = self.m_app.settings
-
-                self.m_app.remember_directory = value_to_bool(settings.value("Remember directory", True))
+                # Read from YAML settings
+                self.m_app.remember_directory = self.settings_manager.get('window.remember_position', True)
                 if self.m_app.remember_directory:
-                    self.m_app.default_directory = settings.value("Default directory", ".")
+                    self.m_app.default_directory = self.settings_manager.get('application.default_directory', ".")
                 else:
                     self.m_app.default_directory = "."
 
-                self.m_app.remember_geometry = value_to_bool(settings.value("Remember geometry", True))
+                self.m_app.remember_geometry = self.settings_manager.get('window.remember_size', True)
                 if self.m_app.remember_geometry:
-                    self.setGeometry(settings.value("MainWindow geometry", QRect(100, 100, 600, 550)))
-                    self.mcube_geometry = settings.value("mcube_widget geometry", QRect(0, 0, 150, 150))
+                    # Get saved geometry
+                    saved_geom = self.settings_manager.get('window.main_geometry', None)
+                    if saved_geom and isinstance(saved_geom, dict):
+                        self.setGeometry(QRect(
+                            saved_geom.get('x', 100),
+                            saved_geom.get('y', 100),
+                            saved_geom.get('width', 600),
+                            saved_geom.get('height', 550)
+                        ))
+                    else:
+                        self.setGeometry(QRect(100, 100, 600, 550))
+
+                    mcube_geom = self.settings_manager.get('window.mcube_geometry', None)
+                    if mcube_geom and isinstance(mcube_geom, dict):
+                        self.mcube_geometry = QRect(
+                            mcube_geom.get('x', 0),
+                            mcube_geom.get('y', 0),
+                            mcube_geom.get('width', 150),
+                            mcube_geom.get('height', 150)
+                        )
+                    else:
+                        self.mcube_geometry = QRect(0, 0, 150, 150)
                 else:
                     self.setGeometry(QRect(100, 100, 600, 550))
                     self.mcube_geometry = QRect(0, 0, 150, 150)
-                self.m_app.language = settings.value("Language", "en")
 
-                # Read Rust module preference (synced with PreferencesDialog)
-                use_rust_default = value_to_bool(settings.value("Use Rust Thumbnail", True))
+                # Language
+                lang_code = self.settings_manager.get('application.language', 'auto')
+                lang_map = {'auto': 'en', 'en': 'en', 'ko': 'ko'}
+                self.m_app.language = lang_map.get(lang_code, 'en')
+
+                # Read Rust module preference
+                use_rust_default = self.settings_manager.get('processing.use_rust_module', True)
                 self.m_app.use_rust_thumbnail = use_rust_default
                 if hasattr(self, 'cbxUseRust'):
                     self.cbxUseRust.setChecked(use_rust_default)
@@ -1838,22 +1857,38 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def save_settings(self):
             """
-            Saves the current application settings to persistent storage.
+            Saves the current application settings to YAML storage.
             If the 'remember_directory' setting is enabled, saves the default directory.
             If the 'remember_geometry' setting is enabled, saves the main window and mcube widget geometries.
             """
             try:
                 if self.m_app.remember_directory:
-                    self.m_app.settings.setValue("Default directory", self.m_app.default_directory)
+                    self.settings_manager.set('application.default_directory', self.m_app.default_directory)
                 if self.m_app.remember_geometry:
-                    self.m_app.settings.setValue("MainWindow geometry", self.geometry())
-                    self.m_app.settings.setValue("mcube_widget geometry", self.mcube_widget.geometry())
+                    # Save main window geometry
+                    geom = self.geometry()
+                    self.settings_manager.set('window.main_geometry', {
+                        'x': geom.x(),
+                        'y': geom.y(),
+                        'width': geom.width(),
+                        'height': geom.height()
+                    })
+                    # Save mcube widget geometry
+                    mcube_geom = self.mcube_widget.geometry()
+                    self.settings_manager.set('window.mcube_geometry', {
+                        'x': mcube_geom.x(),
+                        'y': mcube_geom.y(),
+                        'width': mcube_geom.width(),
+                        'height': mcube_geom.height()
+                    })
 
-                # Save Rust module preference (synced with PreferencesDialog)
-                # Note: PreferencesDialog also saves this, but we sync cbxUseRust state here
+                # Save Rust module preference (synced with SettingsDialog)
                 if hasattr(self, 'cbxUseRust'):
                     self.m_app.use_rust_thumbnail = self.cbxUseRust.isChecked()
-                    self.m_app.settings.setValue("Use Rust Thumbnail", self.m_app.use_rust_thumbnail)
+                    self.settings_manager.set('processing.use_rust_module', self.m_app.use_rust_thumbnail)
+
+                # Persist to disk
+                self.settings_manager.save()
 
             except Exception as e:
                 logger.error(f"Error saving main window settings: {e}")
@@ -1873,10 +1908,12 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     app.setWindowIcon(QIcon(resource_path('CTHarvester_48_2.png')))
-    app.settings = QSettings(QSettings.IniFormat, QSettings.UserScope,COMPANY_NAME, PROGRAM_NAME)
+
+    # Initialize YAML settings manager (no longer using QSettings)
+    settings_manager = SettingsManager()
 
     # Apply saved log level
-    saved_log_level = app.settings.value("Log Level", "INFO")
+    saved_log_level = settings_manager.get("logging.level", "INFO")
     try:
         numeric_level = getattr(logging, saved_log_level, logging.INFO)
         logger.setLevel(numeric_level)
@@ -1887,7 +1924,9 @@ if __name__ == "__main__":
         logger.warning(f"Could not set log level from settings: {e}")
 
     translator = QTranslator(app)
-    app.language = app.settings.value("Language", "en")
+    lang_code = settings_manager.get("application.language", "auto")
+    lang_map = {'auto': 'en', 'en': 'en', 'ko': 'ko'}
+    app.language = lang_map.get(lang_code, 'en')
     translator.load(resource_path("CTHarvester_{}.qm".format(app.language)))
     app.installTranslator(translator)
 
