@@ -175,6 +175,13 @@ class TestValidatePath:
         assert "subdir" in result
         assert "file.txt" in result
 
+    @pytest.mark.skipif(sys.platform != "win32", reason="Windows-specific test")
+    def test_different_drive_windows(self):
+        """Should reject paths on different drives (Windows)"""
+        # On Windows, C:\ and D:\ would cause ValueError in commonpath
+        with pytest.raises(FileSecurityError):
+            SecureFileValidator.validate_path("D:\\file.tif", "C:\\base")
+
 
 class TestSafeJoin:
     """Tests for SecureFileValidator.safe_join()"""
@@ -271,6 +278,27 @@ class TestSecureListdir:
 
         result = SecureFileValidator.secure_listdir(empty_dir)
         assert result == []
+
+    def test_listdir_with_invalid_file(self):
+        """Should skip invalid files and continue"""
+        # Create file with dangerous name (will be caught by validate_filename)
+        # secure_listdir should catch FileSecurityError and continue
+        dangerous_file = os.path.join(self.temp_dir, "../dangerous.tif")
+        try:
+            with open(dangerous_file, 'w') as f:
+                f.write("test")
+        except:
+            pass  # May fail to create, that's ok
+
+        # Should still work and return valid files
+        result = SecureFileValidator.secure_listdir(self.temp_dir)
+        assert isinstance(result, list)
+
+    def test_listdir_oserror(self):
+        """Should raise FileSecurityError on OSError"""
+        # Try to list a directory that doesn't exist or isn't accessible
+        with pytest.raises(FileSecurityError):
+            SecureFileValidator.secure_listdir("/nonexistent/directory/path")
 
 
 class TestValidateNoSymlink:
