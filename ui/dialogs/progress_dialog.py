@@ -4,7 +4,7 @@ ProgressDialog - Thumbnail generation progress dialog
 Extracted from CTHarvester.py during Phase 4 UI refactoring.
 """
 from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton, QApplication
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QProgressBar, QPushButton, QApplication
 )
 from PyQt5.QtCore import Qt, QRect, QPoint, QTranslator
 import time
@@ -12,6 +12,7 @@ import logging
 from collections import deque
 
 from utils.common import resource_path
+from core.progress_tracker import ProgressInfo
 
 
 logger = logging.getLogger(__name__)
@@ -298,3 +299,128 @@ class ProgressDialog(QDialog):
         self.btnStop.setText(self.tr("Stop"))
 
 
+class ModernProgressDialog(QDialog):
+    """
+    Modern and clean progress dialog
+
+    Improvements over ProgressDialog:
+    - Single progress bar
+    - Clear ETA display
+    - Current/total count display
+    - Speed display
+    - Simpler interface using ProgressInfo
+
+    Created during Phase 1.1 UI/UX improvements.
+    """
+
+    def __init__(self, parent=None, title="Processing"):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.setModal(True)
+        self.setMinimumWidth(500)
+
+        self.is_cancelled = False
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+
+        # Title
+        self.title_label = QLabel("Processing thumbnails...")
+        self.title_label.setStyleSheet("font-size: 14pt; font-weight: bold;")
+        layout.addWidget(self.title_label)
+
+        # Progress bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setMinimum(0)
+        self.progress_bar.setMaximum(100)
+        self.progress_bar.setTextVisible(True)
+        self.progress_bar.setFormat("%p%")
+        self.progress_bar.setStyleSheet("""
+            QProgressBar {
+                border: 2px solid grey;
+                border-radius: 5px;
+                text-align: center;
+                height: 30px;
+            }
+            QProgressBar::chunk {
+                background-color: #4CAF50;
+                border-radius: 3px;
+            }
+        """)
+        layout.addWidget(self.progress_bar)
+
+        # Detail information
+        info_layout = QHBoxLayout()
+
+        # Current/total
+        self.count_label = QLabel("0 / 0")
+        info_layout.addWidget(self.count_label)
+
+        info_layout.addStretch()
+
+        # Speed
+        self.speed_label = QLabel("Speed: -")
+        info_layout.addWidget(self.speed_label)
+
+        info_layout.addStretch()
+
+        # Elapsed time
+        self.elapsed_label = QLabel("Elapsed: 0s")
+        info_layout.addWidget(self.elapsed_label)
+
+        info_layout.addStretch()
+
+        # ETA
+        self.eta_label = QLabel("ETA: Calculating...")
+        info_layout.addWidget(self.eta_label)
+
+        layout.addLayout(info_layout)
+
+        # Cancel button
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.clicked.connect(self.cancel)
+        button_layout.addWidget(self.cancel_button)
+        layout.addLayout(button_layout)
+
+        self.setLayout(layout)
+
+    def update_progress(self, info: ProgressInfo):
+        """
+        Update progress display
+
+        Args:
+            info: ProgressInfo object
+        """
+        # Progress percentage
+        self.progress_bar.setValue(int(info.percentage))
+
+        # Count
+        self.count_label.setText(f"{info.current:,} / {info.total:,}")
+
+        # Speed
+        if info.speed > 1:
+            self.speed_label.setText(f"Speed: {info.speed:.1f} items/s")
+        elif info.speed > 0:
+            self.speed_label.setText(f"Speed: {1/info.speed:.1f} s/item")
+        else:
+            self.speed_label.setText("Speed: -")
+
+        # Elapsed time
+        self.elapsed_label.setText(f"Elapsed: {info.elapsed_formatted}")
+
+        # ETA
+        self.eta_label.setText(f"ETA: {info.eta_formatted}")
+
+    def cancel(self):
+        """Cancel button clicked"""
+        self.is_cancelled = True
+        self.cancel_button.setEnabled(False)
+        self.cancel_button.setText("Cancelling...")
+        self.title_label.setText("Cancelling, please wait...")
+
+    def set_title(self, title: str):
+        """Set dialog title text"""
+        self.title_label.setText(title)
