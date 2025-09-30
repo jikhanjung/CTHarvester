@@ -6,7 +6,9 @@ Extracted from CTHarvester.py during Phase 4c refactoring.
 import os
 import time
 import logging
-from PyQt5.QtCore import QObject, QMutex, QMutexLocker, pyqtSlot, QThreadPool, Qt
+import numpy as np
+from PIL import Image
+from PyQt5.QtCore import QObject, QMutex, QMutexLocker, pyqtSlot, QThreadPool, Qt, QThread
 from PyQt5.QtWidgets import QApplication
 
 from core.thumbnail_worker import ThumbnailWorker, ThumbnailWorkerSignals
