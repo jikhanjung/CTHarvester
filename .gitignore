@@ -49,15 +49,17 @@ Cargo.lock
 
 # Project specific
 *.whl
-/test_*.py
-test_images/
-test_*/
-!tests/test_*.py
 .thumbnail/
 *.tps
 *.x1y1
 loading.txt
 rotated_matrix.txt
+
+# Temporary test files and data (not the official tests/ directory)
+/test_*.py          # Root level temporary test scripts only
+test_images/        # Temporary test images
+test_output/        # Temporary test output
+test_data/          # Temporary test data
 packaging/
 
 # Temporary files
