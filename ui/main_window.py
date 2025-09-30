@@ -763,8 +763,8 @@ class CTHarvesterMainWindow(QMainWindow):
         import time
         from datetime import datetime
 
-        # Check if user wants to use Rust module
-        use_rust_preference = self.cbxUseRust.isChecked() if hasattr(self, 'cbxUseRust') else True
+        # Check if user wants to use Rust module (from preferences)
+        use_rust_preference = getattr(self.m_app, 'use_rust_thumbnail', True)
 
         # Try to use Rust module if preferred
         if use_rust_preference:
@@ -1789,8 +1789,9 @@ class CTHarvesterMainWindow(QMainWindow):
                     self.mcube_geometry = QRect(0, 0, 150, 150)
                 self.m_app.language = settings.value("Language", "en")
 
-                # Read Rust module preference
-                use_rust_default = value_to_bool(settings.value("Use Rust Module", True))
+                # Read Rust module preference (synced with PreferencesDialog)
+                use_rust_default = value_to_bool(settings.value("Use Rust Thumbnail", True))
+                self.m_app.use_rust_thumbnail = use_rust_default
                 if hasattr(self, 'cbxUseRust'):
                     self.cbxUseRust.setChecked(use_rust_default)
 
@@ -1803,6 +1804,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 self.setGeometry(QRect(100, 100, 600, 550))
                 self.mcube_geometry = QRect(0, 0, 150, 150)
                 self.m_app.language = "en"
+                self.m_app.use_rust_thumbnail = True
                 if hasattr(self, 'cbxUseRust'):
                     self.cbxUseRust.setChecked(True)
 
@@ -1819,9 +1821,11 @@ class CTHarvesterMainWindow(QMainWindow):
                     self.m_app.settings.setValue("MainWindow geometry", self.geometry())
                     self.m_app.settings.setValue("mcube_widget geometry", self.mcube_widget.geometry())
 
-                # Save Rust module preference
+                # Save Rust module preference (synced with PreferencesDialog)
+                # Note: PreferencesDialog also saves this, but we sync cbxUseRust state here
                 if hasattr(self, 'cbxUseRust'):
-                    self.m_app.settings.setValue("Use Rust Module", self.cbxUseRust.isChecked())
+                    self.m_app.use_rust_thumbnail = self.cbxUseRust.isChecked()
+                    self.m_app.settings.setValue("Use Rust Thumbnail", self.m_app.use_rust_thumbnail)
 
             except Exception as e:
                 logger.error(f"Error saving main window settings: {e}")

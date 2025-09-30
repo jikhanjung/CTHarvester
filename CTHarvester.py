@@ -50,6 +50,7 @@ def main():
     app.remember_geometry = True
     app.remember_directory = True
     app.language = "en"
+    app.use_rust_thumbnail = True  # Default to Rust (fast) thumbnail generation
     
     # Create and show main window
     window = CTHarvesterMainWindow()

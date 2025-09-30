@@ -69,6 +69,19 @@ class PreferencesDialog(QDialog):
         self.comboLogLevel.addItem("CRITICAL")
         self.comboLogLevel.setToolTip(self.tr("Set logging level for file and console output"))
 
+        # Thumbnail generation method selection
+        self.rbUseRustYes = QRadioButton(self.tr("Rust (Fast)"))
+        self.rbUseRustYes.setChecked(True)
+        self.rbUseRustYes.clicked.connect(self.on_rbUseRustYes_clicked)
+        self.rbUseRustNo = QRadioButton(self.tr("Python (Fallback)"))
+        self.rbUseRustNo.setChecked(False)
+        self.rbUseRustNo.clicked.connect(self.on_rbUseRustNo_clicked)
+
+        self.gbThumbnailMethod = QGroupBox()
+        self.gbThumbnailMethod.setLayout(QHBoxLayout())
+        self.gbThumbnailMethod.layout().addWidget(self.rbUseRustYes)
+        self.gbThumbnailMethod.layout().addWidget(self.rbUseRustNo)
+
         self.main_layout = QVBoxLayout()
         self.form_layout = QFormLayout()
         self.setLayout(self.main_layout)
@@ -76,6 +89,7 @@ class PreferencesDialog(QDialog):
         self.form_layout.addRow(self.tr("Remember Directory"), self.gbRememberDirectory)
         self.form_layout.addRow(self.tr("Language"), self.comboLang)
         self.form_layout.addRow(self.tr("Log Level"), self.comboLogLevel)
+        self.form_layout.addRow(self.tr("Thumbnail Generation"), self.gbThumbnailMethod)
         self.button_layout = QHBoxLayout()
         self.btnOK = QPushButton(self.tr("OK"))
         self.btnOK.clicked.connect(self.on_btnOK_clicked)
@@ -116,6 +130,12 @@ class PreferencesDialog(QDialog):
         elif index == 1:
             self.m_app.language = "ko"
 
+    def on_rbUseRustYes_clicked(self):
+        self.m_app.use_rust_thumbnail = True
+
+    def on_rbUseRustNo_clicked(self):
+        self.m_app.use_rust_thumbnail = False
+
     def update_language(self):
         translator = QTranslator()
         translator.load(resource_path('CTHarvester_{}.qm').format(self.m_app.language))
@@ -125,8 +145,11 @@ class PreferencesDialog(QDialog):
         self.rbRememberGeometryNo.setText(self.tr("No"))
         self.rbRememberDirectoryYes.setText(self.tr("Yes"))
         self.rbRememberDirectoryNo.setText(self.tr("No"))
+        self.rbUseRustYes.setText(self.tr("Rust (Fast)"))
+        self.rbUseRustNo.setText(self.tr("Python (Fallback)"))
         self.gbRememberGeometry.setTitle("")
         self.gbRememberDirectory.setTitle("")
+        self.gbThumbnailMethod.setTitle("")
         self.comboLang.setItemText(0, self.tr("English"))
         self.comboLang.setItemText(1, self.tr("Korean"))
         self.btnOK.setText(self.tr("OK"))
@@ -135,6 +158,7 @@ class PreferencesDialog(QDialog):
         self.form_layout.labelForField(self.gbRememberDirectory).setText(self.tr("Remember Directory"))
         self.form_layout.labelForField(self.comboLang).setText(self.tr("Language"))
         self.form_layout.labelForField(self.comboLogLevel).setText(self.tr("Log Level"))
+        self.form_layout.labelForField(self.gbThumbnailMethod).setText(self.tr("Thumbnail Generation"))
         self.setWindowTitle(self.tr("CTHarvester - Preferences"))
         self.parent.update_language()
         self.parent.update_status()
@@ -145,11 +169,14 @@ class PreferencesDialog(QDialog):
             self.m_app.remember_directory = value_to_bool(self.m_app.settings.value("Remember directory", True))
             self.m_app.language = self.m_app.settings.value("Language", "en")
             log_level = self.m_app.settings.value("Log Level", "INFO")
+            self.m_app.use_rust_thumbnail = value_to_bool(self.m_app.settings.value("Use Rust Thumbnail", True))
 
             self.rbRememberGeometryYes.setChecked(self.m_app.remember_geometry)
             self.rbRememberGeometryNo.setChecked(not self.m_app.remember_geometry)
             self.rbRememberDirectoryYes.setChecked(self.m_app.remember_directory)
             self.rbRememberDirectoryNo.setChecked(not self.m_app.remember_directory)
+            self.rbUseRustYes.setChecked(self.m_app.use_rust_thumbnail)
+            self.rbUseRustNo.setChecked(not self.m_app.use_rust_thumbnail)
 
             if self.m_app.language == "en":
                 self.comboLang.setCurrentIndex(0)
@@ -170,6 +197,7 @@ class PreferencesDialog(QDialog):
             self.m_app.remember_geometry = True
             self.m_app.remember_directory = True
             self.m_app.language = "en"
+            self.m_app.use_rust_thumbnail = True
             self.comboLogLevel.setCurrentIndex(1)  # INFO
 
     def save_settings(self):
@@ -177,6 +205,7 @@ class PreferencesDialog(QDialog):
             self.m_app.settings.setValue("Remember geometry", self.m_app.remember_geometry)
             self.m_app.settings.setValue("Remember directory", self.m_app.remember_directory)
             self.m_app.settings.setValue("Language", self.m_app.language)
+            self.m_app.settings.setValue("Use Rust Thumbnail", self.m_app.use_rust_thumbnail)
 
             # Save log level
             log_level = self.comboLogLevel.currentText()
