@@ -1,0 +1,47 @@
+# CTHarvester Configuration File
+# Default settings for the application
+# Created during Phase 2.1 settings management improvements
+
+application:
+  language: auto  # auto, en, ko
+  theme: light    # light, dark
+  auto_save_settings: true
+
+window:
+  width: 1200
+  height: 800
+  remember_position: true
+  remember_size: true
+
+thumbnails:
+  max_size: 500
+  sample_size: 20
+  max_level: 10
+  compression: true
+  format: tif  # tif, png
+
+processing:
+  threads: auto  # auto, or specific number (1-16)
+  memory_limit_gb: 4
+  use_rust_module: true  # false to force Python fallback
+
+rendering:
+  background_color: [0.2, 0.2, 0.2]
+  default_threshold: 128
+  anti_aliasing: true
+  show_fps: false
+
+export:
+  mesh_format: stl  # stl, ply, obj
+  image_format: tif  # tif, png, jpg
+  compression_level: 6  # 0-9
+
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR
+  max_file_size_mb: 10
+  backup_count: 5
+  console_output: true
+
+paths:
+  last_directory: ""
+  export_directory: ""
