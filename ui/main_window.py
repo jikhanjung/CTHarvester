@@ -29,12 +29,14 @@ from config.constants import (
     SUPPORTED_IMAGE_EXTENSIONS, THUMBNAIL_DIR_NAME
 )
 from ui.dialogs import InfoDialog, PreferencesDialog, ProgressDialog
+from ui.dialogs.settings_dialog import SettingsDialog
 from ui.widgets import MCubeWidget, ObjectViewer2D
 from core.thumbnail_manager import ThumbnailManager
 from core.progress_manager import ProgressManager
 from security.file_validator import SecureFileValidator, FileSecurityError, safe_open_image
 from vertical_stack_slider import VerticalTimeline
 from utils.common import resource_path, value_to_bool
+from utils.settings_manager import SettingsManager
 
 
 logger = logging.getLogger(__name__)
@@ -55,6 +57,11 @@ class CTHarvesterMainWindow(QMainWindow):
         self.default_directory = "."
         self.threadpool = QThreadPool()  # Initialize threadpool for multithreading
         logger.info(f"Initialized ThreadPool with maxThreadCount={self.threadpool.maxThreadCount()}")
+
+        # Initialize YAML-based settings manager (Phase 2.1)
+        self.settings_manager = SettingsManager()
+        logger.info(f"Settings file: {self.settings_manager.get_config_file_path()}")
+
         self.read_settings()
 
         margin = QMargins(11,0,11,0)
@@ -185,7 +192,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.btnExport = QPushButton(self.tr("Export 3D Model"))
         self.btnExport.clicked.connect(self.export_3d_model)
         self.btnPreferences = QPushButton(QIcon(resource_path('M2Preferences_2.png')), "")
-        self.btnPreferences.clicked.connect(self.show_preferences)
+        self.btnPreferences.clicked.connect(self.show_advanced_settings)  # Changed to use new SettingsDialog
+        self.btnPreferences.setToolTip("Settings (Advanced)")
         self.btnInfo = QPushButton(QIcon(resource_path('info.png')), "")
         self.btnInfo.clicked.connect(self.show_info)
         self.button_layout = QHBoxLayout()
@@ -253,9 +261,22 @@ class CTHarvesterMainWindow(QMainWindow):
         self.update_3D_view(True)
 
     def show_preferences(self):
+        """Show preferences dialog (old simple version)"""
         self.settings_dialog = PreferencesDialog(self)
         self.settings_dialog.setModal(True)
         self.settings_dialog.show()
+
+    def show_advanced_settings(self):
+        """Show advanced settings dialog (new comprehensive version - Phase 2.2)"""
+        dialog = SettingsDialog(self.settings_manager, self)
+        if dialog.exec_():
+            logger.info("Advanced settings updated")
+            # Optionally reload settings or notify user
+            QMessageBox.information(
+                self,
+                "Settings Saved",
+                "Settings have been saved.\n\nSome changes may require restarting the application."
+            )
 
     def show_info(self):
         self.info_dialog = InfoDialog(self)
