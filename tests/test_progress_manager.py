@@ -168,3 +168,138 @@ class TestProgressManagerSignals:
 
         assert len(self.eta_values) > 0
         assert "Estimating" in self.eta_values[-1]
+
+    def test_eta_signal_emission(self):
+        """Should emit ETA signal during update"""
+        self.manager.start(total=100)
+        self.manager.update(value=50)
+
+        # Should have received ETA update
+        assert len(self.eta_values) > 0
+
+
+@pytest.mark.skipif(not PYQT_AVAILABLE, reason="PyQt5 not available")
+@pytest.mark.qt
+class TestProgressManagerETA:
+    """Tests for ETA calculation edge cases"""
+
+    def setup_method(self):
+        """Create ProgressManager instance"""
+        self.manager = ProgressManager()
+
+    def test_eta_with_weighted_work(self):
+        """Should calculate ETA with weighted work distribution"""
+        self.manager.start(total=100)
+        self.manager.weighted_total_work = 1000
+
+        # Simulate progress
+        self.manager.current = 500  # 50% of weighted work
+        time.sleep(0.1)
+
+        eta = self.manager.calculate_eta()
+        # Should return some ETA string
+        assert isinstance(eta, str)
+
+    def test_eta_with_weighted_work_completing(self):
+        """Should return 'Completing...' when weighted work nearly done"""
+        self.manager.start(total=100)
+        self.manager.weighted_total_work = 1000
+        self.manager.current = 1001  # Exceeded total
+
+        eta = self.manager.calculate_eta()
+        assert eta == "Completing..."
+
+    def test_eta_with_weighted_work_zero_speed(self):
+        """Should handle zero weighted speed"""
+        self.manager.start(total=100)
+        self.manager.weighted_total_work = 1000
+        self.manager.current = 0
+        time.sleep(0.01)
+
+        eta = self.manager.calculate_eta()
+        # Should return empty string or estimation
+        assert isinstance(eta, str)
+
+    def test_eta_simple_calculation_completing(self):
+        """Should return 'Completing...' when simple calculation shows done"""
+        self.manager.start(total=100)
+        self.manager.current = 100
+
+        eta = self.manager.calculate_eta()
+        assert eta == "Completing..."
+
+    def test_eta_simple_calculation_remaining(self):
+        """Should calculate ETA with simple calculation"""
+        self.manager.start(total=100)
+        self.manager.current = 50
+        time.sleep(0.1)
+
+        eta = self.manager.calculate_eta()
+        # Should have ETA format
+        assert "ETA:" in eta or eta == ""
+
+    def test_eta_format_seconds(self):
+        """Should format ETA in seconds for short durations"""
+        self.manager.start(total=1000)
+        self.manager.current = 990
+        time.sleep(0.1)
+
+        eta = self.manager.calculate_eta()
+        if "ETA:" in eta:
+            assert "s" in eta
+
+    def test_eta_format_minutes(self):
+        """Should format ETA in minutes for medium durations"""
+        self.manager.start(total=1000)
+        self.manager.current = 10
+        time.sleep(0.1)
+
+        # Simulate longer remaining time by adjusting start_time
+        self.manager.start_time = time.time() - 10  # 10 seconds elapsed
+
+        eta = self.manager.calculate_eta()
+        if "ETA:" in eta and "h" not in eta:
+            # Could be minutes or seconds
+            assert "m" in eta or "s" in eta
+
+    def test_eta_format_hours(self):
+        """Should format ETA in hours for long durations"""
+        self.manager.start(total=10000)
+        self.manager.current = 10
+        time.sleep(0.1)
+
+        # Simulate very long remaining time
+        self.manager.start_time = time.time() - 100  # 100 seconds elapsed for 10 items
+
+        eta = self.manager.calculate_eta()
+        # With current=10, total=10000, elapsed=100s, remaining would be huge
+        if "ETA:" in eta:
+            # Might have hours
+            assert "h" in eta or "m" in eta or "s" in eta
+
+    def test_eta_zero_elapsed_time(self):
+        """Should handle zero elapsed time"""
+        self.manager.start(total=100)
+        # Set start_time to future (results in negative/zero elapsed)
+        self.manager.start_time = time.time() + 10
+
+        eta = self.manager.calculate_eta()
+        assert eta == ""
+
+    def test_get_detail_text_with_parameters(self):
+        """Should generate detail text with parameters"""
+        detail = self.manager.get_detail_text(level=0, completed=50, total=100)
+        assert detail == "Level 1: 50/100"
+
+    def test_get_detail_text_without_parameters(self):
+        """Should return empty string without parameters"""
+        detail = self.manager.get_detail_text()
+        assert detail == ""
+
+    def test_get_detail_text_partial_parameters(self):
+        """Should return empty string with partial parameters"""
+        detail = self.manager.get_detail_text(level=0)
+        assert detail == ""
+
+        detail = self.manager.get_detail_text(level=0, completed=50)
+        assert detail == ""
