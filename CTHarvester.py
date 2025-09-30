@@ -24,7 +24,17 @@ import datetime
 import time
 import gc  # For explicit garbage collection
 import traceback  # For error stack traces
-from file_security import SecureFileValidator, FileSecurityError, safe_open_image  # File security
+
+# Project modules
+from security.file_validator import SecureFileValidator, FileSecurityError, safe_open_image
+from config.constants import (
+    PROGRAM_NAME as CONST_PROGRAM_NAME,
+    PROGRAM_VERSION as CONST_PROGRAM_VERSION,
+    COMPANY_NAME as CONST_COMPANY_NAME,
+    SUPPORTED_IMAGE_EXTENSIONS,
+    THUMBNAIL_DIR_NAME,
+    DEFAULT_LOG_LEVEL
+)
 
 # Python fallback implementation uses only PIL and NumPy for simplicity
 # No additional libraries needed - maximum compatibility
@@ -50,13 +60,11 @@ MODE['EDIT_BOX_PROGRESS'] = 5
 MODE['MOVE_BOX_PROGRESS'] = 6
 MODE['MOVE_BOX_READY'] = 7
 DISTANCE_THRESHOLD = 10
-COMPANY_NAME = "PaleoBytes"
-try:
-    from version import __version__ as PROGRAM_VERSION
-except ImportError:
-    PROGRAM_VERSION = "0.2.0"  # Fallback version
 
-PROGRAM_NAME = "CTHarvester"
+# Use constants from config module
+COMPANY_NAME = CONST_COMPANY_NAME
+PROGRAM_VERSION = CONST_PROGRAM_VERSION
+PROGRAM_NAME = CONST_PROGRAM_NAME
 PROGRAM_AUTHOR = "Jikhan Jung"
 
 # Build-time year for copyright
