@@ -62,6 +62,12 @@ class CTHarvesterMainWindow(QMainWindow):
         self.settings_manager = SettingsManager()
         logger.info(f"Settings file: {self.settings_manager.get_config_file_path()}")
 
+        # Migrate old QSettings to YAML (one-time, Phase 2)
+        from utils.settings_migration import migrate_qsettings_to_yaml
+        migrated = migrate_qsettings_to_yaml(self.m_app.settings, self.settings_manager)
+        if migrated:
+            logger.info("QSettings migrated to YAML successfully")
+
         self.read_settings()
 
         margin = QMargins(11,0,11,0)
