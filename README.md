@@ -47,7 +47,7 @@ Download the latest installer from the [Releases](https://github.com/jikhanjung/
 ### From Source
 
 #### Prerequisites
-- Python 3.11 or higher
+- Python 3.12 or higher
 - pip package manager
 
 #### Steps

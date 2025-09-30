@@ -28,27 +28,27 @@ except ImportError:
     VERSION = get_version_from_file()
 
 def update_build_year():
-    """Update BUILD_YEAR in CTHarvester.py with current year"""
+    """Update BUILD_YEAR in config/constants.py with current year"""
     current_year = datetime.now().year
     print(f"Updating BUILD_YEAR to {current_year}...")
-    
-    ctharvester_path = Path("CTHarvester.py")
-    if not ctharvester_path.exists():
-        print(f"[ERROR] CTHarvester.py not found")
+
+    constants_path = Path("config/constants.py")
+    if not constants_path.exists():
+        print(f"[ERROR] config/constants.py not found")
         return False
-    
-    content = ctharvester_path.read_text(encoding='utf-8')
-    
+
+    content = constants_path.read_text(encoding='utf-8')
+
     # Update BUILD_YEAR line
     import re
     pattern = r'BUILD_YEAR = \d+'
     replacement = f'BUILD_YEAR = {current_year}'
-    
+
     new_content = re.sub(pattern, replacement, content)
-    
+
     if new_content != content:
-        ctharvester_path.write_text(new_content, encoding='utf-8')
-        print(f"[OK] BUILD_YEAR updated to {current_year}")
+        constants_path.write_text(new_content, encoding='utf-8')
+        print(f"[OK] BUILD_YEAR updated to {current_year} in config/constants.py")
         return True
     else:
         print(f"[WARNING] BUILD_YEAR pattern not found or already up to date")
