@@ -31,6 +31,7 @@ from config.constants import (
 from ui.dialogs import InfoDialog, PreferencesDialog, ProgressDialog
 from ui.widgets import MCubeWidget, ObjectViewer2D
 from core.thumbnail_manager import ThumbnailManager
+from core.progress_manager import ProgressManager
 from security.file_validator import SecureFileValidator, FileSecurityError, safe_open_image
 from vertical_stack_slider import VerticalTimeline
 from utils.common import resource_path, value_to_bool
