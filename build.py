@@ -12,6 +12,12 @@ import tempfile
 from pathlib import Path
 from datetime import datetime
 
+# Determine project root based on script location (not cwd)
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+# Change to project root for reliable operation
+os.chdir(PROJECT_ROOT)
+
 # Import version from centralized version file
 try:
     from version import __version__ as VERSION
@@ -19,7 +25,8 @@ except ImportError:
     # Fallback: extract from version.py file
     import re
     def get_version_from_file():
-        with open("version.py", "r") as f:
+        version_file = PROJECT_ROOT / "version.py"
+        with open(version_file, "r") as f:
             content = f.read()
             match = re.search(r'__version__ = "(.*?)"', content)
             if match:
@@ -56,20 +63,21 @@ def update_build_year():
 
 def run_pyinstaller(spec_file="CTHarvester.spec", build_type="onefile"):
     """Run PyInstaller to build the executable
-    
+
     Args:
-        spec_file: Path to the spec file to use
+        spec_file: Path to the spec file to use (relative to PROJECT_ROOT)
         build_type: Type of build ("onefile" or "onedir")
     """
     print(f"Building CTHarvester v{VERSION} ({build_type})")
-    
-    # Check if spec file exists
-    if not Path(spec_file).exists():
-        print(f"Error: {spec_file} not found")
+
+    # Resolve spec file path relative to PROJECT_ROOT
+    spec_path = PROJECT_ROOT / spec_file
+    if not spec_path.exists():
+        print(f"Error: {spec_path} not found")
         return False
     
-    # Run PyInstaller
-    cmd = ["pyinstaller", spec_file, "--clean"]
+    # Run PyInstaller with absolute path to spec file
+    cmd = ["pyinstaller", str(spec_path), "--clean"]
     
     try:
         print(f"Running: {' '.join(cmd)}")
@@ -85,8 +93,8 @@ def run_pyinstaller(spec_file="CTHarvester.spec", build_type="onefile"):
 def prepare_inno_setup_template():
     """Prepare InnoSetup script from template"""
     print("Preparing InnoSetup script from template...")
-    
-    template_path = Path("InnoSetup/CTHarvester.iss.template")
+
+    template_path = PROJECT_ROOT / "InnoSetup" / "CTHarvester.iss.template"
     if not template_path.exists():
         print(f"[ERROR] Template file {template_path} not found")
         return None
@@ -97,8 +105,8 @@ def prepare_inno_setup_template():
     # Replace version placeholder
     iss_content = template_content.replace("{{VERSION}}", VERSION)
     
-    # Get absolute path to project root
-    project_root = Path.cwd().resolve()
+    # Use project root determined from script location
+    project_root = PROJECT_ROOT
     
     # Replace relative paths with absolute paths
     iss_content = iss_content.replace("..\\LICENSE", str(project_root / "LICENSE"))

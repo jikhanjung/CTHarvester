@@ -200,8 +200,8 @@ class ThumbnailManager(QObject):
                 # Load existing
                 if size < max_thumbnail_size:
                     try:
-                        img = Image.open(filename3)
-                        img_array = np.array(img)
+                        with Image.open(filename3) as img:
+                            img_array = np.array(img)
                     except Exception as e:
                         logger.error(f"Error loading thumbnail {filename3}: {e}")
             else:
@@ -215,50 +215,70 @@ class ThumbnailManager(QObject):
 
                 img1 = None
                 img2 = None
+                new_img = None
 
-                # Load images
-                if os.path.exists(file1_path):
-                    try:
-                        load1_start = time.time()
-                        img1 = Image.open(file1_path)
-                        load1_time = (time.time() - load1_start) * 1000
-                        if load1_time > 1000:
-                            logger.warning(f"SLOW load img1: {load1_time:.1f}ms")
-                        if img1.mode == 'P':
-                            img1 = img1.convert('L')
-                    except Exception as e:
-                        logger.error(f"Error loading {filename1}: {e}")
+                try:
+                    # Load images
+                    if os.path.exists(file1_path):
+                        try:
+                            load1_start = time.time()
+                            img1 = Image.open(file1_path)
+                            load1_time = (time.time() - load1_start) * 1000
+                            if load1_time > 1000:
+                                logger.warning(f"SLOW load img1: {load1_time:.1f}ms")
+                            if img1.mode == 'P':
+                                img1 = img1.convert('L')
+                        except Exception as e:
+                            logger.error(f"Error loading {filename1}: {e}")
 
-                if file2_path and os.path.exists(file2_path):
-                    try:
-                        load2_start = time.time()
-                        img2 = Image.open(file2_path)
-                        load2_time = (time.time() - load2_start) * 1000
-                        if load2_time > 1000:
-                            logger.warning(f"SLOW load img2: {load2_time:.1f}ms")
-                        if img2.mode == 'P':
-                            img2 = img2.convert('L')
-                    except Exception as e:
-                        logger.error(f"Error loading {filename2}: {e}")
+                    if file2_path and os.path.exists(file2_path):
+                        try:
+                            load2_start = time.time()
+                            img2 = Image.open(file2_path)
+                            load2_time = (time.time() - load2_start) * 1000
+                            if load2_time > 1000:
+                                logger.warning(f"SLOW load img2: {load2_time:.1f}ms")
+                            if img2.mode == 'P':
+                                img2 = img2.convert('L')
+                        except Exception as e:
+                            logger.error(f"Error loading {filename2}: {e}")
 
-                # Average and resize
-                if img1:  # Process even if img2 is None (odd number case)
-                    try:
-                        if img2:
-                            # Both images exist - average them
-                            from PIL import ImageChops
-                            new_img = ImageChops.add(img1, img2, scale=2.0)
-                            new_img = new_img.resize((int(img1.width / 2), int(img1.height / 2)))
-                        else:
-                            # Only img1 exists (odd case) - just resize
-                            logger.debug(f"Processing single image at idx={idx}")
-                            new_img = img1.resize((int(img1.width / 2), int(img1.height / 2)))
+                    # Average and resize
+                    if img1:  # Process even if img2 is None (odd number case)
+                        try:
+                            # Use numpy-based processing to preserve 16-bit depth
+                            from utils.image_utils import average_images, downsample_image
 
-                        new_img.save(filename3)
-                        if size < max_thumbnail_size:
-                            img_array = np.array(new_img)
-                    except Exception as e:
-                        logger.error(f"Error creating thumbnail: {e}")
+                            arr1 = np.array(img1)
+
+                            if img2:
+                                # Both images exist - average them
+                                arr2 = np.array(img2)
+                                averaged = average_images(arr1, arr2)
+                            else:
+                                # Only img1 exists (odd case) - no averaging needed
+                                logger.debug(f"Processing single image at idx={idx}")
+                                averaged = arr1
+
+                            # Downsample by factor of 2
+                            downsampled = downsample_image(averaged, factor=2, method='average')
+
+                            # Convert back to PIL Image and save
+                            new_img = Image.fromarray(downsampled)
+                            new_img.save(filename3)
+
+                            if size < max_thumbnail_size:
+                                img_array = downsampled
+                        except Exception as e:
+                            logger.error(f"Error creating thumbnail: {e}")
+                finally:
+                    # Ensure all image resources are released
+                    if img1 is not None:
+                        img1.close()
+                    if img2 is not None:
+                        img2.close()
+                    if new_img is not None:
+                        new_img.close()
 
             # Update progress
             self.completed_tasks += 1
