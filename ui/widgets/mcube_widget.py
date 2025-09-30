@@ -2,6 +2,7 @@
 MCubeWidget - 3D mesh visualization widget using OpenGL
 
 Extracted from CTHarvester.py during Phase 4 UI refactoring.
+Updated during Phase 1.2 UI/UX improvements with non-blocking mesh generation.
 """
 import os
 import numpy as np
@@ -11,7 +12,7 @@ from copy import deepcopy
 from queue import Queue
 from PyQt5.QtWidgets import QLabel, QCheckBox, QApplication
 from PyQt5.QtGui import QPixmap, QCursor
-from PyQt5.QtCore import Qt, QTimer, QThreadPool
+from PyQt5.QtCore import Qt, QTimer, QThreadPool, QThread, pyqtSignal
 from PyQt5.QtOpenGL import QGLWidget
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -26,6 +27,97 @@ from utils.common import resource_path
 
 
 logger = logging.getLogger(__name__)
+
+
+class MeshGenerationThread(QThread):
+    """
+    Non-blocking mesh generation thread
+
+    Performs marching cubes algorithm in background thread to prevent UI blocking.
+    Emits signals for progress, completion, and errors.
+    """
+    finished = pyqtSignal(dict)  # emits generated_data dict
+    error = pyqtSignal(str)
+    progress = pyqtSignal(int)
+
+    def __init__(self, volume, isovalue, scale_factor, is_inverse):
+        super().__init__()
+        self.volume = volume
+        self.isovalue = isovalue
+        self.scale_factor = scale_factor
+        self.is_inverse = is_inverse
+
+    def run(self):
+        try:
+            logger.info(f"MeshGenerationThread started: isovalue={self.isovalue}, scale_factor={self.scale_factor}")
+
+            # Scale volume
+            self.progress.emit(10)
+            volume = ndimage.zoom(self.volume, self.scale_factor, order=1)
+
+            # Invert if needed
+            self.progress.emit(20)
+            if self.is_inverse:
+                volume = 255 - volume
+                isovalue = 255 - self.isovalue
+            else:
+                isovalue = self.isovalue
+
+            # Marching cubes algorithm
+            self.progress.emit(30)
+            logger.debug("Running marching cubes...")
+            vertices, triangles = mcubes.marching_cubes(volume, isovalue)
+
+            # Calculate face normals
+            self.progress.emit(60)
+            logger.debug("Calculating face normals...")
+            face_normals = []
+            for triangle in triangles:
+                v0 = vertices[triangle[0]]
+                v1 = vertices[triangle[1]]
+                v2 = vertices[triangle[2]]
+                edge1 = v1 - v0
+                edge2 = v2 - v0
+                normal = np.cross(edge1, edge2)
+                norm = np.linalg.norm(normal)
+                if norm == 0:
+                    normal = np.array([0, 0, 0])
+                else:
+                    normal /= np.linalg.norm(normal)
+                face_normals.append(normal)
+
+            # Calculate vertex normals
+            self.progress.emit(80)
+            logger.debug("Calculating vertex normals...")
+            vertex_normals = np.zeros(vertices.shape)
+
+            for i, triangle in enumerate(triangles):
+                for vertex_index in triangle:
+                    vertex_normals[vertex_index] += face_normals[i]
+
+            # Normalize vertex normals
+            for i in range(len(vertex_normals)):
+                if np.linalg.norm(vertex_normals[i]) != 0:
+                    vertex_normals[i] /= np.linalg.norm(vertex_normals[i])
+                else:
+                    vertex_normals[i] = np.array([0.0, 0.0, 0.0])
+
+            self.progress.emit(95)
+
+            # Create result dict
+            generated_data = {
+                'vertices': vertices,
+                'triangles': triangles,
+                'vertex_normals': vertex_normals
+            }
+
+            logger.info(f"Mesh generated successfully: {len(vertices)} vertices, {len(triangles)} triangles")
+            self.progress.emit(100)
+            self.finished.emit(generated_data)
+
+        except Exception as e:
+            logger.error(f"Mesh generation failed: {e}", exc_info=True)
+            self.error.emit(str(e))
 
 
 class MCubeWidget(QGLWidget):
@@ -109,6 +201,9 @@ class MCubeWidget(QGLWidget):
         self.is_inverse = False
 
         self.queue = Queue()
+
+        # Phase 1.2: Non-blocking mesh generation
+        self.mesh_generation_thread = None
 
     def recalculate_geometry(self):
         #self.scale = self.parent.
@@ -336,55 +431,55 @@ class MCubeWidget(QGLWidget):
         self.shrinkButton.show()
 
     def generate_mesh(self):
+        """
+        Generate 3D mesh using non-blocking thread (Phase 1.2 improvement)
+
+        Uses MeshGenerationThread to perform marching cubes in background,
+        keeping UI responsive during mesh generation.
+        """
+        # Prevent concurrent mesh generation
+        if self.mesh_generation_thread and self.mesh_generation_thread.isRunning():
+            logger.warning("Mesh generation already in progress, skipping")
+            return
+
         self.generate_mesh_under_way = True
 
         max_len = max(self.volume.shape)
-        self.scale_factor = 50.0/max_len
+        scale_factor = 50.0 / max_len
 
-        volume = ndimage.zoom(self.volume, self.scale_factor, order=1)
-        if self.is_inverse:
-            volume = 255 - volume
-            isovalue = 255 - self.isovalue
-        else:
-            isovalue = self.isovalue
-        vertices, triangles = mcubes.marching_cubes(volume, isovalue)
+        # Create and start mesh generation thread
+        self.mesh_generation_thread = MeshGenerationThread(
+            volume=self.volume.copy(),  # Copy to avoid concurrent access issues
+            isovalue=self.isovalue,
+            scale_factor=scale_factor,
+            is_inverse=self.is_inverse
+        )
 
-        face_normals = []
-        for triangle in triangles:
-            v0 = vertices[triangle[0]]
-            v1 = vertices[triangle[1]]
-            v2 = vertices[triangle[2]]
-            edge1 = v1 - v0
-            edge2 = v2 - v0
-            normal = np.cross(edge1, edge2)
-            norm = np.linalg.norm(normal)
-            if norm == 0:
-                normal = np.array([0, 0, 0])
-            else:
-                normal /= np.linalg.norm(normal)
-            face_normals.append(normal)
+        # Connect signals
+        self.mesh_generation_thread.finished.connect(self._on_mesh_generated)
+        self.mesh_generation_thread.error.connect(self._on_mesh_error)
+        self.mesh_generation_thread.progress.connect(self._on_mesh_progress)
 
-        vertex_normals = np.zeros(vertices.shape)
+        logger.info("Starting non-blocking mesh generation thread")
+        self.mesh_generation_thread.start()
 
-        # Calculate vertex normals by averaging face normals
-        for i, triangle in enumerate(triangles):
-            for vertex_index in triangle:
-                vertex_normals[vertex_index] += face_normals[i]
-
-        # Normalize vertex normals
-        for i in range(len(vertex_normals)):
-            if np.linalg.norm(vertex_normals[i]) != 0:
-                vertex_normals[i] /= np.linalg.norm(vertex_normals[i])
-            else:
-                vertex_normals[i] = np.array([0.0, 0.0, 0.0])
-        
-        self.generated_data = {}
-        self.generated_data['vertices'] = vertices
-        self.generated_data['triangles'] = triangles
-        self.generated_data['vertex_normals'] = vertex_normals
-
+    def _on_mesh_generated(self, generated_data):
+        """Handle mesh generation completion"""
+        self.generated_data = generated_data
         self.gl_list_generated = False
         self.generate_mesh_under_way = False
+        logger.info("Mesh generation complete, triggering GL update")
+        self.update()  # Trigger OpenGL repaint
+
+    def _on_mesh_error(self, error_msg):
+        """Handle mesh generation error"""
+        self.generate_mesh_under_way = False
+        logger.error(f"Mesh generation error: {error_msg}")
+        # TODO: Show user-friendly error dialog (Phase 1.3)
+
+    def _on_mesh_progress(self, percentage):
+        """Handle mesh generation progress update"""
+        logger.debug(f"Mesh generation progress: {percentage}%")
 
     def apply_volume_displacement(self):
         if len(self.vertices) > 0:        
