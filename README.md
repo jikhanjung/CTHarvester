@@ -3,8 +3,10 @@
 [![Build](https://github.com/jikhanjung/CTHarvester/actions/workflows/build.yml/badge.svg)](https://github.com/jikhanjung/CTHarvester/actions/workflows/build.yml)
 [![Tests](https://github.com/jikhanjung/CTHarvester/actions/workflows/test.yml/badge.svg)](https://github.com/jikhanjung/CTHarvester/actions/workflows/test.yml)
 [![Release Status](https://github.com/jikhanjung/CTHarvester/actions/workflows/release.yml/badge.svg)](https://github.com/jikhanjung/CTHarvester/actions/workflows/release.yml)
+[![codecov](https://codecov.io/gh/jikhanjung/CTHarvester/branch/main/graph/badge.svg)](https://codecov.io/gh/jikhanjung/CTHarvester)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Tests: 195 passing](https://img.shields.io/badge/tests-195%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
 
 *Read this in other languages: [English](README.md), [한국어](README.ko.md)*
 
@@ -120,14 +122,47 @@ python bump_version.py minor
 python bump_version.py major
 ```
 
-### Running Tests
+### Testing
+
+CTHarvester has comprehensive test coverage across unit and integration tests.
+
+#### Running Tests
 ```bash
-pytest tests/
+# Run all tests
+pytest tests/ -v
+
+# Run with coverage report
+pytest tests/ -v --cov=. --cov-report=term-missing --cov-report=html
+
+# Run specific test categories
+pytest tests/ -v -m unit              # Unit tests only
+pytest tests/ -v -m integration       # Integration tests only
+pytest tests/ -v -m "not slow"        # Skip slow tests
 ```
+
+#### Test Structure
+- **Unit Tests** (186 tests): Core utilities, workers, image processing, security
+  - `test_common.py` - Utility functions (29 tests, 100% coverage)
+  - `test_worker.py` - Worker threads (22 tests, 100% coverage)
+  - `test_image_utils.py` - Image processing (31 tests, 100% coverage)
+  - `test_progress_manager.py` - Progress tracking (28 tests, 99% coverage)
+  - `test_file_utils.py` - File operations (41 tests, 94% coverage)
+  - `test_security.py` - Security validation (36 tests, 90% coverage)
+
+- **Integration Tests** (9 tests): End-to-end workflows
+  - `test_integration_thumbnail.py` - Thumbnail generation pipeline
+
+#### Coverage
+- **Overall**: ~95% for core utility modules
+- **Modules at 100%**: utils/common, utils/worker, utils/image_utils
+- **Total**: 195 tests, all passing ✅
 
 ### CI/CD
 The project uses GitHub Actions for continuous integration and deployment:
-- **test.yml**: Runs on all pushes and PRs
+- **test.yml**: Runs tests on all pushes and PRs
+  - Runs on Python 3.12 and 3.13
+  - Generates coverage reports
+  - Uploads to Codecov
 - **build.yml**: Creates development builds on main branch
 - **release.yml**: Creates release builds on version tags
 
@@ -135,16 +170,54 @@ The project uses GitHub Actions for continuous integration and deployment:
 
 ```
 CTHarvester/
-├── CTHarvester.py          # Main application
+├── CTHarvester.py          # Main application entry point
 ├── version.py              # Version management
-├── build.py                # Build script
+├── build.py                # Build script for packaging
 ├── bump_version.py         # Version bump utility
 ├── requirements.txt        # Python dependencies
+├── pytest.ini              # Test configuration
+│
+├── core/                   # Core modules (extracted from Phase 4 refactoring)
+│   ├── progress_manager.py    # Progress tracking and ETA calculation
+│   ├── thumbnail_manager.py   # Thumbnail generation coordinator
+│   └── thumbnail_worker.py    # Worker threads for thumbnail processing
+│
+├── utils/                  # Utility modules
+│   ├── common.py              # Common utility functions
+│   ├── file_utils.py          # File system operations
+│   ├── image_utils.py         # Image processing utilities
+│   └── worker.py              # Generic worker thread base
+│
+├── security/               # Security validation
+│   └── file_validator.py     # File path and security checks
+│
+├── ui/                     # User interface modules
+│   ├── main_window.py         # Main application window
+│   └── widgets/               # Custom Qt widgets
+│
+├── config/                 # Configuration
+│   └── constants.py           # Application constants
+│
 ├── .github/
 │   └── workflows/         # GitHub Actions CI/CD
+│       ├── test.yml           # Test automation with coverage
+│       ├── build.yml          # Development builds
+│       └── release.yml        # Release builds
+│
+├── tests/                 # Comprehensive test suite (195 tests)
+│   ├── test_common.py         # Utility function tests
+│   ├── test_worker.py         # Worker thread tests
+│   ├── test_image_utils.py    # Image processing tests
+│   ├── test_progress_manager.py  # Progress tracking tests
+│   ├── test_file_utils.py     # File operation tests
+│   ├── test_security.py       # Security validation tests
+│   └── test_integration_thumbnail.py  # Integration tests
+│
 ├── InnoSetup/             # Windows installer configuration
-├── tests/                 # Test suite
-└── devlog/                # Development logs
+└── devlog/                # Development logs and documentation
+    ├── 20250930_020-025_*.md  # Refactoring documentation
+    ├── 20250930_026-028_*.md  # Test coverage documentation
+    └── ...
 ```
 
 ## Dependencies
@@ -161,11 +234,76 @@ CTHarvester/
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+### Development Setup
+
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Clone your fork:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/CTHarvester.git
+   cd CTHarvester
+   ```
+
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   pip install pytest pytest-cov pytest-qt  # For testing
+   ```
+
+4. Create your feature branch:
+   ```bash
+   git checkout -b feature/AmazingFeature
+   ```
+
+### Development Workflow
+
+1. **Make your changes**
+   - Follow existing code style and patterns
+   - Add docstrings to new functions/classes
+   - Update tests if needed
+
+2. **Run tests**
+   ```bash
+   pytest tests/ -v
+   ```
+
+3. **Check coverage**
+   ```bash
+   pytest tests/ --cov=. --cov-report=term-missing
+   ```
+
+4. **Commit your changes**
+   ```bash
+   git commit -m 'Add some AmazingFeature'
+   ```
+
+5. **Push to your fork**
+   ```bash
+   git push origin feature/AmazingFeature
+   ```
+
+6. **Open a Pull Request**
+   - Describe your changes clearly
+   - Reference any related issues
+   - Ensure CI checks pass
+
+### Code Quality Guidelines
+
+- **Testing**: Add tests for new features
+- **Coverage**: Maintain >90% coverage for new modules
+- **Documentation**: Update README and docstrings
+- **Style**: Follow PEP 8 conventions
+- **Security**: Use security/file_validator for file operations
+
+### Project Architecture
+
+CTHarvester follows a modular architecture after Phase 4 refactoring:
+- **core/**: Core business logic (progress, thumbnail generation)
+- **utils/**: Reusable utility functions
+- **security/**: Security validation layer
+- **ui/**: User interface components
+- **tests/**: Comprehensive test suite
+
+See `devlog/` for detailed refactoring and development notes.
 
 ## License
 

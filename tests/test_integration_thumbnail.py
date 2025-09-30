@@ -66,7 +66,7 @@ class TestThumbnailGenerationWorkflow:
             img_array = img_array + (i * 10)  # Vary by index
             img_array = np.clip(img_array, 0, 255).astype(np.uint8)
 
-            img = Image.fromarray(img_array, mode='L')
+            img = Image.fromarray(img_array)
             filename = f"scan_{i:04d}.tif"
             filepath = os.path.join(self.source_dir, filename)
             img.save(filepath)
@@ -196,7 +196,7 @@ class TestThumbnailGenerationWorkflow:
             img_array = img_array + (i * 1000)
             img_array = np.clip(img_array, 0, 65535).astype(np.uint16)
 
-            img = Image.fromarray(img_array, mode='I;16')
+            img = Image.fromarray(img_array)
             filename = f"scan_{i:04d}.tif"
             filepath = os.path.join(source_16bit, filename)
             img.save(filepath)

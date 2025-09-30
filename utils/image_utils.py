@@ -155,17 +155,17 @@ def save_image_from_array(
         Success flag
     """
     try:
-        # Determine PIL mode from dtype
+        # Convert dtype if needed for PIL compatibility
         if img_array.dtype == np.uint16:
-            mode = 'I;16'
+            # PIL automatically detects 16-bit mode from uint16 arrays
+            img = Image.fromarray(img_array)
         elif img_array.dtype == np.uint8:
-            mode = 'L' if len(img_array.shape) == 2 else 'RGB'
+            # PIL automatically detects L or RGB mode from shape
+            img = Image.fromarray(img_array)
         else:
             logger.warning(f"Converting from {img_array.dtype} to uint8")
             img_array = img_array.astype(np.uint8)
-            mode = 'L'
-
-        img = Image.fromarray(img_array, mode=mode)
+            img = Image.fromarray(img_array)
 
         # TIFF compression settings
         if output_path.lower().endswith(('.tif', '.tiff')):

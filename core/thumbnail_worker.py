@@ -180,7 +180,7 @@ class ThumbnailWorker(QRunnable):
                 arr_32[1:2*new_h:2, 1:2*new_w:2]
             ) // 4
             downscaled = downscaled.astype(np.uint16)
-            return Image.fromarray(downscaled, mode='I;16')
+            return Image.fromarray(downscaled)
         else:
             return img.resize((img.width // 2, img.height // 2))
 
@@ -222,7 +222,7 @@ class ThumbnailWorker(QRunnable):
         # Clean up large arrays
         del arr1, arr2, avg_arr, avg_arr_32
 
-        return Image.fromarray(downscaled, mode='I;16')
+        return Image.fromarray(downscaled)
 
     def _process_image_pair_8bit(
         self,
@@ -357,10 +357,10 @@ class ThumbnailWorker(QRunnable):
                 logger.debug("Processing mixed bit depth images")
                 if not is_16bit1:
                     arr1 = (np.array(img1, dtype=np.uint8).astype(np.uint16) << 8)
-                    img1 = Image.fromarray(arr1, mode='I;16')
+                    img1 = Image.fromarray(arr1)
                 if not is_16bit2:
                     arr2 = (np.array(img2, dtype=np.uint8).astype(np.uint16) << 8)
-                    img2 = Image.fromarray(arr2, mode='I;16')
+                    img2 = Image.fromarray(arr2)
                 new_img = self._process_image_pair_16bit(img1, img2)
             else:
                 # Both 8-bit

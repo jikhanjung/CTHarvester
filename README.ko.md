@@ -3,8 +3,10 @@
 [![Build](https://github.com/jikhanjung/CTHarvester/actions/workflows/build.yml/badge.svg)](https://github.com/jikhanjung/CTHarvester/actions/workflows/build.yml)
 [![Tests](https://github.com/jikhanjung/CTHarvester/actions/workflows/test.yml/badge.svg)](https://github.com/jikhanjung/CTHarvester/actions/workflows/test.yml)
 [![Release Status](https://github.com/jikhanjung/CTHarvester/actions/workflows/release.yml/badge.svg)](https://github.com/jikhanjung/CTHarvester/actions/workflows/release.yml)
+[![codecov](https://codecov.io/gh/jikhanjung/CTHarvester/branch/main/graph/badge.svg)](https://codecov.io/gh/jikhanjung/CTHarvester)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Tests: 195 passing](https://img.shields.io/badge/tests-195%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
 
 *다른 언어로 읽기: [English](README.md), [한국어](README.ko.md)*
 
@@ -120,14 +122,47 @@ python bump_version.py minor
 python bump_version.py major
 ```
 
-### 테스트 실행
+### 테스트
+
+CTHarvester는 단위 및 통합 테스트에 걸쳐 포괄적인 테스트 커버리지를 갖추고 있습니다.
+
+#### 테스트 실행
 ```bash
-pytest tests/
+# 모든 테스트 실행
+pytest tests/ -v
+
+# 커버리지 리포트와 함께 실행
+pytest tests/ -v --cov=. --cov-report=term-missing --cov-report=html
+
+# 특정 테스트 카테고리 실행
+pytest tests/ -v -m unit              # 단위 테스트만
+pytest tests/ -v -m integration       # 통합 테스트만
+pytest tests/ -v -m "not slow"        # 느린 테스트 제외
 ```
+
+#### 테스트 구조
+- **단위 테스트** (186개): 핵심 유틸리티, 워커, 이미지 처리, 보안
+  - `test_common.py` - 유틸리티 함수 (29개 테스트, 100% 커버리지)
+  - `test_worker.py` - 워커 스레드 (22개 테스트, 100% 커버리지)
+  - `test_image_utils.py` - 이미지 처리 (31개 테스트, 100% 커버리지)
+  - `test_progress_manager.py` - 진행률 추적 (28개 테스트, 99% 커버리지)
+  - `test_file_utils.py` - 파일 작업 (41개 테스트, 94% 커버리지)
+  - `test_security.py` - 보안 검증 (36개 테스트, 90% 커버리지)
+
+- **통합 테스트** (9개): 엔드투엔드 워크플로우
+  - `test_integration_thumbnail.py` - 썸네일 생성 파이프라인
+
+#### 커버리지
+- **전체**: 핵심 유틸리티 모듈 ~95%
+- **100% 모듈**: utils/common, utils/worker, utils/image_utils
+- **총계**: 195개 테스트, 모두 통과 ✅
 
 ### CI/CD
 프로젝트는 지속적 통합 및 배포를 위해 GitHub Actions를 사용합니다:
-- **test.yml**: 모든 푸시 및 PR에서 실행
+- **test.yml**: 모든 푸시 및 PR에서 테스트 실행
+  - Python 3.12 및 3.13에서 실행
+  - 커버리지 리포트 생성
+  - Codecov에 업로드
 - **build.yml**: main 브랜치에서 개발 빌드 생성
 - **release.yml**: 버전 태그에서 릴리스 빌드 생성
 
@@ -135,16 +170,54 @@ pytest tests/
 
 ```
 CTHarvester/
-├── CTHarvester.py          # 메인 애플리케이션
+├── CTHarvester.py          # 메인 애플리케이션 진입점
 ├── version.py              # 버전 관리
-├── build.py                # 빌드 스크립트
+├── build.py                # 패키징용 빌드 스크립트
 ├── bump_version.py         # 버전 업데이트 유틸리티
 ├── requirements.txt        # Python 의존성
+├── pytest.ini              # 테스트 설정
+│
+├── core/                   # 핵심 모듈 (Phase 4 리팩토링에서 추출)
+│   ├── progress_manager.py    # 진행률 추적 및 ETA 계산
+│   ├── thumbnail_manager.py   # 썸네일 생성 코디네이터
+│   └── thumbnail_worker.py    # 썸네일 처리용 워커 스레드
+│
+├── utils/                  # 유틸리티 모듈
+│   ├── common.py              # 공통 유틸리티 함수
+│   ├── file_utils.py          # 파일 시스템 작업
+│   ├── image_utils.py         # 이미지 처리 유틸리티
+│   └── worker.py              # 범용 워커 스레드 베이스
+│
+├── security/               # 보안 검증
+│   └── file_validator.py     # 파일 경로 및 보안 검사
+│
+├── ui/                     # 사용자 인터페이스 모듈
+│   ├── main_window.py         # 메인 애플리케이션 창
+│   └── widgets/               # 커스텀 Qt 위젯
+│
+├── config/                 # 설정
+│   └── constants.py           # 애플리케이션 상수
+│
 ├── .github/
 │   └── workflows/         # GitHub Actions CI/CD
+│       ├── test.yml           # 커버리지를 포함한 테스트 자동화
+│       ├── build.yml          # 개발 빌드
+│       └── release.yml        # 릴리스 빌드
+│
+├── tests/                 # 포괄적인 테스트 스위트 (195개 테스트)
+│   ├── test_common.py         # 유틸리티 함수 테스트
+│   ├── test_worker.py         # 워커 스레드 테스트
+│   ├── test_image_utils.py    # 이미지 처리 테스트
+│   ├── test_progress_manager.py  # 진행률 추적 테스트
+│   ├── test_file_utils.py     # 파일 작업 테스트
+│   ├── test_security.py       # 보안 검증 테스트
+│   └── test_integration_thumbnail.py  # 통합 테스트
+│
 ├── InnoSetup/             # Windows 설치 프로그램 설정
-├── tests/                 # 테스트 스위트
-└── devlog/                # 개발 로그
+└── devlog/                # 개발 로그 및 문서
+    ├── 20250930_020-025_*.md  # 리팩토링 문서
+    ├── 20250930_026-028_*.md  # 테스트 커버리지 문서
+    └── ...
 ```
 
 ## 의존성
@@ -161,11 +234,76 @@ CTHarvester/
 
 기여는 언제나 환영합니다! Pull Request를 자유롭게 제출해 주세요.
 
+### 개발 환경 설정
+
 1. 저장소 포크
-2. 기능 브랜치 생성 (`git checkout -b feature/AmazingFeature`)
-3. 변경사항 커밋 (`git commit -m 'Add some AmazingFeature'`)
-4. 브랜치에 푸시 (`git push origin feature/AmazingFeature`)
-5. Pull Request 열기
+2. 포크 클론:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/CTHarvester.git
+   cd CTHarvester
+   ```
+
+3. 의존성 설치:
+   ```bash
+   pip install -r requirements.txt
+   pip install pytest pytest-cov pytest-qt  # 테스트용
+   ```
+
+4. 기능 브랜치 생성:
+   ```bash
+   git checkout -b feature/AmazingFeature
+   ```
+
+### 개발 워크플로우
+
+1. **변경사항 작성**
+   - 기존 코드 스타일과 패턴을 따르세요
+   - 새 함수/클래스에 docstring 추가
+   - 필요시 테스트 업데이트
+
+2. **테스트 실행**
+   ```bash
+   pytest tests/ -v
+   ```
+
+3. **커버리지 확인**
+   ```bash
+   pytest tests/ --cov=. --cov-report=term-missing
+   ```
+
+4. **변경사항 커밋**
+   ```bash
+   git commit -m 'Add some AmazingFeature'
+   ```
+
+5. **포크에 푸시**
+   ```bash
+   git push origin feature/AmazingFeature
+   ```
+
+6. **Pull Request 열기**
+   - 변경사항을 명확하게 설명하세요
+   - 관련 이슈를 참조하세요
+   - CI 검사가 통과하는지 확인하세요
+
+### 코드 품질 가이드라인
+
+- **테스트**: 새 기능에 대한 테스트 추가
+- **커버리지**: 새 모듈에 대해 90% 이상 커버리지 유지
+- **문서화**: README 및 docstring 업데이트
+- **스타일**: PEP 8 규칙 준수
+- **보안**: 파일 작업에 security/file_validator 사용
+
+### 프로젝트 아키텍처
+
+CTHarvester는 Phase 4 리팩토링 이후 모듈식 아키텍처를 따릅니다:
+- **core/**: 핵심 비즈니스 로직 (진행률, 썸네일 생성)
+- **utils/**: 재사용 가능한 유틸리티 함수
+- **security/**: 보안 검증 레이어
+- **ui/**: 사용자 인터페이스 컴포넌트
+- **tests/**: 포괄적인 테스트 스위트
+
+자세한 리팩토링 및 개발 노트는 `devlog/`를 참조하세요.
 
 ## 라이선스
 

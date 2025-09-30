@@ -39,12 +39,12 @@ class TestDetectBitDepth:
         self.temp_dir = tempfile.mkdtemp()
 
         # Create 8-bit grayscale image
-        img_8bit = Image.fromarray(np.ones((10, 10), dtype=np.uint8) * 128, mode='L')
+        img_8bit = Image.fromarray(np.ones((10, 10), dtype=np.uint8) * 128)
         self.image_8bit = os.path.join(self.temp_dir, "image_8bit.tif")
         img_8bit.save(self.image_8bit)
 
         # Create 16-bit grayscale image
-        img_16bit = Image.fromarray(np.ones((10, 10), dtype=np.uint16) * 32768, mode='I;16')
+        img_16bit = Image.fromarray(np.ones((10, 10), dtype=np.uint16) * 32768)
         self.image_16bit = os.path.join(self.temp_dir, "image_16bit.tif")
         img_16bit.save(self.image_16bit)
 
@@ -71,7 +71,7 @@ class TestDetectBitDepth:
         self.temp_dir = tempfile.mkdtemp()
 
         # Create RGB image
-        img_rgb = Image.fromarray(np.ones((10, 10, 3), dtype=np.uint8) * 128, mode='RGB')
+        img_rgb = Image.fromarray(np.ones((10, 10, 3), dtype=np.uint8) * 128)
         image_rgb = os.path.join(self.temp_dir, "image_rgb.png")
         img_rgb.save(image_rgb)
 
@@ -84,7 +84,7 @@ class TestDetectBitDepth:
         self.temp_dir = tempfile.mkdtemp()
 
         # Create RGBA image
-        img_rgba = Image.fromarray(np.ones((10, 10, 4), dtype=np.uint8) * 128, mode='RGBA')
+        img_rgba = Image.fromarray(np.ones((10, 10, 4), dtype=np.uint8) * 128)
         image_rgba = os.path.join(self.temp_dir, "image_rgba.png")
         img_rgba.save(image_rgba)
 
@@ -118,7 +118,7 @@ class TestLoadImageAsArray:
 
         # Create test image
         test_array = np.arange(100, dtype=np.uint8).reshape(10, 10)
-        img = Image.fromarray(test_array, mode='L')
+        img = Image.fromarray(test_array)
         self.test_image = os.path.join(self.temp_dir, "test.tif")
         img.save(self.test_image)
 
@@ -147,7 +147,7 @@ class TestLoadImageAsArray:
         """Should load 16-bit image with correct dtype"""
         # Create 16-bit test image
         test_array = np.arange(100, dtype=np.uint16).reshape(10, 10) * 256
-        img = Image.fromarray(test_array, mode='I;16')
+        img = Image.fromarray(test_array)
         test_16bit = os.path.join(self.temp_dir, "test_16bit.tif")
         img.save(test_16bit)
 
@@ -326,7 +326,7 @@ class TestGetImageDimensions:
         self.temp_dir = tempfile.mkdtemp()
 
         # Create test image with specific dimensions
-        img = Image.fromarray(np.ones((123, 456), dtype=np.uint8) * 128, mode='L')
+        img = Image.fromarray(np.ones((123, 456), dtype=np.uint8) * 128)
         self.test_image = os.path.join(self.temp_dir, "test.tif")
         img.save(self.test_image)
 

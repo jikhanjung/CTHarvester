@@ -8,6 +8,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.2.3-beta.1] - 2025-09-30
+
+### Added
+- **Comprehensive test suite** (195 tests with ~95% coverage)
+  - Unit tests for core utilities, workers, image processing, security (186 tests)
+  - Integration tests for thumbnail generation workflows (9 tests)
+  - Test markers for unit, integration, slow, and Qt tests
+- **CI/CD pipeline** with GitHub Actions
+  - Automated testing on Python 3.12 and 3.13
+  - Coverage reporting with Codecov integration
+  - Automated builds and releases
+- **Project retrospective document**
+  - Comprehensive documentation of refactoring journey
+  - Detailed test coverage expansion process
+  - Lessons learned and best practices
+- **Security validation module** (`security/file_validator.py`)
+  - Directory traversal attack prevention
+  - Path validation and sanitization
+  - Secure file operations with FileSecurityError
+
+### Changed
+- **Major code refactoring** (Phase 1-4)
+  - Modular architecture: config/, core/, ui/, utils/, security/
+  - CTHarvester.py reduced from 4,840 lines to 151 lines (-96.6%)
+  - Extracted 18 modules with clear separation of concerns
+- **Documentation overhaul**
+  - README.md expanded with testing section, project structure, contributing guide
+  - README.ko.md synchronized with English version
+  - Updated badges (Codecov, test count, Python 3.12+)
+- **Memory management improvements**
+  - Explicit resource cleanup (del statements)
+  - Periodic garbage collection every 10 images
+  - Try-finally blocks ensuring cleanup
+- **Error handling enhancements**
+  - Added traceback module import and usage
+  - Comprehensive exception handling throughout
+  - Finished signals guaranteed in all cases
+- **Thread safety improvements**
+  - Duplicate result processing prevention
+  - Progress rate boundary validation
+  - Single-thread strategy documented
+
+### Fixed
+- **Critical security vulnerabilities**
+  - Directory traversal attack prevention
+  - File path validation and sanitization
+  - Null byte injection protection
+  - Symbolic link traversal prevention
+- **Memory leaks**
+  - PIL Image objects now explicitly released
+  - NumPy arrays properly cleaned up
+  - Garbage collection triggered periodically
+- **Pillow deprecation warnings** (147 warnings eliminated)
+  - Removed deprecated `mode` parameter from Image.fromarray()
+  - PIL now auto-detects mode from array dtype and shape
+- **Import organization**
+  - Added missing traceback module import
+  - Updated import paths for new module structure
+
+### Performance
+- Test execution: 195 tests in ~2.5 seconds
+- Code quality: 95% coverage for core utility modules
+- Modules at 100% coverage: utils/common, utils/worker, utils/image_utils
+
+### Technical Details
+- **Test infrastructure**:
+  - pytest 8.4.2 with pytest-cov, pytest-qt, pytest-timeout
+  - AAA pattern (Arrange-Act-Assert)
+  - Fixture-based test isolation
+  - Platform-specific skip decorators
+- **Module structure**:
+  - config/: Global constants and configuration
+  - core/: Business logic (progress, thumbnail generation)
+  - ui/: User interface components (dialogs, widgets)
+  - utils/: Reusable utility functions
+  - security/: File validation and security checks
+  - tests/: Comprehensive test suite
+- **CI/CD workflows**:
+  - test.yml: Automated testing with coverage
+  - build.yml: Development builds on main
+  - release.yml: Release builds on version tags
+
+
 ## [0.2.3-alpha.2] - 2025-09-29
 
 ### Changed
