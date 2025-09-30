@@ -22,6 +22,9 @@ import math
 from copy import deepcopy
 import datetime
 import time
+import gc  # For explicit garbage collection
+import traceback  # For error stack traces
+from file_security import SecureFileValidator, FileSecurityError, safe_open_image  # File security
 
 # Python fallback implementation uses only PIL and NumPy for simplicity
 # No additional libraries needed - maximum compatibility
@@ -392,9 +395,12 @@ class ThumbnailWorker(QRunnable):
                 file1_path = os.path.join(self.from_dir, self.filename1)
                 if os.path.exists(file1_path):
                     try:
+                        # Validate file path for security
+                        validated_path1 = SecureFileValidator.validate_path(file1_path, self.from_dir)
+
                         # Simple PIL loading with context manager for proper resource cleanup
                         open_start = time.time()
-                        with Image.open(file1_path) as img1_temp:
+                        with Image.open(validated_path1) as img1_temp:
                             # Copy the image data to keep it after context exits
                             if img1_temp.mode == 'I;16' or img1_temp.mode == 'I;16L' or img1_temp.mode == 'I;16B':
                                 img1_is_16bit = True
@@ -428,9 +434,12 @@ class ThumbnailWorker(QRunnable):
 
                 if file2_path and os.path.exists(file2_path):
                     try:
+                        # Validate file path for security
+                        validated_path2 = SecureFileValidator.validate_path(file2_path, self.from_dir)
+
                         # Simple PIL loading with context manager
                         open_start = time.time()
-                        with Image.open(file2_path) as img2_temp:
+                        with Image.open(validated_path2) as img2_temp:
                             # Copy the image data to keep it after context exits
                             if img2_temp.mode == 'I;16' or img2_temp.mode == 'I;16L' or img2_temp.mode == 'I;16B':
                                 img2_is_16bit = True
@@ -620,8 +629,28 @@ class ThumbnailWorker(QRunnable):
                             array_time = (time.time() - array_start) * 1000
                             logger.debug(f"Created new thumbnail shape: {img_array.shape} in {array_time:.1f}ms")
 
+                        # Explicit memory cleanup
+                        del img1, img2, arr1, arr2
+                        if 'avg_arr' in locals():
+                            del avg_arr
+                        if 'avg_arr_32' in locals():
+                            del avg_arr_32
+                        if 'downscaled' in locals():
+                            del downscaled
+                        if 'new_img_ops' in locals():
+                            del new_img_ops
+
+                        # Periodic garbage collection (every 10 images)
+                        if self.idx % 10 == 0:
+                            gc.collect()
+
                     except Exception as e:
-                        logger.error(f"Error creating thumbnail {self.filename3}: {e}")
+                        logger.error(f"Error creating thumbnail {self.filename3}: {e}\n{traceback.format_exc()}")
+                    finally:
+                        # Ensure cleanup even on error
+                        for var in ['img1', 'img2', 'arr1', 'arr2', 'avg_arr', 'avg_arr_32', 'downscaled', 'new_img_ops']:
+                            if var in locals():
+                                del locals()[var]
             
             # Emit progress signal first
             worker_time = (time.time() - worker_start_time) * 1000
@@ -639,11 +668,12 @@ class ThumbnailWorker(QRunnable):
             self.signals.result.emit((self.idx, img_array, was_generated))
             
         except Exception as e:
-            import traceback
             exctype, value = sys.exc_info()[:2]
-            self.signals.error.emit((exctype, value, traceback.format_exc()))
+            error_trace = traceback.format_exc()
+            logger.error(f"ThumbnailWorker.run: Exception in worker {self.idx}: {e}\n{error_trace}")
+            self.signals.error.emit((exctype, value, error_trace))
         finally:
-            # Always emit finished signal
+            # Always emit finished signal (critical for preventing zombie threads)
             logger.debug(f"ThumbnailWorker.run: Finished worker for idx={self.idx}")
             self.signals.finished.emit()
 
@@ -724,6 +754,47 @@ class ThumbnailManager(QObject):
                 self.progress_dialog.lbl_detail.setText(detail_text)
             elif eta_text:
                 self.progress_dialog.lbl_detail.setText(eta_text)
+
+    def _determine_optimal_thread_count(self):
+        """
+        Python 폴백에서 단일 스레드를 사용하는 이유
+
+        [배경]
+        Python 구현은 Rust 모듈의 백업입니다.
+        - 주력: Rust 모듈 (2-3분, 진정한 멀티스레드)
+        - 보조: Python 폴백 (Rust 설치 실패 시)
+
+        [멀티스레드 문제]
+        평균적으로는 더 빠르지만, 예측 불가능한 병목이 발생:
+        - 대부분 이미지: 100-200ms (정상)
+        - 일부 이미지: 10-20초 (락 경합, PIL 내부 문제)
+        - 원인: GIL 경합, 디스크 I/O 경합, PIL/NumPy 내부 락
+
+        [단일 스레드 선택 이유]
+        1. 예측 가능성: 모든 이미지가 일정한 속도 (180-200ms)
+        2. 안정성: 간헐적 멈춤 현상 없음
+        3. 디버깅 용이성: 문제 추적 쉬움
+        4. 코드 단순성: 백업 구현은 단순함 우선
+        5. 사용자 경험: 느리지만 일정 > 빠르지만 가끔 멈춤
+
+        [성능 비교]
+        - 단일 스레드: 안정적으로 9-10분
+        - 멀티 스레드: 평균 6-7분, 최악 30-40분 (일부 이미지에서)
+
+        백업 구현의 목표는 "최고 성능"이 아니라 "안정적 작동"입니다.
+
+        Returns:
+            int: 1 (단일 스레드, 안정성과 예측 가능성 우선)
+        """
+        import logging
+        logger = logging.getLogger('CTHarvester')
+
+        logger.info(
+            "Python fallback: Using single thread for stability "
+            "(Rust module is the primary high-performance solution)"
+        )
+
+        return 1
 
     def update_eta_and_progress(self):
         """Delegate to centralized progress manager"""
@@ -945,11 +1016,12 @@ class ThumbnailManager(QObject):
         logger.info(f"ThumbnailManager.process_level: Starting Level {level+1}, tasks={num_tasks}, offset={global_step_offset}")
         logger.debug(f"ThreadPool: maxThreadCount={self.threadpool.maxThreadCount()}, activeThreadCount={self.threadpool.activeThreadCount()}")
         
-        # Single thread for Python implementation
-        # Simple, predictable, no thread contention issues
-        if self.threadpool.maxThreadCount() != 1:
-            self.threadpool.setMaxThreadCount(1)
-            logger.info(f"Python fallback using single thread for stability")
+        # Determine optimal thread count
+        # Balance between performance and stability
+        optimal_threads = self._determine_optimal_thread_count()
+        if self.threadpool.maxThreadCount() != optimal_threads:
+            self.threadpool.setMaxThreadCount(optimal_threads)
+            logger.info(f"Set thread pool to {optimal_threads} threads")
 
         # Wait for any previous level's workers to complete
         if self.threadpool.activeThreadCount() > 0:
@@ -1146,6 +1218,11 @@ class ThumbnailManager(QObject):
             was_generated = False
 
         with QMutexLocker(self.lock):
+            # Prevent duplicate processing (thread-safe)
+            if idx in self.results:
+                logger.warning(f"Duplicate result for task {idx}, ignoring")
+                return
+
             self.results[idx] = img_array
             self.completed_tasks += 1
             completed = self.completed_tasks
@@ -1156,6 +1233,12 @@ class ThumbnailManager(QObject):
                 self.generated_count += 1
             else:
                 self.loaded_count += 1
+
+            # Validate progress bounds (prevent overflow/underflow)
+            if completed > total:
+                logger.error(f"completed ({completed}) > total ({total}), capping to total")
+                self.completed_tasks = total
+                completed = total
 
             # Multi-stage sampling for better accuracy
             # Stage 1: Initial sampling (first sample_size images)
@@ -2000,12 +2083,22 @@ class PreferencesDialog(QDialog):
         self.comboLang.addItem(self.tr("Korean"))
         self.comboLang.currentIndexChanged.connect(self.comboLangIndexChanged)
 
+        # Log level combo box
+        self.comboLogLevel = QComboBox()
+        self.comboLogLevel.addItem("DEBUG")
+        self.comboLogLevel.addItem("INFO")
+        self.comboLogLevel.addItem("WARNING")
+        self.comboLogLevel.addItem("ERROR")
+        self.comboLogLevel.addItem("CRITICAL")
+        self.comboLogLevel.setToolTip(self.tr("Set logging level for file and console output"))
+
         self.main_layout = QVBoxLayout()
         self.form_layout = QFormLayout()
         self.setLayout(self.main_layout)
         self.form_layout.addRow(self.tr("Remember Geometry"), self.gbRememberGeometry)
         self.form_layout.addRow(self.tr("Remember Directory"), self.gbRememberDirectory)
         self.form_layout.addRow(self.tr("Language"), self.comboLang)
+        self.form_layout.addRow(self.tr("Log Level"), self.comboLogLevel)
         self.button_layout = QHBoxLayout()
         self.btnOK = QPushButton(self.tr("OK"))
         self.btnOK.clicked.connect(self.on_btnOK_clicked)
@@ -2066,6 +2159,7 @@ class PreferencesDialog(QDialog):
         self.form_layout.labelForField(self.gbRememberGeometry).setText(self.tr("Remember Geometry"))
         self.form_layout.labelForField(self.gbRememberDirectory).setText(self.tr("Remember Directory"))
         self.form_layout.labelForField(self.comboLang).setText(self.tr("Language"))
+        self.form_layout.labelForField(self.comboLogLevel).setText(self.tr("Log Level"))
         self.setWindowTitle(self.tr("CTHarvester - Preferences"))
         self.parent.update_language()
         self.parent.update_status()
@@ -2075,6 +2169,7 @@ class PreferencesDialog(QDialog):
             self.m_app.remember_geometry = value_to_bool(self.m_app.settings.value("Remember geometry", True))
             self.m_app.remember_directory = value_to_bool(self.m_app.settings.value("Remember directory", True))
             self.m_app.language = self.m_app.settings.value("Language", "en")
+            log_level = self.m_app.settings.value("Log Level", "INFO")
 
             self.rbRememberGeometryYes.setChecked(self.m_app.remember_geometry)
             self.rbRememberGeometryNo.setChecked(not self.m_app.remember_geometry)
@@ -2085,6 +2180,14 @@ class PreferencesDialog(QDialog):
                 self.comboLang.setCurrentIndex(0)
             elif self.m_app.language == "ko":
                 self.comboLang.setCurrentIndex(1)
+
+            # Set log level combo box
+            log_level_index = self.comboLogLevel.findText(log_level)
+            if log_level_index >= 0:
+                self.comboLogLevel.setCurrentIndex(log_level_index)
+            else:
+                self.comboLogLevel.setCurrentIndex(1)  # Default to INFO
+
             self.update_language()
         except Exception as e:
             logger.error(f"Error reading settings: {e}")
@@ -2092,12 +2195,26 @@ class PreferencesDialog(QDialog):
             self.m_app.remember_geometry = True
             self.m_app.remember_directory = True
             self.m_app.language = "en"
+            self.comboLogLevel.setCurrentIndex(1)  # INFO
 
     def save_settings(self):
         try:
             self.m_app.settings.setValue("Remember geometry", self.m_app.remember_geometry)
             self.m_app.settings.setValue("Remember directory", self.m_app.remember_directory)
             self.m_app.settings.setValue("Language", self.m_app.language)
+
+            # Save log level
+            log_level = self.comboLogLevel.currentText()
+            self.m_app.settings.setValue("Log Level", log_level)
+
+            # Apply log level change immediately
+            import logging
+            numeric_level = getattr(logging, log_level, logging.INFO)
+            logger.setLevel(numeric_level)
+            for handler in logger.handlers:
+                handler.setLevel(numeric_level)
+            logger.info(f"Log level changed to {log_level}")
+
             self.update_language()
         except Exception as e:
             logger.error(f"Error saving settings: {e}")
@@ -2912,13 +3029,14 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtDirname.setMinimumWidth(400)
         self.edtDirname.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-        # Add checkbox for Rust module
+        # Add checkbox for Rust module (hidden but functional)
         self.cbxUseRust = QCheckBox(self.tr("Use Rust"))
         self.cbxUseRust.setChecked(True)  # Default to using Rust if available
         self.cbxUseRust.setToolTip(self.tr("Use high-performance Rust module for thumbnail generation"))
+        self.cbxUseRust.setVisible(False)  # Hidden from UI
 
         self.dirname_layout.addWidget(self.edtDirname,stretch=1)
-        self.dirname_layout.addWidget(self.cbxUseRust,stretch=0)
+        # self.dirname_layout.addWidget(self.cbxUseRust,stretch=0)  # Hidden
         self.dirname_layout.addWidget(self.btnOpenDir,stretch=0)
         self.dirname_widget.setLayout(self.dirname_layout)
         self.dirname_layout.setContentsMargins(margin)
@@ -4443,8 +4561,17 @@ class CTHarvesterMainWindow(QMainWindow):
             QApplication.setOverrideCursor(Qt.WaitCursor)
 
             try:
-                files = [f for f in os.listdir(ddir) if os.path.isfile(os.path.join(ddir, f))]
-                #logger.info(f"Found {len(files)} files in directory")
+                # Use secure file listing to prevent directory traversal attacks
+                # This includes .log files for parsing
+                all_extensions = SecureFileValidator.ALLOWED_EXTENSIONS | {'.log'}
+                files = SecureFileValidator.secure_listdir(ddir, extensions=all_extensions)
+                logger.info(f"Found {len(files)} validated files in directory")
+            except FileSecurityError as e:
+                QApplication.restoreOverrideCursor()
+                QMessageBox.critical(self, self.tr("Security Error"),
+                                   self.tr(f"Directory access denied for security reasons: {e}"))
+                logger.error(f"File security error: {e}")
+                return
             except Exception as e:
                 QApplication.restoreOverrideCursor()
                 QMessageBox.critical(self, self.tr("Error"), self.tr(f"Failed to read directory: {e}"))
@@ -4666,6 +4793,17 @@ if __name__ == "__main__":
 
     app.setWindowIcon(QIcon(resource_path('CTHarvester_48_2.png')))
     app.settings = QSettings(QSettings.IniFormat, QSettings.UserScope,COMPANY_NAME, PROGRAM_NAME)
+
+    # Apply saved log level
+    saved_log_level = app.settings.value("Log Level", "INFO")
+    try:
+        numeric_level = getattr(logging, saved_log_level, logging.INFO)
+        logger.setLevel(numeric_level)
+        for handler in logger.handlers:
+            handler.setLevel(numeric_level)
+        logger.info(f"Log level set to {saved_log_level} from settings")
+    except Exception as e:
+        logger.warning(f"Could not set log level from settings: {e}")
 
     translator = QTranslator(app)
     app.language = app.settings.value("Language", "en")

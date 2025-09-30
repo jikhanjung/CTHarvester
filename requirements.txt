@@ -1,11 +1,23 @@
-pyqt5
-pyopengl
-pyopengl-accelerate
-superqt
-pillow
-numpy
-pymcubes
-scipy
-semver
-maturin
-psutil
+# CTHarvester Dependencies
+# Core dependencies with version constraints for stability
+
+# GUI Framework
+pyqt5>=5.15.0,<6.0.0
+pyopengl>=3.1.5,<4.0.0
+pyopengl-accelerate>=3.1.5,<4.0.0
+superqt>=0.6.0,<1.0.0
+
+# Image Processing
+pillow>=10.0.0,<11.0.0
+numpy>=1.24.0,<2.0.0
+
+# Scientific Computing
+pymcubes>=0.1.4,<1.0.0
+scipy>=1.10.0,<2.0.0
+
+# Utilities
+semver>=3.0.0,<4.0.0
+psutil>=5.9.0,<6.0.0
+
+# Build (Rust module)
+maturin>=1.4.0,<2.0.0
