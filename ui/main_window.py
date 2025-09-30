@@ -5,6 +5,7 @@ Extracted from CTHarvester.py during Phase 4c refactoring.
 """
 import os
 import sys
+import re
 import numpy as np
 from copy import deepcopy
 import logging
@@ -32,23 +33,10 @@ from ui.widgets import MCubeWidget, ObjectViewer2D
 from core.thumbnail_manager import ThumbnailManager
 from security.file_validator import SecureFileValidator, FileSecurityError, safe_open_image
 from vertical_stack_slider import VerticalTimeline
+from utils.common import resource_path, value_to_bool
 
 
 logger = logging.getLogger(__name__)
-
-
-def value_to_bool(value):
-    """Convert string or any value to boolean."""
-    return value.lower() == 'true' if isinstance(value, str) else bool(value)
-
-
-def resource_path(relative_path):
-    """Get absolute path to resource, works for dev and PyInstaller."""
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
 
 
 class CTHarvesterMainWindow(QMainWindow):
@@ -1554,7 +1542,6 @@ class CTHarvesterMainWindow(QMainWindow):
             Opens a directory dialog to select a directory containing image files and log files.
             Parses the log file to extract settings information and updates the UI accordingly.
             """
-            print("open_dir method called")
             #logger.info("=" * 60)
             logger.info("open_dir method called - START")
             #logger.info("=" * 60)
@@ -1594,6 +1581,10 @@ class CTHarvesterMainWindow(QMainWindow):
                 self.bounding_box_vertices = None
             if hasattr(self, 'bounding_box_edges'):
                 self.bounding_box_edges = None
+
+            # Reset ROI box in ObjectViewer2D
+            if hasattr(self, 'image_label'):
+                self.image_label.reset_crop()
 
             # Reset threshold values if they exist
             if hasattr(self, 'lower_threshold'):

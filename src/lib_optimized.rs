@@ -286,9 +286,6 @@ fn process_group_all_levels(
 
     // If all thumbnails exist, update progress and skip
     if all_exist {
-        // Log that we're skipping this group
-        eprintln!("Skipping group starting at index {} - all thumbnails already exist", group_start_idx);
-
         // Calculate weight for all levels of this group
         let mut group_weight = 0.0;
         for level in 1..=levels_needed {

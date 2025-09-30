@@ -10,26 +10,10 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, QRect, QPoint, QTranslator
 import logging
 
+from utils.common import resource_path, value_to_bool
 
-# Get logger (must be set up by main module)
+
 logger = logging.getLogger(__name__)
-
-
-def value_to_bool(value):
-    """Convert string or any value to boolean."""
-    return value.lower() == 'true' if isinstance(value, str) else bool(value)
-
-
-def resource_path(relative_path):
-    """Get absolute path to resource, works for dev and PyInstaller."""
-    import sys
-    import os
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
 
 
 class PreferencesDialog(QDialog):

@@ -28,12 +28,11 @@ import traceback  # For error stack traces
 # Project modules
 from security.file_validator import SecureFileValidator, FileSecurityError, safe_open_image
 from config.constants import (
-    PROGRAM_NAME as CONST_PROGRAM_NAME,
-    PROGRAM_VERSION as CONST_PROGRAM_VERSION,
-    COMPANY_NAME as CONST_COMPANY_NAME,
-    SUPPORTED_IMAGE_EXTENSIONS,
-    THUMBNAIL_DIR_NAME,
-    DEFAULT_LOG_LEVEL
+    PROGRAM_NAME, PROGRAM_VERSION, COMPANY_NAME, PROGRAM_AUTHOR,
+    PROGRAM_COPYRIGHT, BUILD_YEAR,
+    DEFAULT_DB_DIRECTORY, DEFAULT_STORAGE_DIRECTORY,
+    DEFAULT_LOG_DIRECTORY, DB_BACKUP_DIRECTORY,
+    SUPPORTED_IMAGE_EXTENSIONS, THUMBNAIL_DIR_NAME, DEFAULT_LOG_LEVEL
 )
 from core.thumbnail_worker import ThumbnailWorker, ThumbnailWorkerSignals
 from ui.dialogs import InfoDialog, PreferencesDialog, ProgressDialog
@@ -47,69 +46,16 @@ from config.view_modes import (
 from core.progress_manager import ProgressManager
 from core.thumbnail_manager import ThumbnailManager
 from ui.main_window import CTHarvesterMainWindow
-# Python fallback implementation uses only PIL and NumPy for simplicity
-# No additional libraries needed - maximum compatibility
+from utils.common import resource_path, value_to_bool, ensure_directories
 
-def value_to_bool(value):
-    return value.lower() == 'true' if isinstance(value, str) else bool(value)
-
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
-
-MODE = {}
-MODE['VIEW'] = 0
-MODE['ADD_BOX'] = 1
-MODE['MOVE_BOX'] = 2
-MODE['EDIT_BOX'] = 3
-MODE['EDIT_BOX_READY'] = 4
-MODE['EDIT_BOX_PROGRESS'] = 5
-MODE['MOVE_BOX_PROGRESS'] = 6
-MODE['MOVE_BOX_READY'] = 7
-DISTANCE_THRESHOLD = 10
-
-# Use constants from config module
-COMPANY_NAME = CONST_COMPANY_NAME
-PROGRAM_VERSION = CONST_PROGRAM_VERSION
-PROGRAM_NAME = CONST_PROGRAM_NAME
-PROGRAM_AUTHOR = "Jikhan Jung"
-
-# Build-time year for copyright
-BUILD_YEAR = 2025  # This will be set during build
-PROGRAM_COPYRIGHT = f"© 2023-{BUILD_YEAR} Jikhan Jung"
-
-# Directory setup
-USER_PROFILE_DIRECTORY = os.path.expanduser('~')
-DEFAULT_DB_DIRECTORY = os.path.join(USER_PROFILE_DIRECTORY, COMPANY_NAME, PROGRAM_NAME)
-DEFAULT_STORAGE_DIRECTORY = os.path.join(DEFAULT_DB_DIRECTORY, "data/")
-DEFAULT_LOG_DIRECTORY = os.path.join(DEFAULT_DB_DIRECTORY, "logs/")
-DB_BACKUP_DIRECTORY = os.path.join(DEFAULT_DB_DIRECTORY, "backups/")
-
-def ensure_directories():
-    """Safely create necessary directories with error handling."""
-    directories = [
+# Try to create directories on import, but don't fail if it doesn't work
+try:
+    ensure_directories([
         DEFAULT_DB_DIRECTORY,
         DEFAULT_STORAGE_DIRECTORY,
         DEFAULT_LOG_DIRECTORY,
         DB_BACKUP_DIRECTORY
-    ]
-    
-    for directory in directories:
-        try:
-            if not os.path.exists(directory):
-                os.makedirs(directory, exist_ok=True)
-        except (OSError, PermissionError) as e:
-            # Use print here since logger might not be initialized yet
-            print(f"Warning: Could not create directory {directory}: {e}")
-            # Don't fail completely, let the application try to continue
-
-# Try to create directories on import, but don't fail if it doesn't work
-try:
-    ensure_directories()
+    ])
 except Exception as e:
     # Use print here since logger might not be initialized yet
     print(f"Warning: Directory initialization failed: {e}")

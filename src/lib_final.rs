@@ -390,12 +390,9 @@ fn build_thumbnails(
                 file_list.push(filepath);
             }
         }
-        eprintln!("Using pattern filter: prefix={}, type={}, range={}-{}", prefix, file_type, seq_begin, seq_end);
-        eprintln!("Found {} files matching pattern", file_list.len());
         file_list
     } else {
         // Fallback to all image files (original behavior)
-        eprintln!("No pattern filter provided, using all image files");
         list_slices_sorted(&input_dir).map_err(to_pyerr)?
     };
 
@@ -406,12 +403,8 @@ fn build_thumbnails(
         return Ok(());
     }
 
-    // Debug: log first file and its dimensions
-    eprintln!("First file: {:?}", files[0]);
     let (w0, h0, _) = read_luma_preserve_depth(&files[0]).map_err(to_pyerr)?;
-    eprintln!("First file dimensions: {}x{}", w0, h0);
     let n0 = files.len();
-    eprintln!("Total files: {}", n0);
 
     let base_out = input_dir.join(".thumbnail");
     ensure_dir(&base_out).map_err(to_pyerr)?;

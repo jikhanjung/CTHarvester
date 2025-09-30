@@ -18,23 +18,14 @@ from OpenGL.GLU import *
 import logging
 
 from config.view_modes import (
-    OBJECT_MODE, VIEW_MODE, PAN_MODE, ROTATE_MODE, ZOOM_MODE, 
+    OBJECT_MODE, VIEW_MODE, PAN_MODE, ROTATE_MODE, ZOOM_MODE,
     MOVE_3DVIEW_MODE, ROI_BOX_RESOLUTION
 )
 from utils.worker import Worker
+from utils.common import resource_path
 
 
 logger = logging.getLogger(__name__)
-
-
-def resource_path(relative_path):
-    """Get absolute path to resource, works for dev and PyInstaller."""
-    import sys
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
 
 
 class MCubeWidget(QGLWidget):

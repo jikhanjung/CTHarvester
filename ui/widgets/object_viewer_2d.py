@@ -13,22 +13,27 @@ from PyQt5.QtGui import (
 from PyQt5.QtCore import Qt, QRect, QPoint
 import logging
 
+from config.view_modes import (
+    MODE_VIEW, MODE_ADD_BOX, MODE_MOVE_BOX, MODE_EDIT_BOX,
+    MODE_EDIT_BOX_READY, MODE_EDIT_BOX_PROGRESS,
+    MODE_MOVE_BOX_PROGRESS, MODE_MOVE_BOX_READY, DISTANCE_THRESHOLD
+)
+
 
 logger = logging.getLogger(__name__)
 
 
-# MODE constants (should match CTHarvester.py)
-MODE = {}
-MODE['VIEW'] = 0
-MODE['ADD_BOX'] = 1
-MODE['MOVE_BOX'] = 2
-MODE['EDIT_BOX'] = 3
-MODE['EDIT_BOX_READY'] = 4
-MODE['EDIT_BOX_PROGRESS'] = 5
-MODE['MOVE_BOX_PROGRESS'] = 6
-MODE['MOVE_BOX_READY'] = 7
-
-DISTANCE_THRESHOLD = 10
+# MODE dictionary for backward compatibility
+MODE = {
+    'VIEW': MODE_VIEW,
+    'ADD_BOX': MODE_ADD_BOX,
+    'MOVE_BOX': MODE_MOVE_BOX,
+    'EDIT_BOX': MODE_EDIT_BOX,
+    'EDIT_BOX_READY': MODE_EDIT_BOX_READY,
+    'EDIT_BOX_PROGRESS': MODE_EDIT_BOX_PROGRESS,
+    'MOVE_BOX_PROGRESS': MODE_MOVE_BOX_PROGRESS,
+    'MOVE_BOX_READY': MODE_MOVE_BOX_READY
+}
 
 
 class ObjectViewer2D(QLabel):
@@ -101,6 +106,18 @@ class ObjectViewer2D(QLabel):
                 self._2canx(self.crop_to_x - self.crop_from_x),
                 self._2cany(self.crop_to_y - self.crop_from_y),
             )
+
+    def is_roi_full_or_empty(self):
+        """Check if ROI is not set or covers the entire image."""
+        if self.orig_pixmap is None:
+            return True
+        # Check if ROI is not set
+        if self.crop_from_x == -1 or self.crop_from_y == -1 or self.crop_to_x == -1 or self.crop_to_y == -1:
+            return True
+        # Check if ROI covers entire image
+        return (self.crop_from_x == 0 and self.crop_from_y == 0 and
+                self.crop_to_x == self.orig_pixmap.width() and
+                self.crop_to_y == self.orig_pixmap.height())
 
     def _2canx(self, coord):
         return round((float(coord) / self.image_canvas_ratio) * self.scale)
@@ -223,7 +240,18 @@ class ObjectViewer2D(QLabel):
             return
         me = QMouseEvent(event)
         if me.button() == Qt.LeftButton:
-            if self.edit_mode == MODE['ADD_BOX'] or self.edit_mode == MODE['EDIT_BOX']:
+            # If ROI is full or empty, automatically start creating a new box
+            if self.is_roi_full_or_empty():
+                self.set_mode(MODE['ADD_BOX'])
+                img_x = self._2imgx(me.x())
+                img_y = self._2imgy(me.y())
+                if img_x < 0 or img_x > self.orig_pixmap.width() or img_y < 0 or img_y > self.orig_pixmap.height():
+                    return
+                self.temp_x1 = img_x
+                self.temp_y1 = img_y
+                self.temp_x2 = img_x
+                self.temp_y2 = img_y
+            elif self.edit_mode == MODE['ADD_BOX'] or self.edit_mode == MODE['EDIT_BOX']:
                 self.set_mode(MODE['ADD_BOX'])
                 img_x = self._2imgx(me.x())
                 img_y = self._2imgy(me.y())

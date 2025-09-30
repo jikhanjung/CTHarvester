@@ -11,20 +11,10 @@ import time
 import logging
 from collections import deque
 
+from utils.common import resource_path
 
-# Get logger
+
 logger = logging.getLogger(__name__)
-
-
-def resource_path(relative_path):
-    """Get absolute path to resource, works for dev and PyInstaller."""
-    import sys
-    import os
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
 
 
 class ProgressDialog(QDialog):
