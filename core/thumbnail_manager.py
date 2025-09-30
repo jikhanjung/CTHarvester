@@ -1,7 +1,26 @@
-"""
-ThumbnailManager - Thumbnail generation management with progress tracking
+"""Thumbnail generation management with progress tracking.
 
-Extracted from CTHarvester.py during Phase 4c refactoring.
+This module provides the ThumbnailManager class which coordinates multithreaded thumbnail
+generation for CT image stacks. It manages worker threads, progress tracking, and
+result collection.
+
+The module was extracted from CTHarvester.py during Phase 4c refactoring to improve
+code organization and maintainability.
+
+Typical usage example:
+
+    manager = ThumbnailManager(parent, progress_dialog, threadpool)
+    img_arrays, cancelled = manager.process_level(
+        level=1,
+        from_dir="/path/to/source",
+        to_dir="/path/to/output",
+        seq_begin=0,
+        seq_end=99,
+        settings_hash=settings,
+        size=256,
+        max_size=512,
+        global_step=0
+    )
 """
 import os
 import time
@@ -19,9 +38,48 @@ logger = logging.getLogger(__name__)
 
 
 class ThumbnailManager(QObject):
-    """Manager class to coordinate multiple thumbnail workers and progress tracking"""
+    """Coordinates multithreaded thumbnail generation and progress tracking.
+
+    This class manages the generation of thumbnail images from CT scan slices using
+    multiple worker threads. It handles progress updates, ETA calculation, and
+    result collection while maintaining thread safety.
+
+    The manager supports both generating new thumbnails and loading existing ones
+    from disk, tracking statistics for both operations.
+
+    Attributes:
+        parent: Parent window or object containing thumbnail_start_time.
+        progress_dialog: Dialog widget for displaying progress updates.
+        threadpool: QThreadPool for managing worker threads.
+        progress_manager: ProgressManager instance for tracking overall progress.
+        total_tasks: Total number of thumbnail generation tasks.
+        completed_tasks: Number of completed tasks.
+        global_step_counter: Global progress counter across all levels.
+        level: Current thumbnail level being processed.
+        results: Dictionary mapping task index to generated image array.
+        is_cancelled: Flag indicating if processing was cancelled.
+        lock: QMutex for thread-safe operations.
+        generated_count: Number of thumbnails actually generated.
+        loaded_count: Number of thumbnails loaded from existing files.
+
+    Example:
+        >>> manager = ThumbnailManager(parent, dialog, QThreadPool.globalInstance())
+        >>> images, cancelled = manager.process_level(1, src_dir, dst_dir, 0, 99,
+        ...                                           settings, 256, 512, 0)
+        >>> if not cancelled:
+        ...     print(f"Generated {len(images)} thumbnails")
+    """
 
     def __init__(self, parent, progress_dialog, threadpool, shared_progress_manager=None):
+        """Initialize the thumbnail manager.
+
+        Args:
+            parent: Parent window/object containing thumbnail configuration and timing data.
+            progress_dialog: Progress dialog for UI updates, or None for headless operation.
+            threadpool: QThreadPool instance for managing worker threads.
+            shared_progress_manager: Optional ProgressManager to share across multiple
+                levels. If None, creates a new instance.
+        """
         super().__init__()
         self.parent = parent
         self.progress_dialog = progress_dialog

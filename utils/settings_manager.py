@@ -1,13 +1,40 @@
-"""
-YAML-based settings manager
+"""YAML-based settings manager for application configuration.
 
-Provides configuration management with:
-- Default settings support
-- Validation
-- Auto-save
-- Import/Export functionality
+This module provides a unified settings management system using YAML for human-readable
+configuration storage. It replaces the previous QSettings-based approach with a more
+portable and version-control friendly solution.
 
-Created during Phase 2.1 settings management improvements.
+The module was created during Phase 2.1 settings management improvements as part of
+the transition from platform-specific QSettings to platform-independent YAML files.
+
+Key features:
+    - Platform-independent configuration storage
+    - Human-readable YAML format
+    - Default settings with validation
+    - Import/Export functionality
+    - Dot notation for nested settings access (e.g., 'application.language')
+
+Typical usage example:
+
+    from utils.settings_manager import SettingsManager
+
+    # Initialize (uses default location)
+    settings = SettingsManager()
+
+    # Get settings with dot notation
+    language = settings.get('application.language', 'en')
+    max_size = settings.get('thumbnails.max_size', 500)
+
+    # Set settings
+    settings.set('application.language', 'ko')
+    settings.set('thumbnails.max_size', 1000)
+
+    # Save to disk
+    settings.save()
+
+    # Export/Import
+    settings.export('backup.yaml')
+    settings.import_settings('backup.yaml')
 """
 import yaml
 import os
@@ -20,24 +47,50 @@ logger = logging.getLogger(__name__)
 
 
 class SettingsManager:
-    """
-    YAML-based settings manager
+    """YAML-based settings manager for application configuration.
 
-    Features:
-    - Default settings support
-    - Settings validation
-    - Auto-save
-    - Import/Export
+    This class manages application settings using YAML files stored in platform-specific
+    configuration directories. It provides a simple key-value interface with dot notation
+    support for nested settings.
+
+    Settings are organized hierarchically and accessed using dot notation (e.g.,
+    'application.language'). The manager automatically creates configuration directories
+    and files as needed.
+
+    Attributes:
+        config_dir: Path object pointing to configuration directory.
+        config_file: Path object pointing to settings YAML file.
+        settings: Dictionary containing current settings.
+        default_settings: Dictionary containing default settings from config/settings.yaml.
+
+    Class Attributes:
+        DEFAULT_CONFIG_FILE: Default filename for settings (settings.yaml).
+
+    Example:
+        >>> mgr = SettingsManager()
+        >>> mgr.set('application.language', 'ko')
+        >>> lang = mgr.get('application.language')
+        >>> print(lang)  # 'ko'
+        >>> mgr.save()
     """
 
     DEFAULT_CONFIG_FILE = "settings.yaml"
 
     def __init__(self, config_dir: str = None):
-        """
-        Initialize settings manager
+        """Initialize the settings manager.
+
+        Creates the configuration directory if it doesn't exist and loads settings
+        from disk. If no settings file exists, uses default settings.
 
         Args:
-            config_dir: Configuration directory (None for default location)
+            config_dir: Path to configuration directory. If None, uses platform-specific
+                default location:
+                - Windows: %APPDATA%/CTHarvester
+                - Linux/Mac: ~/.config/CTHarvester
+
+        Note:
+            The configuration directory and file are created automatically if they
+            don't exist.
         """
         if config_dir is None:
             # Default location: ~/.config/CTHarvester (Linux/Mac) or %APPDATA%/CTHarvester (Windows)

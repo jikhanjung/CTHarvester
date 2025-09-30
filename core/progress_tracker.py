@@ -1,8 +1,20 @@
-"""
-Simple progress tracking module
+"""Simple progress tracking module.
 
-Provides straightforward linear progress tracking with ETA calculation.
-Extracted during Phase 1.1 UI/UX improvements.
+This module provides straightforward linear progress tracking with ETA (Estimated Time of Arrival)
+calculation using moving averages for smooth and predictable progress updates.
+
+The module was extracted during Phase 1.1 UI/UX improvements to simplify the complex 3-stage
+sampling progress calculation previously used.
+
+Typical usage example:
+
+    def progress_callback(info: ProgressInfo):
+        print(f"Progress: {info.percentage:.1f}% - ETA: {info.eta_formatted}")
+
+    tracker = SimpleProgressTracker(total_items=100, callback=progress_callback)
+    for i in range(100):
+        # Do some work
+        tracker.update()  # Update progress by 1
 """
 from typing import Optional, Callable
 from dataclasses import dataclass
@@ -14,7 +26,19 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ProgressInfo:
-    """Progress information"""
+    """Progress information container.
+
+    This dataclass holds all information about current progress state, including
+    completion metrics, timing estimates, and processing speed.
+
+    Attributes:
+        current: Number of items completed so far.
+        total: Total number of items to process.
+        percentage: Completion percentage (0-100).
+        eta_seconds: Estimated time to completion in seconds, or None if not yet calculated.
+        elapsed_seconds: Time elapsed since start in seconds.
+        speed: Processing speed in items per second.
+    """
     current: int
     total: int
     percentage: float
@@ -24,7 +48,12 @@ class ProgressInfo:
 
     @property
     def eta_formatted(self) -> str:
-        """Format ETA in human-readable form"""
+        """Format ETA in human-readable form.
+
+        Returns:
+            A formatted string like "5s", "2m 30s", or "1h 15m". Returns "Calculating..."
+            if ETA is not yet available.
+        """
         if self.eta_seconds is None:
             return "Calculating..."
 
@@ -41,7 +70,11 @@ class ProgressInfo:
 
     @property
     def elapsed_formatted(self) -> str:
-        """Format elapsed time in human-readable form"""
+        """Format elapsed time in human-readable form.
+
+        Returns:
+            A formatted string like "5s", "2m 30s", or "1h 15m".
+        """
         if self.elapsed_seconds < 60:
             return f"{int(self.elapsed_seconds)}s"
         elif self.elapsed_seconds < 3600:
@@ -55,13 +88,33 @@ class ProgressInfo:
 
 
 class SimpleProgressTracker:
-    """
-    Simple and predictable progress tracking
+    """Simple and predictable progress tracking.
 
-    Features:
-    - Linear progress (0-100%)
-    - Moving average based ETA
-    - Smooth updates
+    This class provides linear progress tracking (0-100%) with moving average based ETA
+    calculation. It's designed to provide smooth and predictable progress updates without
+    complex multi-stage sampling.
+
+    The tracker uses a moving average window to smooth out speed fluctuations and provide
+    more stable ETA predictions. ETA calculation begins only after collecting minimum
+    required samples to avoid wild initial estimates.
+
+    Attributes:
+        total_items: Total number of items to process.
+        callback: Optional callback function invoked on each update.
+        smoothing_window: Size of moving average window for speed calculation.
+        min_samples_for_eta: Minimum speed samples needed before calculating ETA.
+        completed_items: Number of items completed so far.
+        start_time: Unix timestamp when tracking started.
+        last_update_time: Unix timestamp of last update.
+        speed_samples: List of recent speed samples for moving average.
+
+    Example:
+        >>> def on_progress(info: ProgressInfo):
+        ...     print(f"{info.percentage:.1f}% - ETA: {info.eta_formatted}")
+        >>> tracker = SimpleProgressTracker(100, callback=on_progress)
+        >>> for i in range(100):
+        ...     time.sleep(0.1)  # Simulate work
+        ...     tracker.update()
     """
 
     def __init__(
@@ -71,12 +124,18 @@ class SimpleProgressTracker:
         smoothing_window: int = 10,
         min_samples_for_eta: int = 5
     ):
-        """
+        """Initialize the progress tracker.
+
         Args:
-            total_items: Total number of items to process
-            callback: Progress update callback
-            smoothing_window: Moving average window size
-            min_samples_for_eta: Minimum samples needed for ETA calculation
+            total_items: Total number of items to process. Must be > 0.
+            callback: Optional callback function that receives ProgressInfo on each update.
+            smoothing_window: Size of moving average window (default: 10). Larger values
+                provide more stable but less responsive ETA updates.
+            min_samples_for_eta: Minimum speed samples needed before calculating ETA
+                (default: 5). Prevents unreliable initial estimates.
+
+        Raises:
+            ValueError: If total_items <= 0.
         """
         self.total_items = total_items
         self.callback = callback
@@ -91,11 +150,20 @@ class SimpleProgressTracker:
         self.speed_samples = []
 
     def update(self, increment: int = 1):
-        """
-        Update progress
+        """Update progress by specified number of items.
+
+        This method should be called each time work is completed. It updates internal
+        counters, recalculates speed and ETA, and invokes the callback if provided.
 
         Args:
-            increment: Number of items completed
+            increment: Number of items completed in this update (default: 1). Must be > 0.
+
+        Raises:
+            ValueError: If increment <= 0 or would cause completed_items to exceed total_items.
+
+        Note:
+            The callback is invoked synchronously, so long-running callbacks will delay
+            the update operation.
         """
         self.completed_items += increment
 
@@ -144,14 +212,27 @@ class SimpleProgressTracker:
         self.last_update_time = now
 
     def reset(self):
-        """Reset progress"""
+        """Reset progress tracking to initial state.
+
+        Resets all counters and timing information, allowing the tracker to be reused
+        for a new operation without creating a new instance.
+        """
         self.completed_items = 0
         self.start_time = time.time()
         self.last_update_time = self.start_time
         self.speed_samples = []
 
     def get_info(self) -> ProgressInfo:
-        """Get current progress information"""
+        """Get current progress information without updating.
+
+        Returns:
+            ProgressInfo: Current progress state including completion percentage, ETA,
+                elapsed time, and processing speed.
+
+        Note:
+            Unlike update(), this method does not modify state or invoke callbacks.
+            It's useful for querying current status without affecting progress tracking.
+        """
         elapsed = time.time() - self.start_time
         percentage = (self.completed_items / self.total_items) * 100
 
