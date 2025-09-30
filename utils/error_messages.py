@@ -5,13 +5,20 @@ Provides templates and builders for converting technical exceptions
 into user-friendly error messages with helpful solutions.
 
 Created during Phase 1.3 UI/UX improvements.
+Updated during Phase 1.4 with i18n support.
 """
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 import errno
 import logging
+from PyQt5.QtCore import QCoreApplication
 
 logger = logging.getLogger(__name__)
+
+
+def tr(text: str) -> str:
+    """Translate text for error messages"""
+    return QCoreApplication.translate("ErrorMessages", text)
 
 
 @dataclass
