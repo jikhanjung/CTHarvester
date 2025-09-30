@@ -1,0 +1,56 @@
+# Flake8 configuration for CTHarvester
+
+[flake8]
+# Maximum line length
+max-line-length = 100
+
+# Ignore specific errors/warnings
+# E203: whitespace before ':' (conflicts with Black)
+# W503: line break before binary operator (conflicts with Black)
+# E501: line too long (handled by Black)
+# E402: module level import not at top of file
+# F401: module imported but unused (sometimes necessary)
+extend-ignore = E203, W503, E501
+
+# Exclude directories
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist,
+    *.egg-info,
+    .venv,
+    venv,
+    .tox,
+    .eggs,
+    .mypy_cache,
+    .pytest_cache,
+    docs/_build,
+    InnoSetup,
+    target
+
+# Maximum complexity (cyclomatic complexity)
+max-complexity = 15
+
+# Enable docstring checks
+docstring-convention = google
+
+# Per-file ignores
+per-file-ignores =
+    # Tests don't need docstrings
+    tests/*:D100,D101,D102,D103
+    # __init__.py files
+    __init__.py:F401,D104
+    # UI files (generated or complex)
+    ui/*:E501,D102,D107
+    # Build scripts
+    build*.py:D100,D103
+
+# Show source code for each error
+show-source = True
+
+# Show pep8 violation statistics
+statistics = True
+
+# Count errors
+count = True
