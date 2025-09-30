@@ -3,23 +3,25 @@ Unit tests for utils/file_utils.py
 
 Tests file system utility functions.
 """
-import sys
+
 import os
-import tempfile
 import shutil
+import sys
+import tempfile
+
 import pytest
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.file_utils import (
-    find_image_files,
-    parse_filename,
-    create_thumbnail_directory,
-    get_thumbnail_path,
     clean_old_thumbnails,
+    create_thumbnail_directory,
+    find_image_files,
+    format_file_size,
     get_directory_size,
-    format_file_size
+    get_thumbnail_path,
+    parse_filename,
 )
 
 
@@ -36,12 +38,12 @@ class TestFindImageFiles:
 
         for filename in self.image_files:
             filepath = os.path.join(self.temp_dir, filename)
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 f.write("test")
 
         for filename in self.other_files:
             filepath = os.path.join(self.temp_dir, filename)
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 f.write("test")
 
     def teardown_method(self):
@@ -58,7 +60,7 @@ class TestFindImageFiles:
 
     def test_find_custom_extensions(self):
         """Should find files with custom extensions"""
-        result = find_image_files(self.temp_dir, extensions=('.tif', '.jpg'))
+        result = find_image_files(self.temp_dir, extensions=(".tif", ".jpg"))
         assert "image1.tif" in result
         assert "image2.jpg" in result
         assert "scan.png" not in result
@@ -83,19 +85,21 @@ class TestFindImageFiles:
 
     def test_fallback_to_os_listdir(self, monkeypatch):
         """Should fallback to os.listdir if SecureFileValidator not available"""
+
         # Mock ImportError for security module
         def mock_import_error(*args, **kwargs):
             raise ImportError("No module named 'security'")
 
         import builtins
+
         original_import = builtins.__import__
 
         def custom_import(name, *args, **kwargs):
-            if 'security.file_validator' in name:
+            if "security.file_validator" in name:
                 raise ImportError("No module")
             return original_import(name, *args, **kwargs)
 
-        monkeypatch.setattr(builtins, '__import__', custom_import)
+        monkeypatch.setattr(builtins, "__import__", custom_import)
 
         # Should still work with fallback
         result = find_image_files(self.temp_dir)
@@ -127,7 +131,7 @@ class TestParseFilename:
             ("file_001.tif", ("file_", 1, "tif")),
             ("file_001.jpg", ("file_", 1, "jpg")),
             ("file_001.png", ("file_", 1, "png")),
-            ("file_001.bmp", ("file_", 1, "bmp"))
+            ("file_001.bmp", ("file_", 1, "bmp")),
         ]
         for filename, expected in filenames:
             assert parse_filename(filename) == expected
@@ -144,13 +148,7 @@ class TestParseFilename:
 
     def test_parse_invalid_filename(self):
         """Should return None for invalid filename"""
-        invalid_files = [
-            "noextension",
-            "no_number.tif",
-            "multiple..dots.tif",
-            ".hidden",
-            ""
-        ]
+        invalid_files = ["noextension", "no_number.tif", "multiple..dots.tif", ".hidden", ""]
         for filename in invalid_files:
             result = parse_filename(filename)
             # Some might parse, some might not - just check it doesn't crash
@@ -159,14 +157,14 @@ class TestParseFilename:
     def test_parse_custom_pattern(self):
         """Should use custom regex pattern"""
         # Custom pattern for specific format
-        pattern = r'^(\w+)_(\d+)\.(\w+)$'
+        pattern = r"^(\w+)_(\d+)\.(\w+)$"
         result = parse_filename("image_123.tif", pattern=pattern)
         assert result == ("image", 123, "tif")
 
     def test_parse_invalid_number(self):
         """Should handle ValueError in number conversion"""
         # Use a custom pattern that might capture non-digit characters
-        pattern = r'^(.+?)([a-z]+)\.([a-zA-Z]+)$'
+        pattern = r"^(.+?)([a-z]+)\.([a-zA-Z]+)$"
         result = parse_filename("file_abc.tif", pattern=pattern)
         # Should return None due to ValueError in int conversion
         assert result is None
@@ -217,6 +215,7 @@ class TestCreateThumbnailDirectory:
     def test_create_directory_oserror(self):
         """Should raise OSError on permission denied"""
         import pytest
+
         # Try to create in a path that doesn't allow write
         with pytest.raises(OSError):
             create_thumbnail_directory("/root/nopermission", level=1)
@@ -252,7 +251,7 @@ class TestGetThumbnailPath:
             (0, "000000.tif"),
             (1, "000001.tif"),
             (123, "000123.tif"),
-            (999999, "999999.tif")
+            (999999, "999999.tif"),
         ]
         for index, expected_filename in test_cases:
             result = get_thumbnail_path(self.temp_dir, level=1, index=index)
@@ -277,7 +276,7 @@ class TestCleanOldThumbnails:
         thumb_dir = os.path.join(self.temp_dir, ".thumbnail")
         os.makedirs(thumb_dir)
         test_file = os.path.join(thumb_dir, "test.tif")
-        with open(test_file, 'w') as f:
+        with open(test_file, "w") as f:
             f.write("test")
 
         # Clean
@@ -298,7 +297,7 @@ class TestCleanOldThumbnails:
         level2 = os.path.join(thumb_dir, "2")
         os.makedirs(level2)
         test_file = os.path.join(level2, "test.tif")
-        with open(test_file, 'w') as f:
+        with open(test_file, "w") as f:
             f.write("test")
 
         # Clean
@@ -314,6 +313,7 @@ class TestCleanOldThumbnails:
 
         # Make it read-only (this may not work on all systems)
         import stat
+
         try:
             os.chmod(thumb_dir, stat.S_IRUSR | stat.S_IXUSR)
             result = clean_old_thumbnails(self.temp_dir)
@@ -346,7 +346,7 @@ class TestGetDirectorySize:
         """Should calculate size for single file"""
         test_file = os.path.join(self.temp_dir, "test.txt")
         content = "A" * 1000  # 1000 bytes
-        with open(test_file, 'w') as f:
+        with open(test_file, "w") as f:
             f.write(content)
 
         result = get_directory_size(self.temp_dir)
@@ -356,7 +356,7 @@ class TestGetDirectorySize:
         """Should calculate total size for multiple files"""
         for i in range(5):
             test_file = os.path.join(self.temp_dir, f"test{i}.txt")
-            with open(test_file, 'wb') as f:
+            with open(test_file, "wb") as f:
                 f.write(b"A" * 1000)  # Exactly 1000 bytes
 
         result = get_directory_size(self.temp_dir)
@@ -370,9 +370,9 @@ class TestGetDirectorySize:
         file1 = os.path.join(self.temp_dir, "file1.txt")
         file2 = os.path.join(subdir, "file2.txt")
 
-        with open(file1, 'wb') as f:
+        with open(file1, "wb") as f:
             f.write(b"A" * 1000)
-        with open(file2, 'wb') as f:
+        with open(file2, "wb") as f:
             f.write(b"B" * 2000)
 
         result = get_directory_size(self.temp_dir)
@@ -389,7 +389,7 @@ class TestGetDirectorySize:
         subdir = os.path.join(self.temp_dir, "restricted")
         os.makedirs(subdir)
         test_file = os.path.join(subdir, "file.txt")
-        with open(test_file, 'w') as f:
+        with open(test_file, "w") as f:
             f.write("test")
 
         # Try to get size (should work normally)
@@ -432,7 +432,7 @@ class TestFormatFileSize:
 
     def test_large_numbers(self):
         """Should handle very large numbers"""
-        huge = 1024 ** 6  # Exabyte
+        huge = 1024**6  # Exabyte
         result = format_file_size(huge)
         assert "PB" in result
         # Should still work, even if over petabyte

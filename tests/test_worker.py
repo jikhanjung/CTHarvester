@@ -3,9 +3,11 @@ Unit tests for utils/worker.py
 
 Tests worker thread utilities for background processing.
 """
-import sys
+
 import os
+import sys
 import time
+
 import pytest
 
 # Add project root to path
@@ -13,12 +15,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from PyQt5.QtCore import QObject, QThreadPool
+
     PYQT_AVAILABLE = True
 except ImportError:
     PYQT_AVAILABLE = False
 
 if PYQT_AVAILABLE:
-    from utils.worker import WorkerSignals, Worker
+    from utils.worker import Worker, WorkerSignals
 
 
 @pytest.mark.skipif(not PYQT_AVAILABLE, reason="PyQt5 not available")
@@ -31,10 +34,10 @@ class TestWorkerSignals:
         signals = WorkerSignals()
 
         # Check all signals exist
-        assert hasattr(signals, 'finished')
-        assert hasattr(signals, 'error')
-        assert hasattr(signals, 'result')
-        assert hasattr(signals, 'progress')
+        assert hasattr(signals, "finished")
+        assert hasattr(signals, "error")
+        assert hasattr(signals, "result")
+        assert hasattr(signals, "progress")
 
     def test_signals_are_callable(self):
         """Should have callable emit methods"""
@@ -108,6 +111,7 @@ class TestWorker:
 
     def test_initialization(self):
         """Should initialize with function and arguments"""
+
         def test_func(x, y):
             return x + y
 
@@ -120,6 +124,7 @@ class TestWorker:
 
     def test_initialization_with_kwargs(self):
         """Should store kwargs correctly"""
+
         def test_func(x, y=10):
             return x + y
 
@@ -127,10 +132,11 @@ class TestWorker:
 
         assert worker.fn == test_func
         assert worker.args == (5,)
-        assert worker.kwargs == {'y': 20}
+        assert worker.kwargs == {"y": 20}
 
     def test_initialization_no_args(self):
         """Should work with no arguments"""
+
         def test_func():
             return "no args"
 
@@ -142,6 +148,7 @@ class TestWorker:
 
     def test_run_successful_execution(self):
         """Should execute function and emit result"""
+
         def simple_func():
             return 42
 
@@ -160,6 +167,7 @@ class TestWorker:
 
     def test_run_with_arguments(self):
         """Should pass arguments to function"""
+
         def add_func(a, b, c=0):
             return a + b + c
 
@@ -173,6 +181,7 @@ class TestWorker:
 
     def test_run_error_handling(self):
         """Should catch exceptions and emit error signal"""
+
         def error_func():
             raise ValueError("Test error")
 
@@ -196,6 +205,7 @@ class TestWorker:
 
     def test_run_finished_always_emitted(self):
         """Should always emit finished signal"""
+
         def normal_func():
             return "ok"
 
@@ -218,6 +228,7 @@ class TestWorker:
 
     def test_run_with_none_result(self):
         """Should handle None result"""
+
         def none_func():
             return None
 
@@ -231,6 +242,7 @@ class TestWorker:
 
     def test_run_with_complex_result(self):
         """Should handle complex return types"""
+
         def complex_func():
             return {"key": "value", "list": [1, 2, 3]}
 
@@ -245,6 +257,7 @@ class TestWorker:
 
     def test_multiple_workers(self):
         """Should support multiple workers"""
+
         def func1():
             return "worker1"
 
@@ -268,6 +281,7 @@ class TestWorker:
 
     def test_run_with_exception_type(self):
         """Should capture correct exception type"""
+
         def type_error_func():
             return 1 + "string"  # TypeError
 
@@ -288,9 +302,11 @@ class TestWorker:
 
     def test_run_with_traceback(self):
         """Should include traceback in error"""
+
         def nested_error():
             def inner():
                 raise RuntimeError("Inner error")
+
             inner()
 
         worker = Worker(nested_error)
@@ -335,6 +351,7 @@ class TestWorker:
 
     def test_class_method_as_callback(self):
         """Should work with class methods"""
+
         class TestClass:
             def __init__(self):
                 self.value = 10
@@ -353,6 +370,7 @@ class TestWorker:
 
     def test_empty_exception(self):
         """Should handle exception with no message"""
+
         def empty_error():
             raise ValueError()
 

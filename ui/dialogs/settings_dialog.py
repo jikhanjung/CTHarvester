@@ -4,13 +4,26 @@ Settings Editor Dialog
 Provides GUI for editing application settings stored in YAML.
 Created during Phase 2.2 settings management improvements.
 """
-from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QTabWidget,
-    QLabel, QSpinBox, QComboBox, QCheckBox, QPushButton,
-    QGroupBox, QFormLayout, QFileDialog, QMessageBox, QWidget
-)
-from PyQt5.QtCore import Qt
+
 import logging
+
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QFileDialog,
+    QFormLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QSpinBox,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 from utils.settings_manager import SettingsManager
 
@@ -278,103 +291,103 @@ class SettingsDialog(QDialog):
         s = self.settings_manager
 
         # General
-        lang = s.get('application.language', 'auto')
-        lang_map = {'auto': 0, 'en': 1, 'ko': 2}
+        lang = s.get("application.language", "auto")
+        lang_map = {"auto": 0, "en": 1, "ko": 2}
         self.language_combo.setCurrentIndex(lang_map.get(lang, 0))
 
-        theme = s.get('application.theme', 'light')
-        self.theme_combo.setCurrentIndex(0 if theme == 'light' else 1)
+        theme = s.get("application.theme", "light")
+        self.theme_combo.setCurrentIndex(0 if theme == "light" else 1)
 
-        self.remember_position_check.setChecked(s.get('window.remember_position', True))
-        self.remember_size_check.setChecked(s.get('window.remember_size', True))
+        self.remember_position_check.setChecked(s.get("window.remember_position", True))
+        self.remember_size_check.setChecked(s.get("window.remember_size", True))
 
         # Thumbnails
-        self.thumb_max_size_spin.setValue(s.get('thumbnails.max_size', 500))
-        self.thumb_sample_size_spin.setValue(s.get('thumbnails.sample_size', 20))
-        self.thumb_max_level_spin.setValue(s.get('thumbnails.max_level', 10))
-        self.thumb_compression_check.setChecked(s.get('thumbnails.compression', True))
+        self.thumb_max_size_spin.setValue(s.get("thumbnails.max_size", 500))
+        self.thumb_sample_size_spin.setValue(s.get("thumbnails.sample_size", 20))
+        self.thumb_max_level_spin.setValue(s.get("thumbnails.max_level", 10))
+        self.thumb_compression_check.setChecked(s.get("thumbnails.compression", True))
 
-        fmt = s.get('thumbnails.format', 'tif')
-        self.thumb_format_combo.setCurrentIndex(0 if fmt == 'tif' else 1)
+        fmt = s.get("thumbnails.format", "tif")
+        self.thumb_format_combo.setCurrentIndex(0 if fmt == "tif" else 1)
 
         # Processing
-        threads = s.get('processing.threads', 'auto')
-        if threads == 'auto':
+        threads = s.get("processing.threads", "auto")
+        if threads == "auto":
             self.threads_spin.setValue(0)
         else:
             self.threads_spin.setValue(int(threads))
 
-        self.memory_limit_spin.setValue(s.get('processing.memory_limit_gb', 4))
-        self.use_rust_check.setChecked(s.get('processing.use_rust_module', True))
+        self.memory_limit_spin.setValue(s.get("processing.memory_limit_gb", 4))
+        self.use_rust_check.setChecked(s.get("processing.use_rust_module", True))
 
         # Rendering
-        self.threshold_spin.setValue(s.get('rendering.default_threshold', 128))
-        self.antialiasing_check.setChecked(s.get('rendering.anti_aliasing', True))
-        self.show_fps_check.setChecked(s.get('rendering.show_fps', False))
+        self.threshold_spin.setValue(s.get("rendering.default_threshold", 128))
+        self.antialiasing_check.setChecked(s.get("rendering.anti_aliasing", True))
+        self.show_fps_check.setChecked(s.get("rendering.show_fps", False))
 
         # Advanced
-        log_level = s.get('logging.level', 'INFO')
+        log_level = s.get("logging.level", "INFO")
         levels = ["DEBUG", "INFO", "WARNING", "ERROR"]
         if log_level in levels:
             self.log_level_combo.setCurrentIndex(levels.index(log_level))
 
-        self.console_output_check.setChecked(s.get('logging.console_output', True))
+        self.console_output_check.setChecked(s.get("logging.console_output", True))
 
         # Export
-        mesh_fmt = s.get('export.mesh_format', 'stl').upper()
+        mesh_fmt = s.get("export.mesh_format", "stl").upper()
         mesh_formats = ["STL", "PLY", "OBJ"]
         if mesh_fmt in mesh_formats:
             self.mesh_format_combo.setCurrentIndex(mesh_formats.index(mesh_fmt))
 
-        img_fmt = s.get('export.image_format', 'tif').upper()
+        img_fmt = s.get("export.image_format", "tif").upper()
         img_formats = ["TIF", "PNG", "JPG"]
         if img_fmt in img_formats:
             self.image_format_combo.setCurrentIndex(img_formats.index(img_fmt))
 
-        self.compression_level_spin.setValue(s.get('export.compression_level', 6))
+        self.compression_level_spin.setValue(s.get("export.compression_level", 6))
 
     def save_settings(self):
         """Save settings values from UI"""
         s = self.settings_manager
 
         # General
-        lang_map = {0: 'auto', 1: 'en', 2: 'ko'}
-        s.set('application.language', lang_map[self.language_combo.currentIndex()])
-        s.set('application.theme', 'light' if self.theme_combo.currentIndex() == 0 else 'dark')
-        s.set('window.remember_position', self.remember_position_check.isChecked())
-        s.set('window.remember_size', self.remember_size_check.isChecked())
+        lang_map = {0: "auto", 1: "en", 2: "ko"}
+        s.set("application.language", lang_map[self.language_combo.currentIndex()])
+        s.set("application.theme", "light" if self.theme_combo.currentIndex() == 0 else "dark")
+        s.set("window.remember_position", self.remember_position_check.isChecked())
+        s.set("window.remember_size", self.remember_size_check.isChecked())
 
         # Thumbnails
-        s.set('thumbnails.max_size', self.thumb_max_size_spin.value())
-        s.set('thumbnails.sample_size', self.thumb_sample_size_spin.value())
-        s.set('thumbnails.max_level', self.thumb_max_level_spin.value())
-        s.set('thumbnails.compression', self.thumb_compression_check.isChecked())
-        s.set('thumbnails.format', 'tif' if self.thumb_format_combo.currentIndex() == 0 else 'png')
+        s.set("thumbnails.max_size", self.thumb_max_size_spin.value())
+        s.set("thumbnails.sample_size", self.thumb_sample_size_spin.value())
+        s.set("thumbnails.max_level", self.thumb_max_level_spin.value())
+        s.set("thumbnails.compression", self.thumb_compression_check.isChecked())
+        s.set("thumbnails.format", "tif" if self.thumb_format_combo.currentIndex() == 0 else "png")
 
         # Processing
         threads = self.threads_spin.value()
-        s.set('processing.threads', 'auto' if threads == 0 else threads)
-        s.set('processing.memory_limit_gb', self.memory_limit_spin.value())
-        s.set('processing.use_rust_module', self.use_rust_check.isChecked())
+        s.set("processing.threads", "auto" if threads == 0 else threads)
+        s.set("processing.memory_limit_gb", self.memory_limit_spin.value())
+        s.set("processing.use_rust_module", self.use_rust_check.isChecked())
 
         # Rendering
-        s.set('rendering.default_threshold', self.threshold_spin.value())
-        s.set('rendering.anti_aliasing', self.antialiasing_check.isChecked())
-        s.set('rendering.show_fps', self.show_fps_check.isChecked())
+        s.set("rendering.default_threshold", self.threshold_spin.value())
+        s.set("rendering.anti_aliasing", self.antialiasing_check.isChecked())
+        s.set("rendering.show_fps", self.show_fps_check.isChecked())
 
         # Advanced
         levels = ["DEBUG", "INFO", "WARNING", "ERROR"]
-        s.set('logging.level', levels[self.log_level_combo.currentIndex()])
-        s.set('logging.console_output', self.console_output_check.isChecked())
+        s.set("logging.level", levels[self.log_level_combo.currentIndex()])
+        s.set("logging.console_output", self.console_output_check.isChecked())
 
         # Export
         mesh_formats = ["stl", "ply", "obj"]
-        s.set('export.mesh_format', mesh_formats[self.mesh_format_combo.currentIndex()])
+        s.set("export.mesh_format", mesh_formats[self.mesh_format_combo.currentIndex()])
 
         img_formats = ["tif", "png", "jpg"]
-        s.set('export.image_format', img_formats[self.image_format_combo.currentIndex()])
+        s.set("export.image_format", img_formats[self.image_format_combo.currentIndex()])
 
-        s.set('export.compression_level', self.compression_level_spin.value())
+        s.set("export.compression_level", self.compression_level_spin.value())
 
         s.save()
         logger.info("Settings saved from dialog")
@@ -385,7 +398,7 @@ class SettingsDialog(QDialog):
         QMessageBox.information(
             self,
             "Settings Applied",
-            "Settings have been applied successfully.\n\nSome changes may require restarting the application."
+            "Settings have been applied successfully.\n\nSome changes may require restarting the application.",
         )
 
     def accept_settings(self):
@@ -399,7 +412,7 @@ class SettingsDialog(QDialog):
             self,
             "Reset Settings",
             "Are you sure you want to reset all settings to defaults?",
-            QMessageBox.Yes | QMessageBox.No
+            QMessageBox.Yes | QMessageBox.No,
         )
 
         if reply == QMessageBox.Yes:
@@ -410,10 +423,7 @@ class SettingsDialog(QDialog):
     def import_settings(self):
         """Import settings from file"""
         file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Import Settings",
-            "",
-            "YAML Files (*.yaml *.yml);;All Files (*)"
+            self, "Import Settings", "", "YAML Files (*.yaml *.yml);;All Files (*)"
         )
 
         if file_path:
@@ -431,13 +441,15 @@ class SettingsDialog(QDialog):
             self,
             "Export Settings",
             "ctharvester_settings.yaml",
-            "YAML Files (*.yaml *.yml);;All Files (*)"
+            "YAML Files (*.yaml *.yml);;All Files (*)",
         )
 
         if file_path:
             try:
                 self.settings_manager.export(file_path)
-                QMessageBox.information(self, "Export Complete", f"Settings exported to:\n{file_path}")
+                QMessageBox.information(
+                    self, "Export Complete", f"Settings exported to:\n{file_path}"
+                )
             except Exception as e:
                 logger.error(f"Failed to export settings: {e}")
                 QMessageBox.critical(self, "Export Failed", f"Failed to export settings:\n{e}")

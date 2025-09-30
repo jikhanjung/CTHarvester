@@ -3,9 +3,11 @@ Unit tests for core/progress_manager.py
 
 Tests progress tracking and ETA calculation.
 """
-import sys
+
 import os
+import sys
 import time
+
 import pytest
 
 # Add project root to path
@@ -13,6 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from PyQt5.QtCore import QObject
+
     PYQT_AVAILABLE = True
 except ImportError:
     PYQT_AVAILABLE = False

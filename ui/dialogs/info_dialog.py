@@ -3,20 +3,21 @@ InfoDialog - Application information dialog
 
 Extracted from CTHarvester.py during Phase 4 UI refactoring.
 """
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
-from PyQt5.QtCore import Qt, QPoint
+
+from PyQt5.QtCore import QPoint, Qt
+from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QPushButton, QVBoxLayout
 
 from config.constants import PROGRAM_VERSION
-
 
 # Build-time constants (imported from main module)
 PROGRAM_COPYRIGHT = "© 2023-2025 Jikhan Jung"
 
 
 class InfoDialog(QDialog):
-    '''
+    """
     InfoDialog shows application information.
-    '''
+    """
+
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
@@ -45,7 +46,9 @@ class InfoDialog(QDialog):
         layout.addWidget(copyright_label)
 
         # Add GitHub link
-        github_label = QLabel('<a href="https://github.com/jikhanjung/CTHarvester">GitHub Repository</a>')
+        github_label = QLabel(
+            '<a href="https://github.com/jikhanjung/CTHarvester">GitHub Repository</a>'
+        )
         github_label.setOpenExternalLinks(True)
         github_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(github_label)

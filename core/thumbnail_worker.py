@@ -2,25 +2,27 @@
 Thumbnail Worker Module
 Handles thumbnail generation in separate threads
 """
+
+import gc
+import logging
 import os
 import sys
 import time
-import gc
 import traceback
-import logging
 from typing import Optional, Tuple
 
-from PyQt5.QtCore import QObject, QRunnable, pyqtSignal, pyqtSlot
-from PIL import Image, ImageChops
 import numpy as np
+from PIL import Image, ImageChops
+from PyQt5.QtCore import QObject, QRunnable, pyqtSignal, pyqtSlot
 
 from security.file_validator import SecureFileValidator
 
-logger = logging.getLogger('CTHarvester')
+logger = logging.getLogger("CTHarvester")
 
 
 class ThumbnailWorkerSignals(QObject):
     """Signals for thumbnail worker threads"""
+
     finished = pyqtSignal()
     error = pyqtSignal(tuple)
     result = pyqtSignal(object)  # (idx, img_array or None, was_generated)
@@ -51,7 +53,7 @@ class ThumbnailWorker(QRunnable):
         max_thumbnail_size: int,
         progress_dialog,
         level: int = 0,
-        seq_end: Optional[int] = None
+        seq_end: Optional[int] = None,
     ):
         """
         Initialize thumbnail worker
@@ -69,12 +71,12 @@ class ThumbnailWorker(QRunnable):
             level: Pyramid level (0=original, 1+=thumbnails)
             seq_end: End of sequence range
         """
-        super(ThumbnailWorker, self).__init__()
+        super().__init__()
 
         self.idx = idx
         self.seq = seq
         self.seq_begin = seq_begin
-        self.seq_end = seq_end if seq_end is not None else settings_hash.get('seq_end', 999999)
+        self.seq_end = seq_end if seq_end is not None else settings_hash.get("seq_end", 999999)
         self.from_dir = from_dir
         self.to_dir = to_dir
         self.settings_hash = settings_hash
@@ -92,29 +94,31 @@ class ThumbnailWorker(QRunnable):
         if self.level == 0:
             # Level 0: Reading from original images with prefix
             self.filename1 = (
-                self.settings_hash['prefix'] +
-                str(self.seq).zfill(self.settings_hash['index_length']) +
-                "." + self.settings_hash['file_type']
+                self.settings_hash["prefix"]
+                + str(self.seq).zfill(self.settings_hash["index_length"])
+                + "."
+                + self.settings_hash["file_type"]
             )
             if self.seq + 1 <= self.seq_end:
                 self.filename2 = (
-                    self.settings_hash['prefix'] +
-                    str(self.seq + 1).zfill(self.settings_hash['index_length']) +
-                    "." + self.settings_hash['file_type']
+                    self.settings_hash["prefix"]
+                    + str(self.seq + 1).zfill(self.settings_hash["index_length"])
+                    + "."
+                    + self.settings_hash["file_type"]
                 )
             else:
                 self.filename2 = None  # Odd number of images
         else:
             # Level 1+: Reading from thumbnail directory with simple numbering
             relative_seq = self.seq - self.seq_begin
-            self.filename1 = "{:06}.tif".format(relative_seq)
+            self.filename1 = f"{relative_seq:06}.tif"
             if self.seq + 1 <= self.seq_end:
-                self.filename2 = "{:06}.tif".format(relative_seq + 1)
+                self.filename2 = f"{relative_seq + 1:06}.tif"
             else:
                 self.filename2 = None
 
         # Output: Always simple sequential numbering
-        self.filename3 = os.path.join(self.to_dir, "{:06}.tif".format(self.idx))
+        self.filename3 = os.path.join(self.to_dir, f"{self.idx:06}.tif")
 
     def _load_image(self, filepath: str) -> Tuple[Optional[Image.Image], bool]:
         """
@@ -132,14 +136,14 @@ class ThumbnailWorker(QRunnable):
             open_start = time.time()
             with Image.open(validated_path) as img_temp:
                 # Determine bit depth and copy image
-                is_16bit = img_temp.mode in ('I;16', 'I;16L', 'I;16B')
+                is_16bit = img_temp.mode in ("I;16", "I;16L", "I;16B")
 
                 if is_16bit:
                     img = img_temp.copy()
-                elif img_temp.mode[0] == 'I':
-                    img = img_temp.convert('L')
-                elif img_temp.mode == 'P':
-                    img = img_temp.convert('L')
+                elif img_temp.mode[0] == "I":
+                    img = img_temp.convert("L")
+                elif img_temp.mode == "P":
+                    img = img_temp.convert("L")
                 else:
                     img = img_temp.copy()
 
@@ -174,21 +178,17 @@ class ThumbnailWorker(QRunnable):
             # Downscale by 2x2 averaging
             arr_32 = arr.astype(np.uint32)
             downscaled = (
-                arr_32[0:2*new_h:2, 0:2*new_w:2] +
-                arr_32[0:2*new_h:2, 1:2*new_w:2] +
-                arr_32[1:2*new_h:2, 0:2*new_w:2] +
-                arr_32[1:2*new_h:2, 1:2*new_w:2]
+                arr_32[0 : 2 * new_h : 2, 0 : 2 * new_w : 2]
+                + arr_32[0 : 2 * new_h : 2, 1 : 2 * new_w : 2]
+                + arr_32[1 : 2 * new_h : 2, 0 : 2 * new_w : 2]
+                + arr_32[1 : 2 * new_h : 2, 1 : 2 * new_w : 2]
             ) // 4
             downscaled = downscaled.astype(np.uint16)
             return Image.fromarray(downscaled)
         else:
             return img.resize((img.width // 2, img.height // 2))
 
-    def _process_image_pair_16bit(
-        self,
-        img1: Image.Image,
-        img2: Image.Image
-    ) -> Image.Image:
+    def _process_image_pair_16bit(self, img1: Image.Image, img2: Image.Image) -> Image.Image:
         """
         Process a pair of 16-bit images
 
@@ -212,10 +212,10 @@ class ThumbnailWorker(QRunnable):
 
         avg_arr_32 = avg_arr.astype(np.uint32)
         downscaled = (
-            avg_arr_32[0:2*new_h:2, 0:2*new_w:2] +
-            avg_arr_32[0:2*new_h:2, 1:2*new_w:2] +
-            avg_arr_32[1:2*new_h:2, 0:2*new_w:2] +
-            avg_arr_32[1:2*new_h:2, 1:2*new_w:2]
+            avg_arr_32[0 : 2 * new_h : 2, 0 : 2 * new_w : 2]
+            + avg_arr_32[0 : 2 * new_h : 2, 1 : 2 * new_w : 2]
+            + avg_arr_32[1 : 2 * new_h : 2, 0 : 2 * new_w : 2]
+            + avg_arr_32[1 : 2 * new_h : 2, 1 : 2 * new_w : 2]
         ) // 4
         downscaled = downscaled.astype(np.uint16)
 
@@ -224,11 +224,7 @@ class ThumbnailWorker(QRunnable):
 
         return Image.fromarray(downscaled)
 
-    def _process_image_pair_8bit(
-        self,
-        img1: Image.Image,
-        img2: Image.Image
-    ) -> Image.Image:
+    def _process_image_pair_8bit(self, img1: Image.Image, img2: Image.Image) -> Image.Image:
         """
         Process a pair of 8-bit images
 
@@ -356,10 +352,10 @@ class ThumbnailWorker(QRunnable):
                 # Mixed bit depth - convert to 16-bit
                 logger.debug("Processing mixed bit depth images")
                 if not is_16bit1:
-                    arr1 = (np.array(img1, dtype=np.uint8).astype(np.uint16) << 8)
+                    arr1 = np.array(img1, dtype=np.uint8).astype(np.uint16) << 8
                     img1 = Image.fromarray(arr1)
                 if not is_16bit2:
-                    arr2 = (np.array(img2, dtype=np.uint8).astype(np.uint16) << 8)
+                    arr2 = np.array(img2, dtype=np.uint8).astype(np.uint16) << 8
                     img2 = Image.fromarray(arr2)
                 new_img = self._process_image_pair_16bit(img1, img2)
             else:
@@ -380,7 +376,9 @@ class ThumbnailWorker(QRunnable):
             return None
 
         except Exception as e:
-            logger.error(f"Error creating thumbnail {self.filename3}: {e}\n{traceback.format_exc()}")
+            logger.error(
+                f"Error creating thumbnail {self.filename3}: {e}\n{traceback.format_exc()}"
+            )
             return None
         finally:
             # Periodic garbage collection

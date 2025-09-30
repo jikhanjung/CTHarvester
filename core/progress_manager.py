@@ -3,10 +3,11 @@ ProgressManager - Centralized progress and ETA management
 
 Extracted from CTHarvester.py during Phase 4c refactoring.
 """
-import time
-import logging
-from PyQt5.QtCore import QObject, pyqtSignal
 
+import logging
+import time
+
+from PyQt5.QtCore import QObject, pyqtSignal
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class ProgressManager(QObject):
         else:
             self.current += delta
 
-        percentage = int((self.current / self.total * 100)) if self.total > 0 else 0
+        percentage = int(self.current / self.total * 100) if self.total > 0 else 0
         self.progress_updated.emit(percentage)
 
         # Calculate and emit ETA
@@ -114,5 +115,3 @@ class ProgressManager(QObject):
         if level is not None and completed is not None and total is not None:
             return f"Level {level+1}: {completed}/{total}"
         return ""
-
-

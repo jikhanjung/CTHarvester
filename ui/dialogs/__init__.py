@@ -9,4 +9,4 @@ from .info_dialog import InfoDialog
 from .progress_dialog import ProgressDialog
 from .settings_dialog import SettingsDialog
 
-__all__ = ['InfoDialog', 'ProgressDialog', 'SettingsDialog']
+__all__ = ["InfoDialog", "ProgressDialog", "SettingsDialog"]

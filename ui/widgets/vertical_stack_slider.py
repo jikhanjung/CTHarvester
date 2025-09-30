@@ -1,18 +1,19 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
 from enum import IntEnum
+
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class VerticalTimeline(QtWidgets.QWidget):
     lowerChanged = QtCore.pyqtSignal(int)
     upperChanged = QtCore.pyqtSignal(int)
     currentChanged = QtCore.pyqtSignal(int)
-    rangeChanged  = QtCore.pyqtSignal(int, int)
+    rangeChanged = QtCore.pyqtSignal(int, int)
 
     class Thumb(IntEnum):
-        NONE   = 0
-        LOWER  = 1
-        CURRENT= 2
-        UPPER  = 3
+        NONE = 0
+        LOWER = 1
+        CURRENT = 2
+        UPPER = 3
 
     def __init__(self, minimum=0, maximum=100, parent=None):
         super().__init__(parent)
@@ -38,7 +39,7 @@ class VerticalTimeline(QtWidgets.QWidget):
         # interaction
         self._drag_target = self.Thumb.NONE
         self._drag_offset = 0
-        self._shift_slip  = False
+        self._shift_slip = False
         self._hover_target = self.Thumb.NONE
 
         # snap
@@ -61,7 +62,8 @@ class VerticalTimeline(QtWidgets.QWidget):
 
     def setLower(self, v):
         v = self._coerce(v)
-        if v > self._upper: v = self._upper
+        if v > self._upper:
+            v = self._upper
         if v != self._lower:
             self._lower = v
             self.lowerChanged.emit(self._lower)
@@ -70,7 +72,8 @@ class VerticalTimeline(QtWidgets.QWidget):
 
     def setUpper(self, v):
         v = self._coerce(v)
-        if v < self._lower: v = self._lower
+        if v < self._lower:
+            v = self._lower
         if v != self._upper:
             self._upper = v
             self.upperChanged.emit(self._upper)
@@ -92,7 +95,7 @@ class VerticalTimeline(QtWidgets.QWidget):
         self._step, self._page = max(1, int(single)), max(1, int(page))
 
     def setSnapPoints(self, points, tol=3):
-        self._snap_points = sorted(set(int(p) for p in points))
+        self._snap_points = sorted({int(p) for p in points})
         self._snap_tol = max(0, int(tol))
 
     # convenience getters/setters
@@ -130,30 +133,37 @@ class VerticalTimeline(QtWidgets.QWidget):
 
         track = self._track_rect()
         # shading band (wider than shaft)
-        shade = QtCore.QRectF(track.center().x() - self._shade_width/2.0, track.top(), self._shade_width, track.height())
+        shade = QtCore.QRectF(
+            track.center().x() - self._shade_width / 2.0,
+            track.top(),
+            self._shade_width,
+            track.height(),
+        )
 
         # range shading
         y_lower = self._val_to_y(self._lower, track)
         y_upper = self._val_to_y(self._upper, track)
-        inside  = QtCore.QRectF(shade.left(), y_upper, shade.width(), y_lower-y_upper)
-        outside_top    = QtCore.QRectF(shade.left(), shade.top(), shade.width(), y_upper-shade.top())
-        outside_bottom = QtCore.QRectF(shade.left(), y_lower, shade.width(), shade.bottom()-y_lower)
+        inside = QtCore.QRectF(shade.left(), y_upper, shade.width(), y_lower - y_upper)
+        outside_top = QtCore.QRectF(shade.left(), shade.top(), shade.width(), y_upper - shade.top())
+        outside_bottom = QtCore.QRectF(
+            shade.left(), y_lower, shade.width(), shade.bottom() - y_lower
+        )
 
         p.setPen(QtCore.Qt.NoPen)
-        p.setBrush(QtGui.QColor(150,150,150))  # inside (selected)
+        p.setBrush(QtGui.QColor(150, 150, 150))  # inside (selected)
         p.drawRect(inside)
-        p.setBrush(QtGui.QColor(230,230,230))  # outside (dim)
+        p.setBrush(QtGui.QColor(230, 230, 230))  # outside (dim)
         p.drawRect(outside_top)
         p.drawRect(outside_bottom)
 
         # shaft (actual stack line) - thin and dark
         p.setPen(QtCore.Qt.NoPen)
-        p.setBrush(QtGui.QColor(20,20,20))
+        p.setBrush(QtGui.QColor(20, 20, 20))
         p.drawRect(track)
 
         # snap points (optional, faint)
         if self._snap_points:
-            pen = QtGui.QPen(QtGui.QColor(180,180,180))
+            pen = QtGui.QPen(QtGui.QColor(180, 180, 180))
             pen.setWidth(1)
             p.setPen(pen)
             for sp in self._snap_points:
@@ -165,12 +175,20 @@ class VerticalTimeline(QtWidgets.QWidget):
         pen = QtGui.QPen(QtGui.QColor(120, 170, 220))
         pen.setWidth(1)
         p.setPen(pen)
-        p.drawLine(QtCore.QPointF(track.left()-12, y_cur), QtCore.QPointF(track.right()+24, y_cur))
+        p.drawLine(
+            QtCore.QPointF(track.left() - 12, y_cur), QtCore.QPointF(track.right() + 24, y_cur)
+        )
 
         # bounds and current handle
-        self._draw_bound_right(p, track, y_lower, is_upper=False)  # lower marker (triangle up under the line)
-        self._draw_bound_right(p, track, y_upper, is_upper=True)   # upper marker (triangle down above the line)
-        self._draw_current_tag_left(p, track, y_cur, QtGui.QColor(30,144,255))       # current tag on the left
+        self._draw_bound_right(
+            p, track, y_lower, is_upper=False
+        )  # lower marker (triangle up under the line)
+        self._draw_bound_right(
+            p, track, y_upper, is_upper=True
+        )  # upper marker (triangle down above the line)
+        self._draw_current_tag_left(
+            p, track, y_cur, QtGui.QColor(30, 144, 255)
+        )  # current tag on the left
 
     def mousePressEvent(self, ev):
         if ev.button() != QtCore.Qt.LeftButton:
@@ -255,14 +273,22 @@ class VerticalTimeline(QtWidgets.QWidget):
 
     def keyPressEvent(self, ev):
         k = ev.key()
-        if   k == QtCore.Qt.Key_Up:    self.setCurrent(self._current + self._step)
-        elif k == QtCore.Qt.Key_Down:  self.setCurrent(self._current - self._step)
-        elif k == QtCore.Qt.Key_PageUp:   self.setCurrent(self._current + self._page)
-        elif k == QtCore.Qt.Key_PageDown: self.setCurrent(self._current - self._page)
-        elif k == QtCore.Qt.Key_Home:  self.setCurrent(self._min)
-        elif k == QtCore.Qt.Key_End:   self.setCurrent(self._max)
-        elif k == QtCore.Qt.Key_L:     self.setLower(self._current)
-        elif k == QtCore.Qt.Key_U:     self.setUpper(self._current)
+        if k == QtCore.Qt.Key_Up:
+            self.setCurrent(self._current + self._step)
+        elif k == QtCore.Qt.Key_Down:
+            self.setCurrent(self._current - self._step)
+        elif k == QtCore.Qt.Key_PageUp:
+            self.setCurrent(self._current + self._page)
+        elif k == QtCore.Qt.Key_PageDown:
+            self.setCurrent(self._current - self._page)
+        elif k == QtCore.Qt.Key_Home:
+            self.setCurrent(self._min)
+        elif k == QtCore.Qt.Key_End:
+            self.setCurrent(self._max)
+        elif k == QtCore.Qt.Key_L:
+            self.setLower(self._current)
+        elif k == QtCore.Qt.Key_U:
+            self.setUpper(self._current)
         else:
             super().keyPressEvent(ev)
 
@@ -283,15 +309,15 @@ class VerticalTimeline(QtWidgets.QWidget):
     def _track_rect(self):
         r = self.rect().adjusted(self._margin_left, 8, -self._margin_right, -8)
         cx = r.center().x()
-        return QtCore.QRectF(cx - self._shaft_width/2.0, r.top(), self._shaft_width, r.height())
+        return QtCore.QRectF(cx - self._shaft_width / 2.0, r.top(), self._shaft_width, r.height())
 
     def _draw_thumb(self, p, track, y, color):
         # legacy thumb (unused now); keep for reference
         w = track.width()
         path = QtGui.QPainterPath()
-        r = QtCore.QRectF(track.left()-3, y-7, w+6, 14)
+        r = QtCore.QRectF(track.left() - 3, y - 7, w + 6, 14)
         path.addRoundedRect(r, 3, 3)
-        p.setPen(QtGui.QPen(QtGui.QColor(80,80,80)))
+        p.setPen(QtGui.QPen(QtGui.QColor(80, 80, 80)))
         p.setBrush(QtGui.QBrush(color))
         p.drawPath(path)
 
@@ -301,14 +327,16 @@ class VerticalTimeline(QtWidgets.QWidget):
         tip_x = track.left() + tip_extra
         rect_w = 22
         half_h = 8
-        poly = QtGui.QPolygonF([
-            QtCore.QPointF(tip_x - rect_w, y - half_h),
-            QtCore.QPointF(tip_x - 10,      y - half_h),
-            QtCore.QPointF(tip_x,          y),
-            QtCore.QPointF(tip_x - 10,      y + half_h),
-            QtCore.QPointF(tip_x - rect_w, y + half_h),
-        ])
-        pen = QtGui.QPen(QtGui.QColor(10,10,10))
+        poly = QtGui.QPolygonF(
+            [
+                QtCore.QPointF(tip_x - rect_w, y - half_h),
+                QtCore.QPointF(tip_x - 10, y - half_h),
+                QtCore.QPointF(tip_x, y),
+                QtCore.QPointF(tip_x - 10, y + half_h),
+                QtCore.QPointF(tip_x - rect_w, y + half_h),
+            ]
+        )
+        pen = QtGui.QPen(QtGui.QColor(10, 10, 10))
         pen.setWidth(2)
         p.setPen(pen)
         p.setBrush(QtGui.QBrush(color))
@@ -319,7 +347,7 @@ class VerticalTimeline(QtWidgets.QWidget):
         line_len = 28
         x0 = track.right()
         x1 = x0 + line_len
-        pen = QtGui.QPen(QtGui.QColor(80,80,80))
+        pen = QtGui.QPen(QtGui.QColor(80, 80, 80))
         pen.setWidth(2)
         p.setPen(pen)
         p.drawLine(QtCore.QPointF(x0, y), QtCore.QPointF(x1, y))
@@ -328,22 +356,26 @@ class VerticalTimeline(QtWidgets.QWidget):
         cx = x0 + line_len * 0.5
         if is_upper:
             # triangle pointing down, above the line
-            poly = QtGui.QPolygonF([
-                QtCore.QPointF(cx, y),
-                QtCore.QPointF(cx - tri_size, y - tri_size),
-                QtCore.QPointF(cx + tri_size, y - tri_size),
-            ])
+            poly = QtGui.QPolygonF(
+                [
+                    QtCore.QPointF(cx, y),
+                    QtCore.QPointF(cx - tri_size, y - tri_size),
+                    QtCore.QPointF(cx + tri_size, y - tri_size),
+                ]
+            )
         else:
             # triangle pointing up, below the line
-            poly = QtGui.QPolygonF([
-                QtCore.QPointF(cx, y),
-                QtCore.QPointF(cx - tri_size, y + tri_size),
-                QtCore.QPointF(cx + tri_size, y + tri_size),
-            ])
-        pen2 = QtGui.QPen(QtGui.QColor(160,20,20))
+            poly = QtGui.QPolygonF(
+                [
+                    QtCore.QPointF(cx, y),
+                    QtCore.QPointF(cx - tri_size, y + tri_size),
+                    QtCore.QPointF(cx + tri_size, y + tri_size),
+                ]
+            )
+        pen2 = QtGui.QPen(QtGui.QColor(160, 20, 20))
         pen2.setWidth(2)
         p.setPen(pen2)
-        p.setBrush(QtGui.QBrush(QtGui.QColor(220,60,60)))
+        p.setBrush(QtGui.QBrush(QtGui.QColor(220, 60, 60)))
         p.drawPolygon(poly)
 
     def _hit_thumb(self, y, track, value):

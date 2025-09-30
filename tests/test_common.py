@@ -3,16 +3,18 @@ Unit tests for utils/common.py
 
 Tests common utility functions including resource_path, value_to_bool, and ensure_directories.
 """
-import sys
+
 import os
-import tempfile
 import shutil
+import sys
+import tempfile
+
 import pytest
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.common import resource_path, value_to_bool, ensure_directories
+from utils.common import ensure_directories, resource_path, value_to_bool
 
 
 class TestResourcePath:
@@ -192,7 +194,9 @@ class TestEnsureDirectories:
 
         # Check that warning was printed
         captured = capsys.readouterr()
-        assert "Warning" in captured.out or len(captured.out) == 0  # May not print if path creation succeeds
+        assert (
+            "Warning" in captured.out or len(captured.out) == 0
+        )  # May not print if path creation succeeds
 
 
 class TestIntegration:
@@ -215,7 +219,7 @@ class TestIntegration:
             "remember_geometry": "true",
             "remember_directory": "false",
             "some_flag": "TRUE",
-            "another_flag": "False"
+            "another_flag": "False",
         }
 
         assert value_to_bool(settings_values["remember_geometry"]) is True

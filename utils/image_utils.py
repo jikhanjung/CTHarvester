@@ -1,10 +1,12 @@
 """
 Image Processing Utility Functions
 """
-from PIL import Image
-import numpy as np
-from typing import Tuple, Optional
+
 import logging
+from typing import Optional, Tuple
+
+import numpy as np
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +26,9 @@ def detect_bit_depth(image_path: str) -> int:
     """
     try:
         with Image.open(image_path) as img:
-            if img.mode == 'I;16':
+            if img.mode == "I;16":
                 return 16
-            elif img.mode in ('L', 'RGB', 'RGBA'):
+            elif img.mode in ("L", "RGB", "RGBA"):
                 return 8
             else:
                 logger.warning(f"Unsupported image mode: {img.mode}, assuming 8-bit")
@@ -36,10 +38,7 @@ def detect_bit_depth(image_path: str) -> int:
         raise ValueError(f"Cannot detect bit depth: {e}") from e
 
 
-def load_image_as_array(
-    image_path: str,
-    target_dtype: Optional[np.dtype] = None
-) -> np.ndarray:
+def load_image_as_array(image_path: str, target_dtype: Optional[np.dtype] = None) -> np.ndarray:
     """
     Load image as numpy array (memory efficient)
 
@@ -54,7 +53,7 @@ def load_image_as_array(
         with Image.open(image_path) as img:
             # Auto-detect dtype
             if target_dtype is None:
-                if img.mode == 'I;16':
+                if img.mode == "I;16":
                     target_dtype = np.uint16
                 else:
                     target_dtype = np.uint8
@@ -68,9 +67,7 @@ def load_image_as_array(
 
 
 def downsample_image(
-    img_array: np.ndarray,
-    factor: int = 2,
-    method: str = 'subsample'
+    img_array: np.ndarray, factor: int = 2, method: str = "subsample"
 ) -> np.ndarray:
     """
     Downsample image
@@ -83,11 +80,11 @@ def downsample_image(
     Returns:
         Downsampled array
     """
-    if method == 'subsample':
+    if method == "subsample":
         # Simple subsampling (fastest)
         return img_array[::factor, ::factor]
 
-    elif method == 'average':
+    elif method == "average":
         # Block averaging (better quality)
         h, w = img_array.shape[:2]
         new_h, new_w = h // factor, w // factor
@@ -95,13 +92,13 @@ def downsample_image(
         # Reshape into factor x factor blocks
         if len(img_array.shape) == 2:
             # Grayscale
-            reshaped = img_array[:new_h*factor, :new_w*factor].reshape(
+            reshaped = img_array[: new_h * factor, : new_w * factor].reshape(
                 new_h, factor, new_w, factor
             )
             return reshaped.mean(axis=(1, 3)).astype(img_array.dtype)
         else:
             # Color
-            reshaped = img_array[:new_h*factor, :new_w*factor].reshape(
+            reshaped = img_array[: new_h * factor, : new_w * factor].reshape(
                 new_h, factor, new_w, factor, -1
             )
             return reshaped.mean(axis=(1, 3)).astype(img_array.dtype)
@@ -110,10 +107,7 @@ def downsample_image(
         raise ValueError(f"Unknown method: {method}")
 
 
-def average_images(
-    img1: np.ndarray,
-    img2: np.ndarray
-) -> np.ndarray:
+def average_images(img1: np.ndarray, img2: np.ndarray) -> np.ndarray:
     """
     Average two images (overflow safe)
 
@@ -138,11 +132,7 @@ def average_images(
     return avg.astype(img1.dtype)
 
 
-def save_image_from_array(
-    img_array: np.ndarray,
-    output_path: str,
-    compress: bool = True
-) -> bool:
+def save_image_from_array(img_array: np.ndarray, output_path: str, compress: bool = True) -> bool:
     """
     Save numpy array as image file
 
@@ -168,9 +158,9 @@ def save_image_from_array(
             img = Image.fromarray(img_array)
 
         # TIFF compression settings
-        if output_path.lower().endswith(('.tif', '.tiff')):
+        if output_path.lower().endswith((".tif", ".tiff")):
             if compress:
-                img.save(output_path, compression='tiff_deflate')
+                img.save(output_path, compression="tiff_deflate")
             else:
                 img.save(output_path)
         else:

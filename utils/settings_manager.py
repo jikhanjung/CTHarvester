@@ -36,12 +36,14 @@ Typical usage example:
     settings.export('backup.yaml')
     settings.import_settings('backup.yaml')
 """
-import yaml
+
+import logging
 import os
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict
-import logging
-from copy import deepcopy
+
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -94,10 +96,10 @@ class SettingsManager:
         """
         if config_dir is None:
             # Default location: ~/.config/CTHarvester (Linux/Mac) or %APPDATA%/CTHarvester (Windows)
-            if os.name == 'nt':
-                config_dir = os.path.join(os.environ.get('APPDATA', ''), 'CTHarvester')
+            if os.name == "nt":
+                config_dir = os.path.join(os.environ.get("APPDATA", ""), "CTHarvester")
             else:
-                config_dir = os.path.join(os.path.expanduser('~'), '.config', 'CTHarvester')
+                config_dir = os.path.join(os.path.expanduser("~"), ".config", "CTHarvester")
 
         self.config_dir = Path(config_dir)
         self.config_file = self.config_dir / self.DEFAULT_CONFIG_FILE
@@ -117,7 +119,7 @@ class SettingsManager:
 
         if default_file.exists():
             try:
-                with open(default_file, 'r', encoding='utf-8') as f:
+                with open(default_file, encoding="utf-8") as f:
                     settings = yaml.safe_load(f)
                     logger.info(f"Default settings loaded from {default_file}")
                     return settings or {}
@@ -130,57 +132,42 @@ class SettingsManager:
     def _get_hardcoded_defaults(self) -> Dict:
         """Hardcoded default settings as fallback"""
         return {
-            'application': {
-                'language': 'auto',
-                'theme': 'light',
-                'auto_save_settings': True
+            "application": {"language": "auto", "theme": "light", "auto_save_settings": True},
+            "window": {
+                "width": 1200,
+                "height": 800,
+                "remember_position": True,
+                "remember_size": True,
             },
-            'window': {
-                'width': 1200,
-                'height': 800,
-                'remember_position': True,
-                'remember_size': True
+            "thumbnails": {
+                "max_size": 500,
+                "sample_size": 20,
+                "max_level": 10,
+                "compression": True,
+                "format": "tif",
             },
-            'thumbnails': {
-                'max_size': 500,
-                'sample_size': 20,
-                'max_level': 10,
-                'compression': True,
-                'format': 'tif'
+            "processing": {"threads": "auto", "memory_limit_gb": 4, "use_rust_module": True},
+            "rendering": {
+                "background_color": [0.2, 0.2, 0.2],
+                "default_threshold": 128,
+                "anti_aliasing": True,
+                "show_fps": False,
             },
-            'processing': {
-                'threads': 'auto',
-                'memory_limit_gb': 4,
-                'use_rust_module': True
+            "export": {"mesh_format": "stl", "image_format": "tif", "compression_level": 6},
+            "logging": {
+                "level": "INFO",
+                "max_file_size_mb": 10,
+                "backup_count": 5,
+                "console_output": True,
             },
-            'rendering': {
-                'background_color': [0.2, 0.2, 0.2],
-                'default_threshold': 128,
-                'anti_aliasing': True,
-                'show_fps': False
-            },
-            'export': {
-                'mesh_format': 'stl',
-                'image_format': 'tif',
-                'compression_level': 6
-            },
-            'logging': {
-                'level': 'INFO',
-                'max_file_size_mb': 10,
-                'backup_count': 5,
-                'console_output': True
-            },
-            'paths': {
-                'last_directory': '',
-                'export_directory': ''
-            }
+            "paths": {"last_directory": "", "export_directory": ""},
         }
 
     def load(self):
         """Load settings from file"""
         if self.config_file.exists():
             try:
-                with open(self.config_file, 'r', encoding='utf-8') as f:
+                with open(self.config_file, encoding="utf-8") as f:
                     self.settings = yaml.safe_load(f) or {}
                 logger.info(f"Settings loaded from {self.config_file}")
             except Exception as e:
@@ -194,7 +181,7 @@ class SettingsManager:
     def save(self):
         """Save settings to file"""
         try:
-            with open(self.config_file, 'w', encoding='utf-8') as f:
+            with open(self.config_file, "w", encoding="utf-8") as f:
                 yaml.dump(self.settings, f, default_flow_style=False, allow_unicode=True)
             logger.info(f"Settings saved to {self.config_file}")
         except Exception as e:
@@ -211,7 +198,7 @@ class SettingsManager:
         Returns:
             Setting value
         """
-        keys = key.split('.')
+        keys = key.split(".")
         value = self.settings
 
         for k in keys:
@@ -230,7 +217,7 @@ class SettingsManager:
             key: Setting key (e.g., 'thumbnails.max_size')
             value: Setting value
         """
-        keys = key.split('.')
+        keys = key.split(".")
         settings = self.settings
 
         # Create nested dictionaries
@@ -256,7 +243,7 @@ class SettingsManager:
             file_path: Export file path
         """
         try:
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 yaml.dump(self.settings, f, default_flow_style=False, allow_unicode=True)
             logger.info(f"Settings exported to {file_path}")
         except Exception as e:
@@ -271,7 +258,7 @@ class SettingsManager:
             file_path: Import file path
         """
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 imported = yaml.safe_load(f)
 
             # Validate and apply
@@ -297,7 +284,7 @@ class SettingsManager:
             True if valid, False otherwise
         """
         # Basic structure validation
-        required_keys = ['application', 'thumbnails', 'processing']
+        required_keys = ["application", "thumbnails", "processing"]
 
         for key in required_keys:
             if key not in settings:

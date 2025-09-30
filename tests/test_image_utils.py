@@ -3,30 +3,33 @@ Unit tests for utils/image_utils.py
 
 Tests image processing utility functions.
 """
-import sys
+
 import os
-import tempfile
 import shutil
-import pytest
+import sys
+import tempfile
+
 import numpy as np
+import pytest
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from PIL import Image
+
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
 
 if PIL_AVAILABLE:
     from utils.image_utils import (
-        detect_bit_depth,
-        load_image_as_array,
-        downsample_image,
         average_images,
+        detect_bit_depth,
+        downsample_image,
+        get_image_dimensions,
+        load_image_as_array,
         save_image_from_array,
-        get_image_dimensions
     )
 
 
@@ -97,7 +100,7 @@ class TestDetectBitDepth:
         self.temp_dir = tempfile.mkdtemp()
 
         # Create image with unusual mode
-        img = Image.new('1', (10, 10))  # 1-bit mode
+        img = Image.new("1", (10, 10))  # 1-bit mode
         image_path = os.path.join(self.temp_dir, "image_1bit.png")
         img.save(image_path)
 
@@ -187,21 +190,21 @@ class TestDownsampleImage:
     def test_downsample_average_method(self):
         """Should downsample using average method"""
         img_array = np.ones((100, 100), dtype=np.uint8) * 128
-        result = downsample_image(img_array, factor=2, method='average')
+        result = downsample_image(img_array, factor=2, method="average")
         assert result.shape == (50, 50)
         assert np.all(result == 128)
 
     def test_downsample_color_image(self):
         """Should downsample color image"""
         img_array = np.ones((100, 100, 3), dtype=np.uint8) * 128
-        result = downsample_image(img_array, factor=2, method='average')
+        result = downsample_image(img_array, factor=2, method="average")
         assert result.shape == (50, 50, 3)
 
     def test_invalid_method(self):
         """Should raise error for invalid method"""
         img_array = np.ones((100, 100), dtype=np.uint8) * 128
         with pytest.raises(ValueError):
-            downsample_image(img_array, factor=2, method='invalid')
+            downsample_image(img_array, factor=2, method="invalid")
 
 
 @pytest.mark.skipif(not PIL_AVAILABLE, reason="PIL not available")

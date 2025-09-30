@@ -2,16 +2,18 @@
 파일 시스템 보안 유틸리티
 Directory traversal 공격 방지
 """
+
+import logging
 import os
 import re
 from typing import Optional
-import logging
 
 logger = logging.getLogger(__name__)
 
 
 class FileSecurityError(Exception):
     """파일 보안 관련 예외"""
+
     pass
 
 
@@ -19,15 +21,15 @@ class SecureFileValidator:
     """파일 경로 검증 클래스"""
 
     # 허용된 파일 확장자
-    ALLOWED_EXTENSIONS = {'.bmp', '.jpg', '.jpeg', '.png', '.tif', '.tiff'}
+    ALLOWED_EXTENSIONS = {".bmp", ".jpg", ".jpeg", ".png", ".tif", ".tiff"}
 
     # 금지된 문자/패턴
     FORBIDDEN_PATTERNS = [
-        r'\.\.',        # 상위 디렉토리 참조
-        r'^/',          # 절대 경로
-        r'^\\',         # Windows 절대 경로
-        r'[<>:"|?*]',   # Windows 금지 문자
-        r'\x00',        # Null 바이트
+        r"\.\.",  # 상위 디렉토리 참조
+        r"^/",  # 절대 경로
+        r"^\\",  # Windows 절대 경로
+        r'[<>:"|?*]',  # Windows 금지 문자
+        r"\x00",  # Null 바이트
     ]
 
     @staticmethod
@@ -50,17 +52,13 @@ class SecureFileValidator:
         # 금지된 패턴 체크
         for pattern in SecureFileValidator.FORBIDDEN_PATTERNS:
             if re.search(pattern, filename):
-                raise FileSecurityError(
-                    f"Filename contains forbidden pattern: {filename}"
-                )
+                raise FileSecurityError(f"Filename contains forbidden pattern: {filename}")
 
         # basename만 추출 (디렉토리 부분 제거)
         safe_name = os.path.basename(filename)
 
         if safe_name != filename:
-            logger.warning(
-                f"Filename contained directory path: {filename} -> {safe_name}"
-            )
+            logger.warning(f"Filename contained directory path: {filename} -> {safe_name}")
 
         return safe_name
 
@@ -95,14 +93,12 @@ class SecureFileValidator:
         except ValueError:
             # Windows에서 다른 드라이브인 경우
             raise FileSecurityError(
-                f"Path is on different drive: {file_path} "
-                f"(base: {base_dir})"
+                f"Path is on different drive: {file_path} " f"(base: {base_dir})"
             )
 
         if common_path != abs_base:
             raise FileSecurityError(
-                f"Path is outside base directory: {file_path} "
-                f"(base: {base_dir})"
+                f"Path is outside base directory: {file_path} " f"(base: {base_dir})"
             )
 
         return abs_file
@@ -125,9 +121,7 @@ class SecureFileValidator:
         # 각 구성요소 검증
         validated_parts = []
         for part in paths:
-            validated_parts.append(
-                SecureFileValidator.validate_filename(part)
-            )
+            validated_parts.append(SecureFileValidator.validate_filename(part))
 
         # 경로 결합
         joined = os.path.join(base_dir, *validated_parts)

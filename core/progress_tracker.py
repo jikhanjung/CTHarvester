@@ -16,10 +16,11 @@ Typical usage example:
         # Do some work
         tracker.update()  # Update progress by 1
 """
-from typing import Optional, Callable
-from dataclasses import dataclass
-import time
+
 import logging
+import time
+from dataclasses import dataclass
+from typing import Callable, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,7 @@ class ProgressInfo:
         elapsed_seconds: Time elapsed since start in seconds.
         speed: Processing speed in items per second.
     """
+
     current: int
     total: int
     percentage: float
@@ -122,7 +124,7 @@ class SimpleProgressTracker:
         total_items: int,
         callback: Optional[Callable[[ProgressInfo], None]] = None,
         smoothing_window: int = 10,
-        min_samples_for_eta: int = 5
+        min_samples_for_eta: int = 5,
     ):
         """Initialize the progress tracker.
 
@@ -202,7 +204,7 @@ class SimpleProgressTracker:
             percentage=percentage,
             eta_seconds=eta_seconds,
             elapsed_seconds=elapsed,
-            speed=avg_speed
+            speed=avg_speed,
         )
 
         # Invoke callback
@@ -250,5 +252,5 @@ class SimpleProgressTracker:
             percentage=percentage,
             eta_seconds=eta_seconds,
             elapsed_seconds=elapsed,
-            speed=avg_speed
+            speed=avg_speed,
         )

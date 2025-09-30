@@ -4,9 +4,11 @@ Internationalization (i18n) support
 Provides translation management for multi-language support.
 Created during Phase 1.4 UI/UX improvements.
 """
-from PyQt5.QtCore import QTranslator, QLocale, QCoreApplication
-import os
+
 import logging
+import os
+
+from PyQt5.QtCore import QCoreApplication, QLocale, QTranslator
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +17,8 @@ class TranslationManager:
     """Translation manager for multi-language support"""
 
     SUPPORTED_LANGUAGES = {
-        'en': 'English',
-        'ko': '한국어',
+        "en": "English",
+        "ko": "한국어",
     }
 
     def __init__(self, app):
@@ -28,7 +30,7 @@ class TranslationManager:
         """
         self.app = app
         self.translator = QTranslator()
-        self.current_language = 'en'
+        self.current_language = "en"
 
     def load_language(self, language_code: str) -> bool:
         """
@@ -47,7 +49,7 @@ class TranslationManager:
         # Translation file path
         # Look for .qm files in project root
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        qm_file = os.path.join(project_root, f'CTHarvester_{language_code}.qm')
+        qm_file = os.path.join(project_root, f"CTHarvester_{language_code}.qm")
 
         if not os.path.exists(qm_file):
             logger.error(f"Translation file not found: {qm_file}")
@@ -74,12 +76,12 @@ class TranslationManager:
             Language code ('en', 'ko', etc.)
         """
         locale = QLocale.system().name()  # e.g., 'ko_KR', 'en_US'
-        language_code = locale.split('_')[0]
+        language_code = locale.split("_")[0]
 
         if language_code in self.SUPPORTED_LANGUAGES:
             return language_code
         else:
-            return 'en'  # Default to English
+            return "en"  # Default to English
 
     @staticmethod
     def tr(text: str, context: str = "Global") -> str:
@@ -112,4 +114,4 @@ class TranslationManager:
         if language_code is None:
             language_code = self.current_language
 
-        return self.SUPPORTED_LANGUAGES.get(language_code, 'Unknown')
+        return self.SUPPORTED_LANGUAGES.get(language_code, "Unknown")

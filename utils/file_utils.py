@@ -1,19 +1,17 @@
 """
 File System Utility Functions
 """
+
+import logging
 import os
 import re
 from typing import List, Optional, Tuple
-from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 
 
 def find_image_files(
-    directory: str,
-    extensions: Optional[tuple] = None,
-    recursive: bool = False
+    directory: str, extensions: Optional[tuple] = None, recursive: bool = False
 ) -> List[str]:
     """
     Find image files in directory
@@ -34,7 +32,8 @@ def find_image_files(
     try:
         # Use secure file validator if available
         try:
-            from security.file_validator import SecureFileValidator, FileSecurityError
+            from security.file_validator import FileSecurityError, SecureFileValidator
+
             file_list = SecureFileValidator.secure_listdir(directory, extensions=set(extensions))
             return sorted(file_list)
         except ImportError:
@@ -50,10 +49,7 @@ def find_image_files(
         return []
 
 
-def parse_filename(
-    filename: str,
-    pattern: Optional[str] = None
-) -> Optional[Tuple[str, int, str]]:
+def parse_filename(filename: str, pattern: Optional[str] = None) -> Optional[Tuple[str, int, str]]:
     """
     Parse filename (prefix, number, extension)
 
@@ -69,7 +65,7 @@ def parse_filename(
     """
     if pattern is None:
         # Default pattern: prefix + digits + extension
-        pattern = r'^(.+?)(\d+)\.([a-zA-Z]+)$'
+        pattern = r"^(.+?)(\d+)\.([a-zA-Z]+)$"
 
     match = re.match(pattern, filename)
     if match:
@@ -148,6 +144,7 @@ def clean_old_thumbnails(base_dir: str) -> bool:
         Success flag
     """
     import shutil
+
     from config.constants import THUMBNAIL_DIR_NAME
 
     thumb_dir = os.path.join(base_dir, THUMBNAIL_DIR_NAME)
@@ -196,7 +193,7 @@ def format_file_size(size_bytes: int) -> str:
     Returns:
         Formatted string (e.g., "1.5 GB")
     """
-    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
         if size_bytes < 1024.0:
             return f"{size_bytes:.2f} {unit}"
         size_bytes /= 1024.0

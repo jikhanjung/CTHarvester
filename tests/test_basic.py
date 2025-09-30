@@ -1,25 +1,29 @@
-import sys
 import os
-import tempfile
 import shutil
+import sys
+import tempfile
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 def test_import():
     """Test that the main module can be imported"""
     try:
         import CTHarvester
+
         assert True
     except ImportError:
         assert False, "Failed to import CTHarvester module"
 
+
 def test_requirements():
     """Test that required packages are installed"""
     required_packages = [
-        'PyQt5',
-        'PIL',
-        'numpy',
-        'scipy',
-        'mcubes'  # Package name is 'mcubes', not 'pymcubes'
+        "PyQt5",
+        "PIL",
+        "numpy",
+        "scipy",
+        "mcubes",  # Package name is 'mcubes', not 'pymcubes'
     ]
 
     for package in required_packages:
@@ -30,10 +34,12 @@ def test_requirements():
 
     assert True
 
+
 def test_security_module_basic():
     """Smoke test: Security validator basic functionality"""
-    from security.file_validator import SecureFileValidator, FileSecurityError
     import pytest
+
+    from security.file_validator import FileSecurityError, SecureFileValidator
 
     # Valid filename should pass
     try:
@@ -50,17 +56,19 @@ def test_security_module_basic():
     with pytest.raises(FileSecurityError):
         SecureFileValidator.validate_filename("safe.txt\x00.exe")
 
+
 def test_image_utils_basic():
     """Smoke test: Image utilities basic functionality"""
     try:
-        from PIL import Image
         import numpy as np
+        from PIL import Image
+
         from utils.image_utils import (
-            detect_bit_depth,
-            load_image_as_array,
-            downsample_image,
             average_images,
-            save_image_from_array
+            detect_bit_depth,
+            downsample_image,
+            load_image_as_array,
+            save_image_from_array,
         )
 
         # Create temporary test image
@@ -82,7 +90,10 @@ def test_image_utils_basic():
 
             # Test downsampling
             downsampled = downsample_image(loaded, factor=2)
-            assert downsampled.shape == (50, 50), f"Expected shape (50, 50), got {downsampled.shape}"
+            assert downsampled.shape == (
+                50,
+                50,
+            ), f"Expected shape (50, 50), got {downsampled.shape}"
 
             # Test averaging
             arr1 = np.ones((10, 10), dtype=np.uint8) * 100
@@ -104,6 +115,7 @@ def test_image_utils_basic():
     except ImportError:
         # PIL not available, skip test
         pass
+
 
 def test_progress_manager_basic():
     """Smoke test: Progress manager basic functionality"""
@@ -130,13 +142,14 @@ def test_progress_manager_basic():
     assert pm.total > 0, "Total should be set"
     assert 0 <= pm.current <= pm.total, f"Invalid current: {pm.current}"
 
+
 def test_file_utils_basic():
     """Smoke test: File utilities basic functionality"""
     from utils.file_utils import (
-        find_image_files,
-        parse_filename,
         create_thumbnail_directory,
-        format_file_size
+        find_image_files,
+        format_file_size,
+        parse_filename,
     )
 
     # Create temporary directory with test files
@@ -146,7 +159,7 @@ def test_file_utils_basic():
         test_files = ["image_0001.tif", "image_0002.tif", "image_0003.png"]
         for filename in test_files:
             filepath = os.path.join(temp_dir, filename)
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 f.write("test")
 
         # Test file discovery

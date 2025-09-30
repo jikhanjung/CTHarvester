@@ -4,11 +4,17 @@ Keyboard shortcuts help dialog
 Displays all available keyboard shortcuts organized by category.
 Created during Phase 1.5 UI/UX improvements.
 """
-from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QPushButton,
-    QScrollArea, QWidget, QGridLayout
-)
+
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QDialog,
+    QGridLayout,
+    QLabel,
+    QPushButton,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
+)
 
 from config.shortcuts import ShortcutManager
 
@@ -52,13 +58,15 @@ class ShortcutDialog(QDialog):
         for category, actions in categories.items():
             # Category header
             header = QLabel(category)
-            header.setStyleSheet("""
+            header.setStyleSheet(
+                """
                 font-weight: bold;
                 font-size: 13pt;
                 padding: 5px;
                 background-color: #e0e0e0;
                 border-radius: 3px;
-            """)
+            """
+            )
             content_layout.addWidget(header)
 
             # Grid for shortcuts in this category
@@ -73,7 +81,8 @@ class ShortcutDialog(QDialog):
 
                     # Key sequence (bold, monospace)
                     key_label = QLabel(shortcut.key)
-                    key_label.setStyleSheet("""
+                    key_label.setStyleSheet(
+                        """
                         font-family: monospace;
                         font-weight: bold;
                         font-size: 11pt;
@@ -81,7 +90,8 @@ class ShortcutDialog(QDialog):
                         background-color: #f5f5f5;
                         border: 1px solid #ccc;
                         border-radius: 3px;
-                    """)
+                    """
+                    )
                     key_label.setAlignment(Qt.AlignCenter)
                     key_label.setMinimumWidth(120)
 
@@ -103,7 +113,8 @@ class ShortcutDialog(QDialog):
         # Close button
         button_layout = QVBoxLayout()
         close_button = QPushButton("Close")
-        close_button.setStyleSheet("""
+        close_button.setStyleSheet(
+            """
             QPushButton {
                 font-size: 11pt;
                 padding: 8px 30px;
@@ -115,7 +126,8 @@ class ShortcutDialog(QDialog):
             QPushButton:hover {
                 background-color: #45a049;
             }
-        """)
+        """
+        )
         close_button.clicked.connect(self.accept)
         button_layout.addWidget(close_button, alignment=Qt.AlignCenter)
         main_layout.addLayout(button_layout)

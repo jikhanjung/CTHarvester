@@ -3,20 +3,18 @@ Unit tests for security/file_validator.py
 
 Tests file security validation, directory traversal prevention, and safe file operations.
 """
-import sys
+
 import os
-import tempfile
 import shutil
+import sys
+import tempfile
+
 import pytest
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from security.file_validator import (
-    SecureFileValidator,
-    FileSecurityError,
-    safe_open_image
-)
+from security.file_validator import FileSecurityError, SecureFileValidator, safe_open_image
 
 
 class TestValidateFilename:
@@ -64,7 +62,7 @@ class TestValidateFilename:
 
     def test_reject_windows_forbidden_chars(self):
         """Should reject Windows forbidden characters"""
-        forbidden_chars = ['<', '>', ':', '"', '|', '?', '*']
+        forbidden_chars = ["<", ">", ":", '"', "|", "?", "*"]
         for char in forbidden_chars:
             with pytest.raises(FileSecurityError):
                 SecureFileValidator.validate_filename(f"file{char}name.txt")
@@ -97,7 +95,7 @@ class TestValidateExtension:
             "image.jpeg",
             "image.png",
             "image.tif",
-            "image.tiff"
+            "image.tiff",
         ]
         for filename in valid_files:
             assert SecureFileValidator.validate_extension(filename) is True
@@ -110,13 +108,7 @@ class TestValidateExtension:
 
     def test_invalid_extensions(self):
         """Should reject invalid extensions"""
-        invalid_files = [
-            "file.txt",
-            "file.pdf",
-            "file.exe",
-            "file.sh",
-            "file.py"
-        ]
+        invalid_files = ["file.txt", "file.pdf", "file.exe", "file.sh", "file.py"]
         for filename in invalid_files:
             assert SecureFileValidator.validate_extension(filename) is False
 
@@ -132,7 +124,7 @@ class TestValidatePath:
         """Create temporary directory for testing"""
         self.temp_dir = tempfile.mkdtemp()
         self.test_file = os.path.join(self.temp_dir, "test.txt")
-        with open(self.test_file, 'w') as f:
+        with open(self.test_file, "w") as f:
             f.write("test content")
 
     def teardown_method(self):
@@ -164,7 +156,7 @@ class TestValidatePath:
         subdir = os.path.join(self.temp_dir, "subdir")
         os.makedirs(subdir, exist_ok=True)
         test_file = os.path.join(subdir, "file.txt")
-        with open(test_file, 'w') as f:
+        with open(test_file, "w") as f:
             f.write("test")
 
         # Path with redundant parts
@@ -227,12 +219,12 @@ class TestSecureListdir:
 
         for filename in self.image_files:
             filepath = os.path.join(self.temp_dir, filename)
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 f.write("test")
 
         for filename in self.other_files:
             filepath = os.path.join(self.temp_dir, filename)
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 f.write("test")
 
     def teardown_method(self):
@@ -249,10 +241,7 @@ class TestSecureListdir:
 
     def test_list_custom_extensions(self):
         """Should list files with custom extensions"""
-        result = SecureFileValidator.secure_listdir(
-            self.temp_dir,
-            extensions={'.txt', '.csv'}
-        )
+        result = SecureFileValidator.secure_listdir(self.temp_dir, extensions={".txt", ".csv"})
         assert len(result) == len(self.other_files)
         for filename in self.other_files:
             assert filename in result
@@ -260,7 +249,7 @@ class TestSecureListdir:
     def test_reject_non_directory(self):
         """Should reject non-directory paths"""
         test_file = os.path.join(self.temp_dir, "test.txt")
-        with open(test_file, 'w') as f:
+        with open(test_file, "w") as f:
             f.write("test")
 
         with pytest.raises(FileSecurityError):
@@ -285,7 +274,7 @@ class TestSecureListdir:
         # secure_listdir should catch FileSecurityError and continue
         dangerous_file = os.path.join(self.temp_dir, "../dangerous.tif")
         try:
-            with open(dangerous_file, 'w') as f:
+            with open(dangerous_file, "w") as f:
                 f.write("test")
         except:
             pass  # May fail to create, that's ok
@@ -308,7 +297,7 @@ class TestValidateNoSymlink:
         """Create temporary directory for testing"""
         self.temp_dir = tempfile.mkdtemp()
         self.real_file = os.path.join(self.temp_dir, "real_file.txt")
-        with open(self.real_file, 'w') as f:
+        with open(self.real_file, "w") as f:
             f.write("test")
 
     def teardown_method(self):
@@ -342,8 +331,8 @@ class TestSafeOpenImage:
 
         # Create a minimal test image using PIL
         try:
-            from PIL import Image
             import numpy as np
+            from PIL import Image
 
             # Create a small test image
             img_array = np.ones((10, 10), dtype=np.uint8) * 128
@@ -361,6 +350,7 @@ class TestSafeOpenImage:
     def test_open_valid_image(self):
         """Should open valid image file"""
         from PIL import Image
+
         img = safe_open_image(self.test_image, self.temp_dir)
         assert isinstance(img, Image.Image)
         img.close()
@@ -374,7 +364,7 @@ class TestSafeOpenImage:
         """Should reject invalid file extension"""
         # Create a file with invalid extension
         invalid_file = os.path.join(self.temp_dir, "test.txt")
-        with open(invalid_file, 'w') as f:
+        with open(invalid_file, "w") as f:
             f.write("not an image")
 
         with pytest.raises(FileSecurityError):

@@ -1,6 +1,7 @@
 """
 CTHarvester Global Constants
 """
+
 import logging
 import os
 
@@ -25,15 +26,15 @@ BUILD_YEAR = 2025
 PROGRAM_COPYRIGHT = f"© 2023-{BUILD_YEAR} Jikhan Jung"
 
 # Directory setup
-USER_PROFILE_DIRECTORY = os.path.expanduser('~')
+USER_PROFILE_DIRECTORY = os.path.expanduser("~")
 DEFAULT_DB_DIRECTORY = os.path.join(USER_PROFILE_DIRECTORY, COMPANY_NAME, PROGRAM_NAME)
 DEFAULT_STORAGE_DIRECTORY = os.path.join(DEFAULT_DB_DIRECTORY, "data/")
 DEFAULT_LOG_DIRECTORY = os.path.join(DEFAULT_DB_DIRECTORY, "logs/")
 DB_BACKUP_DIRECTORY = os.path.join(DEFAULT_DB_DIRECTORY, "backups/")
 
 # File Extensions
-SUPPORTED_IMAGE_EXTENSIONS = ('.bmp', '.jpg', '.jpeg', '.png', '.tif', '.tiff')
-SUPPORTED_EXPORT_FORMATS = ('.stl', '.ply', '.obj')
+SUPPORTED_IMAGE_EXTENSIONS = (".bmp", ".jpg", ".jpeg", ".png", ".tif", ".tiff")
+SUPPORTED_EXPORT_FORMATS = (".stl", ".ply", ".obj")
 THUMBNAIL_DIR_NAME = ".thumbnail"
 THUMBNAIL_EXTENSION = ".tif"
 

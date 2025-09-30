@@ -10,38 +10,41 @@ Tests the complete thumbnail generation process without GUI:
 
 These tests use real file I/O and image processing.
 """
-import sys
+
 import os
-import tempfile
 import shutil
-import pytest
+import sys
+import tempfile
+
 import numpy as np
+import pytest
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from PIL import Image
+
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
 
 if PIL_AVAILABLE:
     from utils.file_utils import (
-        find_image_files,
-        parse_filename,
-        create_thumbnail_directory,
-        get_thumbnail_path,
         clean_old_thumbnails,
-        format_file_size
+        create_thumbnail_directory,
+        find_image_files,
+        format_file_size,
+        get_thumbnail_path,
+        parse_filename,
     )
     from utils.image_utils import (
-        detect_bit_depth,
-        load_image_as_array,
-        downsample_image,
         average_images,
+        detect_bit_depth,
+        downsample_image,
+        get_image_dimensions,
+        load_image_as_array,
         save_image_from_array,
-        get_image_dimensions
     )
 
 
@@ -103,7 +106,7 @@ class TestThumbnailGenerationWorkflow:
             averaged = average_images(img1, img2)
 
             # Downsample by 2x
-            downsampled = downsample_image(averaged, factor=2, method='subsample')
+            downsampled = downsample_image(averaged, factor=2, method="subsample")
 
             # Save thumbnail
             thumb_path = get_thumbnail_path(self.output_dir, level=1, index=thumbnail_count)
@@ -180,7 +183,7 @@ class TestThumbnailGenerationWorkflow:
                 assert os.path.exists(thumb_path)
 
                 width, height = get_image_dimensions(thumb_path)
-                expected_size = 100 // (2 ** level)
+                expected_size = 100 // (2**level)
                 assert width == expected_size
                 assert height == expected_size
 
@@ -280,8 +283,8 @@ class TestThumbnailGenerationWorkflow:
         img = load_image_as_array(img_path)
 
         # Downsample with both methods
-        subsample = downsample_image(img, factor=2, method='subsample')
-        average = downsample_image(img, factor=2, method='average')
+        subsample = downsample_image(img, factor=2, method="subsample")
+        average = downsample_image(img, factor=2, method="average")
 
         # Both should be same size
         assert subsample.shape == average.shape

@@ -3,8 +3,9 @@ Common utility functions
 
 Centralized helper functions used across the application.
 """
-import sys
+
 import os
+import sys
 
 
 def resource_path(relative_path):
@@ -18,7 +19,7 @@ def resource_path(relative_path):
 
 def value_to_bool(value):
     """Convert string or any value to boolean."""
-    return value.lower() == 'true' if isinstance(value, str) else bool(value)
+    return value.lower() == "true" if isinstance(value, str) else bool(value)
 
 
 def ensure_directories(directories):
