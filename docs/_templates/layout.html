@@ -21,6 +21,7 @@
     color: #3498db;
     font-weight: 500;
     transition: color 0.2s;
+    cursor: pointer;
   }
   .language-switcher a:hover {
     color: #5dade2;
@@ -30,6 +31,7 @@
     color: #ecf0f1;
     font-weight: 600;
     cursor: default;
+    margin: 0 5px;
   }
   .language-switcher .separator {
     color: #7f8c8d;
@@ -41,30 +43,30 @@
 </style>
 <script>
   // Language switcher: preserve current page path when switching languages
-  document.addEventListener('DOMContentLoaded', function() {
-    var langLinks = document.querySelectorAll('.language-switcher a');
+  function switchLanguage(targetLang) {
     var currentPath = window.location.pathname;
+    var newPath;
 
-    langLinks.forEach(function(link) {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        var targetLang = this.getAttribute('data-lang');
-        var newPath;
+    // Get the page name (e.g., 'index.html', 'user_guide.html')
+    var pageName = currentPath.split('/').pop() || 'index.html';
 
-        // Replace language code in path
-        if (currentPath.includes('/en/')) {
-          newPath = currentPath.replace('/en/', '/' + targetLang + '/');
-        } else if (currentPath.includes('/ko/')) {
-          newPath = currentPath.replace('/ko/', '/' + targetLang + '/');
-        } else {
-          // Default: assume English, prepend language
-          newPath = currentPath.replace('/html/', '/html/' + targetLang + '/');
-        }
+    // Build new path based on build structure
+    if (currentPath.includes('/_build/html/')) {
+      // Local build: /_build/html/en/ or /_build/html/ko/
+      var basePath = currentPath.substring(0, currentPath.indexOf('/_build/html/') + 13);
+      newPath = basePath + '/' + targetLang + '/' + pageName;
+    } else if (currentPath.includes('/en/') || currentPath.includes('/ko/')) {
+      // Already has language code
+      newPath = currentPath.replace(/\/(en|ko)\//, '/' + targetLang + '/');
+    } else {
+      // Default: try to insert language before page name
+      var pathParts = currentPath.split('/');
+      pathParts.splice(-1, 0, targetLang);
+      newPath = pathParts.join('/');
+    }
 
-        window.location.href = newPath;
-      });
-    });
-  });
+    window.location.href = newPath;
+  }
 </script>
 {% endblock %}
 
@@ -72,9 +74,9 @@
 <div class="language-switcher">
   <span class="icon">🌐</span>
   {% if language == 'ko' %}
-    <a href="#" data-lang="en">English</a><span class="separator">|</span><span class="current">한국어</span>
+    <a onclick="switchLanguage('en')">English</a><span class="separator">|</span><span class="current">한국어</span>
   {% else %}
-    <span class="current">English</span><span class="separator">|</span><a href="#" data-lang="ko">한국어</a>
+    <span class="current">English</span><span class="separator">|</span><a onclick="switchLanguage('ko')">한국어</a>
   {% endif %}
 </div>
 {{ super() }}
