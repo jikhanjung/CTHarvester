@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.common import ensure_directories, resource_path, value_to_bool
 
 
+@pytest.mark.unit
 class TestResourcePath:
     """Tests for resource_path() function"""
 
@@ -47,6 +48,7 @@ class TestResourcePath:
         assert "file with spaces.txt" in result
 
 
+@pytest.mark.unit
 class TestValueToBool:
     """Tests for value_to_bool() function"""
 
@@ -117,6 +119,7 @@ class TestValueToBool:
         assert value_to_bool({"key": "value"}) is True
 
 
+@pytest.mark.unit
 class TestEnsureDirectories:
     """Tests for ensure_directories() function"""
 
@@ -199,6 +202,7 @@ class TestEnsureDirectories:
         )  # May not print if path creation succeeds
 
 
+@pytest.mark.integration
 class TestIntegration:
     """Integration tests combining multiple functions"""
 

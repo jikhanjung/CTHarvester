@@ -16,6 +16,7 @@ from core.file_handler import FileHandler
 from security.file_validator import FileSecurityError
 
 
+@pytest.mark.integration
 class TestFileHandler:
     """Test suite for FileHandler"""
 
@@ -326,6 +327,7 @@ class TestFileHandler:
             shutil.rmtree(temp_dir)
 
 
+@pytest.mark.integration
 class TestFileHandlerEdgeCases:
     """Edge case tests for FileHandler"""
 

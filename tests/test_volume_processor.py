@@ -10,6 +10,7 @@ import pytest
 from core.volume_processor import VolumeProcessor
 
 
+@pytest.mark.unit
 class TestVolumeProcessor:
     """Test suite for VolumeProcessor"""
 
@@ -328,6 +329,7 @@ class TestVolumeProcessor:
         assert scaled == expected
 
 
+@pytest.mark.unit
 class TestVolumeProcessorEdgeCases:
     """Edge case tests for VolumeProcessor"""
 
@@ -440,6 +442,7 @@ class TestVolumeProcessorEdgeCases:
         assert all(s > 10000 for s in scaled_up)
 
 
+@pytest.mark.unit
 class TestVolumeProcessorCropBoundary:
     """Test suite for crop boundary conditions (off-by-one fix verification)"""
 

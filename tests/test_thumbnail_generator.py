@@ -15,6 +15,7 @@ from PIL import Image
 from core.thumbnail_generator import ThumbnailGenerator
 
 
+@pytest.mark.integration
 class TestThumbnailGenerator:
     """Test suite for ThumbnailGenerator"""
 
@@ -290,6 +291,7 @@ class TestThumbnailGenerator:
         assert 'success' in result_python
 
 
+@pytest.mark.integration
 class TestThumbnailGeneratorIntegration:
     """Integration tests for thumbnail generation workflow"""
 

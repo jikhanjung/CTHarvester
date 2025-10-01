@@ -25,6 +25,7 @@ from utils.file_utils import (
 )
 
 
+@pytest.mark.unit
 class TestFindImageFiles:
     """Tests for find_image_files()"""
 
@@ -106,6 +107,7 @@ class TestFindImageFiles:
         assert len(result) == len(self.image_files)
 
 
+@pytest.mark.unit
 class TestParseFilename:
     """Tests for parse_filename()"""
 
@@ -170,6 +172,7 @@ class TestParseFilename:
         assert result is None
 
 
+@pytest.mark.unit
 class TestCreateThumbnailDirectory:
     """Tests for create_thumbnail_directory()"""
 
@@ -221,6 +224,7 @@ class TestCreateThumbnailDirectory:
             create_thumbnail_directory("/root/nopermission", level=1)
 
 
+@pytest.mark.unit
 class TestGetThumbnailPath:
     """Tests for get_thumbnail_path()"""
 
@@ -258,6 +262,7 @@ class TestGetThumbnailPath:
             assert expected_filename in result
 
 
+@pytest.mark.unit
 class TestCleanOldThumbnails:
     """Tests for clean_old_thumbnails()"""
 
@@ -325,6 +330,7 @@ class TestCleanOldThumbnails:
             pass
 
 
+@pytest.mark.unit
 class TestGetDirectorySize:
     """Tests for get_directory_size()"""
 
@@ -397,6 +403,7 @@ class TestGetDirectorySize:
         assert result >= 4  # At least the "test" content
 
 
+@pytest.mark.unit
 class TestFormatFileSize:
     """Tests for format_file_size()"""
 

@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from security.file_validator import FileSecurityError, SecureFileValidator, safe_open_image
 
 
+@pytest.mark.integration
 class TestValidateFilename:
     """Tests for SecureFileValidator.validate_filename()"""
 
@@ -84,6 +85,7 @@ class TestValidateFilename:
         assert result == "file.txt"
 
 
+@pytest.mark.integration
 class TestValidateExtension:
     """Tests for SecureFileValidator.validate_extension()"""
 
@@ -117,6 +119,7 @@ class TestValidateExtension:
         assert SecureFileValidator.validate_extension("filename") is False
 
 
+@pytest.mark.integration
 class TestValidatePath:
     """Tests for SecureFileValidator.validate_path()"""
 
@@ -175,6 +178,7 @@ class TestValidatePath:
             SecureFileValidator.validate_path("D:\\file.tif", "C:\\base")
 
 
+@pytest.mark.integration
 class TestSafeJoin:
     """Tests for SecureFileValidator.safe_join()"""
 
@@ -206,6 +210,7 @@ class TestSafeJoin:
         assert "file.txt" in result
 
 
+@pytest.mark.integration
 class TestSecureListdir:
     """Tests for SecureFileValidator.secure_listdir()"""
 
@@ -290,6 +295,7 @@ class TestSecureListdir:
             SecureFileValidator.secure_listdir("/nonexistent/directory/path")
 
 
+@pytest.mark.integration
 class TestValidateNoSymlink:
     """Tests for SecureFileValidator.validate_no_symlink()"""
 
@@ -322,6 +328,7 @@ class TestValidateNoSymlink:
             pytest.skip("Cannot create symlink (permission denied)")
 
 
+@pytest.mark.integration
 class TestSafeOpenImage:
     """Tests for safe_open_image() function"""
 
