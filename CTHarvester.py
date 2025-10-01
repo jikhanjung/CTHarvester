@@ -44,7 +44,7 @@ def main():
     app.setOrganizationDomain("github.com/jikhanjung")
 
     # Set application icon
-    app.setWindowIcon(QIcon(resource_path("icon.png")))
+    app.setWindowIcon(QIcon(resource_path("resources/icons/icon.png")))
 
     # Initialize application attributes (no longer using QSettings)
     # Settings are now managed by SettingsManager (YAML-based)

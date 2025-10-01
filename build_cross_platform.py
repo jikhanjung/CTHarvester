@@ -75,11 +75,11 @@ def get_icon_path(platform_name):
         str: Path to icon file
     """
     if platform_name == 'windows':
-        return 'CTHarvester_64.png'  # PyInstaller will convert to .ico
+        return 'resources/icons/CTHarvester_64.png'  # PyInstaller will convert to .ico
     elif platform_name == 'macos':
-        return 'CTHarvester_64.png'  # PyInstaller will convert to .icns
+        return 'resources/icons/CTHarvester_64.png'  # PyInstaller will convert to .icns
     else:  # linux
-        return 'CTHarvester_64.png'
+        return 'resources/icons/CTHarvester_64.png'
 
 
 def build_executable(platform_name):
@@ -104,8 +104,8 @@ def build_executable(platform_name):
 
     # Add data files
     data_files = [
-        ('*.png', '.'),
-        ('*.qm', '.'),
+        ('resources/icons/*.png', 'resources/icons'),
+        ('resources/translations/*.qm', 'resources/translations'),
         ('config/settings.yaml', 'config'),
     ]
 

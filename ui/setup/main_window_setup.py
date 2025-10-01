@@ -253,7 +253,7 @@ class MainWindowSetup:
         self.window.btnPreferences.setToolTip("Settings (Advanced)")
 
         # Info button
-        self.window.btnInfo = QPushButton(QIcon(resource_path("info.png")), "")
+        self.window.btnInfo = QPushButton(QIcon(resource_path("resources/icons/info.png")), "")
         self.window.btnInfo.clicked.connect(self.window.show_info)
 
         # Layout

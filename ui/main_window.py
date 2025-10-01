@@ -68,7 +68,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.m_app = QApplication.instance()
 
         # Window configuration
-        self.setWindowIcon(QIcon(resource_path("CTHarvester_48_2.png")))
+        self.setWindowIcon(QIcon(resource_path("resources/icons/CTHarvester_48_2.png")))
         self.setWindowTitle("{} v{}".format(self.tr("CT Harvester"), PROGRAM_VERSION))
         self.setGeometry(QRect(100, 100, 600, 550))
 
@@ -154,7 +154,7 @@ class CTHarvesterMainWindow(QMainWindow):
         Loads translation file and updates all translatable UI strings.
         """
         translator = QTranslator()
-        translator.load(f"CTHarvester_{self.m_app.language}.qm")
+        translator.load(resource_path(f"resources/translations/CTHarvester_{self.m_app.language}.qm"))
         self.m_app.installTranslator(translator)
 
         self.setWindowTitle(f"{self.tr(PROGRAM_NAME)} v{PROGRAM_VERSION}")
@@ -1208,7 +1208,7 @@ if __name__ == "__main__":
     # logger.info(f"Starting {PROGRAM_NAME} v{PROGRAM_VERSION}")
     app = QApplication(sys.argv)
 
-    app.setWindowIcon(QIcon(resource_path("CTHarvester_48_2.png")))
+    app.setWindowIcon(QIcon(resource_path("resources/icons/CTHarvester_48_2.png")))
 
     # Initialize YAML settings manager (no longer using QSettings)
     settings_manager = SettingsManager()
@@ -1228,7 +1228,7 @@ if __name__ == "__main__":
     lang_code = settings_manager.get("application.language", "auto")
     lang_map = {"auto": "en", "en": "en", "ko": "ko"}
     app.language = lang_map.get(lang_code, "en")
-    translator.load(resource_path(f"CTHarvester_{app.language}.qm"))
+    translator.load(resource_path(f"resources/translations/CTHarvester_{app.language}.qm"))
     app.installTranslator(translator)
 
     # Create instance of CTHarvesterMainWindow

@@ -323,7 +323,7 @@ class ProgressDialog(QDialog):
 
     def update_language(self):
         translator = QTranslator()
-        translator.load(resource_path("CTHarvester_{}.qm").format(self.m_app.language))
+        translator.load(resource_path("resources/translations/CTHarvester_{}.qm").format(self.m_app.language))
         self.m_app.installTranslator(translator)
 
         self.setWindowTitle(self.tr("CTHarvester - Progress Dialog"))
