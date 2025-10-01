@@ -10,20 +10,20 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    
+
     strategy:
       matrix:
         python-version: [3.12, 3.13]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    
+
     - name: Install system dependencies
       run: |
         sudo apt-get update
@@ -46,7 +46,7 @@ jobs:
           libglut-dev \
           libglut3.12 \
           python3-opengl
-    
+
     - name: Cache pip dependencies
       uses: actions/cache@v4
       with:
@@ -54,7 +54,7 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-    
+
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
@@ -106,7 +106,7 @@ jobs:
           exit 0
         fi
       continue-on-error: true
-    
+
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
@@ -128,17 +128,20 @@ jobs:
 
     - name: Generate test summary
       if: always()
+      shell: bash
       run: |
         echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         # Extract test counts from output
         if [ -f test_output.log ]; then
-          PASSED=$(grep -o "[0-9]* passed" test_output.log | head -1 | grep -o "[0-9]*")
+          PASSED=$(grep -o "[0-9]* passed" test_output.log | head -1 | grep -o "[0-9]*" || echo "0")
           FAILED=$(grep -o "[0-9]* failed" test_output.log | head -1 | grep -o "[0-9]*" || echo "0")
           SKIPPED=$(grep -o "[0-9]* skipped" test_output.log | head -1 | grep -o "[0-9]*" || echo "0")
 
-          echo "✅ **Passed**: $PASSED" >> $GITHUB_STEP_SUMMARY
+          if [ "$PASSED" != "0" ]; then
+            echo "✅ **Passed**: $PASSED" >> $GITHUB_STEP_SUMMARY
+          fi
           if [ "$FAILED" != "0" ]; then
             echo "❌ **Failed**: $FAILED" >> $GITHUB_STEP_SUMMARY
           fi
@@ -151,4 +154,6 @@ jobs:
           echo "- Unit Tests: Core utilities, workers, image processing" >> $GITHUB_STEP_SUMMARY
           echo "- Integration Tests: Thumbnail generation workflows" >> $GITHUB_STEP_SUMMARY
           echo "- Security Tests: File validation and path traversal prevention" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ Test output log not found" >> $GITHUB_STEP_SUMMARY
         fi
