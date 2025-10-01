@@ -288,15 +288,20 @@ Import/Export Settings
 Keyboard Shortcuts
 ------------------
 
+File Operations
+~~~~~~~~~~~~~~~
+
+* ``Ctrl+O``: Open directory
+* ``F5``: Reload current directory
+* ``Ctrl+S``: Save cropped images
+* ``Ctrl+E``: Export 3D mesh
+* ``Ctrl+Q``: Quit application
+
 Navigation
 ~~~~~~~~~~
 
-* ``Ctrl+O``: Open directory
-* ``Ctrl+S``: Save cropped stack
-* ``Ctrl+E``: Export 3D model
-* ``Ctrl+R``: Reset crop/ROI
-* ``Up/Down``: Navigate slices
-* ``Page Up/Down``: Jump 10 slices
+* ``Left/Right``: Previous/Next slice
+* ``Ctrl+Left/Right``: Jump backward/forward 10 slices
 * ``Home/End``: First/Last slice
 
 View
@@ -304,16 +309,28 @@ View
 
 * ``Ctrl++``: Zoom in
 * ``Ctrl+-``: Zoom out
-* ``Ctrl+0``: Reset zoom
-* ``F11``: Full screen
-* ``Ctrl+H``: Toggle help
+* ``Ctrl+0``: Fit to window
+* ``F3``: Toggle 3D view
 
-Tools
-~~~~~
+Crop Region (ROI)
+~~~~~~~~~~~~~~~~~
+
+* ``B``: Set bottom boundary (lower bound)
+* ``T``: Set top boundary (upper bound)
+* ``Ctrl+R``: Reset crop region
+
+Threshold Adjustment
+~~~~~~~~~~~~~~~~~~~~
+
+* ``Up/Down``: Increase/Decrease threshold
+
+Tools & Settings
+~~~~~~~~~~~~~~~~
 
 * ``Ctrl+T``: Generate thumbnails
-* ``Ctrl+,``: Open settings
-* ``F1``: Show help/about
+* ``Ctrl+,``: Open preferences
+* ``F1``: Show keyboard shortcuts help
+* ``Ctrl+I``: About CTHarvester
 
 Troubleshooting
 ---------------

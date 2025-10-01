@@ -11,8 +11,8 @@ sys.path.insert(0, os.path.abspath('..'))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'CTHarvester'
-copyright = '2025, CTHarvester Contributors'
-author = 'CTHarvester Contributors'
+copyright = '2023-2025, Jikhan Jung'
+author = 'Jikhan Jung'
 release = '0.2.3'
 
 # -- General configuration ---------------------------------------------------

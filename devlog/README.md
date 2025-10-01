@@ -4,6 +4,7 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Recent Sessions (October 2025)
 
+- [058](20251001_058_documentation_polish.md) - 문서 정리: Copyright, 설치 가이드, 키보드 단축키 수정
 - [057](20251001_057_documentation_and_resource_organization.md) - 문서 개선 및 리소스 파일 구조화
 - [056](20251001_056_thumbnail_api_improvements.md) - Thumbnail API 개선 - Rust/Python 통합 및 사용자 설정 존중
 - [055](20251001_055_comprehensive_plan_implementation.md) - 포괄적 개선 계획 구현 완료 (Issues 1-12 전체)
@@ -66,6 +67,7 @@ Chronological index of all development sessions for CTHarvester.
 - [002](20250806_002_github_actions_and_version_management.md) - GitHub Actions CI/CD 설정
 
 ### Documentation & Retrospectives
+- [058](20251001_058_documentation_polish.md) - 문서 정리 및 수정
 - [057](20251001_057_documentation_and_resource_organization.md) - 문서 개선 및 리소스 구조화
 - [034](20250930_034_the_captive_developer_v2.md) - The Captive Developer (v2)
 - [033](20250930_033_the_captive_developer.md) - The Captive Developer
@@ -168,12 +170,13 @@ Chronological index of all development sessions for CTHarvester.
 - [055](20251001_055_comprehensive_plan_implementation.md) - 포괄적 개선 계획 구현 완료 (Issues 1-12 전체)
 - [056](20251001_056_thumbnail_api_improvements.md) - Thumbnail API 개선 - Rust/Python 통합 및 사용자 설정 존중
 - [057](20251001_057_documentation_and_resource_organization.md) - 문서 개선 및 리소스 파일 구조화
+- [058](20251001_058_documentation_polish.md) - 문서 정리: Copyright, 설치 가이드, 키보드 단축키 수정
 
 ---
 
 ## Statistics
 
-- **Total Sessions**: 57
+- **Total Sessions**: 58
 - **Date Range**: August 6, 2025 - October 1, 2025
 - **Key Achievements**:
   - Complete Phase 1-4 refactoring

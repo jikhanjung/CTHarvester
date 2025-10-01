@@ -17,7 +17,7 @@ System Requirements
 * Disk Space: 500MB for application + space for CT data
 * Display: 1280x720 minimum resolution
 
-**Software:**
+**Software (for source installation only):**
 
 * Python 3.11 or later
 * PyQt5
@@ -30,8 +30,48 @@ System Requirements
 Installation Methods
 --------------------
 
-Method 1: From Source (Recommended)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Method 1: Binary Installation (Recommended)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Download the pre-built binary from the releases page:
+
+**Windows:**
+
+1. Visit https://github.com/jikhanjung/CTHarvester/releases
+2. Download the latest ``CTHarvester-windows.zip``
+3. Extract the ZIP file to a folder
+4. Run the ``CTHarvester_vX.X.X_Installer.exe`` inside the extracted folder
+5. Follow the installation wizard
+6. Launch CTHarvester from the Start Menu or Desktop shortcut
+
+**macOS:**
+
+1. Visit https://github.com/jikhanjung/CTHarvester/releases
+2. Download the latest ``CTHarvester-macos.dmg``
+3. Open the DMG file
+4. Drag CTHarvester.app to your Applications folder
+5. Launch CTHarvester from Applications
+
+**Linux:**
+
+1. Visit https://github.com/jikhanjung/CTHarvester/releases
+2. Download the latest ``CTHarvester-linux.AppImage``
+3. Make it executable:
+
+   .. code-block:: bash
+
+      chmod +x CTHarvester-linux.AppImage
+
+4. Run the AppImage:
+
+   .. code-block:: bash
+
+      ./CTHarvester-linux.AppImage
+
+   Or double-click the file in your file manager.
+
+Method 2: From Source
+~~~~~~~~~~~~~~~~~~~~~
 
 1. **Clone the repository:**
 
@@ -87,25 +127,14 @@ Method 1: From Source (Recommended)
 
       python CTHarvester.py
 
-Method 2: Using pip (if published to PyPI)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: bash
-
-   pip install ctharvester
-
-Method 3: Binary Installation (Windows/macOS)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Download the pre-built binary from the releases page:
-
-1. Visit https://github.com/yourusername/CTHarvester/releases
-2. Download the appropriate binary for your platform
-3. Extract the archive
-4. Run CTHarvester.exe (Windows) or CTHarvester.app (macOS)
-
 Verifying Installation
 -----------------------
+
+**Binary Installation:**
+
+Launch CTHarvester from your application menu or desktop shortcut. The application should start and display the main window.
+
+**Source Installation:**
 
 To verify that CTHarvester is installed correctly:
 
@@ -117,7 +146,7 @@ You should see output like:
 
 .. code-block:: text
 
-   CTHarvester v0.2.3-beta.1
+   CTHarvester v0.2.3
 
 Troubleshooting
 ---------------
@@ -169,7 +198,14 @@ Updating
 
 To update CTHarvester to the latest version:
 
-**From Source:**
+**Binary Installation:**
+
+1. Download the latest version from the releases page
+2. Windows: Run the new installer, it will update the existing installation
+3. macOS: Replace the old CTHarvester.app with the new one
+4. Linux: Replace the old AppImage with the new one
+
+**Source Installation:**
 
 .. code-block:: bash
 
@@ -177,25 +213,23 @@ To update CTHarvester to the latest version:
    git pull origin main
    pip install -r requirements.txt --upgrade
 
-**From pip:**
-
-.. code-block:: bash
-
-   pip install --upgrade ctharvester
-
 Uninstallation
 --------------
 
-**From Source:**
+**Binary Installation:**
+
+* **Windows**: Use "Add or Remove Programs" in Windows Settings, or run the uninstaller from the installation directory
+* **macOS**: Drag CTHarvester.app to Trash
+* **Linux**: Delete the AppImage file
+
+**Source Installation:**
 
 1. Delete the CTHarvester directory
-2. Remove configuration files:
+2. Deactivate and remove the virtual environment
 
-   * Windows: Delete ``%APPDATA%\\CTHarvester``
-   * Linux/macOS: Delete ``~/.config/CTHarvester``
+**Configuration Files (all methods):**
 
-**From pip:**
+To completely remove CTHarvester, also delete configuration files:
 
-.. code-block:: bash
-
-   pip uninstall ctharvester
+* Windows: Delete ``%APPDATA%\\CTHarvester``
+* Linux/macOS: Delete ``~/.config/CTHarvester``

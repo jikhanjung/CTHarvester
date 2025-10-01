@@ -103,11 +103,13 @@ Basic Usage
 
 **Keyboard Shortcuts**:
 
-- ``L`` - Set lower bound to current slice
-- ``U`` - Set upper bound to current slice
-- ``R`` - Reset ROI selection
-- ``↑/↓`` - Navigate slices
+- ``B`` - Set bottom boundary (lower bound)
+- ``T`` - Set top boundary (upper bound)
+- ``Ctrl+R`` - Reset ROI selection
+- ``Left/Right`` - Navigate slices
+- ``Up/Down`` - Adjust threshold
 - ``Home/End`` - Jump to first/last slice
+- ``Ctrl+Left/Right`` - Jump 10 slices backward/forward
 
 For more detailed instructions, see the :doc:`user_guide`.
 
