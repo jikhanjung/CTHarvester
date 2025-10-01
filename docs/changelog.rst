@@ -9,7 +9,42 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 [Unreleased]
 ------------
 
-[1.0.0] - 2025-09-30
+[0.2.3-beta.1] - 2025-10-01
+---------------------------
+
+Added
+~~~~~
+
+* Python thumbnail generation fallback when Rust module unavailable
+* Comprehensive progress tracking with accurate ETA calculation
+* Settings persistence for Rust module preference
+
+Fixed
+~~~~~
+
+* Python thumbnail generation progress calculation (now shows correct 88% at Level 1 completion)
+* Settings not persisting when "Use Rust module" checkbox changed
+* AttributeErrors in Python thumbnail generation
+* Progress bar showing incorrect percentages
+
+Changed
+~~~~~~~
+
+* Simplified progress tracking architecture (removed callback-based approach)
+* Weight calculation now reflects actual data volume ratio (64:8:1)
+* Direct signal-based progress updates via ProgressManager
+
+[0.2.3-alpha.1] - 2025-09-27
+-----------------------------
+
+Added
+~~~~~
+
+* Multi-level LoD pyramid thumbnail generation
+* Rust-based high-performance thumbnail module
+* Comprehensive testing infrastructure
+
+[0.2.2] - 2025-09-08
 --------------------
 
 Added
@@ -85,7 +120,7 @@ Performance
 * Optimized progress tracking with moving averages
 * Non-blocking UI operations
 
-[0.9.0] - 2025-09-15
+[0.2.1] - 2025-09-08
 --------------------
 
 Added
@@ -97,7 +132,7 @@ Added
 * 3D visualization with Marching Cubes
 * Image stack cropping and export
 
-[0.8.0] - 2025-09-01
+[0.2.0] - 2025-09-06
 --------------------
 
 Added

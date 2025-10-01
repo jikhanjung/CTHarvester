@@ -106,7 +106,7 @@ You should see output like:
 
 .. code-block:: text
 
-   CTHarvester v1.0.0
+   CTHarvester v0.2.3-beta.1
 
 Troubleshooting
 ---------------
