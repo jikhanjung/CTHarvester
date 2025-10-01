@@ -167,28 +167,39 @@ class ThumbnailGenerator:
         return total_work
 
     def generate(
-        self, directory, use_rust_preference=True, progress_callback=None, cancel_check=None
+        self,
+        directory,
+        settings,
+        threadpool,
+        use_rust_preference=True,
+        progress_dialog=None
     ):
         """Generate thumbnails using best available method
 
         Args:
             directory (str): Directory containing CT images
+            settings (dict): Settings hash containing image parameters
+            threadpool (QThreadPool): Qt thread pool for parallel processing
             use_rust_preference (bool): Prefer Rust module if available
-            progress_callback (callable): Callback for progress updates progress_callback(percentage)
-            cancel_check (callable): Function to check if cancelled, returns bool
+            progress_dialog (ProgressDialog, optional): Progress dialog for UI updates
 
         Returns:
-            bool: True if successful, False if cancelled or failed
+            dict or None: Result dictionary containing success status, data, and error info.
+                For Python: {'success': bool, 'cancelled': bool, 'minimum_volume': np.ndarray,
+                            'level_info': list, 'elapsed_time': float, 'error': str (optional)}
+                For Rust: bool (True if successful, False otherwise)
         """
         # Determine which method to use
         use_rust = self.rust_available and use_rust_preference
 
         if use_rust:
             logger.info("Using Rust-based thumbnail generation")
-            return self.generate_rust(directory, progress_callback, cancel_check)
+            # Note: Rust path still uses legacy callback-based approach
+            # This needs updating in a future PR to match Python implementation
+            return self.generate_rust(directory, None, None)
         else:
             logger.info("Using Python-based thumbnail generation")
-            return self.generate_python(directory, progress_callback, cancel_check)
+            return self.generate_python(directory, settings, threadpool, progress_dialog)
 
     def generate_rust(self, directory, progress_callback=None, cancel_check=None):
         """Generate thumbnails using Rust module
@@ -491,7 +502,9 @@ class ThumbnailGenerator:
                     threadpool,
                     shared_progress_manager
                 )
-                logger.info(f"ThumbnailManager created, starting process_level")
+                # Set sample_size for progress sampling
+                thumbnail_manager.sample_size = sample_size
+                logger.info(f"ThumbnailManager created with sample_size={sample_size}, starting process_level")
 
                 # Process this level
                 process_start = time.time()
@@ -622,6 +635,7 @@ class ThumbnailGenerator:
                 'level_info': [],
                 'success': False,
                 'cancelled': False,
+                'error': str(e),
                 'elapsed_time': time.time() - thumbnail_start_time if 'thumbnail_start_time' in locals() else 0
             }
 

@@ -874,51 +874,79 @@ class CTHarvesterMainWindow(QMainWindow):
                     self.progress_dialog.lbl_detail.setText("")
                     self.progress_dialog.close()
                     self.progress_dialog = None
+                QMessageBox.critical(
+                    self,
+                    self.tr("Thumbnail Generation Failed"),
+                    self.tr("An unknown error occurred during thumbnail generation.")
+                )
                 return
 
-            # Update instance state from result
-            if result.get('success') and not result.get('cancelled'):
-                # Store minimum_volume and level_info from result
-                self.minimum_volume = result.get('minimum_volume', [])
-                self.level_info = result.get('level_info', [])
-
-                # Show completion message
-                if self.progress_dialog:
-                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
-                    self.progress_dialog.lbl_detail.setText("")
-            elif result.get('cancelled'):
-                # Show cancellation message
+            # Handle cancellation
+            if result.get('cancelled'):
+                logger.info("Thumbnail generation cancelled by user")
                 if self.progress_dialog:
                     self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation cancelled"))
                     self.progress_dialog.lbl_detail.setText("")
+                    self.progress_dialog.close()
+                    self.progress_dialog = None
+                QMessageBox.information(
+                    self,
+                    self.tr("Thumbnail Generation Cancelled"),
+                    self.tr("Thumbnail generation was cancelled by user.")
+                )
+                return
+
+            # Handle generation failure (not cancelled, but success=False)
+            if not result.get('success'):
+                error_msg = result.get('error', 'Thumbnail generation failed')
+                logger.error(f"Thumbnail generation failed: {error_msg}")
+                if self.progress_dialog:
+                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation failed"))
+                    self.progress_dialog.lbl_detail.setText("")
+                    self.progress_dialog.close()
+                    self.progress_dialog = None
+                QMessageBox.critical(
+                    self,
+                    self.tr("Thumbnail Generation Failed"),
+                    self.tr("Thumbnail generation failed:\n\n{}").format(error_msg)
+                )
+                return
+
+            # Update instance state from result (only if successful)
+            self.minimum_volume = result.get('minimum_volume', [])
+            self.level_info = result.get('level_info', [])
+
+            # Show completion message
+            if self.progress_dialog:
+                self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
+                self.progress_dialog.lbl_detail.setText("")
 
             # Close progress dialog
             if self.progress_dialog:
                 self.progress_dialog.close()
                 self.progress_dialog = None
 
-            # Only proceed with UI updates if not cancelled
-            if not result.get('cancelled'):
-                # Load thumbnail data from disk (same as Rust does)
-                self.load_thumbnail_data_from_disk()
+            # Proceed with UI updates (only if successful)
+            # Load thumbnail data from disk (same as Rust does)
+            self.load_thumbnail_data_from_disk()
 
-                # If loading from disk failed and minimum_volume is still empty
-                if self.minimum_volume is None or (hasattr(self.minimum_volume, '__len__') and len(self.minimum_volume) == 0):
-                    logger.warning("Failed to load thumbnails from disk after Python generation")
+            # If loading from disk failed and minimum_volume is still empty
+            if self.minimum_volume is None or (hasattr(self.minimum_volume, '__len__') and len(self.minimum_volume) == 0):
+                logger.warning("Failed to load thumbnails from disk after Python generation")
 
-                # Initialize UI components
-                self.initializeComboSize()
-                self.reset_crop()
+            # Initialize UI components
+            self.initializeComboSize()
+            self.reset_crop()
 
-                # Trigger initial display by setting combo index if items exist
-                if self.comboLevel.count() > 0:
-                    self.comboLevel.setCurrentIndex(0)
-                    # If comboLevelIndexChanged doesn't trigger, call it manually
-                    if not self.initialized:
-                        self.comboLevelIndexChanged()
+            # Trigger initial display by setting combo index if items exist
+            if self.comboLevel.count() > 0:
+                self.comboLevel.setCurrentIndex(0)
+                # If comboLevelIndexChanged doesn't trigger, call it manually
+                if not self.initialized:
+                    self.comboLevelIndexChanged()
 
-                    # Update 3D view after initializing combo level
-                    self.update_3D_view(False)
+                # Update 3D view after initializing combo level
+                self.update_3D_view(False)
 
         except Exception as e:
             # Handle unexpected errors

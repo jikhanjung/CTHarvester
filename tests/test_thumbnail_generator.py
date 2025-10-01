@@ -263,27 +263,31 @@ class TestThumbnailGenerator:
         # Create thread pool
         threadpool = QThreadPool()
 
-        # Test with Rust preference
-        if generator.rust_available:
-            # Should attempt Rust (may fail if not properly set up, that's ok)
-            # Note: Rust uses different API, so we test it separately
-            result = generator.generate_rust(temp_image_dir)
-            # Result may be True or False depending on Rust module setup
-            assert isinstance(result, bool)
-        else:
-            # Should use Python fallback
-            result = generator.generate_python(
-                directory=temp_image_dir,
-                settings=settings,
-                threadpool=threadpool,
-                progress_dialog=progress_dialog
-            )
-            # Python returns a result dictionary
-            assert isinstance(result, dict)
-            assert 'success' in result
-            assert 'cancelled' in result
-            assert 'minimum_volume' in result
-            assert 'level_info' in result
+        # Test generate() method with new API
+        result = generator.generate(
+            directory=temp_image_dir,
+            settings=settings,
+            threadpool=threadpool,
+            use_rust_preference=False,  # Force Python path for testing
+            progress_dialog=progress_dialog
+        )
+
+        # Python returns a result dictionary
+        assert isinstance(result, dict)
+        assert 'success' in result
+        assert 'cancelled' in result
+        assert 'minimum_volume' in result
+        assert 'level_info' in result
+
+        # Test direct Python call still works
+        result_python = generator.generate_python(
+            directory=temp_image_dir,
+            settings=settings,
+            threadpool=threadpool,
+            progress_dialog=progress_dialog
+        )
+        assert isinstance(result_python, dict)
+        assert 'success' in result_python
 
 
 class TestThumbnailGeneratorIntegration:

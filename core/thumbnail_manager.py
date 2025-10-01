@@ -126,21 +126,29 @@ class ThumbnailManager(QObject):
         self.loaded_count = 0  # Number of thumbnails loaded from disk
 
         # Get sample_size from parent if it exists (for first level sampling)
-        self.sample_size = getattr(parent, "sample_size", 0)
+        # If parent is None, try to get from settings
+        if hasattr(parent, "sample_size"):
+            self.sample_size = parent.sample_size
+        elif parent is None:
+            # When called from ThumbnailGenerator with parent=None,
+            # sample_size will be set after construction
+            self.sample_size = 0
+        else:
+            # Fallback: try to read from settings
+            try:
+                from utils.settings_manager import SettingsManager
+                settings = SettingsManager()
+                self.sample_size = settings.get('thumbnails.sample_size', 20)
+            except Exception:
+                self.sample_size = 20  # Default value
 
         # Inherit performance data from parent if exists (from previous levels)
         if hasattr(parent, "measured_images_per_second"):
             self.images_per_second = parent.measured_images_per_second
-            import logging
-
-            logger = logging.getLogger("CTHarvester")
             logger.info(
                 f"ThumbnailManager created: sample_size={self.sample_size}, inherited speed={self.images_per_second:.1f} img/s"
             )
         else:
-            import logging
-
-            logger = logging.getLogger("CTHarvester")
             logger.info(
                 f"ThumbnailManager created: sample_size={self.sample_size}, no inherited speed"
             )
