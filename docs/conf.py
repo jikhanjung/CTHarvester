@@ -5,35 +5,36 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
+
+sys.path.insert(0, os.path.abspath(".."))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'CTHarvester'
-copyright = '2023-2025, Jikhan Jung'
-author = 'Jikhan Jung'
-release = '0.2.3'
+project = "CTHarvester"
+copyright = "2023-2025, Jikhan Jung"
+author = "Jikhan Jung"
+release = "0.2.3"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
-    'sphinx.ext.coverage',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    "sphinx.ext.coverage",
 ]
 
-templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+templates_path = ["_templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # Internationalization (i18n) settings
-locale_dirs = ['locale/']
+locale_dirs = ["locale/"]
 gettext_compact = False
-language = 'en'  # Default language
+language = "en"  # Default language
 
 # Napoleon settings (Google/NumPy style docstrings)
 napoleon_google_docstring = True
@@ -54,23 +55,41 @@ napoleon_attr_annotations = True
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
+html_theme = "sphinx_rtd_theme"
+html_static_path = ["_static"]
+
+# Language switcher configuration
+html_context = {
+    "display_github": True,
+    "github_user": "jikhanjung",
+    "github_repo": "CTHarvester",
+    "github_version": "main",
+    "conf_py_path": "/docs/",
+}
+
+# Additional HTML theme options
+html_theme_options = {
+    "navigation_depth": 4,
+    "collapse_navigation": False,
+    "sticky_navigation": True,
+    "includehidden": True,
+    "titles_only": False,
+}
 
 # Intersphinx mapping
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'numpy': ('https://numpy.org/doc/stable/', None),
-    'pyqt5': ('https://www.riverbankcomputing.com/static/Docs/PyQt5/', None),
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "pyqt5": ("https://www.riverbankcomputing.com/static/Docs/PyQt5/", None),
 }
 
 # Autodoc settings
 autodoc_default_options = {
-    'members': True,
-    'member-order': 'bysource',
-    'special-members': '__init__',
-    'undoc-members': True,
-    'exclude-members': '__weakref__'
+    "members": True,
+    "member-order": "bysource",
+    "special-members": "__init__",
+    "undoc-members": True,
+    "exclude-members": "__weakref__",
 }
 
 # Todo extension settings

@@ -1,0 +1,81 @@
+{% extends "!layout.html" %}
+
+{% block extrahead %}
+{{ super() }}
+<style>
+  .language-switcher {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    background: #2c3e50;
+    border: 1px solid #34495e;
+    border-radius: 4px;
+    padding: 8px 15px;
+    font-size: 13px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .language-switcher a {
+    margin: 0 5px;
+    text-decoration: none;
+    color: #3498db;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .language-switcher a:hover {
+    color: #5dade2;
+    text-decoration: underline;
+  }
+  .language-switcher .current {
+    color: #ecf0f1;
+    font-weight: 600;
+    cursor: default;
+  }
+  .language-switcher .separator {
+    color: #7f8c8d;
+    margin: 0 3px;
+  }
+  .language-switcher .icon {
+    margin-right: 5px;
+  }
+</style>
+<script>
+  // Language switcher: preserve current page path when switching languages
+  document.addEventListener('DOMContentLoaded', function() {
+    var langLinks = document.querySelectorAll('.language-switcher a');
+    var currentPath = window.location.pathname;
+
+    langLinks.forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        var targetLang = this.getAttribute('data-lang');
+        var newPath;
+
+        // Replace language code in path
+        if (currentPath.includes('/en/')) {
+          newPath = currentPath.replace('/en/', '/' + targetLang + '/');
+        } else if (currentPath.includes('/ko/')) {
+          newPath = currentPath.replace('/ko/', '/' + targetLang + '/');
+        } else {
+          // Default: assume English, prepend language
+          newPath = currentPath.replace('/html/', '/html/' + targetLang + '/');
+        }
+
+        window.location.href = newPath;
+      });
+    });
+  });
+</script>
+{% endblock %}
+
+{% block document %}
+<div class="language-switcher">
+  <span class="icon">🌐</span>
+  {% if language == 'ko' %}
+    <a href="#" data-lang="en">English</a><span class="separator">|</span><span class="current">한국어</span>
+  {% else %}
+    <span class="current">English</span><span class="separator">|</span><a href="#" data-lang="ko">한국어</a>
+  {% endif %}
+</div>
+{{ super() }}
+{% endblock %}

@@ -89,4 +89,4 @@ check_*.py
 # Documentation build
 docs/_build/
 docs/_static/
-docs/_templates/
+# Note: docs/_templates/ contains custom Sphinx templates - NOT ignored
