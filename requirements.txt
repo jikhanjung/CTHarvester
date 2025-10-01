@@ -1,5 +1,10 @@
 # CTHarvester Dependencies
 # Core dependencies with version constraints for stability
+#
+# NOTE: This file is maintained for backward compatibility.
+# The canonical source of dependencies is pyproject.toml
+# Install with: pip install -e .
+# Or for development: pip install -e .[dev]
 
 # GUI Framework
 pyqt5>=5.15.0,<6.0.0
@@ -19,6 +24,3 @@ scipy>=1.10.0,<2.0.0
 semver>=3.0.0,<4.0.0
 psutil>=5.9.0,<6.0.0
 pyyaml>=6.0.0,<7.0.0
-
-# Build (Rust module)
-maturin>=1.4.0,<2.0.0

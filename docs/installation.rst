@@ -56,7 +56,18 @@ Method 1: From Source (Recommended)
 
    .. code-block:: bash
 
+      # Recommended: Install from pyproject.toml
+      pip install -e .
+
+      # Or use requirements.txt for backward compatibility
       pip install -r requirements.txt
+
+   **For development:**
+
+   .. code-block:: bash
+
+      # Install with development dependencies
+      pip install -e .[dev]
 
 4. **Optional: Install Rust module for faster thumbnail generation:**
 

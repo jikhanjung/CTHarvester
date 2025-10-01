@@ -59,10 +59,19 @@ cd CTHarvester
 
 2. Install dependencies:
 ```bash
+# Recommended: Install from pyproject.toml
+pip install -e .
+
+# Or use requirements.txt for backward compatibility
 pip install -r requirements.txt
 ```
 
-3. Run the application:
+3. For development with additional tools:
+```bash
+pip install -e .[dev]
+```
+
+4. Run the application:
 ```bash
 python CTHarvester.py
 ```

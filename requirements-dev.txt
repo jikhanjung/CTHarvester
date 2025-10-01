@@ -1,5 +1,9 @@
 # CTHarvester Development Dependencies
 # Install with: pip install -r requirements-dev.txt
+#
+# NOTE: This file is maintained for backward compatibility.
+# The canonical source of dependencies is pyproject.toml
+# Preferred installation: pip install -e .[dev]
 
 -r requirements.txt
 
