@@ -5,7 +5,7 @@
 [![Release Status](https://github.com/jikhanjung/CTHarvester/actions/workflows/release.yml/badge.svg)](https://github.com/jikhanjung/CTHarvester/actions/workflows/release.yml)
 [![codecov](https://codecov.io/gh/jikhanjung/CTHarvester/branch/main/graph/badge.svg)](https://codecov.io/gh/jikhanjung/CTHarvester)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Tests: 195 passing](https://img.shields.io/badge/tests-195%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
 
 *Read this in other languages: [English](README.md), [한국어](README.ko.md)*
@@ -47,7 +47,7 @@ Download the latest installer from the [Releases](https://github.com/jikhanjung/
 ### From Source
 
 #### Prerequisites
-- Python 3.12 or higher
+- Python 3.11 or higher
 - pip package manager
 
 #### Steps
@@ -113,13 +113,13 @@ This will create the executable for your platform.
 ### Version Management
 ```bash
 # Bump patch version (0.2.0 -> 0.2.1)
-python bump_version.py patch
+python manage_version.py bump patch
 
 # Bump minor version (0.2.0 -> 0.3.0)
-python bump_version.py minor
+python manage_version.py bump minor
 
 # Bump major version (0.2.0 -> 1.0.0)
-python bump_version.py major
+python manage_version.py bump major
 ```
 
 ### Testing
@@ -173,7 +173,7 @@ CTHarvester/
 ├── CTHarvester.py          # Main application entry point
 ├── version.py              # Version management
 ├── build.py                # Build script for packaging
-├── bump_version.py         # Version bump utility
+├── manage_version.py       # Version bump utility
 ├── requirements.txt        # Python dependencies
 ├── pytest.ini              # Test configuration
 │

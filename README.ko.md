@@ -113,13 +113,13 @@ python build.py
 ### 버전 관리
 ```bash
 # 패치 버전 증가 (0.2.0 -> 0.2.1)
-python bump_version.py patch
+python manage_version.py bump patch
 
 # 마이너 버전 증가 (0.2.0 -> 0.3.0)
-python bump_version.py minor
+python manage_version.py bump minor
 
 # 메이저 버전 증가 (0.2.0 -> 1.0.0)
-python bump_version.py major
+python manage_version.py bump major
 ```
 
 ### 테스트
@@ -173,7 +173,7 @@ CTHarvester/
 ├── CTHarvester.py          # 메인 애플리케이션 진입점
 ├── version.py              # 버전 관리
 ├── build.py                # 패키징용 빌드 스크립트
-├── bump_version.py         # 버전 업데이트 유틸리티
+├── manage_version.py       # 버전 업데이트 유틸리티
 ├── requirements.txt        # Python 의존성
 ├── pytest.ini              # 테스트 설정
 │

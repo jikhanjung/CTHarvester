@@ -19,7 +19,7 @@ System Requirements
 
 **Software:**
 
-* Python 3.8 or later
+* Python 3.11 or later
 * PyQt5
 * NumPy
 * PIL/Pillow
@@ -37,7 +37,7 @@ Method 1: From Source (Recommended)
 
    .. code-block:: bash
 
-      git clone https://github.com/yourusername/CTHarvester.git
+      git clone https://github.com/jikhanjung/CTHarvester.git
       cd CTHarvester
 
 2. **Create a virtual environment (recommended):**
