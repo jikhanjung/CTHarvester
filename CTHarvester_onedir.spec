@@ -8,7 +8,10 @@ a = Analysis(
     ['CTHarvester.py'],
     pathex=[],
     binaries=[],
-    datas=[('*.png', '.'), ('*.qm', '.')],
+    datas=[
+        ('resources/icons/*.png', 'resources/icons'),
+        ('resources/translations/*.qm', 'resources/translations'),
+    ],
     hiddenimports=['superqt', 'PIL', 'PIL.Image', 'scipy', 'scipy.ndimage', 'mcubes', 'numpy', 'OpenGL', 'OpenGL.GL', 'OpenGL.GLUT', 'OpenGL.GLU'],
     hookspath=[],
     hooksconfig={},
@@ -37,7 +40,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['CTHarvester_48_2.png'],
+    icon=['resources/icons/CTHarvester_48_2.png'],
 )
 
 coll = COLLECT(
