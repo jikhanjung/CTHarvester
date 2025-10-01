@@ -368,7 +368,19 @@ class SettingsDialog(QDialog):
         threads = self.threads_spin.value()
         s.set("processing.threads", "auto" if threads == 0 else threads)
         s.set("processing.memory_limit_gb", self.memory_limit_spin.value())
-        s.set("processing.use_rust_module", self.use_rust_check.isChecked())
+
+        # Update both settings file and app state
+        use_rust = self.use_rust_check.isChecked()
+        s.set("processing.use_rust_module", use_rust)
+        logger.info(f"Settings dialog: saving use_rust_module = {use_rust}")
+
+        # Update app state to prevent it from being overwritten on window close
+        parent = self.parent()
+        if parent and hasattr(parent, 'm_app'):
+            parent.m_app.use_rust_thumbnail = use_rust
+            logger.info(f"Settings dialog: updated app.use_rust_thumbnail = {use_rust}")
+        else:
+            logger.warning(f"Settings dialog: parent={parent}, has m_app={hasattr(parent, 'm_app') if parent else False}")
 
         # Rendering
         s.set("rendering.default_threshold", self.threshold_spin.value())

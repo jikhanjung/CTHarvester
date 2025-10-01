@@ -198,9 +198,9 @@ class WindowSettingsHandler:
 
     def _save_processing_settings(self):
         """Save processing-related settings (Rust module preference)."""
-        if hasattr(self.window, "cbxUseRust"):
-            self.app.use_rust_thumbnail = self.window.cbxUseRust.isChecked()
-            self.settings.set(
-                "processing.use_rust_module",
-                self.app.use_rust_thumbnail
-            )
+        # Note: cbxUseRust checkbox doesn't exist in main_window
+        # Settings are managed through SettingsDialog instead
+        # Only save the current app state (which should be updated by SettingsDialog)
+        current_value = getattr(self.app, 'use_rust_thumbnail', True)
+        self.settings.set("processing.use_rust_module", current_value)
+        logger.info(f"Settings handler: saving processing.use_rust_module = {current_value}")

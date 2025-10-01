@@ -75,6 +75,7 @@ class CTHarvesterMainWindow(QMainWindow):
         # Data initialization
         self.settings_hash = {}
         self.level_info = []
+        self.minimum_volume = None  # Initialize to None, will be set after thumbnail generation
         self.curr_level_idx = 0
         self.prev_level_idx = 0
         self.default_directory = "."
@@ -816,406 +817,119 @@ class CTHarvesterMainWindow(QMainWindow):
 
     # Keep existing Python implementation as fallback
     def create_thumbnail_python(self):
-        # logger.info("Starting thumbnail creation")
         """
-        Creates a thumbnail of the image sequence by downsampling the images and averaging them.
-        The resulting thumbnail is saved in a temporary directory and used to generate a mesh for visualization.
-        This is the original Python implementation kept as fallback.
+        Creates thumbnails using Python implementation (fallback when Rust is unavailable).
+
+        This method delegates thumbnail generation to ThumbnailGenerator.generate_python(),
+        which handles the actual business logic. The UI responsibilities remain here:
+        setting up progress dialog, defining callbacks, and updating UI state.
+
+        Core logic has been moved to: core/thumbnail_generator.py:263-673
         """
-        import time
-        from datetime import datetime
-
-        # Start timing for entire thumbnail generation
-        self.thumbnail_start_time = (
-            time.time()
-        )  # Store as instance variable for access in ThumbnailManager
-        thumbnail_start_time = (
-            self.thumbnail_start_time
-        )  # Keep local variable for backward compatibility
-        thumbnail_start_datetime = datetime.now()
-
-        # Log system information
-        import platform
-
-        try:
-            import psutil
-
-            has_psutil = True
-        except ImportError:
-            has_psutil = False
-            logger.warning("psutil not installed - cannot get detailed system info")
-
-        MAX_THUMBNAIL_SIZE = 512
+        # Calculate total work for progress tracking
+        # This must be done before creating the progress dialog
         size = max(int(self.settings_hash["image_width"]), int(self.settings_hash["image_height"]))
-        width = int(self.settings_hash["image_width"])
-        height = int(self.settings_hash["image_height"])
-
-        logger.info(f"=== Starting Python thumbnail generation (fallback) ===")
-        logger.info(f"Thread configuration: maxThreadCount={self.threadpool.maxThreadCount()}")
-        logger.info(f"Start time: {thumbnail_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
-        logger.info(f"Image dimensions: width={width}, height={height}, size={size}")
-
-        # System information
-        try:
-            cpu_count = os.cpu_count()
-            logger.info(f"System: {platform.system()} {platform.release()}")
-            logger.info(f"CPU cores: {cpu_count}")
-            if has_psutil:
-                mem = psutil.virtual_memory()
-                disk = psutil.disk_usage(self.edtDirname.text())
-                logger.info(
-                    f"Memory: {mem.total/1024**3:.1f}GB total, {mem.available/1024**3:.1f}GB available ({mem.percent:.1f}% used)"
-                )
-                logger.info(
-                    f"Disk: {disk.total/1024**3:.1f}GB total, {disk.free/1024**3:.1f}GB free ({disk.percent:.1f}% used)"
-                )
-            logger.info(
-                f"Thread pool: max={self.threadpool.maxThreadCount()}, active={self.threadpool.activeThreadCount()}"
-            )
-        except Exception as e:
-            logger.warning(f"Could not get system info: {e}")
-
-        i = 0
-        # create temporary directory for thumbnail
-        dirname = self.edtDirname.text()
-        logger.info(f"Working directory: {dirname}")
-
-        # Check if directory is on network drive (common cause of slowness)
-        try:
-            drive = os.path.splitdrive(dirname)[0]
-            if drive and drive.startswith("\\\\"):
-                logger.warning(
-                    f"Working on network drive: {drive} - this may cause slow performance"
-                )
-            elif drive:
-                logger.info(f"Working on local drive: {drive}")
-        except Exception as e:
-            logger.debug(f"Could not determine drive type: {e}")
-
-        self.minimum_volume = []
         seq_begin = self.settings_hash["seq_begin"]
         seq_end = self.settings_hash["seq_end"]
-        logger.info(f"Processing sequence: {seq_begin} to {seq_end}, directory: {dirname}")
+        MAX_THUMBNAIL_SIZE = 512
 
-        # Calculate total work amount for all LoD levels
-        total_work = self.calculate_total_thumbnail_work(
+        total_work = self.thumbnail_generator.calculate_total_thumbnail_work(
             seq_begin, seq_end, size, MAX_THUMBNAIL_SIZE
         )
+        weighted_total_work = self.thumbnail_generator.weighted_total_work
 
-        # Don't show initial estimate - will show "Estimating..." instead
-        estimated_seconds = None  # Will be calculated after sampling
-        time_estimate = "Estimating..."  # Show this initially
-
-        # Store initial estimates for comparison at the end
-        self.initial_estimate_seconds = 0  # No initial estimate since we're using sampling
-        self.initial_estimate_str = time_estimate
-        self.sampled_estimate_seconds = None  # Will be updated after sampling
-        self.sampled_estimate_str = None
-
-        logger.info(
-            f"Starting thumbnail generation: {self.total_levels} levels, {total_work} operations"
-        )
-        logger.info(f"Initial estimate: {time_estimate} (will be refined after sampling)")
-
-        current_count = 0
-        global_step_counter = 0  # Track overall progress
-
-        # Variables for dynamic time estimation
-        # For 3-stage sampling, we need at least 3x the base sample size
-        base_sample = max(20, min(30, int(total_work * 0.02)))  # Base: 20-30 images
-        self.sample_size = base_sample  # This is the base unit for each stage
-        total_sample = base_sample * 3  # Total samples across all stages
-        logger.info(
-            f"Multi-stage sampling: {base_sample} images per stage, {total_sample} total images"
-        )
-
-        # Create a shared ProgressManager that will be reused across levels
-        self.shared_progress_manager = ProgressManager()
-        self.shared_progress_manager.level_work_distribution = (
-            self.level_work_distribution if hasattr(self, "level_work_distribution") else None
-        )
-        self.shared_progress_manager.weighted_total_work = (
-            self.weighted_total_work if hasattr(self, "weighted_total_work") else None
-        )
-        # Initialize with the weighted total
-        if self.shared_progress_manager.weighted_total_work:
-            self.shared_progress_manager.start(self.shared_progress_manager.weighted_total_work)
-        else:
-            self.shared_progress_manager.start(total_work)
-
+        # Create progress dialog
         self.progress_dialog = ProgressDialog(self)
         self.progress_dialog.update_language()
         self.progress_dialog.setModal(True)
-        self.progress_dialog.show()
 
-        # Setup unified progress with weighted work amount
-        # Use weighted_total_work if available for accurate progress tracking
-        progress_total = (
-            self.weighted_total_work if hasattr(self, "weighted_total_work") else total_work
-        )
-        self.progress_dialog.setup_unified_progress(
-            progress_total, None
-        )  # Pass None to show "Estimating..."
+        # Setup unified progress with calculated work amount
+        self.progress_dialog.setup_unified_progress(weighted_total_work, None)
         self.progress_dialog.lbl_text.setText(self.tr("Generating thumbnails"))
         self.progress_dialog.lbl_detail.setText("Estimating...")
 
-        # Pass level work distribution to progress dialog for better ETA calculation
-        if hasattr(self, "level_work_distribution"):
-            self.progress_dialog.level_work_distribution = self.level_work_distribution
-            self.progress_dialog.weighted_total_work = self.weighted_total_work
+        self.progress_dialog.show()
 
+        # Set wait cursor for long operation
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        while True:
-            # Check for cancellation before starting new level
-            if self.progress_dialog.is_cancelled:
-                logger.info("Thumbnail generation cancelled by user before level start")
-                break
-
-            # Start timing for this level
-            level_start_time = time.time()
-            level_start_datetime = datetime.now()
-
-            size /= 2
-            width = int(width / 2)
-            height = int(height / 2)
-
-            # Store the current level size for checking later
-            current_level_size = size
-
-            if size < 2:
-                logger.info(f"Stopping at level {i+1}: size {size} is too small to continue")
-                break
-
-            if i == 0:
-                from_dir = dirname
-                logger.debug(f"Level {i+1}: Reading from original directory: {from_dir}")
-                total_count = seq_end - seq_begin + 1
-            else:
-                from_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i))
-                logger.debug(f"Level {i+1}: Reading from thumbnail directory: {from_dir}")
-
-                # For levels > 0, count actual files in the previous level directory
-                if os.path.exists(from_dir):
-                    actual_files = [f for f in os.listdir(from_dir) if f.endswith(".tif")]
-                    total_count = len(actual_files)
-                    # Update seq_end based on actual file count
-                    seq_end = seq_begin + total_count - 1
-                    logger.info(f"Level {i+1}: Found {total_count} actual files in previous level")
-                else:
-                    total_count = seq_end - seq_begin + 1
-                    logger.warning(
-                        f"Level {i+1}: Previous level directory not found, using calculated count: {total_count}"
-                    )
-
-            # create thumbnail
-            to_dir = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(i + 1))
-            if not os.path.exists(to_dir):
-                mkdir_start = time.time()
-                os.makedirs(to_dir)
-                mkdir_time = (time.time() - mkdir_start) * 1000
-                logger.debug(f"Created directory {to_dir} in {mkdir_time:.1f}ms")
-            else:
-                logger.debug(f"Directory already exists: {to_dir}")
-            last_count = 0
-
-            logger.info(f"--- Level {i+1} ---")
-            logger.info(
-                f"Level {i+1} start time: {level_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
-            )
-            logger.info(
-                f"Level {i+1}: Processing {total_count} images (size: {int(size)}x{int(size)})"
+        try:
+            # Call ThumbnailGenerator with progress dialog
+            # Pass the progress dialog directly so ThumbnailManager can connect signals properly
+            result = self.thumbnail_generator.generate_python(
+                directory=self.edtDirname.text(),
+                settings=self.settings_hash,
+                threadpool=self.threadpool,
+                progress_dialog=self.progress_dialog
             )
 
-            # Initialize thumbnail manager for multithreaded processing
-            # Pass the shared progress manager to maintain ETA across levels
-            logger.info(f"Creating ThumbnailManager for level {i+1}")
-            shared_pm = (
-                self.shared_progress_manager if hasattr(self, "shared_progress_manager") else None
-            )
-            self.thumbnail_manager = ThumbnailManager(
-                self, self.progress_dialog, self.threadpool, shared_pm
-            )
-            logger.info(f"ThumbnailManager created, starting process_level")
+            # Restore cursor
+            QApplication.restoreOverrideCursor()
 
-            # Use multithreaded processing for this level
-            process_start = time.time()
-            level_img_arrays, was_cancelled = self.thumbnail_manager.process_level(
-                i,
-                from_dir,
-                to_dir,
-                seq_begin,
-                seq_end,
-                self.settings_hash,
-                size,
-                MAX_THUMBNAIL_SIZE,
-                global_step_counter,
-            )
-            process_time = time.time() - process_start
-            logger.info(f"Level {i+1}: process_level completed in {process_time:.2f}s")
+            # Handle result
+            if result is None:
+                logger.error("Thumbnail generation failed - generate_python returned None")
+                if self.progress_dialog:
+                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation failed"))
+                    self.progress_dialog.lbl_detail.setText("")
+                    self.progress_dialog.close()
+                    self.progress_dialog = None
+                return
 
-            # Calculate and log time for this level
-            level_end_datetime = datetime.now()
-            level_elapsed = time.time() - level_start_time
-            logger.info(
-                f"Level {i+1} end time: {level_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
-            )
-            logger.info(f"Level {i+1}: Completed in {level_elapsed:.2f} seconds")
+            # Update instance state from result
+            if result.get('success') and not result.get('cancelled'):
+                # Store minimum_volume and level_info from result
+                self.minimum_volume = result.get('minimum_volume', [])
+                self.level_info = result.get('level_info', [])
 
-            # Update global step counter based on actual progress made
-            global_step_counter = self.thumbnail_manager.global_step_counter
+                # Show completion message
+                if self.progress_dialog:
+                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
+                    self.progress_dialog.lbl_detail.setText("")
+            elif result.get('cancelled'):
+                # Show cancellation message
+                if self.progress_dialog:
+                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation cancelled"))
+                    self.progress_dialog.lbl_detail.setText("")
 
-            # Note: We no longer add images to minimum_volume here
-            # Instead, we'll load them from disk later, just like Rust does
-            # This ensures both Python and Rust follow the same path
+            # Close progress dialog
+            if self.progress_dialog:
+                self.progress_dialog.close()
+                self.progress_dialog = None
 
-            # Check for cancellation
-            if was_cancelled or self.progress_dialog.is_cancelled:
-                logger.info("Thumbnail generation cancelled by user")
-                break
+            # Only proceed with UI updates if not cancelled
+            if not result.get('cancelled'):
+                # Load thumbnail data from disk (same as Rust does)
+                self.load_thumbnail_data_from_disk()
 
-            # Update seq_end for next level (each level has half the images of the previous)
-            # Number of thumbnails generated = (current_count // 2) + 1 if odd
-            current_count = seq_end - seq_begin + 1
-            next_count = (current_count // 2) + (current_count % 2)  # Add 1 if odd number
-            seq_end = seq_begin + next_count - 1
-            logger.info(f"Level {i+1}: {current_count} images -> {next_count} thumbnails generated")
-            logger.info(f"Next level will process range: {seq_begin}-{seq_end}")
+                # If loading from disk failed and minimum_volume is still empty
+                if self.minimum_volume is None or (hasattr(self.minimum_volume, '__len__') and len(self.minimum_volume) == 0):
+                    logger.warning("Failed to load thumbnails from disk after Python generation")
 
-            i += 1
+                # Initialize UI components
+                self.initializeComboSize()
+                self.reset_crop()
 
-            # Only add to level_info if this level doesn't already exist
-            level_name = f"Level {i}"
-            level_exists = any(level["name"] == level_name for level in self.level_info)
-            if not level_exists:
-                self.level_info.append(
-                    {
-                        "name": level_name,
-                        "width": width,
-                        "height": height,
-                        "seq_begin": seq_begin,
-                        "seq_end": seq_end,
-                    }
-                )
-                # logger.info(f"Added new level to level_info: {level_name}")
-            else:
-                pass  # logger.info(f"Level {level_name} already exists in level_info, skipping")
-            # Check if we've reached the size limit
-            # Stop when images are small enough (< MAX_THUMBNAIL_SIZE)
-            if current_level_size < MAX_THUMBNAIL_SIZE:
-                logger.info(f"Reached target thumbnail size at level {i}")
-                break
+                # Trigger initial display by setting combo index if items exist
+                if self.comboLevel.count() > 0:
+                    self.comboLevel.setCurrentIndex(0)
+                    # If comboLevelIndexChanged doesn't trigger, call it manually
+                    if not self.initialized:
+                        self.comboLevelIndexChanged()
 
-        logger.info(f"Exited thumbnail generation loop at level {i+1}")
-        QApplication.restoreOverrideCursor()
+                    # Update 3D view after initializing combo level
+                    self.update_3D_view(False)
 
-        # Calculate and log total time for entire thumbnail generation
-        thumbnail_end_datetime = datetime.now()
-        total_elapsed = time.time() - thumbnail_start_time
+        except Exception as e:
+            # Handle unexpected errors
+            QApplication.restoreOverrideCursor()
+            logger.error(f"Unexpected error in create_thumbnail_python: {e}", exc_info=True)
 
-        logger.info(f"=== Thumbnail generation completed ===")
-        logger.info(f"End time: {thumbnail_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
-        logger.info(f"Total duration: {total_elapsed:.2f} seconds ({total_elapsed/60:.2f} minutes)")
-        logger.info(f"Total levels processed: {i + 1}")
-        if total_elapsed > 0:
-            images_per_second = total_work / total_elapsed if "total_work" in locals() else 0
-            logger.info(f"Average processing speed: {images_per_second:.1f} images/second")
-
-        # Compare estimated vs actual time
-        logger.info(f"=== Time Estimation Accuracy ===")
-        if self.initial_estimate_seconds > 0:
-            logger.info(
-                f"Initial estimate (before sampling): {self.initial_estimate_str} ({self.initial_estimate_seconds:.1f}s)"
-            )
-            initial_accuracy = (
-                (1 - abs(self.initial_estimate_seconds - total_elapsed) / total_elapsed) * 100
-                if total_elapsed > 0
-                else 0
-            )
-            logger.info(f"Initial estimate accuracy: {initial_accuracy:.1f}%")
-        else:
-            logger.info(f"No initial estimate was provided (used sampling instead)")
-
-        if self.sampled_estimate_str:
-            logger.info(
-                f"Estimate after sampling: {self.sampled_estimate_str} ({self.sampled_estimate_seconds:.1f}s)"
-            )
-            sampled_accuracy = (
-                (1 - abs(self.sampled_estimate_seconds - total_elapsed) / total_elapsed) * 100
-                if total_elapsed > 0
-                else 0
-            )
-            logger.info(f"Sampling estimate accuracy: {sampled_accuracy:.1f}%")
-
-        actual_time_str = (
-            f"{int(total_elapsed)}s"
-            if total_elapsed < 60
-            else f"{int(total_elapsed/60)}m {int(total_elapsed%60)}s"
-        )
-        logger.info(f"Actual time taken: {actual_time_str} ({total_elapsed:.1f}s)")
-
-        # Calculate overall generation statistics
-        total_generated = 0
-        total_loaded = 0
-        if hasattr(self, "thumbnail_manager"):
-            total_generated = self.thumbnail_manager.generated_count
-            total_loaded = self.thumbnail_manager.loaded_count
-            generation_percentage = (
-                total_generated / (total_generated + total_loaded) * 100
-                if (total_generated + total_loaded) > 0
-                else 0
-            )
-            logger.info(
-                f"Overall: {total_generated} generated, {total_loaded} loaded ({generation_percentage:.1f}% generated)"
-            )
-
-        # No longer saving coefficients - real-time sampling provides better accuracy
-        # Each run measures actual performance including all variables:
-        # - Drive speed (SSD/HDD/Network)
-        # - Image dimensions
-        # - Bit depth (8-bit, 16-bit, etc.)
-        # - File format and compression
-        # - Current CPU load
-        # - Available memory
-        if hasattr(self, "weighted_total_work") and self.weighted_total_work > 0:
-            actual_coefficient = total_elapsed / self.weighted_total_work
-            logger.info(f"Actual performance: {actual_coefficient:.3f}s per weighted unit")
-            logger.info(f"This varies based on image size, bit depth, drive speed, and system load")
-
-        # Show completion or cancellation message
-        if self.progress_dialog.is_cancelled:
-            self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation cancelled"))
-            self.progress_dialog.lbl_detail.setText("")
-            logger.info("Thumbnail generation was cancelled by user")
-        else:
-            self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
-            self.progress_dialog.lbl_detail.setText("")
-
-        self.progress_dialog.close()
-        self.progress_dialog = None
-
-        # Load thumbnail data from disk (same as Rust does)
-        # This will load the thumbnails that were just saved to disk and update the 3D view
-        self.load_thumbnail_data_from_disk()
-
-        # If loading from disk failed and minimum_volume is still empty
-        if len(self.minimum_volume) == 0:
-            logger.warning("Failed to load thumbnails from disk after Python generation")
-
-        self.initializeComboSize()
-        self.reset_crop()
-
-        # Trigger initial display by setting combo index if items exist
-        if self.comboLevel.count() > 0:
-            # logger.info("Triggering initial display by setting combo index to 0")
-            self.comboLevel.setCurrentIndex(0)
-            # If comboLevelIndexChanged doesn't trigger, call it manually
-            if not self.initialized:
-                # logger.info("Manually calling comboLevelIndexChanged")
-                self.comboLevelIndexChanged()
-
-            # Update 3D view after initializing combo level
-            self.update_3D_view(False)
+            if self.progress_dialog:
+                self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation failed"))
+                self.progress_dialog.lbl_detail.setText(str(e))
+                self.progress_dialog.close()
+                self.progress_dialog = None
 
     def slider2ValueChanged(self, value):
         """

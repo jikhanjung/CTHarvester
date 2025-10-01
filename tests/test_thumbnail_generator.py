@@ -85,15 +85,15 @@ class TestThumbnailGenerator:
         assert generator.weighted_total_work > 0
 
     def test_calculate_total_thumbnail_work_first_level_weight(self, generator):
-        """Test that first level has 1.5x weight"""
+        """Test that level weights follow image size ratio (64:8:1)"""
         generator.calculate_total_thumbnail_work(seq_begin=0, seq_end=99, size=2048, max_size=256)
 
-        # First level should have 1.5x multiplier in weight
+        # Weights should follow (temp_size/size)² ratio
         first_level = generator.level_work_distribution[0]
         base_size_factor = (first_level["size"] / 2048) ** 2
 
-        # Weight should be 1.5x the base size factor
-        expected_weight = base_size_factor * 1.5
+        # Weight should match the base size factor (no additional multiplier)
+        expected_weight = base_size_factor
         assert abs(first_level["weight"] - expected_weight) < 0.01
 
     def test_calculate_total_thumbnail_work_zero_images(self, generator):
@@ -221,28 +221,69 @@ class TestThumbnailGenerator:
         assert len(generator.level_sizes) > 0
         assert generator.weighted_total_work > 0
 
-    def test_generate_method_routing(self, generator, temp_image_dir):
+    def test_generate_method_routing(self, generator, temp_image_dir, qtbot):
         """Test that generate() routes to correct implementation"""
-        # Mock progress callback
-        progress_values = []
+        from PyQt5.QtCore import QThreadPool
 
-        def progress_cb(value):
-            progress_values.append(value)
+        # Mock progress dialog
+        class MockProgressDialog:
+            def __init__(self):
+                self.is_cancelled = False
+                self.percentage_updates = []
+
+                class MockLabel:
+                    def __init__(self):
+                        self.text = ""
+                    def setText(self, text):
+                        self.text = text
+
+                class MockProgressBar:
+                    def __init__(self):
+                        self.value = 0
+                    def setValue(self, value):
+                        self.value = value
+
+                self.lbl_text = MockLabel()
+                self.lbl_detail = MockLabel()
+                self.pb_progress = MockProgressBar()
+
+        progress_dialog = MockProgressDialog()
+
+        # Create mock settings
+        settings = {
+            "image_width": "512",
+            "image_height": "512",
+            "seq_begin": 0,
+            "seq_end": 9,
+            "prefix": "test_",
+            "index_length": 4,
+            "file_type": "tif"
+        }
+
+        # Create thread pool
+        threadpool = QThreadPool()
 
         # Test with Rust preference
         if generator.rust_available:
             # Should attempt Rust (may fail if not properly set up, that's ok)
-            result = generator.generate(
-                temp_image_dir, use_rust_preference=True, progress_callback=progress_cb
-            )
+            # Note: Rust uses different API, so we test it separately
+            result = generator.generate_rust(temp_image_dir)
             # Result may be True or False depending on Rust module setup
             assert isinstance(result, bool)
         else:
-            # Should use Python (currently not implemented, returns False)
-            result = generator.generate(
-                temp_image_dir, use_rust_preference=False, progress_callback=progress_cb
+            # Should use Python fallback
+            result = generator.generate_python(
+                directory=temp_image_dir,
+                settings=settings,
+                threadpool=threadpool,
+                progress_dialog=progress_dialog
             )
-            assert result is False  # Not implemented yet
+            # Python returns a result dictionary
+            assert isinstance(result, dict)
+            assert 'success' in result
+            assert 'cancelled' in result
+            assert 'minimum_volume' in result
+            assert 'level_info' in result
 
 
 class TestThumbnailGeneratorIntegration:

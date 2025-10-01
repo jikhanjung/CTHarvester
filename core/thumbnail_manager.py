@@ -441,14 +441,31 @@ class ThumbnailManager(QObject):
         self.level = level
         self.global_step_counter = global_step_offset
 
-        # Get weight factor for this level from parent's level_work_distribution
+        # Get weight factor for this level from level_work_distribution
+        # Check both parent and progress_manager for level_work_distribution
         self.level_weight = 1.0  # Default
-        if hasattr(self.parent, "level_work_distribution"):
-            for level_info in self.parent.level_work_distribution:
-                if level_info["level"] == level + 1:  # level is 0-indexed, but stored as 1-indexed
-                    self.level_weight = level_info["weight"]
-                    logger.info(f"Level {level+1}: Using weight factor {self.level_weight:.2f}")
-                    break
+        level_work_dist = None
+
+        if hasattr(self.parent, "level_work_distribution") and self.parent:
+            level_work_dist = self.parent.level_work_distribution
+        elif hasattr(self.progress_manager, "level_work_distribution"):
+            # Try to reconstruct from progress_manager's level_work_distribution
+            # This is for when parent=None (called from ThumbnailGenerator)
+            level_work_dist = self.progress_manager.level_work_distribution
+
+        if level_work_dist:
+            # level_work_dist could be list of dicts or list of ints
+            if isinstance(level_work_dist, list) and len(level_work_dist) > level:
+                if isinstance(level_work_dist[level], dict):
+                    # Dict format: {'level': 1, 'images': 757, 'weight': 0.25}
+                    for level_info in level_work_dist:
+                        if level_info["level"] == level + 1:  # level is 0-indexed, but stored as 1-indexed
+                            self.level_weight = level_info["weight"]
+                            logger.info(f"Level {level+1}: Using weight factor {self.level_weight:.4f}")
+                            break
+                else:
+                    # For now, use default weight if we only have int list
+                    logger.warning(f"Level {level+1}: level_work_distribution is int list, using default weight")
         self.results.clear()
         self.is_cancelled = False
 
@@ -700,12 +717,10 @@ class ThumbnailManager(QObject):
 
         # Update progress bar
         self.progress_dialog.lbl_text.setText(f"Generating thumbnails")
-        # Update progress bar percentage using progress manager's data
-        if self.progress_manager.total > 0:
-            percentage = int((current_step / self.progress_manager.total) * 100)
-            self.progress_dialog.pb_progress.setValue(percentage)
 
         # Use centralized ETA and progress update
+        # This will call progress_manager.update() which emits progress_updated signal
+        # The signal is connected to progress_dialog.pb_progress.setValue() in __init__
         self.update_eta_and_progress()
 
         # Process events periodically to keep UI responsive
