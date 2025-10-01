@@ -60,7 +60,21 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest pytest-cov pytest-qt pytest-timeout
-    
+
+    - name: Verify pre-commit hooks
+      run: |
+        pip install pre-commit
+        pre-commit run --all-files || true
+      continue-on-error: true
+
+    - name: Verify documentation builds
+      run: |
+        pip install sphinx sphinx-rtd-theme
+        cd docs
+        make clean
+        make html
+      continue-on-error: true
+
     - name: Run tests with pytest
       env:
         QT_QPA_PLATFORM: offscreen
