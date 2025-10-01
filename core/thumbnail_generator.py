@@ -12,6 +12,7 @@ from datetime import datetime
 
 import numpy as np
 from PIL import Image
+from PyQt5.QtWidgets import QApplication
 
 logger = logging.getLogger(__name__)
 
@@ -194,9 +195,42 @@ class ThumbnailGenerator:
 
         if use_rust:
             logger.info("Using Rust-based thumbnail generation")
-            # Note: Rust path still uses legacy callback-based approach
-            # This needs updating in a future PR to match Python implementation
-            return self.generate_rust(directory, None, None)
+            # Create progress callback from progress_dialog
+            progress_callback = None
+            cancel_check = None
+
+            if progress_dialog:
+                def progress_callback(percentage):
+                    """Update progress dialog with percentage"""
+                    progress_dialog.lbl_text.setText(f"Generating thumbnails: {percentage:.1f}%")
+                    progress_dialog.pb_progress.setValue(int(percentage))
+                    progress_dialog.update()
+                    QApplication.processEvents()
+
+                def cancel_check():
+                    """Check if user cancelled via progress dialog"""
+                    return progress_dialog.was_cancelled if hasattr(progress_dialog, 'was_cancelled') else False
+
+            # Use unified return format
+            rust_success = self.generate_rust(directory, progress_callback, cancel_check)
+
+            # Convert legacy bool to unified dict format
+            if rust_success:
+                return {
+                    'success': True,
+                    'cancelled': False,
+                    'data': None,  # Rust doesn't return thumbnail data
+                    'error': None
+                }
+            else:
+                # Check if it was cancelled or failed
+                cancelled = cancel_check() if cancel_check else False
+                return {
+                    'success': False,
+                    'cancelled': cancelled,
+                    'data': None,
+                    'error': 'Rust thumbnail generation failed' if not cancelled else None
+                }
         else:
             logger.info("Using Python-based thumbnail generation")
             return self.generate_python(directory, settings, threadpool, progress_dialog)
@@ -395,7 +429,21 @@ class ThumbnailGenerator:
             logger.info(f"Weighted total work: {weighted_total_work:.1f}")
 
             # Initialize variables for multi-stage sampling
-            base_sample = max(20, min(30, int(total_work * 0.02)))
+            # Read sample_size from settings, with fallback calculation if not configured
+            user_sample_size = None
+            if settings and isinstance(settings, dict):
+                # Try to get sample_size from settings dict
+                user_sample_size = settings.get('sample_size')
+
+            if user_sample_size is not None:
+                # User has configured sample_size in settings
+                base_sample = max(1, min(100, int(user_sample_size)))  # Clamp to reasonable range
+                logger.info(f"Using user-configured sample_size: {base_sample}")
+            else:
+                # Fallback: auto-calculate based on total work
+                base_sample = max(20, min(30, int(total_work * 0.02)))
+                logger.info(f"Auto-calculated sample_size: {base_sample} (2% of {total_work} work)")
+
             sample_size = base_sample
             total_sample = base_sample * 3
 

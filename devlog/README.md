@@ -4,6 +4,7 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Recent Sessions (October 2025)
 
+- [056](20251001_056_thumbnail_api_improvements.md) - Thumbnail API 개선 - Rust/Python 통합 및 사용자 설정 존중
 - [055](20251001_055_comprehensive_plan_implementation.md) - 포괄적 개선 계획 구현 완료 (Issues 1-12 전체)
 - [054](20251001_054_comprehensive_plan_completion.md) - 포괄적 개선 계획 완료 (Issues 10-12)
 - [053](20251001_053_comprehensive_improvement_plan.md) - 포괄적 프로젝트 개선 계획
@@ -13,7 +14,6 @@ Chronological index of all development sessions for CTHarvester.
 - [049](20251001_049_phase2_dependency_analysis.md) - Phase 2 Step 1: Python 썸네일 의존성 분석
 - [048](20251001_048_phase1_crop_fix_completion.md) - Phase 1: 볼륨 크롭 Off-by-One 에러 수정 완료
 - [047](20251001_047_remaining_quality_improvements_plan.md) - 남은 품질 개선 계획
-- [046](20251001_046_035_completion_verification.md) - 035 문서 완료 상태 검증 보고서
 
 ## Topic-Based Organization
 
@@ -164,12 +164,13 @@ Chronological index of all development sessions for CTHarvester.
 - [053](20251001_053_comprehensive_improvement_plan.md) - 포괄적 프로젝트 개선 계획
 - [054](20251001_054_comprehensive_plan_completion.md) - 포괄적 개선 계획 완료 (Issues 10-12)
 - [055](20251001_055_comprehensive_plan_implementation.md) - 포괄적 개선 계획 구현 완료 (Issues 1-12 전체)
+- [056](20251001_056_thumbnail_api_improvements.md) - Thumbnail API 개선 - Rust/Python 통합 및 사용자 설정 존중
 
 ---
 
 ## Statistics
 
-- **Total Sessions**: 55
+- **Total Sessions**: 56
 - **Date Range**: August 6, 2025 - October 1, 2025
 - **Key Achievements**:
   - Complete Phase 1-4 refactoring
