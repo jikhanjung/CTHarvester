@@ -112,17 +112,23 @@ CTHarvester can automatically read reconstruction settings from log files genera
 
 ### Developer Documentation
 - [Developer Guide](docs/developer_guide.rst) - Architecture and development setup
-- [API Documentation](docs/_build/html/index.html) - Module and function reference (build with Sphinx)
 - [Development Logs](devlog/README.md) - Chronological development history
+- [Changelog](docs/changelog.rst) - Version history and changes
 
 ### Building Documentation
+Documentation is available in both English and Korean.
+
 ```bash
 cd docs
-make html  # Build HTML documentation
-make clean  # Clean build artifacts
+
+# Build English documentation
+sphinx-build -b html -D language=en . _build/html/en
+
+# Build Korean documentation
+sphinx-build -b html -D language=ko . _build/html/ko
 ```
 
-The built documentation will be in `docs/_build/html/`.
+The built documentation will be in `docs/_build/html/en/` and `docs/_build/html/ko/`.
 
 ## Development
 
