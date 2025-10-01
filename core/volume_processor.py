@@ -146,10 +146,12 @@ class VolumeProcessor:
             top_idx_small = min(bottom_idx_small + 1, smallest_count)
 
         # Convert spatial coordinates
+        # Note: Python slicing uses half-open intervals [start:end), so we don't subtract 1
+        # The slice arr[0:5] returns indices 0,1,2,3,4 (5 elements total)
         from_x_small = int(from_x * smallest_width)
         from_y_small = int(from_y * smallest_height)
-        to_x_small = int(to_x * smallest_width) - 1
-        to_y_small = int(to_y * smallest_height) - 1
+        to_x_small = int(to_x * smallest_width)
+        to_y_small = int(to_y * smallest_height)
 
         # Ensure minimum_volume is numpy array
         if isinstance(minimum_volume, list):

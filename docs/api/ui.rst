@@ -9,6 +9,36 @@ main_window
    :undoc-members:
    :show-inheritance:
 
+Setup
+-----
+
+main_window_setup
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: ui.setup.main_window_setup
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Handlers
+--------
+
+settings_handler
+~~~~~~~~~~~~~~~~
+
+.. automodule:: ui.handlers.settings_handler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+export_handler
+~~~~~~~~~~~~~~
+
+.. automodule:: ui.handlers.export_handler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Dialogs
 -------
 

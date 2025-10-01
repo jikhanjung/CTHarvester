@@ -52,6 +52,8 @@ from core.thumbnail_manager import ThumbnailManager
 from core.volume_processor import VolumeProcessor
 from security.file_validator import FileSecurityError, SecureFileValidator, safe_open_image
 from ui.dialogs import InfoDialog, ProgressDialog, SettingsDialog
+from ui.handlers import ExportHandler, WindowSettingsHandler
+from ui.setup import MainWindowSetup
 from ui.widgets import MCubeWidget, ObjectViewer2D
 from ui.widgets.vertical_stack_slider import VerticalTimeline
 from utils.common import resource_path, value_to_bool
@@ -65,15 +67,18 @@ class CTHarvesterMainWindow(QMainWindow):
         super().__init__()
         self.m_app = QApplication.instance()
 
+        # Window configuration
         self.setWindowIcon(QIcon(resource_path("CTHarvester_48_2.png")))
         self.setWindowTitle("{} v{}".format(self.tr("CT Harvester"), PROGRAM_VERSION))
         self.setGeometry(QRect(100, 100, 600, 550))
+
+        # Data initialization
         self.settings_hash = {}
         self.level_info = []
         self.curr_level_idx = 0
         self.prev_level_idx = 0
         self.default_directory = "."
-        self.threadpool = QThreadPool()  # Initialize threadpool for multithreading
+        self.threadpool = QThreadPool()
         logger.info(
             f"Initialized ThreadPool with maxThreadCount={self.threadpool.maxThreadCount()}"
         )
@@ -88,205 +93,37 @@ class CTHarvesterMainWindow(QMainWindow):
         self.volume_processor = VolumeProcessor()
         logger.info("Initialized FileHandler, ThumbnailGenerator, and VolumeProcessor")
 
-        self.read_settings()
+        # Initialize settings handler (Phase 2: Settings Separation)
+        self.settings_handler = WindowSettingsHandler(self, self.settings_manager)
 
-        margin = QMargins(11, 0, 11, 0)
+        # Initialize export handler (Phase 3: Export Operations Separation)
+        self.export_handler = ExportHandler(self)
 
-        # add file open dialog
-        self.dirname_layout = QHBoxLayout()
-        self.dirname_widget = QWidget()
-        self.btnOpenDir = QPushButton(self.tr("Open Directory"))
-        self.btnOpenDir.clicked.connect(self.open_dir)
-        self.edtDirname = QLineEdit()
-        self.edtDirname.setReadOnly(True)
-        self.edtDirname.setText("")
-        self.edtDirname.setPlaceholderText(self.tr("Select directory to load CT data"))
-        self.edtDirname.setMinimumWidth(400)
-        self.edtDirname.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        # Read settings (must be done before UI setup to get mcube_geometry)
+        self.settings_handler.read_all_settings()
 
-        # Add checkbox for Rust module (hidden but functional)
-        self.cbxUseRust = QCheckBox(self.tr("Use Rust"))
-        self.cbxUseRust.setChecked(True)  # Default to using Rust if available
-        self.cbxUseRust.setToolTip(
-            self.tr("Use high-performance Rust module for thumbnail generation")
-        )
-        self.cbxUseRust.setVisible(False)  # Hidden from UI
-
-        self.dirname_layout.addWidget(self.edtDirname, stretch=1)
-        # self.dirname_layout.addWidget(self.cbxUseRust,stretch=0)  # Hidden
-        self.dirname_layout.addWidget(self.btnOpenDir, stretch=0)
-        self.dirname_widget.setLayout(self.dirname_layout)
-        self.dirname_layout.setContentsMargins(margin)
-
-        """ image info layout """
-        self.image_info_layout = QHBoxLayout()
-        self.image_info_widget = QWidget()
-        self.lblLevel = QLabel(self.tr("Level"))
-        self.comboLevel = QComboBox()
-        self.comboLevel.currentIndexChanged.connect(self.comboLevelIndexChanged)
-        self.edtImageDimension = QLineEdit()
-        self.edtImageDimension.setReadOnly(True)
-        self.edtImageDimension.setText("")
-        self.edtNumImages = QLineEdit()
-        self.edtNumImages.setReadOnly(True)
-        self.edtNumImages.setText("")
-        self.image_info_layout.addWidget(self.lblLevel)
-        self.image_info_layout.addWidget(self.comboLevel)
-        self.lblSize = QLabel(self.tr("Size"))
-        self.lblCount = QLabel(self.tr("Count"))
-        self.image_info_layout.addWidget(self.lblSize)
-        self.image_info_layout.addWidget(self.edtImageDimension)
-        self.image_info_layout.addWidget(self.lblCount)
-        self.image_info_layout.addWidget(self.edtNumImages)
-        self.image_info_widget.setLayout(self.image_info_layout)
-        # self.image_info_layout2.setSpacing(0)
-        self.image_info_layout.setContentsMargins(margin)
-
-        """ image layout """
-        self.image_widget = QWidget()
-        self.image_layout = QHBoxLayout()
-        self.image_label = ObjectViewer2D(self.image_widget)
-        self.image_label.object_dialog = self
-        self.image_label.setMouseTracking(True)
-        # Unified timeline slider (replaces single + range sliders)
-        self.timeline = VerticalTimeline(0, 0)
-        self.timeline.setStep(1, 10)
-        self.timeline.setEnabled(False)  # Disable until data is loaded
-        self.timeline.currentChanged.connect(self.sliderValueChanged)
-        self.timeline.rangeChanged.connect(self.rangeSliderValueChanged)
-
-        self.image_layout.addWidget(self.image_label, stretch=1)
-        self.image_layout.addWidget(self.timeline)
-        self.image_widget.setLayout(self.image_layout)
-        self.image_layout.setContentsMargins(margin)
-
-        self.threshold_slider = QSlider(Qt.Vertical)
-        # Ensure full 0-255 range is visible on the labeled slider
-        self.threshold_slider.setRange(0, 255)
-        self.threshold_slider.setValue(60)
-        self.threshold_slider.setSingleStep(1)
-        self.threshold_slider.valueChanged.connect(self.slider2ValueChanged)
-        self.threshold_slider.sliderReleased.connect(self.slider2SliderReleased)
-        # external numeric readout to avoid any internal 0-99 label limit
-        self.threshold_value_label = QLabel(str(self.threshold_slider.value()))
-        self.threshold_value_label.setAlignment(Qt.AlignHCenter)
-        self.threshold_value_label.setMinimumWidth(30)
-        self.threshold_value_label.setStyleSheet("QLabel { color: #202020; }")
-        self.threshold_container = QWidget()
-        _vl = QVBoxLayout()
-        _vl.setContentsMargins(0, 0, 0, 0)
-        _vl.setSpacing(4)
-        _vl.addWidget(self.threshold_slider)
-        _vl.addWidget(self.threshold_value_label)
-        self.threshold_container.setLayout(_vl)
-        self.image_layout.addWidget(self.threshold_container)
-
-        """ crop layout """
-        self.crop_layout = QHBoxLayout()
-        self.crop_widget = QWidget()
-        self.btnSetBottom = QPushButton(self.tr("Set Bottom"))
-        self.btnSetBottom.clicked.connect(self.set_bottom)
-        self.btnSetTop = QPushButton(self.tr("Set Top"))
-        self.btnSetTop.clicked.connect(self.set_top)
-        self.btnReset = QPushButton(self.tr("Reset"))
-        self.btnReset.clicked.connect(self.reset_crop)
-        self.cbxInverse = QCheckBox(self.tr("Inv."))
-        self.cbxInverse.stateChanged.connect(self.cbxInverse_stateChanged)
-        self.cbxInverse.setChecked(False)
-
-        self.crop_layout.addWidget(self.btnSetBottom, stretch=1)
-        self.crop_layout.addWidget(self.btnSetTop, stretch=1)
-        self.crop_layout.addWidget(self.btnReset, stretch=1)
-        self.crop_layout.addWidget(self.cbxInverse, stretch=0)
-        self.crop_widget.setLayout(self.crop_layout)
-        self.crop_layout.setContentsMargins(margin)
-
-        """ status layout """
-        self.status_layout = QHBoxLayout()
-        self.status_widget = QWidget()
-        self.edtStatus = QLineEdit()
-        self.edtStatus.setReadOnly(True)
-        self.edtStatus.setText("")
-        self.status_layout.addWidget(self.edtStatus)
-        self.status_widget.setLayout(self.status_layout)
-        # self.status_layout.setSpacing(0)
-        self.status_layout.setContentsMargins(margin)
-
-        """ button layout """
-        self.cbxOpenDirAfter = QCheckBox(self.tr("Open dir. after"))
-        self.cbxOpenDirAfter.setChecked(True)
-        self.btnSave = QPushButton(self.tr("Save cropped image stack"))
-        self.btnSave.clicked.connect(self.save_result)
-        self.btnExport = QPushButton(self.tr("Export 3D Model"))
-        self.btnExport.clicked.connect(self.export_3d_model)
-        self.btnPreferences = QPushButton(QIcon(resource_path("M2Preferences_2.png")), "")
-        self.btnPreferences.clicked.connect(
-            self.show_advanced_settings
-        )  # Changed to use new SettingsDialog
-        self.btnPreferences.setToolTip("Settings (Advanced)")
-        self.btnInfo = QPushButton(QIcon(resource_path("info.png")), "")
-        self.btnInfo.clicked.connect(self.show_info)
-        self.button_layout = QHBoxLayout()
-        self.button_layout.addWidget(self.cbxOpenDirAfter, stretch=0)
-        self.button_layout.addWidget(self.btnSave, stretch=1)
-        self.button_layout.addWidget(self.btnExport, stretch=1)
-        self.button_layout.addWidget(self.btnPreferences, stretch=0)
-        self.button_layout.addWidget(self.btnInfo, stretch=0)
-        self.button_widget = QWidget()
-        self.button_widget.setLayout(self.button_layout)
-        self.button_layout.setContentsMargins(margin)
-
-        """ layouts put together """
-        self.sub_layout = QVBoxLayout()
-        self.sub_widget = QWidget()
-        # self.right_layout.setSpacing(0)
-        self.sub_layout.setContentsMargins(0, 0, 0, 0)
-        self.sub_widget.setLayout(self.sub_layout)
-        # self.right_layout.addWidget(self.comboSize)
-        self.sub_layout.addWidget(self.dirname_widget)
-        self.sub_layout.addWidget(self.image_info_widget)
-        self.sub_layout.addWidget(self.image_widget)
-        self.sub_layout.addWidget(self.crop_widget)
-        self.sub_layout.addWidget(self.button_widget)
-        self.sub_layout.addWidget(self.status_widget)
-        # self.right_layout.addWidget(self.btnSave)
-
-        self.main_layout = QHBoxLayout()
-        self.main_widget = QWidget()
-        self.main_widget.setLayout(self.main_layout)
-        self.main_layout.addWidget(self.sub_widget)
-
-        """ setting up texts"""
-        self.status_text_format = self.tr(
-            "Crop indices: {}~{} Cropped image size: {}x{} ({},{})-({},{}) Estimated stack size: {} MB [{}]"
-        )
-        self.progress_text_1_1 = self.tr("Saving image stack...")
-        self.progress_text_1_2 = self.tr("Saving image stack... {}/{}")
-        self.progress_text_2_1 = self.tr("Generating thumbnails (Level {})")
-        self.progress_text_2_2 = self.tr("Generating thumbnails (Level {}) - {}/{}")
-        self.progress_text_3_1 = self.tr("Loading thumbnails (Level {})")
-        self.progress_text_3_2 = self.tr("Loading thumbnails (Level {}) - {}/{}")
-
-        self.setCentralWidget(self.main_widget)
-
-        """ initialize mcube_widget """
-        self.mcube_widget = MCubeWidget(self.image_label)
-        self.mcube_widget.setGeometry(self.mcube_geometry)
-        self.mcube_widget.recalculate_geometry()
-        # self.mcube_geometry
-        self.initialized = False
+        # UI initialization (Phase 1: UI Separation - delegated to MainWindowSetup)
+        ui_setup = MainWindowSetup(self)
+        ui_setup.setup_all()
 
     def rangeSliderMoved(self):
+        """Handle range slider moved event (legacy - no longer used)."""
         return
 
     def rangeSliderPressed(self):
+        """Handle range slider pressed event (legacy - no longer used)."""
         return
 
     def cbxInverse_stateChanged(self):
+        """
+        Handle inverse checkbox state change.
+
+        Updates the inverse mode for both 2D viewer and 3D mesh widget,
+        then refreshes the display.
+        """
         if self.image_label.orig_pixmap is None:
             return
         self.mcube_widget.is_inverse = self.image_label.is_inverse = self.cbxInverse.isChecked()
-        # self.mcube_widget.is_inverse =
         self.image_label.calculate_resize()
         self.image_label.repaint()
         self.update_3D_view(True)
@@ -304,11 +141,17 @@ class CTHarvesterMainWindow(QMainWindow):
             )
 
     def show_info(self):
+        """Show information dialog with application details and shortcuts."""
         self.info_dialog = InfoDialog(self)
         self.info_dialog.setModal(True)
         self.info_dialog.show()
 
     def update_language(self):
+        """
+        Update UI language based on current language setting.
+
+        Loads translation file and updates all translatable UI strings.
+        """
         translator = QTranslator()
         translator.load(f"CTHarvester_{self.m_app.language}.qm")
         self.m_app.installTranslator(translator)
@@ -336,13 +179,13 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_text_3_2 = self.tr("Loading thumbnails (Level {}) - {}/{}")
 
     def set_bottom(self):
-        # set lower bound to current index
+        """Set the bottom (lower) crop boundary to current timeline position."""
         _, curr, _ = self.timeline.values()
         self.timeline.setLower(curr)
         self.update_status()
 
     def set_top(self):
-        # set upper bound to current index
+        """Set the top (upper) crop boundary to current timeline position."""
         _, curr, _ = self.timeline.values()
         self.timeline.setUpper(curr)
         self.update_status()
@@ -352,9 +195,20 @@ class CTHarvesterMainWindow(QMainWindow):
     #    return super().resizeEvent(a0)
 
     def update_3D_view_click(self):
+        """Handle button click to update 3D view with volume recalculation."""
         self.update_3D_view(True)
 
     def update_3D_view(self, update_volume=True):
+        """
+        Update 3D mesh viewer with current crop region and bounding box.
+
+        Args:
+            update_volume: If True, recalculates volume from current settings.
+                          If False, only updates display.
+
+        The method scales bounding box dimensions based on current pyramid level
+        to ensure proper visualization across different resolution levels.
+        """
         # print("update 3d view")
         volume, roi_box = self.get_cropped_volume()
 
@@ -403,6 +257,12 @@ class CTHarvesterMainWindow(QMainWindow):
         self.mcube_widget.adjust_volume()
 
     def update_curr_slice(self):
+        """
+        Update current slice indicator in 3D view without regenerating mesh.
+
+        Calculates scaled slice position based on pyramid level and updates
+        the 3D viewer's slice plane indicator. Skips update if volume not initialized.
+        """
         # Check if minimum_volume is initialized
         if (
             not hasattr(self, "minimum_volume")
@@ -459,120 +319,28 @@ class CTHarvesterMainWindow(QMainWindow):
         )
 
     def export_3d_model(self):
-        # open dir dialog for save
-        # logger.info("export_3d_model method called")
-        threed_volume = []
+        """
+        Export 3D model to OBJ file (delegated to ExportHandler).
 
-        obj_filename, _ = QFileDialog.getSaveFileName(
-            self, "Save File As", self.edtDirname.text(), "OBJ format (*.obj)"
-        )
-        if obj_filename == "":
-            logger.info("Export cancelled")
-            return
-        logger.info(f"Exporting 3D model to: {obj_filename}")
-
-        try:
-            threed_volume, _ = self.get_cropped_volume()
-            isovalue = self.image_label.isovalue
-            vertices, triangles = mcubes.marching_cubes(threed_volume, isovalue)
-
-            for i in range(len(vertices)):
-                vertices[i] = np.array([vertices[i][2], vertices[i][0], vertices[i][1]])
-        except Exception as e:
-            QMessageBox.critical(
-                self, self.tr("Error"), self.tr(f"Failed to generate 3D mesh: {e}")
-            )
-            return
-
-        # write as obj file format
-        try:
-            with open(obj_filename, "w") as fh:
-                for v in vertices:
-                    fh.write(f"v {v[0]} {v[1]} {v[2]}\n")
-                # for vn in vertex_normals:
-                #    fh.write('vn {} {} {}\n'.format(vn[0], vn[1], vn[2]))
-                # for f in triangles:
-                #    fh.write('f {}/{} {}/{} {}/{}\n'.format(f[0]+1, f[0]+1, f[1]+1, f[1]+1, f[2]+1, f[2]+1))
-                for f in triangles:
-                    fh.write(f"f {f[0] + 1} {f[1] + 1} {f[2] + 1}\n")
-        except Exception as e:
-            QMessageBox.critical(self, self.tr("Error"), self.tr(f"Failed to save OBJ file: {e}"))
-            logger.error(f"Error saving OBJ file: {e}")
+        This method is kept for backward compatibility but delegates to the handler.
+        """
+        self.export_handler.export_3d_model_to_obj()
 
     def save_result(self):
-        # open dir dialog for save
-        # logger.info("save_result method called")
-        target_dirname = QFileDialog.getExistingDirectory(
-            self, self.tr("Select directory to save"), self.edtDirname.text()
-        )
-        if target_dirname == "":
-            logger.info("Save cancelled")
-            return
-        # logger.info(f"Saving results to: {target_dirname}")
-        # get crop box info
-        from_x = self.image_label.crop_from_x
-        from_y = self.image_label.crop_from_y
-        to_x = self.image_label.crop_to_x
-        to_y = self.image_label.crop_to_y
-        # get size idx
-        size_idx = self.comboLevel.currentIndex()
-        # get filename from level from idx
-        top_idx = self.image_label.top_idx
-        bottom_idx = self.image_label.bottom_idx
+        """
+        Save cropped image stack (delegated to ExportHandler).
 
-        current_count = 0
-        total_count = top_idx - bottom_idx + 1
-        self.progress_dialog = ProgressDialog(self)
-        self.progress_dialog.update_language()
-        self.progress_dialog.setModal(True)
-        self.progress_dialog.show()
-        self.progress_dialog.lbl_text.setText(self.progress_text_1_1)
-        self.progress_dialog.pb_progress.setValue(0)
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-
-        for i, idx in enumerate(range(bottom_idx, top_idx + 1)):
-            filename = (
-                self.settings_hash["prefix"]
-                + str(self.level_info[size_idx]["seq_begin"] + idx).zfill(
-                    self.settings_hash["index_length"]
-                )
-                + "."
-                + self.settings_hash["file_type"]
-            )
-            # get full path
-            if size_idx == 0:
-                orig_dirname = self.edtDirname.text()
-            else:
-                orig_dirname = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(size_idx))
-            fullpath = os.path.join(orig_dirname, filename)
-            # open image with context manager to prevent resource leak
-            try:
-                with Image.open(fullpath) as img:
-                    # crop image if needed
-                    if from_x > -1:
-                        img = img.crop((from_x, from_y, to_x, to_y))
-                    # save image
-                    img.save(os.path.join(target_dirname, filename))
-            except Exception as e:
-                logger.error(f"Error opening/saving image {fullpath}: {e}")
-                continue
-
-            self.progress_dialog.lbl_text.setText(
-                self.progress_text_1_2.format(i + 1, int(total_count))
-            )
-            self.progress_dialog.pb_progress.setValue(
-                int(((i + 1) / float(int(total_count))) * 100)
-            )
-            self.progress_dialog.update()
-            QApplication.processEvents()
-
-        QApplication.restoreOverrideCursor()
-        self.progress_dialog.close()
-        self.progress_dialog = None
-        if self.cbxOpenDirAfter.isChecked():
-            os.startfile(target_dirname)
+        This method is kept for backward compatibility but delegates to the handler.
+        """
+        self.export_handler.save_cropped_image_stack()
 
     def rangeSliderValueChanged(self):
+        """
+        Handle range slider value change to update top/bottom crop boundaries.
+
+        Updates image viewer crop indices and regenerates 3D mesh with new range.
+        Skips update if level_info not yet initialized during startup.
+        """
         # print("range slider value changed")
         try:
             # Check if necessary attributes are initialized
@@ -592,10 +360,17 @@ class CTHarvesterMainWindow(QMainWindow):
             logger.error(f"Error in rangeSliderValueChanged: {e}")
 
     def rangeSliderReleased(self):
+        """Handle range slider release event (currently no-op)."""
         # print("range slider released")
         return
 
     def sliderValueChanged(self):
+        """
+        Handle timeline slider value change to display different image slice.
+
+        Loads the image corresponding to the current slider position from either
+        the original directory (level 0) or thumbnail cache (levels 1+).
+        """
         if not self.initialized:
             return
         size_idx = self.comboLevel.currentIndex()
@@ -624,6 +399,11 @@ class CTHarvesterMainWindow(QMainWindow):
         self.update_curr_slice()
 
     def reset_crop(self):
+        """
+        Reset crop area and timeline range to defaults.
+
+        Clears all crop selections and resets timeline to show full image range.
+        """
         _, curr, _ = self.timeline.values()
         self.image_label.set_curr_idx(curr)
         self.image_label.reset_crop()
@@ -633,6 +413,12 @@ class CTHarvesterMainWindow(QMainWindow):
         self.update_status()
 
     def update_status(self):
+        """
+        Update status bar with current crop dimensions and estimated size.
+
+        Displays crop indices, image dimensions, coordinates, and calculated
+        memory size of the cropped image stack.
+        """
         lo, _, hi = self.timeline.values()
         bottom_idx, top_idx = lo, hi
         [x1, y1, x2, y2] = self.image_label.get_crop_area(imgxy=True)
@@ -653,6 +439,11 @@ class CTHarvesterMainWindow(QMainWindow):
         self.edtStatus.setText(status_text)
 
     def initializeComboSize(self):
+        """
+        Initialize pyramid level combo box with available resolution levels.
+
+        Populates combo box with level names from level_info metadata.
+        """
         # logger.info(f"initializeComboSize called, level_info count: {len(self.level_info) if hasattr(self, 'level_info') else 'not set'}")
         self.comboLevel.clear()
         for level in self.level_info:
@@ -1647,116 +1438,19 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def read_settings(self):
         """
-        Reads the application settings from YAML and updates the corresponding values in the application object.
+        Read settings from YAML (delegated to WindowSettingsHandler).
+
+        This method is kept for backward compatibility but delegates to the handler.
         """
-        try:
-            # Read from YAML settings
-            self.m_app.remember_directory = self.settings_manager.get(
-                "window.remember_position", True
-            )
-            if self.m_app.remember_directory:
-                self.m_app.default_directory = self.settings_manager.get(
-                    "application.default_directory", "."
-                )
-            else:
-                self.m_app.default_directory = "."
-
-            self.m_app.remember_geometry = self.settings_manager.get("window.remember_size", True)
-            if self.m_app.remember_geometry:
-                # Get saved geometry
-                saved_geom = self.settings_manager.get("window.main_geometry", None)
-                if saved_geom and isinstance(saved_geom, dict):
-                    self.setGeometry(
-                        QRect(
-                            saved_geom.get("x", 100),
-                            saved_geom.get("y", 100),
-                            saved_geom.get("width", 600),
-                            saved_geom.get("height", 550),
-                        )
-                    )
-                else:
-                    self.setGeometry(QRect(100, 100, 600, 550))
-
-                mcube_geom = self.settings_manager.get("window.mcube_geometry", None)
-                if mcube_geom and isinstance(mcube_geom, dict):
-                    self.mcube_geometry = QRect(
-                        mcube_geom.get("x", 0),
-                        mcube_geom.get("y", 0),
-                        mcube_geom.get("width", 150),
-                        mcube_geom.get("height", 150),
-                    )
-                else:
-                    self.mcube_geometry = QRect(0, 0, 150, 150)
-            else:
-                self.setGeometry(QRect(100, 100, 600, 550))
-                self.mcube_geometry = QRect(0, 0, 150, 150)
-
-            # Language
-            lang_code = self.settings_manager.get("application.language", "auto")
-            lang_map = {"auto": "en", "en": "en", "ko": "ko"}
-            self.m_app.language = lang_map.get(lang_code, "en")
-
-            # Read Rust module preference
-            use_rust_default = self.settings_manager.get("processing.use_rust_module", True)
-            self.m_app.use_rust_thumbnail = use_rust_default
-            if hasattr(self, "cbxUseRust"):
-                self.cbxUseRust.setChecked(use_rust_default)
-
-        except Exception as e:
-            logger.error(f"Error reading main window settings: {e}")
-            # Set defaults if reading fails
-            self.m_app.remember_directory = True
-            self.m_app.default_directory = "."
-            self.m_app.remember_geometry = True
-            self.setGeometry(QRect(100, 100, 600, 550))
-            self.mcube_geometry = QRect(0, 0, 150, 150)
-            self.m_app.language = "en"
-            self.m_app.use_rust_thumbnail = True
-            if hasattr(self, "cbxUseRust"):
-                self.cbxUseRust.setChecked(True)
+        self.settings_handler.read_all_settings()
 
     def save_settings(self):
         """
-        Saves the current application settings to YAML storage.
-        If the 'remember_directory' setting is enabled, saves the default directory.
-        If the 'remember_geometry' setting is enabled, saves the main window and mcube widget geometries.
+        Save settings to YAML (delegated to WindowSettingsHandler).
+
+        This method is kept for backward compatibility but delegates to the handler.
         """
-        try:
-            if self.m_app.remember_directory:
-                self.settings_manager.set(
-                    "application.default_directory", self.m_app.default_directory
-                )
-            if self.m_app.remember_geometry:
-                # Save main window geometry
-                geom = self.geometry()
-                self.settings_manager.set(
-                    "window.main_geometry",
-                    {"x": geom.x(), "y": geom.y(), "width": geom.width(), "height": geom.height()},
-                )
-                # Save mcube widget geometry
-                mcube_geom = self.mcube_widget.geometry()
-                self.settings_manager.set(
-                    "window.mcube_geometry",
-                    {
-                        "x": mcube_geom.x(),
-                        "y": mcube_geom.y(),
-                        "width": mcube_geom.width(),
-                        "height": mcube_geom.height(),
-                    },
-                )
-
-            # Save Rust module preference (synced with SettingsDialog)
-            if hasattr(self, "cbxUseRust"):
-                self.m_app.use_rust_thumbnail = self.cbxUseRust.isChecked()
-                self.settings_manager.set(
-                    "processing.use_rust_module", self.m_app.use_rust_thumbnail
-                )
-
-            # Persist to disk
-            self.settings_manager.save()
-
-        except Exception as e:
-            logger.error(f"Error saving main window settings: {e}")
+        self.settings_handler.save_all_settings()
 
     def closeEvent(self, event):
         """

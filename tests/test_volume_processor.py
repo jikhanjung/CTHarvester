@@ -438,3 +438,118 @@ class TestVolumeProcessorEdgeCases:
         scaled_up = processor.scale_coordinates_between_levels(coords, 15, 0)
         # Should be very large
         assert all(s > 10000 for s in scaled_up)
+
+
+class TestVolumeProcessorCropBoundary:
+    """Test suite for crop boundary conditions (off-by-one fix verification)"""
+
+    @pytest.fixture
+    def processor(self):
+        """Create a VolumeProcessor instance"""
+        return VolumeProcessor()
+
+    @pytest.fixture
+    def precise_volume(self):
+        """Create a volume where each voxel's value is its index for precise testing"""
+        # 10x10x10 volume where value = z*100 + y*10 + x
+        volume = np.zeros((10, 10, 10), dtype=np.int32)
+        for z in range(10):
+            for y in range(10):
+                for x in range(10):
+                    volume[z, y, x] = z * 100 + y * 10 + x
+        return volume
+
+    @pytest.fixture
+    def simple_level_info(self):
+        """Simple level info for boundary testing"""
+        return [
+            {"seq_begin": 0, "seq_end": 9, "width": 10, "height": 10},
+        ]
+
+    def test_crop_includes_exact_boundaries(self, processor, precise_volume, simple_level_info):
+        """Verify that crop includes the exact specified boundaries"""
+        # Crop X=[0,5], Y=[0,5], Z=[0,5] should include indices 0-4 (5 elements each)
+        # In normalized coords: to_x = 5/10 = 0.5
+        volume, roi = processor.get_cropped_volume(
+            minimum_volume=precise_volume,
+            level_info=simple_level_info,
+            curr_level_idx=0,
+            top_idx=5,  # Z: 0-4 (5 slices)
+            bottom_idx=0,
+            crop_box=[0, 0, 5, 5],  # X,Y: 0-4 (5 pixels each)
+        )
+
+        # Should get 5x5x5 volume
+        assert volume.shape == (5, 5, 5), f"Expected (5,5,5), got {volume.shape}"
+
+        # Verify corner values
+        assert volume[0, 0, 0] == 0, "Top-left-front corner should be (0,0,0) = 0"
+        assert volume[0, 0, 4] == 4, "Top-right-front corner should be (0,0,4) = 4"
+        assert volume[0, 4, 0] == 40, "Bottom-left-front corner should be (0,4,0) = 40"
+        assert volume[4, 4, 4] == 444, "Bottom-right-back corner should be (4,4,4) = 444"
+
+    def test_crop_full_volume_preserves_all_data(self, processor, precise_volume, simple_level_info):
+        """Cropping the entire volume should preserve all data"""
+        volume, roi = processor.get_cropped_volume(
+            minimum_volume=precise_volume,
+            level_info=simple_level_info,
+            curr_level_idx=0,
+            top_idx=10,  # Full range (seq_end is 9, so top_idx should be 10 for inclusive)
+            bottom_idx=0,
+            crop_box=[0, 0, 10, 10],  # Full image
+        )
+
+        # Should get exact same volume
+        assert volume.shape == precise_volume.shape
+        assert np.array_equal(volume, precise_volume)
+
+    def test_crop_single_pixel_region(self, processor, precise_volume, simple_level_info):
+        """Cropping a single pixel should work correctly"""
+        # Crop X=[5,6], Y=[5,6], Z=[5,6] - should give 1x1x1
+        volume, roi = processor.get_cropped_volume(
+            minimum_volume=precise_volume,
+            level_info=simple_level_info,
+            curr_level_idx=0,
+            top_idx=6,  # Z: 5 (1 slice)
+            bottom_idx=5,
+            crop_box=[5, 5, 6, 6],  # X,Y: 5 (1 pixel)
+        )
+
+        # Should get 1x1x1 volume
+        assert volume.shape == (1, 1, 1), f"Expected (1,1,1), got {volume.shape}"
+        assert volume[0, 0, 0] == 555, "Single pixel should be (5,5,5) = 555"
+
+    def test_crop_last_pixel_included(self, processor, precise_volume, simple_level_info):
+        """Verify the last pixel is included (off-by-one fix)"""
+        # Crop to the very last pixel: X=[9,10], Y=[9,10], Z=[9,10]
+        volume, roi = processor.get_cropped_volume(
+            minimum_volume=precise_volume,
+            level_info=simple_level_info,
+            curr_level_idx=0,
+            top_idx=10,  # Z: 9 (1 slice)
+            bottom_idx=9,
+            crop_box=[9, 9, 10, 10],  # X,Y: 9 (1 pixel)
+        )
+
+        # Should get 1x1x1 volume with the last voxel
+        assert volume.shape == (1, 1, 1), f"Expected (1,1,1), got {volume.shape}"
+        assert volume[0, 0, 0] == 999, "Last pixel should be (9,9,9) = 999"
+
+    def test_crop_size_matches_roi_specification(self, processor, precise_volume, simple_level_info):
+        """Crop size should match user's ROI specification exactly"""
+        # User selects X=[2,7] (width=5), Y=[3,8] (height=5), Z=[1,6] (depth=5)
+        volume, roi = processor.get_cropped_volume(
+            minimum_volume=precise_volume,
+            level_info=simple_level_info,
+            curr_level_idx=0,
+            top_idx=6,  # Z: 1-5 (5 slices)
+            bottom_idx=1,
+            crop_box=[2, 3, 7, 8],  # X: 2-6, Y: 3-7 (5x5 pixels)
+        )
+
+        # Should get exactly 5x5x5 volume
+        assert volume.shape == (5, 5, 5), f"Expected (5,5,5), got {volume.shape}"
+
+        # Verify first and last values
+        assert volume[0, 0, 0] == 132, "First voxel should be (1,3,2) = 132"
+        assert volume[4, 4, 4] == 576, "Last voxel should be (5,7,6) = 576"

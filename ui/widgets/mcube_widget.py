@@ -592,11 +592,10 @@ class MCubeWidget(QGLWidget):
         try:
             for filename in os.listdir(folder):
                 try:
-                    # read images using Pillow
-                    img = Image.open(os.path.join(folder, filename))
-                    # img = cv2.imread(os.path.join(folder,filename),0)
-                    if img is not None:
-                        images.append(np.array(img))
+                    # read images using Pillow with context manager
+                    with Image.open(os.path.join(folder, filename)) as img:
+                        if img is not None:
+                            images.append(np.array(img))
                 except Exception as e:
                     logger.error(f"Error reading image {filename}: {e}")
                     continue
