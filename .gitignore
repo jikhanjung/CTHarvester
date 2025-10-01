@@ -29,7 +29,6 @@ build/
 !CTHarvester.spec
 !CTHarvester_onedir.spec
 !CTHarvester_onefile.spec
-!CTScape.spec
 
 # Rust / Cargo
 target/
@@ -81,6 +80,7 @@ mcube_test.py
 pymcubes_test.py
 vtk_test*.py
 PCA_test*.py
+check_*.py
 
 # Build artifacts
 *.egg-info/
