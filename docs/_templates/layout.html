@@ -50,19 +50,15 @@
     // Get the page name (e.g., 'index.html', 'user_guide.html')
     var pageName = currentPath.split('/').pop() || 'index.html';
 
-    // Build new path based on build structure
-    if (currentPath.includes('/_build/html/')) {
-      // Local build: /_build/html/en/ or /_build/html/ko/
-      var basePath = currentPath.substring(0, currentPath.indexOf('/_build/html/') + 13);
-      newPath = basePath + '/' + targetLang + '/' + pageName;
-    } else if (currentPath.includes('/en/') || currentPath.includes('/ko/')) {
-      // Already has language code
-      newPath = currentPath.replace(/\/(en|ko)\//, '/' + targetLang + '/');
+    // Replace language code in path (en <-> ko)
+    if (currentPath.includes('/en/')) {
+      newPath = currentPath.replace('/en/', '/' + targetLang + '/');
+    } else if (currentPath.includes('/ko/')) {
+      newPath = currentPath.replace('/ko/', '/' + targetLang + '/');
     } else {
-      // Default: try to insert language before page name
-      var pathParts = currentPath.split('/');
-      pathParts.splice(-1, 0, targetLang);
-      newPath = pathParts.join('/');
+      // Fallback: construct path with language code
+      var pathBase = currentPath.substring(0, currentPath.lastIndexOf('/')) || '';
+      newPath = pathBase + '/' + targetLang + '/' + pageName;
     }
 
     window.location.href = newPath;
