@@ -1,5 +1,33 @@
-"""
-File System Utility Functions
+"""File system utility functions for image file operations.
+
+This module provides utilities for finding, parsing, and organizing image files
+in CT scan directories. It handles file name parsing, natural sorting, thumbnail
+directory management, and file size calculations.
+
+Created during Phase 4 refactoring to consolidate file operation utilities.
+
+Functions:
+    find_image_files: Find image files in directory with extension filtering
+    parse_filename: Extract prefix, number, and extension from filename
+    create_thumbnail_directory: Create thumbnail subdirectories
+    get_thumbnail_path: Generate thumbnail file path for given level
+    clean_old_thumbnails: Remove old thumbnail directories
+    get_directory_size: Calculate total size of directory
+
+Example:
+    >>> from utils.file_utils import find_image_files, parse_filename
+    >>> images = find_image_files("/path/to/ct/scans", extensions=[".tif", ".tiff"])
+    >>> for img in images:
+    ...     prefix, num, ext = parse_filename(img)
+    ...     print(f"Image {num}: {prefix}{num:06}{ext}")
+
+Note:
+    These utilities use SecureFileValidator for safe file operations and
+    handle edge cases like missing directories or permission errors gracefully.
+
+See Also:
+    security.file_validator: Secure file validation and operations
+    utils.image_utils: Image processing utilities
 """
 
 import logging

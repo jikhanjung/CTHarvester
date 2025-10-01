@@ -15,6 +15,7 @@ from PIL import Image
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox
 
+from security.file_validator import SecureFileValidator
 from ui.dialogs import ProgressDialog
 
 logger = logging.getLogger(__name__)
@@ -118,8 +119,12 @@ class ExportHandler:
             vertices (np.ndarray): Vertex positions
             triangles (np.ndarray): Triangle face indices
         """
+        validator = SecureFileValidator()
+
         try:
-            with open(filename, "w") as fh:
+            # Validate output path
+            validated_path = validator.validate_path(filename)
+            with open(validated_path, "w") as fh:
                 # Write vertices
                 for v in vertices:
                     fh.write(f"v {v[0]} {v[1]} {v[2]}\n")
@@ -281,16 +286,16 @@ class ExportHandler:
         Returns:
             str: Full path to source image
         """
-        if size_idx == 0:
-            source_dir = self.window.edtDirname.text()
-        else:
-            source_dir = os.path.join(
-                self.window.edtDirname.text(),
-                ".thumbnail",
-                str(size_idx)
-            )
+        validator = SecureFileValidator()
+        base_dir = self.window.edtDirname.text()
 
-        return os.path.join(source_dir, filename)
+        if size_idx == 0:
+            source_dir = base_dir
+        else:
+            # Use safe_join to prevent path traversal
+            source_dir = validator.safe_join(base_dir, ".thumbnail", str(size_idx))
+
+        return validator.safe_join(source_dir, filename)
 
     def _process_and_save_image(self, source_path, target_dir, filename, crop_info):
         """
@@ -302,6 +307,8 @@ class ExportHandler:
             filename (str): Output filename
             crop_info (dict): Crop information
         """
+        validator = SecureFileValidator()
+
         with Image.open(source_path) as img:
             # Apply crop if specified
             if crop_info["from_x"] > -1:
@@ -312,8 +319,9 @@ class ExportHandler:
                     crop_info["to_y"]
                 ))
 
-            # Save image
-            img.save(os.path.join(target_dir, filename))
+            # Save image with secure path
+            output_path = validator.safe_join(target_dir, filename)
+            img.save(output_path)
 
     def _update_progress(self, progress_dialog, current, total):
         """

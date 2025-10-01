@@ -1,5 +1,25 @@
-"""
-CTHarvester Global Constants
+"""Global application constants for CTHarvester.
+
+This module defines application-wide constants including metadata, default values,
+paths, and configuration settings used throughout CTHarvester.
+
+Created during Phase 4 refactoring to centralize constant definitions.
+
+Constants:
+    APP_NAME: Application name ("CTHarvester")
+    APP_ORGANIZATION: Organization name ("PaleoBytes")
+    PROGRAM_VERSION: Current version from version.py
+    DEFAULT_THUMBNAIL_LEVELS: Number of thumbnail levels to generate
+    MAX_IMAGE_DIMENSION: Maximum allowed image dimension
+    SUPPORTED_IMAGE_FORMATS: List of supported image file extensions
+
+Example:
+    >>> from config.constants import APP_NAME, DEFAULT_THUMBNAIL_LEVELS
+    >>> print(f"{APP_NAME} - Levels: {DEFAULT_THUMBNAIL_LEVELS}")
+
+Note:
+    These constants should be treated as read-only. Modifying them at runtime
+    may lead to inconsistent application behavior.
 """
 
 import logging

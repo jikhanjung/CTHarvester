@@ -1,11 +1,33 @@
-"""
-Common utility functions
+"""Common utility functions used across CTHarvester.
 
-Centralized helper functions used across the application.
+This module provides general-purpose utility functions for resource path resolution,
+directory creation, and type conversions used throughout the application.
+
+Created during Phase 4 refactoring to centralize common helper functions.
+
+Functions:
+    resource_path: Get absolute path to resource (works with PyInstaller)
+    value_to_bool: Convert various types to boolean
+    ensure_directories: Create multiple directories if they don't exist
+
+Example:
+    >>> from utils.common import resource_path, value_to_bool, ensure_directories
+    >>> icon_path = resource_path("icons/app_icon.png")
+    >>> is_enabled = value_to_bool("True")  # Returns True
+    >>> ensure_directories(["/tmp/output", "/tmp/cache"])
+
+Note:
+    resource_path() handles both development and PyInstaller frozen environments
+    by checking for sys._MEIPASS to support bundled applications.
+
+See Also:
+    utils.file_utils: File-specific operations
+    utils.settings_manager: Settings persistence
 """
 
 import os
 import sys
+import warnings
 
 
 def resource_path(relative_path):
@@ -34,6 +56,6 @@ def ensure_directories(directories):
             if not os.path.exists(directory):
                 os.makedirs(directory, exist_ok=True)
         except (OSError, PermissionError) as e:
-            # Use print here since logger might not be initialized yet
-            print(f"Warning: Could not create directory {directory}: {e}")
+            # Use warnings here since logger might not be initialized yet
+            warnings.warn(f"Could not create directory {directory}: {e}", RuntimeWarning)
             # Don't fail completely, let the application try to continue

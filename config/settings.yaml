@@ -23,7 +23,7 @@ thumbnails:
 processing:
   threads: auto  # auto, or specific number (1-16)
   memory_limit_gb: 4
-  use_rust_module: true  # false to force Python fallback
+  use_rust_module: false  # false to force Python fallback
 
 rendering:
   background_color: [0.2, 0.2, 0.2]

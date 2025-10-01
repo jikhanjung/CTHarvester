@@ -12,8 +12,48 @@ from queue import Queue
 
 import mcubes
 import numpy as np
-from OpenGL.GL import *
-from OpenGL.GLU import *
+from OpenGL.GL import (
+    GL_BLEND,
+    GL_COLOR_BUFFER_BIT,
+    GL_COLOR_MATERIAL,
+    GL_COMPILE,
+    GL_DEPTH_BUFFER_BIT,
+    GL_DEPTH_TEST,
+    GL_LIGHT0,
+    GL_LIGHTING,
+    GL_LINES,
+    GL_MODELVIEW,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_POINT_SMOOTH,
+    GL_PROJECTION,
+    GL_QUADS,
+    GL_SMOOTH,
+    GL_SRC_ALPHA,
+    GL_TRIANGLES,
+    glBegin,
+    glBlendFunc,
+    glCallList,
+    glClear,
+    glClearColor,
+    glColor3f,
+    glColor4f,
+    glDisable,
+    glEnable,
+    glEnd,
+    glEndList,
+    glGenLists,
+    glLineWidth,
+    glLoadIdentity,
+    glMatrixMode,
+    glNewList,
+    glNormal3fv,
+    glRotatef,
+    glShadeModel,
+    glTranslatef,
+    glVertex3fv,
+    glViewport,
+)
+from OpenGL.GLU import gluLookAt, gluPerspective
 from PyQt5.QtCore import Qt, QThread, QThreadPool, QTimer, pyqtSignal
 from PyQt5.QtGui import QCursor, QPixmap
 from PyQt5.QtOpenGL import QGLWidget
