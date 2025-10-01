@@ -277,7 +277,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/CTHarvester.git
+   git clone https://github.com/jikhanjung/CTHarvester.git
    cd CTHarvester
    ```
 

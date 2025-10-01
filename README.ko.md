@@ -239,7 +239,7 @@ CTHarvester/
 1. 저장소 포크
 2. 포크 클론:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/CTHarvester.git
+   git clone https://github.com/jikhanjung/CTHarvester.git
    cd CTHarvester
    ```
 
