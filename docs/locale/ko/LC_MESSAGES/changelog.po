@@ -1,0 +1,411 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023-2025, Jikhan Jung
+# This file is distributed under the same license as the CTHarvester
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: CTHarvester \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-01 17:48+0900\n"
+"PO-Revision-Date: 2025-10-01 18:30+0900\n"
+"Last-Translator: CTHarvester Documentation Team <noreply@ctharvester.org>\n"
+"Language: ko\n"
+"Language-Team: ko <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../changelog.rst:2
+msgid "Changelog"
+msgstr "변경 로그"
+
+#: ../../changelog.rst:4
+msgid "All notable changes to CTHarvester will be documented in this file."
+msgstr "CTHarvester의 모든 주목할 만한 변경 사항이 이 파일에 문서화됩니다."
+
+#: ../../changelog.rst:6
+msgid ""
+"The format is based on `Keep a Changelog <https://keepachangelog.com/>`_,"
+" and this project adheres to `Semantic Versioning "
+"<https://semver.org/>`_."
+msgstr ""
+"이 형식은 `Keep a Changelog <https://keepachangelog.com/>`_를 기반으로 하며, "
+"이 프로젝트는 `Semantic Versioning <https://semver.org/>`_을 준수합니다."
+
+#: ../../changelog.rst:10
+msgid "[Unreleased]"
+msgstr "[미출시]"
+
+#: ../../changelog.rst:13
+msgid "[0.2.3-beta.1] - 2025-10-01"
+msgstr "[0.2.3-beta.1] - 2025-10-01"
+
+#: ../../changelog.rst:16 ../../changelog.rst:41 ../../changelog.rst:51
+#: ../../changelog.rst:127 ../../changelog.rst:139
+msgid "Added"
+msgstr "추가"
+
+#: ../../changelog.rst:18
+msgid "Python thumbnail generation fallback when Rust module unavailable"
+msgstr "Rust 모듈을 사용할 수 없을 때 Python 썸네일 생성 폴백"
+
+#: ../../changelog.rst:19
+msgid "Comprehensive progress tracking with accurate ETA calculation"
+msgstr "정확한 ETA 계산을 통한 포괄적인 진행 상황 추적"
+
+#: ../../changelog.rst:20
+msgid "Settings persistence for Rust module preference"
+msgstr "Rust 모듈 선호도에 대한 설정 영속성"
+
+#: ../../changelog.rst:23 ../../changelog.rst:103
+msgid "Fixed"
+msgstr "수정"
+
+#: ../../changelog.rst:25
+msgid ""
+"Python thumbnail generation progress calculation (now shows correct 88% "
+"at Level 1 completion)"
+msgstr "Python 썸네일 생성 진행률 계산 (이제 레벨 1 완료 시 정확한 88% 표시)"
+
+#: ../../changelog.rst:26
+msgid "Settings not persisting when \"Use Rust module\" checkbox changed"
+msgstr "\"Rust 모듈 사용\" 체크박스 변경 시 설정이 유지되지 않는 문제"
+
+#: ../../changelog.rst:27
+msgid "AttributeErrors in Python thumbnail generation"
+msgstr "Python 썸네일 생성의 AttributeError"
+
+#: ../../changelog.rst:28
+msgid "Progress bar showing incorrect percentages"
+msgstr "진행률 표시줄이 잘못된 백분율을 표시하는 문제"
+
+#: ../../changelog.rst:31 ../../changelog.rst:87
+msgid "Changed"
+msgstr "변경"
+
+#: ../../changelog.rst:33
+msgid ""
+"Simplified progress tracking architecture (removed callback-based "
+"approach)"
+msgstr "단순화된 진행 상황 추적 아키텍처 (콜백 기반 접근 방식 제거)"
+
+#: ../../changelog.rst:34
+msgid "Weight calculation now reflects actual data volume ratio (64:8:1)"
+msgstr "가중치 계산이 이제 실제 데이터 볼륨 비율을 반영 (64:8:1)"
+
+#: ../../changelog.rst:35
+msgid "Direct signal-based progress updates via ProgressManager"
+msgstr "ProgressManager를 통한 직접 신호 기반 진행 상황 업데이트"
+
+#: ../../changelog.rst:38
+msgid "[0.2.3-alpha.1] - 2025-09-27"
+msgstr "[0.2.3-alpha.1] - 2025-09-27"
+
+#: ../../changelog.rst:43
+msgid "Multi-level LoD pyramid thumbnail generation"
+msgstr "다단계 LoD 피라미드 썸네일 생성"
+
+#: ../../changelog.rst:44
+msgid "Rust-based high-performance thumbnail module"
+msgstr "Rust 기반 고성능 썸네일 모듈"
+
+#: ../../changelog.rst:45
+msgid "Comprehensive testing infrastructure"
+msgstr "포괄적인 테스트 인프라"
+
+#: ../../changelog.rst:48
+msgid "[0.2.2] - 2025-09-08"
+msgstr "[0.2.2] - 2025-09-08"
+
+#: ../../changelog.rst:53
+msgid "**Phase 1: UI/UX Improvements**"
+msgstr "**Phase 1: UI/UX 개선**"
+
+#: ../../changelog.rst:55
+msgid ""
+"Simple linear progress tracking with moving average ETA "
+"(``SimpleProgressTracker``)"
+msgstr "이동 평균 ETA를 사용한 단순 선형 진행 상황 추적 (``SimpleProgressTracker``)"
+
+#: ../../changelog.rst:56
+msgid "Non-blocking 3D mesh generation using background threads"
+msgstr "백그라운드 스레드를 사용한 비차단 3D 메시 생성"
+
+#: ../../changelog.rst:57
+msgid "User-friendly error messages with solutions (``ErrorMessageBuilder``)"
+msgstr "솔루션이 포함된 사용자 친화적인 오류 메시지 (``ErrorMessageBuilder``)"
+
+#: ../../changelog.rst:58
+msgid "Complete internationalization foundation (``TranslationManager``)"
+msgstr "완전한 국제화 기반 (``TranslationManager``)"
+
+#: ../../changelog.rst:59
+msgid "Comprehensive keyboard shortcuts system (``ShortcutManager``)"
+msgstr "포괄적인 키보드 단축키 시스템 (``ShortcutManager``)"
+
+#: ../../changelog.rst:60
+msgid "Rich HTML tooltips with shortcuts and descriptions (``TooltipManager``)"
+msgstr "단축키 및 설명이 포함된 풍부한 HTML 툴팁 (``TooltipManager``)"
+
+#: ../../changelog.rst:61
+msgid "Keyboard shortcuts help dialog"
+msgstr "키보드 단축키 도움말 대화 상자"
+
+#: ../../changelog.rst:63
+msgid "**Phase 2: Settings Management**"
+msgstr "**Phase 2: 설정 관리**"
+
+#: ../../changelog.rst:65
+msgid "YAML-based settings management (``SettingsManager``)"
+msgstr "YAML 기반 설정 관리 (``SettingsManager``)"
+
+#: ../../changelog.rst:66
+msgid "Comprehensive settings GUI with 5 tabs:"
+msgstr "5개 탭이 있는 포괄적인 설정 GUI:"
+
+#: ../../changelog.rst:68
+msgid "General: Language, theme, window preferences"
+msgstr "일반: 언어, 테마, 창 기본 설정"
+
+#: ../../changelog.rst:69
+msgid "Thumbnails: Size, sample, compression settings"
+msgstr "썸네일: 크기, 샘플, 압축 설정"
+
+#: ../../changelog.rst:70
+msgid "Processing: Threads, memory, Rust module"
+msgstr "처리: 스레드, 메모리, Rust 모듈"
+
+#: ../../changelog.rst:71
+msgid "Rendering: Threshold, anti-aliasing, FPS"
+msgstr "렌더링: 임계값, 안티앨리어싱, FPS"
+
+#: ../../changelog.rst:72
+msgid "Advanced: Logging, export options"
+msgstr "고급: 로깅, 내보내기 옵션"
+
+#: ../../changelog.rst:74
+msgid "Settings import/export functionality"
+msgstr "설정 가져오기/내보내기 기능"
+
+#: ../../changelog.rst:75
+msgid "Reset to defaults feature"
+msgstr "기본값으로 재설정 기능"
+
+#: ../../changelog.rst:76
+msgid "Platform-independent configuration storage"
+msgstr "플랫폼 독립적인 구성 저장소"
+
+#: ../../changelog.rst:78
+msgid "**Phase 3: Documentation**"
+msgstr "**Phase 3: 문서화**"
+
+#: ../../changelog.rst:80
+msgid "Google-style docstrings for all public APIs"
+msgstr "모든 공개 API에 대한 Google 스타일 docstring"
+
+#: ../../changelog.rst:81
+msgid "Sphinx-based API documentation"
+msgstr "Sphinx 기반 API 문서"
+
+#: ../../changelog.rst:82
+msgid "Comprehensive user guide"
+msgstr "포괄적인 사용자 가이드"
+
+#: ../../changelog.rst:83
+msgid "Developer guide with contribution guidelines"
+msgstr "기여 가이드라인이 포함된 개발자 가이드"
+
+#: ../../changelog.rst:84
+msgid "Installation guide for multiple platforms"
+msgstr "여러 플랫폼에 대한 설치 가이드"
+
+#: ../../changelog.rst:89
+msgid "Migrated from QSettings to YAML-based configuration"
+msgstr "QSettings에서 YAML 기반 구성으로 마이그레이션"
+
+#: ../../changelog.rst:90
+msgid "Replaced 3-stage progress sampling with simple linear tracking"
+msgstr "3단계 진행 상황 샘플링을 단순 선형 추적으로 교체"
+
+#: ../../changelog.rst:91
+msgid "Improved progress ETA accuracy with weighted calculations"
+msgstr "가중치 계산으로 진행 상황 ETA 정확도 개선"
+
+#: ../../changelog.rst:92
+msgid "Updated all core modules with comprehensive docstrings"
+msgstr "모든 핵심 모듈을 포괄적인 docstring으로 업데이트"
+
+#: ../../changelog.rst:95
+msgid "Removed"
+msgstr "제거"
+
+#: ../../changelog.rst:97
+msgid "QSettings-based configuration (replaced with YAML)"
+msgstr "QSettings 기반 구성 (YAML로 교체)"
+
+#: ../../changelog.rst:98
+msgid "Old PreferencesDialog (replaced with SettingsDialog)"
+msgstr "이전 PreferencesDialog (SettingsDialog로 교체)"
+
+#: ../../changelog.rst:99
+msgid "Settings migration code (not needed for fresh installations)"
+msgstr "설정 마이그레이션 코드 (새로 설치 시 불필요)"
+
+#: ../../changelog.rst:100
+msgid "Complex 3-stage progress sampling"
+msgstr "복잡한 3단계 진행 상황 샘플링"
+
+#: ../../changelog.rst:105
+msgid "Thread safety issues in thumbnail generation"
+msgstr "썸네일 생성의 스레드 안전성 문제"
+
+#: ../../changelog.rst:106
+msgid "Progress tracking inaccuracies"
+msgstr "진행 상황 추적 부정확성"
+
+#: ../../changelog.rst:107
+msgid "UI blocking during 3D mesh generation"
+msgstr "3D 메시 생성 중 UI 차단"
+
+#: ../../changelog.rst:110
+msgid "Security"
+msgstr "보안"
+
+#: ../../changelog.rst:112
+msgid "Implemented secure file validation (``SecureFileValidator``)"
+msgstr "안전한 파일 검증 구현 (``SecureFileValidator``)"
+
+#: ../../changelog.rst:113
+msgid "Added path traversal attack prevention"
+msgstr "경로 탐색 공격 방지 추가"
+
+#: ../../changelog.rst:114
+msgid "Whitelist-based file extension validation"
+msgstr "화이트리스트 기반 파일 확장자 검증"
+
+#: ../../changelog.rst:117
+msgid "Performance"
+msgstr "성능"
+
+#: ../../changelog.rst:119
+msgid "10-50x faster thumbnail generation with Rust module"
+msgstr "Rust 모듈로 10-50배 빠른 썸네일 생성"
+
+#: ../../changelog.rst:120
+msgid "Optimized progress tracking with moving averages"
+msgstr "이동 평균을 사용한 최적화된 진행 상황 추적"
+
+#: ../../changelog.rst:121
+msgid "Non-blocking UI operations"
+msgstr "비차단 UI 작업"
+
+#: ../../changelog.rst:124
+msgid "[0.2.1] - 2025-09-08"
+msgstr "[0.2.1] - 2025-09-08"
+
+#: ../../changelog.rst:129
+msgid "Initial modular architecture"
+msgstr "초기 모듈식 아키텍처"
+
+#: ../../changelog.rst:130
+msgid "Core business logic extraction"
+msgstr "핵심 비즈니스 로직 추출"
+
+#: ../../changelog.rst:131
+msgid "Basic thumbnail generation"
+msgstr "기본 썸네일 생성"
+
+#: ../../changelog.rst:132
+msgid "3D visualization with Marching Cubes"
+msgstr "Marching Cubes를 사용한 3D 시각화"
+
+#: ../../changelog.rst:133
+msgid "Image stack cropping and export"
+msgstr "이미지 스택 자르기 및 내보내기"
+
+#: ../../changelog.rst:136
+msgid "[0.2.0] - 2025-09-06"
+msgstr "[0.2.0] - 2025-09-06"
+
+#: ../../changelog.rst:141
+msgid "Initial release"
+msgstr "초기 릴리스"
+
+#: ../../changelog.rst:142
+msgid "Basic CT image loading"
+msgstr "기본 CT 이미지 로딩"
+
+#: ../../changelog.rst:143
+msgid "Thumbnail generation (Python only)"
+msgstr "썸네일 생성 (Python 전용)"
+
+#: ../../changelog.rst:144
+msgid "Simple 3D visualization"
+msgstr "단순 3D 시각화"
+
+#: ../../changelog.rst:147
+msgid "Notes"
+msgstr "참고 사항"
+
+#: ../../changelog.rst:150
+msgid "Version Numbering"
+msgstr "버전 번호 지정"
+
+#: ../../changelog.rst:152
+msgid "**Major version (X.0.0)**: Incompatible API changes"
+msgstr "**메이저 버전 (X.0.0)**: 호환되지 않는 API 변경"
+
+#: ../../changelog.rst:153
+msgid "**Minor version (0.X.0)**: New features, backward compatible"
+msgstr "**마이너 버전 (0.X.0)**: 새로운 기능, 하위 호환"
+
+#: ../../changelog.rst:154
+msgid "**Patch version (0.0.X)**: Bug fixes, backward compatible"
+msgstr "**패치 버전 (0.0.X)**: 버그 수정, 하위 호환"
+
+#: ../../changelog.rst:157
+msgid "Release Schedule"
+msgstr "릴리스 일정"
+
+#: ../../changelog.rst:159
+msgid "Major releases: Yearly"
+msgstr "메이저 릴리스: 연간"
+
+#: ../../changelog.rst:160
+msgid "Minor releases: Quarterly"
+msgstr "마이너 릴리스: 분기별"
+
+#: ../../changelog.rst:161
+msgid "Patch releases: As needed"
+msgstr "패치 릴리스: 필요 시"
+
+#: ../../changelog.rst:164
+msgid "Support Policy"
+msgstr "지원 정책"
+
+#: ../../changelog.rst:166
+msgid "Latest major version: Full support"
+msgstr "최신 메이저 버전: 전체 지원"
+
+#: ../../changelog.rst:167
+msgid "Previous major version: Security fixes only"
+msgstr "이전 메이저 버전: 보안 수정만"
+
+#: ../../changelog.rst:168
+msgid "Older versions: No support"
+msgstr "이전 버전: 지원 없음"
+
+#: ../../changelog.rst:171
+msgid "Migration Guides"
+msgstr "마이그레이션 가이드"
+
+#: ../../changelog.rst:173
+msgid ""
+"See the developer guide for migration instructions when upgrading between"
+" major versions."
+msgstr "메이저 버전 간 업그레이드 시 마이그레이션 지침은 개발자 가이드를 참조하세요."
+

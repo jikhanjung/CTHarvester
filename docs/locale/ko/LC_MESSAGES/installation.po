@@ -1,0 +1,374 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023-2025, Jikhan Jung
+# This file is distributed under the same license as the CTHarvester
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: CTHarvester \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-01 17:48+0900\n"
+"PO-Revision-Date: 2025-10-01 18:30+0900\n"
+"Last-Translator: CTHarvester Documentation Team <noreply@ctharvester.org>\n"
+"Language: ko\n"
+"Language-Team: ko <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../installation.rst:2
+msgid "Installation Guide"
+msgstr "설치 가이드"
+
+#: ../../installation.rst:5
+msgid "System Requirements"
+msgstr "시스템 요구사항"
+
+#: ../../installation.rst:7
+msgid "**Operating Systems:**"
+msgstr "**운영 체제:**"
+
+#: ../../installation.rst:9
+msgid "Windows 10 or later"
+msgstr "Windows 10 이상"
+
+#: ../../installation.rst:10
+msgid "macOS 10.14 (Mojave) or later"
+msgstr "macOS 10.14 (Mojave) 이상"
+
+#: ../../installation.rst:11
+msgid "Linux (Ubuntu 18.04 or later, or equivalent)"
+msgstr "Linux (Ubuntu 18.04 이상 또는 동급)"
+
+#: ../../installation.rst:13
+msgid "**Hardware:**"
+msgstr "**하드웨어:**"
+
+#: ../../installation.rst:15
+msgid "CPU: Multi-core processor recommended for thumbnail generation"
+msgstr "CPU: 썸네일 생성을 위해 멀티코어 프로세서 권장"
+
+#: ../../installation.rst:16
+msgid "RAM: 4GB minimum, 8GB recommended"
+msgstr "RAM: 최소 4GB, 8GB 권장"
+
+#: ../../installation.rst:17
+msgid "Disk Space: 500MB for application + space for CT data"
+msgstr "디스크 공간: 애플리케이션용 500MB + CT 데이터 공간"
+
+#: ../../installation.rst:18
+msgid "Display: 1280x720 minimum resolution"
+msgstr "디스플레이: 최소 1280x720 해상도"
+
+#: ../../installation.rst:20
+msgid "**Software (for source installation only):**"
+msgstr "**소프트웨어 (소스 설치 전용):**"
+
+#: ../../installation.rst:22
+msgid "Python 3.11 or later"
+msgstr "Python 3.11 이상"
+
+#: ../../installation.rst:23
+msgid "PyQt5"
+msgstr "PyQt5"
+
+#: ../../installation.rst:24
+msgid "NumPy"
+msgstr "NumPy"
+
+#: ../../installation.rst:25
+msgid "PIL/Pillow"
+msgstr "PIL/Pillow"
+
+#: ../../installation.rst:26
+msgid "PyMCubes"
+msgstr "PyMCubes"
+
+#: ../../installation.rst:27
+msgid "PyOpenGL"
+msgstr "PyOpenGL"
+
+#: ../../installation.rst:28
+msgid "Optional: Rust toolchain for high-performance thumbnail generation"
+msgstr "선택사항: 고성능 썸네일 생성을 위한 Rust 툴체인"
+
+#: ../../installation.rst:31
+msgid "Installation Methods"
+msgstr "설치 방법"
+
+#: ../../installation.rst:34
+msgid "Method 1: Binary Installation (Recommended)"
+msgstr "방법 1: 바이너리 설치 (권장)"
+
+#: ../../installation.rst:36
+msgid "Download the pre-built binary from the releases page:"
+msgstr "릴리스 페이지에서 사전 빌드된 바이너리를 다운로드합니다:"
+
+#: ../../installation.rst:38 ../../installation.rst:188
+msgid "**Windows:**"
+msgstr "**Windows:**"
+
+#: ../../installation.rst:40 ../../installation.rst:49
+#: ../../installation.rst:57
+msgid "Visit https://github.com/jikhanjung/CTHarvester/releases"
+msgstr "https://github.com/jikhanjung/CTHarvester/releases 방문"
+
+#: ../../installation.rst:41
+msgid "Download the latest ``CTHarvester-windows.zip``"
+msgstr "최신 ``CTHarvester-windows.zip`` 다운로드"
+
+#: ../../installation.rst:42
+msgid "Extract the ZIP file to a folder"
+msgstr "ZIP 파일을 폴더에 압축 해제"
+
+#: ../../installation.rst:43
+msgid "Run the ``CTHarvester_vX.X.X_Installer.exe`` inside the extracted folder"
+msgstr "압축 해제된 폴더 내의 ``CTHarvester_vX.X.X_Installer.exe`` 실행"
+
+#: ../../installation.rst:44
+msgid "Follow the installation wizard"
+msgstr "설치 마법사 따라하기"
+
+#: ../../installation.rst:45
+msgid "Launch CTHarvester from the Start Menu or Desktop shortcut"
+msgstr "시작 메뉴 또는 바탕 화면 바로 가기에서 CTHarvester 실행"
+
+#: ../../installation.rst:47
+msgid "**macOS:**"
+msgstr "**macOS:**"
+
+#: ../../installation.rst:50
+msgid "Download the latest ``CTHarvester-macos.dmg``"
+msgstr "최신 ``CTHarvester-macos.dmg`` 다운로드"
+
+#: ../../installation.rst:51
+msgid "Open the DMG file"
+msgstr "DMG 파일 열기"
+
+#: ../../installation.rst:52
+msgid "Drag CTHarvester.app to your Applications folder"
+msgstr "CTHarvester.app을 응용 프로그램 폴더로 드래그"
+
+#: ../../installation.rst:53
+msgid "Launch CTHarvester from Applications"
+msgstr "응용 프로그램에서 CTHarvester 실행"
+
+#: ../../installation.rst:55
+msgid "**Linux:**"
+msgstr "**Linux:**"
+
+#: ../../installation.rst:58
+msgid "Download the latest ``CTHarvester-linux.AppImage``"
+msgstr "최신 ``CTHarvester-linux.AppImage`` 다운로드"
+
+#: ../../installation.rst:59
+msgid "Make it executable:"
+msgstr "실행 가능하게 만들기:"
+
+#: ../../installation.rst:65
+msgid "Run the AppImage:"
+msgstr "AppImage 실행:"
+
+#: ../../installation.rst:71
+msgid "Or double-click the file in your file manager."
+msgstr "또는 파일 관리자에서 파일을 더블 클릭합니다."
+
+#: ../../installation.rst:74
+msgid "Method 2: From Source"
+msgstr "방법 2: 소스에서 설치"
+
+#: ../../installation.rst:76
+msgid "**Clone the repository:**"
+msgstr "**저장소 복제:**"
+
+#: ../../installation.rst:83
+msgid "**Create a virtual environment (recommended):**"
+msgstr "**가상 환경 생성 (권장):**"
+
+#: ../../installation.rst:95
+msgid "**Install Python dependencies:**"
+msgstr "**Python 종속성 설치:**"
+
+#: ../../installation.rst:105
+msgid "**For development:**"
+msgstr "**개발용:**"
+
+#: ../../installation.rst:112
+msgid "**Optional: Install Rust module for faster thumbnail generation:**"
+msgstr "**선택사항: 더 빠른 썸네일 생성을 위한 Rust 모듈 설치:**"
+
+#: ../../installation.rst:124
+msgid "**Run the application:**"
+msgstr "**애플리케이션 실행:**"
+
+#: ../../installation.rst:131
+msgid "Verifying Installation"
+msgstr "설치 확인"
+
+#: ../../installation.rst:133 ../../installation.rst:201
+#: ../../installation.rst:219
+msgid "**Binary Installation:**"
+msgstr "**바이너리 설치:**"
+
+#: ../../installation.rst:135
+msgid ""
+"Launch CTHarvester from your application menu or desktop shortcut. The "
+"application should start and display the main window."
+msgstr ""
+"애플리케이션 메뉴 또는 바탕 화면 바로 가기에서 CTHarvester를 실행합니다. "
+"애플리케이션이 시작되고 메인 창이 표시되어야 합니다."
+
+#: ../../installation.rst:137 ../../installation.rst:208
+#: ../../installation.rst:225
+msgid "**Source Installation:**"
+msgstr "**소스 설치:**"
+
+#: ../../installation.rst:139
+msgid "To verify that CTHarvester is installed correctly:"
+msgstr "CTHarvester가 올바르게 설치되었는지 확인하려면:"
+
+#: ../../installation.rst:145
+msgid "You should see output like:"
+msgstr "다음과 같은 출력이 표시되어야 합니다:"
+
+#: ../../installation.rst:152
+msgid "Troubleshooting"
+msgstr "문제 해결"
+
+#: ../../installation.rst:154
+msgid "**ImportError: No module named 'PyQt5'**"
+msgstr "**ImportError: No module named 'PyQt5'**"
+
+#: ../../installation.rst:156
+msgid "Install PyQt5:"
+msgstr "PyQt5 설치:"
+
+#: ../../installation.rst:162
+msgid "**OpenGL errors on Linux**"
+msgstr "**Linux에서 OpenGL 오류**"
+
+#: ../../installation.rst:164
+msgid "Install required OpenGL libraries:"
+msgstr "필요한 OpenGL 라이브러리 설치:"
+
+#: ../../installation.rst:174
+msgid "**Rust module not working**"
+msgstr "**Rust 모듈이 작동하지 않음**"
+
+#: ../../installation.rst:176
+msgid ""
+"The application will automatically fall back to Python-based thumbnail "
+"generation. To enable Rust module:"
+msgstr ""
+"애플리케이션은 자동으로 Python 기반 썸네일 생성으로 폴백됩니다. "
+"Rust 모듈을 활성화하려면:"
+
+#: ../../installation.rst:179
+msgid "Verify Rust is installed: ``rustc --version``"
+msgstr "Rust가 설치되었는지 확인: ``rustc --version``"
+
+#: ../../installation.rst:180
+msgid "Rebuild the module: ``cd rust_thumbnail && cargo build --release``"
+msgstr "모듈 재빌드: ``cd rust_thumbnail && cargo build --release``"
+
+#: ../../installation.rst:181
+msgid "Ensure the compiled library is in the correct location"
+msgstr "컴파일된 라이브러리가 올바른 위치에 있는지 확인"
+
+#: ../../installation.rst:184
+msgid "Configuration"
+msgstr "구성"
+
+#: ../../installation.rst:186
+msgid "CTHarvester stores its configuration in platform-specific locations:"
+msgstr "CTHarvester는 플랫폼별 위치에 구성을 저장합니다:"
+
+#: ../../installation.rst:189
+msgid "``%APPDATA%\\\\CTHarvester\\\\settings.yaml``"
+msgstr "``%APPDATA%\\\\CTHarvester\\\\settings.yaml``"
+
+#: ../../installation.rst:191
+msgid "**Linux/macOS:**"
+msgstr "**Linux/macOS:**"
+
+#: ../../installation.rst:192
+msgid "``~/.config/CTHarvester/settings.yaml``"
+msgstr "``~/.config/CTHarvester/settings.yaml``"
+
+#: ../../installation.rst:194
+msgid ""
+"You can customize settings through the Preferences dialog (gear icon) in "
+"the application."
+msgstr "애플리케이션의 환경 설정 대화 상자(톱니바퀴 아이콘)를 통해 설정을 사용자 정의할 수 있습니다."
+
+#: ../../installation.rst:197
+msgid "Updating"
+msgstr "업데이트"
+
+#: ../../installation.rst:199
+msgid "To update CTHarvester to the latest version:"
+msgstr "CTHarvester를 최신 버전으로 업데이트하려면:"
+
+#: ../../installation.rst:203
+msgid "Download the latest version from the releases page"
+msgstr "릴리스 페이지에서 최신 버전 다운로드"
+
+#: ../../installation.rst:204
+msgid "Windows: Run the new installer, it will update the existing installation"
+msgstr "Windows: 새 설치 프로그램을 실행하면 기존 설치가 업데이트됩니다"
+
+#: ../../installation.rst:205
+msgid "macOS: Replace the old CTHarvester.app with the new one"
+msgstr "macOS: 이전 CTHarvester.app을 새 것으로 교체"
+
+#: ../../installation.rst:206
+msgid "Linux: Replace the old AppImage with the new one"
+msgstr "Linux: 이전 AppImage를 새 것으로 교체"
+
+#: ../../installation.rst:217
+msgid "Uninstallation"
+msgstr "제거"
+
+#: ../../installation.rst:221
+msgid ""
+"**Windows**: Use \"Add or Remove Programs\" in Windows Settings, or run "
+"the uninstaller from the installation directory"
+msgstr ""
+"**Windows**: Windows 설정의 \"프로그램 추가/제거\"를 사용하거나 "
+"설치 디렉토리에서 제거 프로그램을 실행합니다"
+
+#: ../../installation.rst:222
+msgid "**macOS**: Drag CTHarvester.app to Trash"
+msgstr "**macOS**: CTHarvester.app을 휴지통으로 드래그"
+
+#: ../../installation.rst:223
+msgid "**Linux**: Delete the AppImage file"
+msgstr "**Linux**: AppImage 파일 삭제"
+
+#: ../../installation.rst:227
+msgid "Delete the CTHarvester directory"
+msgstr "CTHarvester 디렉토리 삭제"
+
+#: ../../installation.rst:228
+msgid "Deactivate and remove the virtual environment"
+msgstr "가상 환경 비활성화 및 제거"
+
+#: ../../installation.rst:230
+msgid "**Configuration Files (all methods):**"
+msgstr "**구성 파일 (모든 방법):**"
+
+#: ../../installation.rst:232
+msgid "To completely remove CTHarvester, also delete configuration files:"
+msgstr "CTHarvester를 완전히 제거하려면 구성 파일도 삭제하세요:"
+
+#: ../../installation.rst:234
+msgid "Windows: Delete ``%APPDATA%\\\\CTHarvester``"
+msgstr "Windows: ``%APPDATA%\\\\CTHarvester`` 삭제"
+
+#: ../../installation.rst:235
+msgid "Linux/macOS: Delete ``~/.config/CTHarvester``"
+msgstr "Linux/macOS: ``~/.config/CTHarvester`` 삭제"
+

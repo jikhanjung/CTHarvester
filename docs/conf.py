@@ -30,6 +30,11 @@ extensions = [
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+# Internationalization (i18n) settings
+locale_dirs = ['locale/']
+gettext_compact = False
+language = 'en'  # Default language
+
 # Napoleon settings (Google/NumPy style docstrings)
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False

@@ -1,0 +1,1081 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023-2025, Jikhan Jung
+# This file is distributed under the same license as the CTHarvester
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: CTHarvester \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-01 17:48+0900\n"
+"PO-Revision-Date: 2025-10-01 18:30+0900\n"
+"Last-Translator: CTHarvester Documentation Team <noreply@ctharvester.org>\n"
+"Language: ko\n"
+"Language-Team: ko <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../user_guide.rst:2
+msgid "User Guide"
+msgstr "사용자 가이드"
+
+#: ../../user_guide.rst:4
+msgid "This guide provides comprehensive instructions for using CTHarvester."
+msgstr "이 가이드는 CTHarvester 사용을 위한 포괄적인 지침을 제공합니다."
+
+#: ../../user_guide.rst:7
+msgid "Getting Started"
+msgstr "시작하기"
+
+#: ../../user_guide.rst:10
+msgid "Launching CTHarvester"
+msgstr "CTHarvester 실행"
+
+#: ../../user_guide.rst:12
+msgid "**From source:**"
+msgstr "**소스에서:**"
+
+#: ../../user_guide.rst:18
+msgid "**From binary (Windows):**"
+msgstr "**바이너리에서 (Windows):**"
+
+#: ../../user_guide.rst:20
+msgid "Double-click ``CTHarvester.exe``"
+msgstr "``CTHarvester.exe`` 더블 클릭"
+
+#: ../../user_guide.rst:23
+msgid "Main Window Overview"
+msgstr "메인 창 개요"
+
+#: ../../user_guide.rst:25
+msgid "The CTHarvester main window consists of several key components:"
+msgstr "CTHarvester 메인 창은 여러 주요 구성 요소로 구성됩니다:"
+
+#: ../../user_guide.rst:27
+msgid "**Top Section**: Directory selection and file information"
+msgstr "**상단 섹션**: 디렉토리 선택 및 파일 정보"
+
+#: ../../user_guide.rst:28
+msgid "**Center Section**: Image viewer with slider controls"
+msgstr "**중앙 섹션**: 슬라이더 컨트롤이 있는 이미지 뷰어"
+
+#: ../../user_guide.rst:29
+msgid "**Right Section**: 3D mesh visualization"
+msgstr "**오른쪽 섹션**: 3D 메시 시각화"
+
+#: ../../user_guide.rst:30
+msgid "**Bottom Section**: Crop controls and action buttons"
+msgstr "**하단 섹션**: 자르기 컨트롤 및 액션 버튼"
+
+#: ../../user_guide.rst:33
+msgid "Basic Workflow"
+msgstr "기본 워크플로우"
+
+#: ../../user_guide.rst:36
+msgid "Loading CT Scan Images"
+msgstr "CT 스캔 이미지 로드"
+
+#: ../../user_guide.rst:38
+msgid "Click the **\"Open Directory\"** button"
+msgstr "**\"디렉토리 열기\"** 버튼 클릭"
+
+#: ../../user_guide.rst:39
+msgid "Navigate to the folder containing your CT scan images"
+msgstr "CT 스캔 이미지가 포함된 폴더로 이동"
+
+#: ../../user_guide.rst:40
+msgid "Select the folder and click **\"Select Folder\"**"
+msgstr "폴더를 선택하고 **\"폴더 선택\"** 클릭"
+
+#: ../../user_guide.rst:42
+msgid "The application will:"
+msgstr "애플리케이션은 다음을 수행합니다:"
+
+#: ../../user_guide.rst:44
+msgid "Scan the directory for image sequences"
+msgstr "이미지 시퀀스에 대한 디렉토리 스캔"
+
+#: ../../user_guide.rst:45
+msgid "Generate multi-level thumbnails for fast navigation"
+msgstr "빠른 탐색을 위한 다단계 썸네일 생성"
+
+#: ../../user_guide.rst:46
+msgid "Display a progress bar during thumbnail generation"
+msgstr "썸네일 생성 중 진행률 표시줄 표시"
+
+#: ../../user_guide.rst:49
+msgid "First-time loading may take several minutes depending on:"
+msgstr "처음 로드하는 경우 다음에 따라 몇 분이 걸릴 수 있습니다:"
+
+#: ../../user_guide.rst:51
+msgid "Number of images"
+msgstr "이미지 수"
+
+#: ../../user_guide.rst:52
+msgid "Image resolution"
+msgstr "이미지 해상도"
+
+#: ../../user_guide.rst:53
+msgid "Disk speed"
+msgstr "디스크 속도"
+
+#: ../../user_guide.rst:54
+msgid "CPU performance"
+msgstr "CPU 성능"
+
+#: ../../user_guide.rst:57
+msgid "Navigating Images"
+msgstr "이미지 탐색"
+
+#: ../../user_guide.rst:59
+msgid "**Timeline Slider (Vertical):**"
+msgstr "**타임라인 슬라이더 (수직):**"
+
+#: ../../user_guide.rst:61
+msgid "Drag the slider up/down to navigate through CT slices"
+msgstr "슬라이더를 위/아래로 드래그하여 CT 슬라이스 탐색"
+
+#: ../../user_guide.rst:62
+msgid "Click above/below the slider for page jumps"
+msgstr "페이지 점프를 위해 슬라이더 위/아래 클릭"
+
+#: ../../user_guide.rst:63
+msgid "Use keyboard shortcuts:"
+msgstr "키보드 단축키 사용:"
+
+#: ../../user_guide.rst:65
+msgid "``Up/Down arrows``: Move one slice"
+msgstr "``위/아래 화살표``: 한 슬라이스 이동"
+
+#: ../../user_guide.rst:66
+msgid "``Page Up/Down``: Jump 10 slices"
+msgstr "``Page Up/Down``: 10 슬라이스 점프"
+
+#: ../../user_guide.rst:67
+msgid "``Home/End``: Go to first/last slice"
+msgstr "``Home/End``: 첫 번째/마지막 슬라이스로 이동"
+
+#: ../../user_guide.rst:69
+msgid "**Level Selection:**"
+msgstr "**레벨 선택:**"
+
+#: ../../user_guide.rst:71
+msgid "Use the Level dropdown to switch between different thumbnail resolutions"
+msgstr "레벨 드롭다운을 사용하여 다양한 썸네일 해상도 간 전환"
+
+#: ../../user_guide.rst:72
+msgid "Level 0: Original resolution (slowest, highest quality)"
+msgstr "레벨 0: 원본 해상도 (가장 느림, 최고 품질)"
+
+#: ../../user_guide.rst:73
+msgid "Level 1+: Progressively smaller thumbnails (faster navigation)"
+msgstr "레벨 1+: 점진적으로 작은 썸네일 (더 빠른 탐색)"
+
+#: ../../user_guide.rst:76
+msgid "Setting Crop Bounds"
+msgstr "자르기 경계 설정"
+
+#: ../../user_guide.rst:78
+msgid "To select a subset of slices for export:"
+msgstr "내보낼 슬라이스 하위 집합을 선택하려면:"
+
+#: ../../user_guide.rst:80
+msgid "Navigate to the bottom slice you want to include"
+msgstr "포함할 하단 슬라이스로 이동"
+
+#: ../../user_guide.rst:81
+msgid "Click **\"Set Bottom\"**"
+msgstr "**\"하단 설정\"** 클릭"
+
+#: ../../user_guide.rst:82
+msgid "Navigate to the top slice"
+msgstr "상단 슬라이스로 이동"
+
+#: ../../user_guide.rst:83
+msgid "Click **\"Set Top\"**"
+msgstr "**\"상단 설정\"** 클릭"
+
+#: ../../user_guide.rst:85
+msgid "The status bar shows: ``Crop indices: X~Y``"
+msgstr "상태 표시줄에 표시됩니다: ``Crop indices: X~Y``"
+
+#: ../../user_guide.rst:88
+msgid "Drawing Region of Interest (ROI)"
+msgstr "관심 영역(ROI) 그리기"
+
+#: ../../user_guide.rst:90
+msgid "To select a specific area of each image:"
+msgstr "각 이미지의 특정 영역을 선택하려면:"
+
+#: ../../user_guide.rst:92
+msgid "Click and drag on the image viewer to draw a rectangle"
+msgstr "이미지 뷰어에서 클릭하고 드래그하여 사각형 그리기"
+
+#: ../../user_guide.rst:93
+msgid "The ROI boundary is shown in red"
+msgstr "ROI 경계가 빨간색으로 표시됩니다"
+
+#: ../../user_guide.rst:94
+msgid "Adjust by dragging the corners"
+msgstr "모서리를 드래그하여 조정"
+
+#: ../../user_guide.rst:95
+msgid "Click **\"Reset\"** to clear the ROI"
+msgstr "**\"재설정\"**을 클릭하여 ROI 지우기"
+
+#: ../../user_guide.rst:98 ../../user_guide.rst:410
+msgid "3D Visualization"
+msgstr "3D 시각화"
+
+#: ../../user_guide.rst:100
+msgid "The 3D mesh view shows a volumetric representation of your CT data:"
+msgstr "3D 메시 뷰는 CT 데이터의 볼륨 표현을 보여줍니다:"
+
+#: ../../user_guide.rst:102
+msgid "**Adjusting Threshold:**"
+msgstr "**임계값 조정:**"
+
+#: ../../user_guide.rst:104
+msgid "Use the vertical threshold slider (right side)"
+msgstr "수직 임계값 슬라이더 사용 (오른쪽)"
+
+#: ../../user_guide.rst:105
+msgid "Higher values show denser materials"
+msgstr "값이 높을수록 밀도가 높은 재료 표시"
+
+#: ../../user_guide.rst:106
+msgid "Lower values show more transparent materials"
+msgstr "값이 낮을수록 더 투명한 재료 표시"
+
+#: ../../user_guide.rst:107
+msgid "The 3D mesh updates in real-time"
+msgstr "3D 메시가 실시간으로 업데이트됩니다"
+
+#: ../../user_guide.rst:109
+msgid "**3D View Controls:**"
+msgstr "**3D 뷰 컨트롤:**"
+
+#: ../../user_guide.rst:111
+msgid "Click and drag to rotate"
+msgstr "클릭하고 드래그하여 회전"
+
+#: ../../user_guide.rst:112
+msgid "Scroll to zoom"
+msgstr "스크롤하여 확대/축소"
+
+#: ../../user_guide.rst:113
+msgid "Right-click to pan"
+msgstr "오른쪽 클릭하여 이동"
+
+#: ../../user_guide.rst:114
+msgid "Double-click to reset view"
+msgstr "더블 클릭하여 뷰 재설정"
+
+#: ../../user_guide.rst:116
+msgid "**Inversion:**"
+msgstr "**반전:**"
+
+#: ../../user_guide.rst:118
+msgid "Check **\"Inv.\"** to invert the grayscale values"
+msgstr "**\"Inv.\"**를 선택하여 그레이스케일 값 반전"
+
+#: ../../user_guide.rst:119
+msgid "Useful for viewing negative scans"
+msgstr "네거티브 스캔 보기에 유용"
+
+#: ../../user_guide.rst:122
+msgid "Saving and Exporting"
+msgstr "저장 및 내보내기"
+
+#: ../../user_guide.rst:125
+msgid "Saving Cropped Image Stack"
+msgstr "잘린 이미지 스택 저장"
+
+#: ../../user_guide.rst:127
+msgid "Set crop bounds (top and bottom slices)"
+msgstr "자르기 경계 설정 (상단 및 하단 슬라이스)"
+
+#: ../../user_guide.rst:128
+msgid "Draw ROI if needed"
+msgstr "필요시 ROI 그리기"
+
+#: ../../user_guide.rst:129
+msgid "Check **\"Open dir. after\"** to open the folder after saving"
+msgstr "저장 후 폴더를 열려면 **\"저장 후 디렉토리 열기\"** 선택"
+
+#: ../../user_guide.rst:130
+msgid "Click **\"Save cropped image stack\"**"
+msgstr "**\"잘린 이미지 스택 저장\"** 클릭"
+
+#: ../../user_guide.rst:131
+msgid "Select destination folder"
+msgstr "대상 폴더 선택"
+
+#: ../../user_guide.rst:132
+msgid "Wait for processing to complete"
+msgstr "처리 완료 대기"
+
+#: ../../user_guide.rst:134
+msgid "The saved images will:"
+msgstr "저장된 이미지는 다음과 같습니다:"
+
+#: ../../user_guide.rst:136
+msgid "Include only slices between bottom and top bounds"
+msgstr "하단과 상단 경계 사이의 슬라이스만 포함"
+
+#: ../../user_guide.rst:137
+msgid "Be cropped to the ROI if defined"
+msgstr "정의된 경우 ROI로 자르기"
+
+#: ../../user_guide.rst:138
+msgid "Maintain original bit depth and format"
+msgstr "원본 비트 깊이 및 형식 유지"
+
+#: ../../user_guide.rst:139
+msgid "Use sequential numbering"
+msgstr "순차 번호 사용"
+
+#: ../../user_guide.rst:142
+msgid "Exporting 3D Model"
+msgstr "3D 모델 내보내기"
+
+#: ../../user_guide.rst:144
+msgid "Adjust the threshold to your desired level"
+msgstr "원하는 수준으로 임계값 조정"
+
+#: ../../user_guide.rst:145
+msgid "Click **\"Export 3D Model\"**"
+msgstr "**\"3D 모델 내보내기\"** 클릭"
+
+#: ../../user_guide.rst:146
+msgid "Choose save location and filename"
+msgstr "저장 위치 및 파일 이름 선택"
+
+#: ../../user_guide.rst:147
+msgid "The model is exported as OBJ format"
+msgstr "모델은 OBJ 형식으로 내보냅니다"
+
+#: ../../user_guide.rst:149
+msgid "The exported OBJ file can be opened in:"
+msgstr "내보낸 OBJ 파일은 다음에서 열 수 있습니다:"
+
+#: ../../user_guide.rst:151
+msgid "Blender"
+msgstr "Blender"
+
+#: ../../user_guide.rst:152
+msgid "MeshLab"
+msgstr "MeshLab"
+
+#: ../../user_guide.rst:153
+msgid "3D printing software (Cura, PrusaSlicer)"
+msgstr "3D 프린팅 소프트웨어 (Cura, PrusaSlicer)"
+
+#: ../../user_guide.rst:154
+msgid "Most 3D modeling applications"
+msgstr "대부분의 3D 모델링 애플리케이션"
+
+#: ../../user_guide.rst:157
+msgid "Settings and Preferences"
+msgstr "설정 및 환경 설정"
+
+#: ../../user_guide.rst:160
+msgid "Opening Preferences"
+msgstr "환경 설정 열기"
+
+#: ../../user_guide.rst:162
+msgid "Click the gear icon (⚙️) at the bottom right to open the Settings dialog."
+msgstr "오른쪽 하단의 톱니바퀴 아이콘 (⚙️)을 클릭하여 설정 대화 상자를 엽니다."
+
+#: ../../user_guide.rst:165
+msgid "General Settings"
+msgstr "일반 설정"
+
+#: ../../user_guide.rst:167
+msgid "**Language:**"
+msgstr "**언어:**"
+
+#: ../../user_guide.rst:169
+msgid "Auto (System): Uses your operating system language"
+msgstr "자동 (시스템): 운영 체제 언어 사용"
+
+#: ../../user_guide.rst:170
+msgid "English: Force English interface"
+msgstr "English: 영어 인터페이스 강제"
+
+#: ../../user_guide.rst:171
+msgid "한국어: Force Korean interface"
+msgstr "한국어: 한국어 인터페이스 강제"
+
+#: ../../user_guide.rst:173
+msgid "**Theme:**"
+msgstr "**테마:**"
+
+#: ../../user_guide.rst:175
+msgid "Light: Default theme"
+msgstr "라이트: 기본 테마"
+
+#: ../../user_guide.rst:176
+msgid "Dark: Dark mode (future feature)"
+msgstr "다크: 다크 모드 (향후 기능)"
+
+#: ../../user_guide.rst:178
+msgid "**Window:**"
+msgstr "**창:**"
+
+#: ../../user_guide.rst:180
+msgid "Remember window position: Saves window location between sessions"
+msgstr "창 위치 기억: 세션 간 창 위치 저장"
+
+#: ../../user_guide.rst:181
+msgid "Remember window size: Saves window dimensions"
+msgstr "창 크기 기억: 창 크기 저장"
+
+#: ../../user_guide.rst:184
+msgid "Thumbnail Settings"
+msgstr "썸네일 설정"
+
+#: ../../user_guide.rst:186
+msgid "**Max thumbnail size:**"
+msgstr "**최대 썸네일 크기:**"
+
+#: ../../user_guide.rst:188
+msgid "Range: 100-2000 pixels"
+msgstr "범위: 100-2000 픽셀"
+
+#: ../../user_guide.rst:189
+msgid "Default: 500"
+msgstr "기본값: 500"
+
+#: ../../user_guide.rst:190
+msgid "Larger values use more disk space but provide better quality"
+msgstr "값이 클수록 더 많은 디스크 공간을 사용하지만 더 나은 품질 제공"
+
+#: ../../user_guide.rst:192
+msgid "**Sample size:**"
+msgstr "**샘플 크기:**"
+
+#: ../../user_guide.rst:194
+msgid "Range: 10-100"
+msgstr "범위: 10-100"
+
+#: ../../user_guide.rst:195
+msgid "Default: 20"
+msgstr "기본값: 20"
+
+#: ../../user_guide.rst:196
+msgid "Number of images to sample for initial thumbnails"
+msgstr "초기 썸네일을 위해 샘플링할 이미지 수"
+
+#: ../../user_guide.rst:198
+msgid "**Max pyramid level:**"
+msgstr "**최대 피라미드 레벨:**"
+
+#: ../../user_guide.rst:200
+msgid "Range: 1-20"
+msgstr "범위: 1-20"
+
+#: ../../user_guide.rst:201
+msgid "Default: 10"
+msgstr "기본값: 10"
+
+#: ../../user_guide.rst:202
+msgid "Maximum number of thumbnail levels to generate"
+msgstr "생성할 썸네일 레벨의 최대 수"
+
+#: ../../user_guide.rst:204
+msgid "**Enable compression:**"
+msgstr "**압축 활성화:**"
+
+#: ../../user_guide.rst:206
+msgid "Reduces thumbnail file size"
+msgstr "썸네일 파일 크기 감소"
+
+#: ../../user_guide.rst:207
+msgid "Slightly slower generation"
+msgstr "약간 느린 생성"
+
+#: ../../user_guide.rst:209
+msgid "**Format:**"
+msgstr "**형식:**"
+
+#: ../../user_guide.rst:211
+msgid "TIF: Better quality, larger files"
+msgstr "TIF: 더 나은 품질, 더 큰 파일"
+
+#: ../../user_guide.rst:212
+msgid "PNG: Good compression, slower"
+msgstr "PNG: 좋은 압축, 더 느림"
+
+#: ../../user_guide.rst:215
+msgid "Processing Settings"
+msgstr "처리 설정"
+
+#: ../../user_guide.rst:217
+msgid "**Worker threads:**"
+msgstr "**워커 스레드:**"
+
+#: ../../user_guide.rst:219
+msgid "Auto: Uses CPU core count"
+msgstr "자동: CPU 코어 수 사용"
+
+#: ../../user_guide.rst:220
+msgid "1-16: Manual thread count"
+msgstr "1-16: 수동 스레드 수"
+
+#: ../../user_guide.rst:221
+msgid "More threads = faster processing (up to CPU core count)"
+msgstr "스레드 수가 많을수록 더 빠른 처리 (CPU 코어 수까지)"
+
+#: ../../user_guide.rst:223
+msgid "**Memory limit:**"
+msgstr "**메모리 제한:**"
+
+#: ../../user_guide.rst:225
+msgid "Range: 1-64 GB"
+msgstr "범위: 1-64 GB"
+
+#: ../../user_guide.rst:226
+msgid "Default: 4 GB"
+msgstr "기본값: 4 GB"
+
+#: ../../user_guide.rst:227
+msgid "Maximum memory for image processing"
+msgstr "이미지 처리를 위한 최대 메모리"
+
+#: ../../user_guide.rst:229
+msgid "**Use high-performance Rust module:**"
+msgstr "**고성능 Rust 모듈 사용:**"
+
+#: ../../user_guide.rst:231
+msgid "Checked: Use Rust (10-50x faster)"
+msgstr "선택: Rust 사용 (10-50배 빠름)"
+
+#: ../../user_guide.rst:232
+msgid "Unchecked: Use Python fallback"
+msgstr "선택 해제: Python 폴백 사용"
+
+#: ../../user_guide.rst:235
+msgid "Rendering Settings"
+msgstr "렌더링 설정"
+
+#: ../../user_guide.rst:237
+msgid "**Default threshold:**"
+msgstr "**기본 임계값:**"
+
+#: ../../user_guide.rst:239
+msgid "Range: 0-255"
+msgstr "범위: 0-255"
+
+#: ../../user_guide.rst:240
+msgid "Default: 128"
+msgstr "기본값: 128"
+
+#: ../../user_guide.rst:241
+msgid "Initial threshold for 3D mesh generation"
+msgstr "3D 메시 생성을 위한 초기 임계값"
+
+#: ../../user_guide.rst:243
+msgid "**Enable anti-aliasing:**"
+msgstr "**안티앨리어싱 활성화:**"
+
+#: ../../user_guide.rst:245
+msgid "Smoother 3D rendering"
+msgstr "더 부드러운 3D 렌더링"
+
+#: ../../user_guide.rst:246
+msgid "Slightly slower performance"
+msgstr "약간 느린 성능"
+
+#: ../../user_guide.rst:248
+msgid "**Show FPS counter:**"
+msgstr "**FPS 카운터 표시:**"
+
+#: ../../user_guide.rst:250
+msgid "Display frames per second in 3D view"
+msgstr "3D 뷰에서 초당 프레임 수 표시"
+
+#: ../../user_guide.rst:251
+msgid "Useful for performance monitoring"
+msgstr "성능 모니터링에 유용"
+
+#: ../../user_guide.rst:254
+msgid "Advanced Settings"
+msgstr "고급 설정"
+
+#: ../../user_guide.rst:256
+msgid "**Logging:**"
+msgstr "**로깅:**"
+
+#: ../../user_guide.rst:258
+msgid "Log level: DEBUG, INFO, WARNING, ERROR"
+msgstr "로그 레벨: DEBUG, INFO, WARNING, ERROR"
+
+#: ../../user_guide.rst:259
+msgid "Console output: Enable/disable console logging"
+msgstr "콘솔 출력: 콘솔 로깅 활성화/비활성화"
+
+#: ../../user_guide.rst:261
+msgid "**Export:**"
+msgstr "**내보내기:**"
+
+#: ../../user_guide.rst:263
+msgid "Mesh format: STL, PLY, OBJ"
+msgstr "메시 형식: STL, PLY, OBJ"
+
+#: ../../user_guide.rst:264
+msgid "Image format: TIF, PNG, JPG"
+msgstr "이미지 형식: TIF, PNG, JPG"
+
+#: ../../user_guide.rst:265
+msgid "Compression level: 0-9"
+msgstr "압축 수준: 0-9"
+
+#: ../../user_guide.rst:268
+msgid "Import/Export Settings"
+msgstr "설정 가져오기/내보내기"
+
+#: ../../user_guide.rst:270
+msgid "**Export Settings:**"
+msgstr "**설정 내보내기:**"
+
+#: ../../user_guide.rst:272
+msgid "Click **\"Export Settings...\"**"
+msgstr "**\"설정 내보내기...\"** 클릭"
+
+#: ../../user_guide.rst:273
+msgid "Choose save location"
+msgstr "저장 위치 선택"
+
+#: ../../user_guide.rst:274
+msgid "Settings saved as ``ctharvester_settings.yaml``"
+msgstr "설정이 ``ctharvester_settings.yaml``로 저장됨"
+
+#: ../../user_guide.rst:276
+msgid "**Import Settings:**"
+msgstr "**설정 가져오기:**"
+
+#: ../../user_guide.rst:278
+msgid "Click **\"Import Settings...\"**"
+msgstr "**\"설정 가져오기...\"** 클릭"
+
+#: ../../user_guide.rst:279
+msgid "Select YAML file"
+msgstr "YAML 파일 선택"
+
+#: ../../user_guide.rst:280
+msgid "Settings applied immediately"
+msgstr "설정이 즉시 적용됨"
+
+#: ../../user_guide.rst:282
+msgid "**Reset to Defaults:**"
+msgstr "**기본값으로 재설정:**"
+
+#: ../../user_guide.rst:284
+msgid "Click **\"Reset to Defaults\"**"
+msgstr "**\"기본값으로 재설정\"** 클릭"
+
+#: ../../user_guide.rst:285
+msgid "Confirm in dialog"
+msgstr "대화 상자에서 확인"
+
+#: ../../user_guide.rst:286
+msgid "All settings restored to defaults"
+msgstr "모든 설정이 기본값으로 복원됨"
+
+#: ../../user_guide.rst:289
+msgid "Keyboard Shortcuts"
+msgstr "키보드 단축키"
+
+#: ../../user_guide.rst:292
+msgid "File Operations"
+msgstr "파일 작업"
+
+#: ../../user_guide.rst:294
+msgid "``Ctrl+O``: Open directory"
+msgstr "``Ctrl+O``: 디렉토리 열기"
+
+#: ../../user_guide.rst:295
+msgid "``F5``: Reload current directory"
+msgstr "``F5``: 현재 디렉토리 다시 로드"
+
+#: ../../user_guide.rst:296
+msgid "``Ctrl+S``: Save cropped images"
+msgstr "``Ctrl+S``: 잘린 이미지 저장"
+
+#: ../../user_guide.rst:297
+msgid "``Ctrl+E``: Export 3D mesh"
+msgstr "``Ctrl+E``: 3D 메시 내보내기"
+
+#: ../../user_guide.rst:298
+msgid "``Ctrl+Q``: Quit application"
+msgstr "``Ctrl+Q``: 애플리케이션 종료"
+
+#: ../../user_guide.rst:301
+msgid "Navigation"
+msgstr "탐색"
+
+#: ../../user_guide.rst:303
+msgid "``Left/Right``: Previous/Next slice"
+msgstr "``Left/Right``: 이전/다음 슬라이스"
+
+#: ../../user_guide.rst:304
+msgid "``Ctrl+Left/Right``: Jump backward/forward 10 slices"
+msgstr "``Ctrl+Left/Right``: 10 슬라이스 뒤로/앞으로 점프"
+
+#: ../../user_guide.rst:305
+msgid "``Home/End``: First/Last slice"
+msgstr "``Home/End``: 첫 번째/마지막 슬라이스"
+
+#: ../../user_guide.rst:308
+msgid "View"
+msgstr "보기"
+
+#: ../../user_guide.rst:310
+msgid "``Ctrl++``: Zoom in"
+msgstr "``Ctrl++``: 확대"
+
+#: ../../user_guide.rst:311
+msgid "``Ctrl+-``: Zoom out"
+msgstr "``Ctrl+-``: 축소"
+
+#: ../../user_guide.rst:312
+msgid "``Ctrl+0``: Fit to window"
+msgstr "``Ctrl+0``: 창에 맞추기"
+
+#: ../../user_guide.rst:313
+msgid "``F3``: Toggle 3D view"
+msgstr "``F3``: 3D 뷰 토글"
+
+#: ../../user_guide.rst:316
+msgid "Crop Region (ROI)"
+msgstr "자르기 영역 (ROI)"
+
+#: ../../user_guide.rst:318
+msgid "``B``: Set bottom boundary (lower bound)"
+msgstr "``B``: 하단 경계 설정 (하한)"
+
+#: ../../user_guide.rst:319
+msgid "``T``: Set top boundary (upper bound)"
+msgstr "``T``: 상단 경계 설정 (상한)"
+
+#: ../../user_guide.rst:320
+msgid "``Ctrl+R``: Reset crop region"
+msgstr "``Ctrl+R``: 자르기 영역 재설정"
+
+#: ../../user_guide.rst:323
+msgid "Threshold Adjustment"
+msgstr "임계값 조정"
+
+#: ../../user_guide.rst:325
+msgid "``Up/Down``: Increase/Decrease threshold"
+msgstr "``Up/Down``: 임계값 증가/감소"
+
+#: ../../user_guide.rst:328
+msgid "Tools & Settings"
+msgstr "도구 및 설정"
+
+#: ../../user_guide.rst:330
+msgid "``Ctrl+T``: Generate thumbnails"
+msgstr "``Ctrl+T``: 썸네일 생성"
+
+#: ../../user_guide.rst:331
+msgid "``Ctrl+,``: Open preferences"
+msgstr "``Ctrl+,``: 환경 설정 열기"
+
+#: ../../user_guide.rst:332
+msgid "``F1``: Show keyboard shortcuts help"
+msgstr "``F1``: 키보드 단축키 도움말 표시"
+
+#: ../../user_guide.rst:333
+msgid "``Ctrl+I``: About CTHarvester"
+msgstr "``Ctrl+I``: CTHarvester 정보"
+
+#: ../../user_guide.rst:336
+msgid "Troubleshooting"
+msgstr "문제 해결"
+
+#: ../../user_guide.rst:339
+msgid "Common Issues"
+msgstr "일반적인 문제"
+
+#: ../../user_guide.rst:341
+msgid "**\"No valid image files found\"**"
+msgstr "**\"유효한 이미지 파일을 찾을 수 없음\"**"
+
+#: ../../user_guide.rst:343
+msgid "Ensure images follow naming pattern: ``prefix000001.tif``"
+msgstr "이미지가 명명 패턴을 따르는지 확인: ``prefix000001.tif``"
+
+#: ../../user_guide.rst:344
+msgid "Check file extensions (.tif, .tiff, .png, .jpg, .bmp)"
+msgstr "파일 확장자 확인 (.tif, .tiff, .png, .jpg, .bmp)"
+
+#: ../../user_guide.rst:345
+msgid "Verify read permissions on directory"
+msgstr "디렉토리에 대한 읽기 권한 확인"
+
+#: ../../user_guide.rst:347
+msgid "**Slow thumbnail generation**"
+msgstr "**느린 썸네일 생성**"
+
+#: ../../user_guide.rst:349
+msgid "Use Rust module if available (10-50x faster)"
+msgstr "가능한 경우 Rust 모듈 사용 (10-50배 빠름)"
+
+#: ../../user_guide.rst:350
+msgid "Reduce max thumbnail size"
+msgstr "최대 썸네일 크기 감소"
+
+#: ../../user_guide.rst:351
+msgid "Check disk speed (SSD recommended)"
+msgstr "디스크 속도 확인 (SSD 권장)"
+
+#: ../../user_guide.rst:352 ../../user_guide.rst:365
+msgid "Close other applications"
+msgstr "다른 애플리케이션 닫기"
+
+#: ../../user_guide.rst:354
+msgid "**3D view not updating**"
+msgstr "**3D 뷰가 업데이트되지 않음**"
+
+#: ../../user_guide.rst:356
+msgid "Check threshold value (try different values)"
+msgstr "임계값 확인 (다른 값 시도)"
+
+#: ../../user_guide.rst:357
+msgid "Verify enough images are loaded"
+msgstr "충분한 이미지가 로드되었는지 확인"
+
+#: ../../user_guide.rst:358
+msgid "Try resetting view (double-click in 3D view)"
+msgstr "뷰 재설정 시도 (3D 뷰에서 더블 클릭)"
+
+#: ../../user_guide.rst:360
+msgid "**Out of memory errors**"
+msgstr "**메모리 부족 오류**"
+
+#: ../../user_guide.rst:362
+msgid "Reduce memory limit in settings"
+msgstr "설정에서 메모리 제한 감소"
+
+#: ../../user_guide.rst:363
+msgid "Use smaller thumbnail sizes"
+msgstr "더 작은 썸네일 크기 사용"
+
+#: ../../user_guide.rst:364
+msgid "Process fewer slices at once"
+msgstr "한 번에 더 적은 슬라이스 처리"
+
+#: ../../user_guide.rst:367
+msgid "**Settings not saving**"
+msgstr "**설정이 저장되지 않음**"
+
+#: ../../user_guide.rst:369
+msgid "Check write permissions on config directory"
+msgstr "구성 디렉토리에 대한 쓰기 권한 확인"
+
+#: ../../user_guide.rst:370
+msgid "Windows: ``%APPDATA%\\\\CTHarvester``"
+msgstr "Windows: ``%APPDATA%\\\\CTHarvester``"
+
+#: ../../user_guide.rst:371
+msgid "Linux/macOS: ``~/.config/CTHarvester``"
+msgstr "Linux/macOS: ``~/.config/CTHarvester``"
+
+#: ../../user_guide.rst:374
+msgid "Getting Help"
+msgstr "도움 받기"
+
+#: ../../user_guide.rst:376
+msgid "If you encounter issues:"
+msgstr "문제가 발생하면:"
+
+#: ../../user_guide.rst:378
+msgid "Check this documentation"
+msgstr "이 문서 확인"
+
+#: ../../user_guide.rst:379
+msgid "Review logs in the console or log file"
+msgstr "콘솔 또는 로그 파일의 로그 검토"
+
+#: ../../user_guide.rst:380
+msgid "Search existing issues on GitHub"
+msgstr "GitHub에서 기존 이슈 검색"
+
+#: ../../user_guide.rst:381
+msgid "Create a new issue with:"
+msgstr "다음과 함께 새 이슈 생성:"
+
+#: ../../user_guide.rst:383
+msgid "Operating system and version"
+msgstr "운영 체제 및 버전"
+
+#: ../../user_guide.rst:384
+msgid "Python version"
+msgstr "Python 버전"
+
+#: ../../user_guide.rst:385
+msgid "Error message or description"
+msgstr "오류 메시지 또는 설명"
+
+#: ../../user_guide.rst:386
+msgid "Steps to reproduce"
+msgstr "재현 단계"
+
+#: ../../user_guide.rst:387
+msgid "Log file (if applicable)"
+msgstr "로그 파일 (해당되는 경우)"
+
+#: ../../user_guide.rst:390
+msgid "Tips and Best Practices"
+msgstr "팁 및 모범 사례"
+
+#: ../../user_guide.rst:393
+msgid "Performance Optimization"
+msgstr "성능 최적화"
+
+#: ../../user_guide.rst:395
+msgid "Use SSD for best thumbnail generation speed"
+msgstr "최상의 썸네일 생성 속도를 위해 SSD 사용"
+
+#: ../../user_guide.rst:396
+msgid "Enable Rust module for 10-50x faster thumbnails"
+msgstr "10-50배 빠른 썸네일을 위해 Rust 모듈 활성화"
+
+#: ../../user_guide.rst:397
+msgid "Start with lower thumbnail resolution for initial exploration"
+msgstr "초기 탐색을 위해 낮은 썸네일 해상도로 시작"
+
+#: ../../user_guide.rst:398
+msgid "Generate full-resolution thumbnails only when needed"
+msgstr "필요한 경우에만 전체 해상도 썸네일 생성"
+
+#: ../../user_guide.rst:399
+msgid "Close unnecessary applications during processing"
+msgstr "처리 중 불필요한 애플리케이션 닫기"
+
+#: ../../user_guide.rst:402
+msgid "File Organization"
+msgstr "파일 구성"
+
+#: ../../user_guide.rst:404
+msgid "Keep CT scan images in dedicated folders"
+msgstr "전용 폴더에 CT 스캔 이미지 보관"
+
+#: ../../user_guide.rst:405
+msgid "Use consistent naming conventions"
+msgstr "일관된 명명 규칙 사용"
+
+#: ../../user_guide.rst:406
+msgid "Include metadata/log files with scans"
+msgstr "스캔과 함께 메타데이터/로그 파일 포함"
+
+#: ../../user_guide.rst:407
+msgid "Back up original data before processing"
+msgstr "처리 전 원본 데이터 백업"
+
+#: ../../user_guide.rst:412
+msgid "Experiment with different threshold values"
+msgstr "다양한 임계값 실험"
+
+#: ../../user_guide.rst:413
+msgid "Use inversion for negative scans"
+msgstr "네거티브 스캔에 반전 사용"
+
+#: ../../user_guide.rst:414
+msgid "Try different viewing angles for better understanding"
+msgstr "더 나은 이해를 위해 다양한 보기 각도 시도"
+
+#: ../../user_guide.rst:415
+msgid "Export models for analysis in specialized 3D software"
+msgstr "전문 3D 소프트웨어에서 분석을 위해 모델 내보내기"
+
+#: ../../user_guide.rst:418
+msgid "FAQ"
+msgstr "자주 묻는 질문"
+
+#: ../../user_guide.rst:420
+msgid "**Q: What file formats are supported?**"
+msgstr "**Q: 어떤 파일 형식이 지원됩니까?**"
+
+#: ../../user_guide.rst:422
+msgid ""
+"A: TIF/TIFF, PNG, JPG/JPEG, and BMP. TIF/TIFF recommended for medical "
+"imaging."
+msgstr "A: TIF/TIFF, PNG, JPG/JPEG 및 BMP. 의료 영상에는 TIF/TIFF 권장."
+
+#: ../../user_guide.rst:424
+msgid "**Q: Can I process 16-bit images?**"
+msgstr "**Q: 16비트 이미지를 처리할 수 있습니까?**"
+
+#: ../../user_guide.rst:426
+msgid "A: Yes, CTHarvester supports both 8-bit and 16-bit images."
+msgstr "A: 예, CTHarvester는 8비트 및 16비트 이미지를 모두 지원합니다."
+
+#: ../../user_guide.rst:428
+msgid "**Q: How long does thumbnail generation take?**"
+msgstr "**Q: 썸네일 생성에 얼마나 걸립니까?**"
+
+#: ../../user_guide.rst:430
+msgid "A: With Rust module: 1-5 minutes for 1000 images"
+msgstr "A: Rust 모듈 사용 시: 1000개 이미지에 1-5분"
+
+#: ../../user_guide.rst:431
+msgid "Without Rust: 10-50 minutes for 1000 images"
+msgstr "Rust 미사용 시: 1000개 이미지에 10-50분"
+
+#: ../../user_guide.rst:433
+msgid "Time varies by image resolution, disk speed, and CPU performance."
+msgstr "시간은 이미지 해상도, 디스크 속도 및 CPU 성능에 따라 달라집니다."
+
+#: ../../user_guide.rst:435
+msgid "**Q: Where are thumbnails stored?**"
+msgstr "**Q: 썸네일은 어디에 저장됩니까?**"
+
+#: ../../user_guide.rst:437
+msgid "A: In a ``.thumbnail/`` subdirectory within your CT scan folder."
+msgstr "A: CT 스캔 폴더 내의 ``.thumbnail/`` 하위 디렉토리에 저장됩니다."
+
+#: ../../user_guide.rst:439
+msgid "**Q: Can I delete thumbnail files?**"
+msgstr "**Q: 썸네일 파일을 삭제할 수 있습니까?**"
+
+#: ../../user_guide.rst:441
+msgid "A: Yes, they will be regenerated when you reopen the directory."
+msgstr "A: 예, 디렉토리를 다시 열면 재생성됩니다."
+
+#: ../../user_guide.rst:443
+msgid "**Q: What's the maximum image size supported?**"
+msgstr "**Q: 지원되는 최대 이미지 크기는 얼마입니까?**"
+
+#: ../../user_guide.rst:445
+msgid ""
+"A: Tested up to 4096x4096 pixels. Larger images may work but require more"
+" memory."
+msgstr "A: 4096x4096 픽셀까지 테스트되었습니다. 더 큰 이미지는 작동할 수 있지만 더 많은 메모리가 필요합니다."
+
+#: ../../user_guide.rst:447
+msgid "**Q: Can I run CTHarvester on a server without display?**"
+msgstr "**Q: 디스플레이 없이 서버에서 CTHarvester를 실행할 수 있습니까?**"
+
+#: ../../user_guide.rst:449
+msgid ""
+"A: Not currently. CTHarvester requires a GUI environment (X11, Wayland, "
+"or Windows display)."
+msgstr "A: 현재는 불가능합니다. CTHarvester는 GUI 환경(X11, Wayland 또는 Windows 디스플레이)이 필요합니다."
+
+#: ../../user_guide.rst:451
+msgid "**Q: Is my data sent anywhere?**"
+msgstr "**Q: 내 데이터가 어딘가로 전송됩니까?**"
+
+#: ../../user_guide.rst:453
+msgid ""
+"A: No. CTHarvester processes all data locally. No internet connection "
+"required."
+msgstr "A: 아니요. CTHarvester는 모든 데이터를 로컬에서 처리합니다. 인터넷 연결이 필요하지 않습니다."
+

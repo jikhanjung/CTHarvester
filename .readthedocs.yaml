@@ -1,0 +1,27 @@
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+version: 2
+
+# Build documentation in the docs/ directory with Sphinx
+sphinx:
+  configuration: docs/conf.py
+  fail_on_warning: false
+
+# Build documentation for multiple languages
+# English (en) is the default, Korean (ko) is also available
+formats:
+  - pdf
+  - epub
+
+# Python requirements
+python:
+  version: "3.11"
+  install:
+    - requirements: docs/requirements.txt
+
+# Build all languages
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.11"

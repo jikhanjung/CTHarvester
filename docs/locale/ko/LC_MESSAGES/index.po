@@ -1,0 +1,277 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023-2025, Jikhan Jung
+# This file is distributed under the same license as the CTHarvester
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: CTHarvester \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-01 17:48+0900\n"
+"PO-Revision-Date: 2025-10-01 18:30+0900\n"
+"Last-Translator: CTHarvester Documentation Team <noreply@ctharvester.org>\n"
+"Language: ko\n"
+"Language-Team: ko <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../index.rst:8
+msgid "Contents:"
+msgstr "목차:"
+
+#: ../../index.rst:2
+msgid "CTHarvester Documentation"
+msgstr "CTHarvester 문서"
+
+#: ../../index.rst:4
+msgid "Welcome to CTHarvester's documentation!"
+msgstr "CTHarvester 문서에 오신 것을 환영합니다!"
+
+#: ../../index.rst:6
+msgid ""
+"CTHarvester is a PyQt5-based application for processing and visualizing "
+"CT (Computed Tomography) scan image stacks. It provides tools for "
+"thumbnail generation, 3D mesh visualization, and image stack management."
+msgstr ""
+"CTHarvester는 CT(컴퓨터 단층촬영) 스캔 이미지 스택을 처리하고 시각화하는 PyQt5 기반 애플리케이션입니다. "
+"썸네일 생성, 3D 메시 시각화 및 이미지 스택 관리 도구를 제공합니다."
+
+#: ../../index.rst:18
+msgid "Features"
+msgstr "기능"
+
+#: ../../index.rst:20
+msgid ""
+"**Multi-level Thumbnail Generation**: Automatically generate thumbnail "
+"pyramids for fast navigation"
+msgstr "**다단계 썸네일 생성**: 빠른 탐색을 위해 썸네일 피라미드를 자동으로 생성합니다"
+
+#: ../../index.rst:21
+msgid ""
+"**3D Visualization**: Real-time 3D mesh generation using Marching Cubes "
+"algorithm"
+msgstr "**3D 시각화**: Marching Cubes 알고리즘을 사용한 실시간 3D 메시 생성"
+
+#: ../../index.rst:22
+msgid "**High Performance**: Rust-based thumbnail generation with Python fallback"
+msgstr "**고성능**: Rust 기반 썸네일 생성과 Python 폴백 지원"
+
+#: ../../index.rst:23
+msgid ""
+"**User-Friendly**: Modern UI with progress tracking, keyboard shortcuts, "
+"and tooltips"
+msgstr "**사용자 친화적**: 진행 상황 추적, 키보드 단축키 및 툴팁을 갖춘 현대적인 UI"
+
+#: ../../index.rst:24
+msgid ""
+"**Flexible Settings**: YAML-based configuration with import/export "
+"functionality"
+msgstr "**유연한 설정**: 가져오기/내보내기 기능을 갖춘 YAML 기반 구성"
+
+#: ../../index.rst:25
+msgid "**Multi-language Support**: English and Korean (한국어) interface"
+msgstr "**다국어 지원**: 영어 및 한국어 인터페이스"
+
+#: ../../index.rst:28
+msgid "Quick Start"
+msgstr "빠른 시작"
+
+#: ../../index.rst:31
+msgid "Installation"
+msgstr "설치"
+
+#: ../../index.rst:46
+msgid "Basic Usage"
+msgstr "기본 사용법"
+
+#: ../../index.rst:48
+msgid "**Open CT Scan Directory**"
+msgstr "**CT 스캔 디렉토리 열기**"
+
+#: ../../index.rst:50
+msgid ""
+"Click \"Open Directory\" to select a folder containing CT scan images. "
+"The application will automatically generate multi-level thumbnails for "
+"fast navigation."
+msgstr ""
+"\"디렉토리 열기\"를 클릭하여 CT 스캔 이미지가 포함된 폴더를 선택합니다. "
+"애플리케이션은 빠른 탐색을 위해 다단계 썸네일을 자동으로 생성합니다."
+
+#: ../../index.rst:53
+msgid "**Navigate Through Slices**"
+msgstr "**슬라이스 탐색**"
+
+#: ../../index.rst:55
+msgid ""
+"Use the vertical timeline slider to browse through the CT stack. The 2D "
+"viewer shows the current slice, while the 3D viewer displays the mesh."
+msgstr ""
+"수직 타임라인 슬라이더를 사용하여 CT 스택을 탐색합니다. 2D 뷰어는 현재 슬라이스를 표시하고, "
+"3D 뷰어는 메시를 표시합니다."
+
+#: ../../index.rst:58
+msgid "**Set Region of Interest (ROI)**"
+msgstr "**관심 영역(ROI) 설정**"
+
+#: ../../index.rst:60
+msgid ""
+"Define the region you want to process by setting the lower and upper "
+"bounds:"
+msgstr "하한 및 상한을 설정하여 처리할 영역을 정의합니다:"
+
+#: ../../index.rst:62
+msgid ""
+"**Set Lower Bound**: Click \"Set Bottom\" button or press the keyboard "
+"shortcut to mark the bottom slice of your ROI"
+msgstr ""
+"**하한 설정**: \"하단 설정\" 버튼을 클릭하거나 키보드 단축키를 눌러 ROI의 하단 슬라이스를 표시합니다"
+
+#: ../../index.rst:63
+msgid ""
+"**Set Upper Bound**: Click \"Set Top\" button or press the keyboard "
+"shortcut to mark the top slice of your ROI"
+msgstr ""
+"**상한 설정**: \"상단 설정\" 버튼을 클릭하거나 키보드 단축키를 눌러 ROI의 상단 슬라이스를 표시합니다"
+
+#: ../../index.rst:64
+msgid "The selected region will be highlighted in the timeline slider"
+msgstr "선택한 영역이 타임라인 슬라이더에 강조 표시됩니다"
+
+#: ../../index.rst:65
+msgid ""
+"You can adjust bounds by moving to a different slice and clicking the "
+"buttons again"
+msgstr "다른 슬라이스로 이동하여 버튼을 다시 클릭하면 경계를 조정할 수 있습니다"
+
+#: ../../index.rst:66
+msgid "Click \"Reset\" to clear the ROI selection"
+msgstr "\"재설정\"을 클릭하여 ROI 선택을 지웁니다"
+
+#: ../../index.rst:68
+msgid "**Adjust Bounding Box (Optional)**"
+msgstr "**바운딩 박스 조정 (선택사항)**"
+
+#: ../../index.rst:70
+msgid "Fine-tune the 2D bounding box around your region of interest:"
+msgstr "관심 영역 주변의 2D 바운딩 박스를 미세 조정합니다:"
+
+#: ../../index.rst:72
+msgid "The bounding box appears as a red rectangle in the 2D viewer"
+msgstr "바운딩 박스는 2D 뷰어에서 빨간색 사각형으로 나타납니다"
+
+#: ../../index.rst:73
+msgid "Drag the corners or edges to resize the box"
+msgstr "모서리나 가장자리를 드래그하여 박스 크기를 조정합니다"
+
+#: ../../index.rst:74
+msgid "The box defines the X-Y crop boundaries for your export"
+msgstr "박스는 내보내기에 대한 X-Y 자르기 경계를 정의합니다"
+
+#: ../../index.rst:75
+msgid "Combined with lower/upper bounds, this creates a 3D volume selection"
+msgstr "하한/상한과 결합하여 3D 볼륨 선택을 생성합니다"
+
+#: ../../index.rst:77
+msgid "**Adjust Visualization**"
+msgstr "**시각화 조정**"
+
+#: ../../index.rst:79
+msgid ""
+"Use the **threshold slider** on the right to modify the isovalue for 3D "
+"mesh generation"
+msgstr "오른쪽의 **임계값 슬라이더**를 사용하여 3D 메시 생성을 위한 등치값을 수정합니다"
+
+#: ../../index.rst:80
+msgid "Higher threshold values show denser materials"
+msgstr "임계값이 높을수록 밀도가 높은 재료가 표시됩니다"
+
+#: ../../index.rst:81
+msgid "Lower threshold values reveal more internal structures"
+msgstr "임계값이 낮을수록 더 많은 내부 구조가 표시됩니다"
+
+#: ../../index.rst:82
+msgid "The 3D mesh updates in real-time as you adjust the threshold"
+msgstr "임계값을 조정하면 3D 메시가 실시간으로 업데이트됩니다"
+
+#: ../../index.rst:84
+msgid "**Export Your Data**"
+msgstr "**데이터 내보내기**"
+
+#: ../../index.rst:86
+msgid "Once you've defined your ROI and settings:"
+msgstr "ROI 및 설정을 정의한 후:"
+
+#: ../../index.rst:88
+msgid ""
+"**Save Cropped Image Stack**: Exports only the selected slices within the"
+" bounding box"
+msgstr "**잘린 이미지 스택 저장**: 바운딩 박스 내에서 선택한 슬라이스만 내보냅니다"
+
+#: ../../index.rst:89
+msgid "**Export 3D Model**: Saves the 3D mesh as OBJ, STL, or PLY format"
+msgstr "**3D 모델 내보내기**: 3D 메시를 OBJ, STL 또는 PLY 형식으로 저장합니다"
+
+#: ../../index.rst:90
+msgid "The exported data includes only the region defined by your ROI settings"
+msgstr "내보낸 데이터에는 ROI 설정에 정의된 영역만 포함됩니다"
+
+#: ../../index.rst:92
+msgid "**Workflow Example**:"
+msgstr "**워크플로우 예제**:"
+
+#: ../../index.rst:104
+msgid "**Keyboard Shortcuts**:"
+msgstr "**키보드 단축키**:"
+
+#: ../../index.rst:106
+msgid "``B`` - Set bottom boundary (lower bound)"
+msgstr "``B`` - 하단 경계 설정 (하한)"
+
+#: ../../index.rst:107
+msgid "``T`` - Set top boundary (upper bound)"
+msgstr "``T`` - 상단 경계 설정 (상한)"
+
+#: ../../index.rst:108
+msgid "``Ctrl+R`` - Reset ROI selection"
+msgstr "``Ctrl+R`` - ROI 선택 재설정"
+
+#: ../../index.rst:109
+msgid "``Left/Right`` - Navigate slices"
+msgstr "``Left/Right`` - 슬라이스 탐색"
+
+#: ../../index.rst:110
+msgid "``Up/Down`` - Adjust threshold"
+msgstr "``Up/Down`` - 임계값 조정"
+
+#: ../../index.rst:111
+msgid "``Home/End`` - Jump to first/last slice"
+msgstr "``Home/End`` - 첫 번째/마지막 슬라이스로 이동"
+
+#: ../../index.rst:112
+msgid "``Ctrl+Left/Right`` - Jump 10 slices backward/forward"
+msgstr "``Ctrl+Left/Right`` - 10개 슬라이스 뒤로/앞으로 이동"
+
+#: ../../index.rst:114
+msgid "For more detailed instructions, see the :doc:`user_guide`."
+msgstr "자세한 지침은 :doc:`user_guide`를 참조하세요."
+
+#: ../../index.rst:117
+msgid "Indices and tables"
+msgstr "색인 및 표"
+
+#: ../../index.rst:119
+msgid ":ref:`genindex`"
+msgstr ":ref:`genindex`"
+
+#: ../../index.rst:120
+msgid ":ref:`modindex`"
+msgstr ":ref:`modindex`"
+
+#: ../../index.rst:121
+msgid ":ref:`search`"
+msgstr ":ref:`search`"
+

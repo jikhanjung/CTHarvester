@@ -4,6 +4,7 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Recent Sessions (October 2025)
 
+- [059](20251001_059_korean_documentation.md) - Sphinx i18n으로 한국어 문서 번역 (673 strings)
 - [058](20251001_058_documentation_polish.md) - 문서 정리: Copyright, 설치 가이드, 키보드 단축키 수정
 - [057](20251001_057_documentation_and_resource_organization.md) - 문서 개선 및 리소스 파일 구조화
 - [056](20251001_056_thumbnail_api_improvements.md) - Thumbnail API 개선 - Rust/Python 통합 및 사용자 설정 존중
@@ -67,6 +68,7 @@ Chronological index of all development sessions for CTHarvester.
 - [002](20250806_002_github_actions_and_version_management.md) - GitHub Actions CI/CD 설정
 
 ### Documentation & Retrospectives
+- [059](20251001_059_korean_documentation.md) - Sphinx i18n 한국어 번역
 - [058](20251001_058_documentation_polish.md) - 문서 정리 및 수정
 - [057](20251001_057_documentation_and_resource_organization.md) - 문서 개선 및 리소스 구조화
 - [034](20250930_034_the_captive_developer_v2.md) - The Captive Developer (v2)
@@ -171,12 +173,13 @@ Chronological index of all development sessions for CTHarvester.
 - [056](20251001_056_thumbnail_api_improvements.md) - Thumbnail API 개선 - Rust/Python 통합 및 사용자 설정 존중
 - [057](20251001_057_documentation_and_resource_organization.md) - 문서 개선 및 리소스 파일 구조화
 - [058](20251001_058_documentation_polish.md) - 문서 정리: Copyright, 설치 가이드, 키보드 단축키 수정
+- [059](20251001_059_korean_documentation.md) - Sphinx i18n으로 한국어 문서 번역 (673 strings)
 
 ---
 
 ## Statistics
 
-- **Total Sessions**: 58
+- **Total Sessions**: 59
 - **Date Range**: August 6, 2025 - October 1, 2025
 - **Key Achievements**:
   - Complete Phase 1-4 refactoring

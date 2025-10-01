@@ -1,0 +1,791 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023-2025, Jikhan Jung
+# This file is distributed under the same license as the CTHarvester
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: CTHarvester \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-01 17:48+0900\n"
+"PO-Revision-Date: 2025-10-01 18:30+0900\n"
+"Last-Translator: CTHarvester Documentation Team <noreply@ctharvester.org>\n"
+"Language: ko\n"
+"Language-Team: ko <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../developer_guide.rst:2
+msgid "Developer Guide"
+msgstr "개발자 가이드"
+
+#: ../../developer_guide.rst:4
+msgid ""
+"This guide is for developers who want to contribute to or extend "
+"CTHarvester."
+msgstr "이 가이드는 CTHarvester에 기여하거나 확장하려는 개발자를 위한 것입니다."
+
+#: ../../developer_guide.rst:7
+msgid "Architecture Overview"
+msgstr "아키텍처 개요"
+
+#: ../../developer_guide.rst:10
+msgid "Module Structure"
+msgstr "모듈 구조"
+
+#: ../../developer_guide.rst:12
+msgid "CTHarvester follows a modular architecture::"
+msgstr "CTHarvester는 모듈식 아키텍처를 따릅니다::"
+
+#: ../../developer_guide.rst:37
+msgid "Design Principles"
+msgstr "설계 원칙"
+
+#: ../../developer_guide.rst:39
+msgid ""
+"**Separation of Concerns**: UI, business logic, and data handling are "
+"separate"
+msgstr "**관심사 분리**: UI, 비즈니스 로직 및 데이터 처리가 분리됨"
+
+#: ../../developer_guide.rst:40
+msgid "**Modularity**: Each module has a single, well-defined responsibility"
+msgstr "**모듈성**: 각 모듈은 잘 정의된 단일 책임을 가짐"
+
+#: ../../developer_guide.rst:41
+msgid "**Testability**: Core logic is independent of UI for easy testing"
+msgstr "**테스트 가능성**: 핵심 로직이 UI와 독립적이어서 쉽게 테스트 가능"
+
+#: ../../developer_guide.rst:42
+msgid "**Thread Safety**: Proper synchronization for multithreaded operations"
+msgstr "**스레드 안전성**: 다중 스레드 작업을 위한 적절한 동기화"
+
+#: ../../developer_guide.rst:43
+msgid "**Security First**: Input validation and secure file operations"
+msgstr "**보안 우선**: 입력 검증 및 안전한 파일 작업"
+
+#: ../../developer_guide.rst:46
+msgid "Key Components"
+msgstr "주요 구성 요소"
+
+#: ../../developer_guide.rst:48
+msgid "**Progress Tracking:**"
+msgstr "**진행 상황 추적:**"
+
+#: ../../developer_guide.rst:50
+msgid "``SimpleProgressTracker``: Linear progress with ETA"
+msgstr "``SimpleProgressTracker``: ETA가 있는 선형 진행 상황"
+
+#: ../../developer_guide.rst:51
+msgid "``ProgressManager``: Weighted multi-level progress"
+msgstr "``ProgressManager``: 가중치가 적용된 다단계 진행 상황"
+
+#: ../../developer_guide.rst:52
+msgid "Signal/slot connections for UI updates"
+msgstr "UI 업데이트를 위한 시그널/슬롯 연결"
+
+#: ../../developer_guide.rst:54
+msgid "**Thumbnail Generation:**"
+msgstr "**썸네일 생성:**"
+
+#: ../../developer_guide.rst:56
+msgid "``ThumbnailManager``: Coordinates worker threads"
+msgstr "``ThumbnailManager``: 워커 스레드 조정"
+
+#: ../../developer_guide.rst:57
+msgid "``ThumbnailWorker``: Processes individual thumbnails"
+msgstr "``ThumbnailWorker``: 개별 썸네일 처리"
+
+#: ../../developer_guide.rst:58
+msgid "Support for both Rust and Python implementations"
+msgstr "Rust 및 Python 구현 모두 지원"
+
+#: ../../developer_guide.rst:60
+msgid "**Settings Management:**"
+msgstr "**설정 관리:**"
+
+#: ../../developer_guide.rst:62
+msgid "YAML-based configuration"
+msgstr "YAML 기반 구성"
+
+#: ../../developer_guide.rst:63
+msgid "Platform-independent storage"
+msgstr "플랫폼 독립적인 저장소"
+
+#: ../../developer_guide.rst:64
+msgid "Import/Export functionality"
+msgstr "가져오기/내보내기 기능"
+
+#: ../../developer_guide.rst:65
+msgid "Dot notation access (``settings.get('app.language')``)"
+msgstr "점 표기법 접근 (``settings.get('app.language')``)"
+
+#: ../../developer_guide.rst:67
+msgid "**Security:**"
+msgstr "**보안:**"
+
+#: ../../developer_guide.rst:69
+msgid "``SecureFileValidator``: Path traversal prevention"
+msgstr "``SecureFileValidator``: 경로 탐색 방지"
+
+#: ../../developer_guide.rst:70
+msgid "Whitelist-based file extension validation"
+msgstr "화이트리스트 기반 파일 확장자 검증"
+
+#: ../../developer_guide.rst:71
+msgid "Safe file operations"
+msgstr "안전한 파일 작업"
+
+#: ../../developer_guide.rst:74
+msgid "Development Setup"
+msgstr "개발 환경 설정"
+
+#: ../../developer_guide.rst:77
+msgid "Prerequisites"
+msgstr "필수 조건"
+
+#: ../../developer_guide.rst:79
+msgid "Python 3.8+"
+msgstr "Python 3.8+"
+
+#: ../../developer_guide.rst:80
+msgid "Git"
+msgstr "Git"
+
+#: ../../developer_guide.rst:81
+msgid "Virtual environment tool (venv or conda)"
+msgstr "가상 환경 도구 (venv 또는 conda)"
+
+#: ../../developer_guide.rst:82
+msgid "Optional: Rust toolchain for building native module"
+msgstr "선택사항: 네이티브 모듈 빌드를 위한 Rust 툴체인"
+
+#: ../../developer_guide.rst:85
+msgid "Setting Up Development Environment"
+msgstr "개발 환경 설정"
+
+#: ../../developer_guide.rst:87
+msgid "**Clone and setup:**"
+msgstr "**복제 및 설정:**"
+
+#: ../../developer_guide.rst:104
+msgid "**Install pre-commit hooks:**"
+msgstr "**pre-commit 훅 설치:**"
+
+#: ../../developer_guide.rst:110
+msgid "**Run tests:**"
+msgstr "**테스트 실행:**"
+
+#: ../../developer_guide.rst:117
+msgid "Code Style and Standards"
+msgstr "코드 스타일 및 표준"
+
+#: ../../developer_guide.rst:120
+msgid "Python Style Guide"
+msgstr "Python 스타일 가이드"
+
+#: ../../developer_guide.rst:122
+msgid "We follow PEP 8 with some modifications:"
+msgstr "몇 가지 수정 사항과 함께 PEP 8을 따릅니다:"
+
+#: ../../developer_guide.rst:124
+msgid "Line length: 100 characters (not 79)"
+msgstr "줄 길이: 100자 (79자 아님)"
+
+#: ../../developer_guide.rst:125
+msgid "Use double quotes for strings"
+msgstr "문자열에 큰따옴표 사용"
+
+#: ../../developer_guide.rst:126
+msgid "Use type hints for function signatures"
+msgstr "함수 시그니처에 타입 힌트 사용"
+
+#: ../../developer_guide.rst:127
+msgid "Use Google-style docstrings"
+msgstr "Google 스타일 docstring 사용"
+
+#: ../../developer_guide.rst:129
+msgid "**Example:**"
+msgstr "**예제:**"
+
+#: ../../developer_guide.rst:156
+msgid "Docstring Style"
+msgstr "Docstring 스타일"
+
+#: ../../developer_guide.rst:158
+msgid "Use Google-style docstrings for all public APIs:"
+msgstr "모든 공개 API에 Google 스타일 docstring 사용:"
+
+#: ../../developer_guide.rst:184
+msgid "Type Hints"
+msgstr "타입 힌트"
+
+#: ../../developer_guide.rst:186
+msgid "Use type hints for all function signatures:"
+msgstr "모든 함수 시그니처에 타입 힌트 사용:"
+
+#: ../../developer_guide.rst:200
+msgid "Testing"
+msgstr "테스팅"
+
+#: ../../developer_guide.rst:203
+msgid "Test Organization"
+msgstr "테스트 구성"
+
+#: ../../developer_guide.rst:205
+msgid "Tests are organized by module::"
+msgstr "테스트는 모듈별로 구성됩니다::"
+
+#: ../../developer_guide.rst:214
+msgid "Running Tests"
+msgstr "테스트 실행"
+
+#: ../../developer_guide.rst:216
+msgid "**Run all tests:**"
+msgstr "**모든 테스트 실행:**"
+
+#: ../../developer_guide.rst:222
+msgid "**Run specific test file:**"
+msgstr "**특정 테스트 파일 실행:**"
+
+#: ../../developer_guide.rst:228
+msgid "**Run with coverage:**"
+msgstr "**커버리지와 함께 실행:**"
+
+#: ../../developer_guide.rst:234
+msgid "**Run specific test:**"
+msgstr "**특정 테스트 실행:**"
+
+#: ../../developer_guide.rst:241
+msgid "Writing Tests"
+msgstr "테스트 작성"
+
+#: ../../developer_guide.rst:243
+msgid "Example test structure:"
+msgstr "예제 테스트 구조:"
+
+#: ../../developer_guide.rst:297
+msgid "Test Coverage Goals"
+msgstr "테스트 커버리지 목표"
+
+#: ../../developer_guide.rst:299
+msgid "Overall coverage: >70%"
+msgstr "전체 커버리지: >70%"
+
+#: ../../developer_guide.rst:300
+msgid "Core modules: >80%"
+msgstr "핵심 모듈: >80%"
+
+#: ../../developer_guide.rst:301
+msgid "Security modules: >90%"
+msgstr "보안 모듈: >90%"
+
+#: ../../developer_guide.rst:304
+msgid "Contributing"
+msgstr "기여"
+
+#: ../../developer_guide.rst:307
+msgid "Contribution Workflow"
+msgstr "기여 워크플로우"
+
+#: ../../developer_guide.rst:309
+msgid "**Fork and Clone:**"
+msgstr "**포크 및 복제:**"
+
+#: ../../developer_guide.rst:311
+msgid "Fork the repository on GitHub"
+msgstr "GitHub에서 저장소 포크"
+
+#: ../../developer_guide.rst:312
+msgid "Clone your fork locally"
+msgstr "포크를 로컬로 복제"
+
+#: ../../developer_guide.rst:313
+msgid "Add upstream remote:"
+msgstr "업스트림 원격 추가:"
+
+#: ../../developer_guide.rst:319
+msgid "**Create Feature Branch:**"
+msgstr "**기능 브랜치 생성:**"
+
+#: ../../developer_guide.rst:325
+msgid "**Make Changes:**"
+msgstr "**변경사항 작성:**"
+
+#: ../../developer_guide.rst:327
+msgid "Write code"
+msgstr "코드 작성"
+
+#: ../../developer_guide.rst:328
+msgid "Add tests"
+msgstr "테스트 추가"
+
+#: ../../developer_guide.rst:329
+msgid "Update documentation"
+msgstr "문서 업데이트"
+
+#: ../../developer_guide.rst:330
+msgid "Run tests: ``pytest``"
+msgstr "테스트 실행: ``pytest``"
+
+#: ../../developer_guide.rst:331
+msgid "Check style: ``flake8`` or ``black --check .``"
+msgstr "스타일 확인: ``flake8`` 또는 ``black --check .``"
+
+#: ../../developer_guide.rst:333
+msgid "**Commit:**"
+msgstr "**커밋:**"
+
+#: ../../developer_guide.rst:340
+msgid "Follow conventional commits format:"
+msgstr "기존 커밋 형식 따르기:"
+
+#: ../../developer_guide.rst:342
+msgid "``feat:``: New feature"
+msgstr "``feat:``: 새로운 기능"
+
+#: ../../developer_guide.rst:343
+msgid "``fix:``: Bug fix"
+msgstr "``fix:``: 버그 수정"
+
+#: ../../developer_guide.rst:344
+msgid "``docs:``: Documentation changes"
+msgstr "``docs:``: 문서 변경"
+
+#: ../../developer_guide.rst:345
+msgid "``refactor:``: Code refactoring"
+msgstr "``refactor:``: 코드 리팩토링"
+
+#: ../../developer_guide.rst:346
+msgid "``test:``: Adding tests"
+msgstr "``test:``: 테스트 추가"
+
+#: ../../developer_guide.rst:347
+msgid "``chore:``: Maintenance tasks"
+msgstr "``chore:``: 유지보수 작업"
+
+#: ../../developer_guide.rst:349
+msgid "**Push and Create PR:**"
+msgstr "**푸시 및 PR 생성:**"
+
+#: ../../developer_guide.rst:355
+msgid "Create pull request on GitHub"
+msgstr "GitHub에서 풀 리퀘스트 생성"
+
+#: ../../developer_guide.rst:356
+msgid "Fill out PR template"
+msgstr "PR 템플릿 작성"
+
+#: ../../developer_guide.rst:357
+msgid "Link related issues"
+msgstr "관련 이슈 링크"
+
+#: ../../developer_guide.rst:358
+msgid "Wait for review"
+msgstr "리뷰 대기"
+
+#: ../../developer_guide.rst:361
+msgid "Code Review Process"
+msgstr "코드 리뷰 프로세스"
+
+#: ../../developer_guide.rst:363
+msgid "All code changes go through review:"
+msgstr "모든 코드 변경은 리뷰를 거칩니다:"
+
+#: ../../developer_guide.rst:365
+msgid "**Automated Checks:**"
+msgstr "**자동 검사:**"
+
+#: ../../developer_guide.rst:367
+msgid "Tests must pass"
+msgstr "테스트 통과 필수"
+
+#: ../../developer_guide.rst:368
+msgid "Code coverage must not decrease"
+msgstr "코드 커버리지 감소 금지"
+
+#: ../../developer_guide.rst:369
+msgid "Style checks must pass"
+msgstr "스타일 검사 통과 필수"
+
+#: ../../developer_guide.rst:371
+msgid "**Manual Review:**"
+msgstr "**수동 리뷰:**"
+
+#: ../../developer_guide.rst:373
+msgid "At least one approving review required"
+msgstr "최소 1개의 승인 리뷰 필요"
+
+#: ../../developer_guide.rst:374
+msgid "Address review comments"
+msgstr "리뷰 코멘트 해결"
+
+#: ../../developer_guide.rst:375
+msgid "Update as needed"
+msgstr "필요에 따라 업데이트"
+
+#: ../../developer_guide.rst:377
+msgid "**Merge:**"
+msgstr "**병합:**"
+
+#: ../../developer_guide.rst:379
+msgid "Squash and merge preferred"
+msgstr "스쿼시 및 병합 선호"
+
+#: ../../developer_guide.rst:380
+msgid "Delete branch after merge"
+msgstr "병합 후 브랜치 삭제"
+
+#: ../../developer_guide.rst:383
+msgid "Pull Request Guidelines"
+msgstr "풀 리퀘스트 가이드라인"
+
+#: ../../developer_guide.rst:385
+msgid "**Good PR:**"
+msgstr "**좋은 PR:**"
+
+#: ../../developer_guide.rst:387
+msgid "Focused on single feature/fix"
+msgstr "단일 기능/수정에 집중"
+
+#: ../../developer_guide.rst:388
+msgid "Includes tests"
+msgstr "테스트 포함"
+
+#: ../../developer_guide.rst:389
+msgid "Updates documentation"
+msgstr "문서 업데이트"
+
+#: ../../developer_guide.rst:390
+msgid "Clear description"
+msgstr "명확한 설명"
+
+#: ../../developer_guide.rst:391
+msgid "Links to related issues"
+msgstr "관련 이슈 링크"
+
+#: ../../developer_guide.rst:393
+msgid "**PR Template:**"
+msgstr "**PR 템플릿:**"
+
+#: ../../developer_guide.rst:421
+msgid "Building and Packaging"
+msgstr "빌드 및 패키징"
+
+#: ../../developer_guide.rst:424
+msgid "Building Rust Module"
+msgstr "Rust 모듈 빌드"
+
+#: ../../developer_guide.rst:432
+msgid "The compiled library will be placed in ``target/release/``."
+msgstr "컴파일된 라이브러리는 ``target/release/``에 배치됩니다."
+
+#: ../../developer_guide.rst:435
+msgid "Creating Executable"
+msgstr "실행 파일 생성"
+
+#: ../../developer_guide.rst:437
+msgid "**Using PyInstaller:**"
+msgstr "**PyInstaller 사용:**"
+
+#: ../../developer_guide.rst:447
+msgid "**Output:**"
+msgstr "**출력:**"
+
+#: ../../developer_guide.rst:449
+msgid "Executable in ``dist/`` directory"
+msgstr "``dist/`` 디렉토리의 실행 파일"
+
+#: ../../developer_guide.rst:450
+msgid "Standalone, no Python required"
+msgstr "독립 실행형, Python 불필요"
+
+#: ../../developer_guide.rst:453
+msgid "Building Documentation"
+msgstr "문서 빌드"
+
+#: ../../developer_guide.rst:460
+msgid "Output in ``docs/_build/html/``."
+msgstr "``docs/_build/html/``에 출력됩니다."
+
+#: ../../developer_guide.rst:463
+msgid "Release Process"
+msgstr "릴리스 프로세스"
+
+#: ../../developer_guide.rst:465
+msgid "**Update Version:**"
+msgstr "**버전 업데이트:**"
+
+#: ../../developer_guide.rst:467
+msgid "Update ``config/constants.py``"
+msgstr "``config/constants.py`` 업데이트"
+
+#: ../../developer_guide.rst:468
+msgid "Update ``docs/conf.py``"
+msgstr "``docs/conf.py`` 업데이트"
+
+#: ../../developer_guide.rst:469
+msgid "Update ``setup.py`` (if using)"
+msgstr "``setup.py`` 업데이트 (사용 중인 경우)"
+
+#: ../../developer_guide.rst:471
+msgid "**Update Changelog:**"
+msgstr "**변경 로그 업데이트:**"
+
+#: ../../developer_guide.rst:473
+msgid "Add release notes"
+msgstr "릴리스 노트 추가"
+
+#: ../../developer_guide.rst:474
+msgid "List all changes since last release"
+msgstr "마지막 릴리스 이후 모든 변경 사항 나열"
+
+#: ../../developer_guide.rst:476
+msgid "**Create Release:**"
+msgstr "**릴리스 생성:**"
+
+#: ../../developer_guide.rst:483
+msgid "**Build Artifacts:**"
+msgstr "**아티팩트 빌드:**"
+
+#: ../../developer_guide.rst:485
+msgid "Build executables for all platforms"
+msgstr "모든 플랫폼용 실행 파일 빌드"
+
+#: ../../developer_guide.rst:486
+msgid "Build documentation"
+msgstr "문서 빌드"
+
+#: ../../developer_guide.rst:487
+msgid "Create source distribution"
+msgstr "소스 배포 생성"
+
+#: ../../developer_guide.rst:489
+msgid "**Publish Release:**"
+msgstr "**릴리스 게시:**"
+
+#: ../../developer_guide.rst:491
+msgid "Create GitHub release"
+msgstr "GitHub 릴리스 생성"
+
+#: ../../developer_guide.rst:492
+msgid "Attach built artifacts"
+msgstr "빌드된 아티팩트 첨부"
+
+#: ../../developer_guide.rst:493
+msgid "Copy changelog to release notes"
+msgstr "변경 로그를 릴리스 노트에 복사"
+
+#: ../../developer_guide.rst:494
+msgid "Mark as latest release"
+msgstr "최신 릴리스로 표시"
+
+#: ../../developer_guide.rst:497
+msgid "Debugging Tips"
+msgstr "디버깅 팁"
+
+#: ../../developer_guide.rst:500
+msgid "Logging"
+msgstr "로깅"
+
+#: ../../developer_guide.rst:502
+msgid "CTHarvester uses Python's logging module:"
+msgstr "CTHarvester는 Python의 로깅 모듈을 사용합니다:"
+
+#: ../../developer_guide.rst:514
+msgid "Set log level in settings or via command line."
+msgstr "설정 또는 명령줄을 통해 로그 수준을 설정합니다."
+
+#: ../../developer_guide.rst:517
+msgid "Common Debugging Scenarios"
+msgstr "일반적인 디버깅 시나리오"
+
+#: ../../developer_guide.rst:519
+msgid "**Threading Issues:**"
+msgstr "**스레드 문제:**"
+
+#: ../../developer_guide.rst:521
+msgid "Use ``QMutexLocker`` for thread-safe operations"
+msgstr "스레드 안전 작업을 위해 ``QMutexLocker`` 사용"
+
+#: ../../developer_guide.rst:522
+msgid "Check for race conditions with ``threading.current_thread()``"
+msgstr "``threading.current_thread()``로 경쟁 조건 확인"
+
+#: ../../developer_guide.rst:523
+msgid "Use ``logging`` instead of ``print()`` in threads"
+msgstr "스레드에서 ``print()`` 대신 ``logging`` 사용"
+
+#: ../../developer_guide.rst:525
+msgid "**Memory Leaks:**"
+msgstr "**메모리 누수:**"
+
+#: ../../developer_guide.rst:527
+msgid "Use ``memory_profiler`` to track memory usage"
+msgstr "메모리 사용량 추적을 위해 ``memory_profiler`` 사용"
+
+#: ../../developer_guide.rst:528
+msgid "Check for circular references"
+msgstr "순환 참조 확인"
+
+#: ../../developer_guide.rst:529
+msgid "Use weak references where appropriate"
+msgstr "적절한 경우 약한 참조 사용"
+
+#: ../../developer_guide.rst:531
+msgid "**Performance Issues:**"
+msgstr "**성능 문제:**"
+
+#: ../../developer_guide.rst:533
+msgid "Profile with ``cProfile``"
+msgstr "``cProfile``로 프로파일링"
+
+#: ../../developer_guide.rst:534
+msgid "Use ``line_profiler`` for line-by-line profiling"
+msgstr "라인별 프로파일링을 위해 ``line_profiler`` 사용"
+
+#: ../../developer_guide.rst:535
+msgid "Check I/O operations (often the bottleneck)"
+msgstr "I/O 작업 확인 (종종 병목 현상)"
+
+#: ../../developer_guide.rst:537
+msgid "**Qt/GUI Issues:**"
+msgstr "**Qt/GUI 문제:**"
+
+#: ../../developer_guide.rst:539
+msgid "Only update UI from main thread"
+msgstr "메인 스레드에서만 UI 업데이트"
+
+#: ../../developer_guide.rst:540
+msgid "Use signals/slots for cross-thread communication"
+msgstr "스레드 간 통신을 위해 시그널/슬롯 사용"
+
+#: ../../developer_guide.rst:541
+msgid "Check event loop is running"
+msgstr "이벤트 루프가 실행 중인지 확인"
+
+#: ../../developer_guide.rst:544
+msgid "Resources"
+msgstr "리소스"
+
+#: ../../developer_guide.rst:547
+msgid "Documentation"
+msgstr "문서"
+
+#: ../../developer_guide.rst:549
+msgid ""
+"`PyQt5 Documentation "
+"<https://www.riverbankcomputing.com/static/Docs/PyQt5/>`_"
+msgstr "`PyQt5 문서 <https://www.riverbankcomputing.com/static/Docs/PyQt5/>`_"
+
+#: ../../developer_guide.rst:550
+msgid "`NumPy Documentation <https://numpy.org/doc/>`_"
+msgstr "`NumPy 문서 <https://numpy.org/doc/>`_"
+
+#: ../../developer_guide.rst:551
+msgid "`Pillow Documentation <https://pillow.readthedocs.io/>`_"
+msgstr "`Pillow 문서 <https://pillow.readthedocs.io/>`_"
+
+#: ../../developer_guide.rst:552
+msgid "`Sphinx Documentation <https://www.sphinx-doc.org/>`_"
+msgstr "`Sphinx 문서 <https://www.sphinx-doc.org/>`_"
+
+#: ../../developer_guide.rst:555
+msgid "Tools"
+msgstr "도구"
+
+#: ../../developer_guide.rst:557
+msgid "**pytest**: Testing framework"
+msgstr "**pytest**: 테스팅 프레임워크"
+
+#: ../../developer_guide.rst:558
+msgid "**black**: Code formatter"
+msgstr "**black**: 코드 포매터"
+
+#: ../../developer_guide.rst:559
+msgid "**flake8**: Linter"
+msgstr "**flake8**: 린터"
+
+#: ../../developer_guide.rst:560
+msgid "**mypy**: Type checker"
+msgstr "**mypy**: 타입 체커"
+
+#: ../../developer_guide.rst:561
+msgid "**coverage.py**: Coverage reporting"
+msgstr "**coverage.py**: 커버리지 리포팅"
+
+#: ../../developer_guide.rst:562
+msgid "**PyInstaller**: Executable builder"
+msgstr "**PyInstaller**: 실행 파일 빌더"
+
+#: ../../developer_guide.rst:565
+msgid "Community"
+msgstr "커뮤니티"
+
+#: ../../developer_guide.rst:567
+msgid "**GitHub Issues**: Bug reports and feature requests"
+msgstr "**GitHub Issues**: 버그 보고 및 기능 요청"
+
+#: ../../developer_guide.rst:568
+msgid "**Discussions**: Questions and general discussion"
+msgstr "**Discussions**: 질문 및 일반 토론"
+
+#: ../../developer_guide.rst:569
+msgid "**Pull Requests**: Code contributions"
+msgstr "**Pull Requests**: 코드 기여"
+
+#: ../../developer_guide.rst:570
+msgid "**Wiki**: Additional documentation"
+msgstr "**Wiki**: 추가 문서"
+
+#: ../../developer_guide.rst:573
+msgid "Getting Help"
+msgstr "도움 받기"
+
+#: ../../developer_guide.rst:575
+msgid "Check this documentation"
+msgstr "이 문서 확인"
+
+#: ../../developer_guide.rst:576
+msgid "Search existing issues"
+msgstr "기존 이슈 검색"
+
+#: ../../developer_guide.rst:577
+msgid "Ask in GitHub Discussions"
+msgstr "GitHub Discussions에서 질문"
+
+#: ../../developer_guide.rst:578
+msgid "Create new issue if needed"
+msgstr "필요 시 새 이슈 생성"
+
+#: ../../developer_guide.rst:580
+msgid "When asking for help, include:"
+msgstr "도움을 요청할 때 포함 사항:"
+
+#: ../../developer_guide.rst:582
+msgid "Python version"
+msgstr "Python 버전"
+
+#: ../../developer_guide.rst:583
+msgid "Operating system"
+msgstr "운영 체제"
+
+#: ../../developer_guide.rst:584
+msgid "CTHarvester version"
+msgstr "CTHarvester 버전"
+
+#: ../../developer_guide.rst:585
+msgid "Error message (full traceback)"
+msgstr "오류 메시지 (전체 트레이스백)"
+
+#: ../../developer_guide.rst:586
+msgid "Minimal reproduction steps"
+msgstr "최소 재현 단계"
+
+#: ../../developer_guide.rst:587
+msgid "What you've tried"
+msgstr "시도한 내용"
+
