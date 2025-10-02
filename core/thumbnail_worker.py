@@ -21,7 +21,28 @@ logger = logging.getLogger("CTHarvester")
 
 
 class ThumbnailWorkerSignals(QObject):
-    """Signals for thumbnail worker threads"""
+    """Qt signals for thumbnail worker thread communication.
+
+    Provides typed signals for worker-to-manager communication in the thumbnail
+    generation pipeline. These signals are emitted by ThumbnailWorker instances
+    and handled by ThumbnailManager slots.
+
+    Signals:
+        finished: Emitted when worker completes (success or failure)
+        error (tuple): Emitted on exception, carries (exctype, value, traceback_str)
+        result (object): Emitted on successful completion, carries
+            (idx, img_array, was_generated) tuple where:
+            - idx (int): Task index
+            - img_array (np.ndarray or None): Thumbnail array if loaded
+            - was_generated (bool): True if newly created, False if loaded from disk
+        progress (int): Emitted when processing starts, carries task index
+
+    Example:
+        >>> worker = ThumbnailWorker(...)
+        >>> worker.signals.result.connect(manager.on_worker_result)
+        >>> worker.signals.error.connect(manager.on_worker_error)
+        >>> worker.signals.finished.connect(manager.on_worker_finished)
+    """
 
     finished = pyqtSignal()
     error = pyqtSignal(tuple)
@@ -155,7 +176,7 @@ class ThumbnailWorker(QRunnable):
 
             return img, is_16bit
 
-        except Exception as e:
+        except (OSError, IOError) as e:
             logger.error(f"Error loading image {filepath}: {e}")
             return None, False
 
@@ -243,7 +264,41 @@ class ThumbnailWorker(QRunnable):
 
     @pyqtSlot()
     def run(self):
-        """Process a single image pair (main worker method)"""
+        """Process a single thumbnail task (main worker thread entry point).
+
+        This is the main execution method for the worker thread. It either loads an
+        existing thumbnail from disk or generates a new one by averaging and downsampling
+        a pair of input images. The method is designed to run in a QThreadPool.
+
+        Process Flow:
+            1. Check for user cancellation
+            2. Check if thumbnail already exists on disk
+            3. If exists and size < max: load existing thumbnail
+            4. If not exists: generate new thumbnail via _generate_thumbnail()
+            5. Emit progress and result signals
+            6. Handle any exceptions and emit error signal
+
+        Signals Emitted:
+            - progress(idx): Emitted when task starts processing
+            - result((idx, img_array, was_generated)): Emitted on completion
+            - error((exctype, value, traceback)): Emitted on exception
+            - finished(): Emitted when worker exits (always)
+
+        Side Effects:
+            - May create thumbnail file at self.filename3
+            - Logs performance metrics (warnings for slow tasks >5s)
+            - Triggers periodic garbage collection
+
+        Thread Safety:
+            This method runs in a worker thread. All signal emissions are
+            queued through Qt's event system for thread-safe communication.
+
+        Example Output:
+            For a typical task processing in 180ms:
+            - DEBUG: "Completed idx=42 (loaded) in 180.0ms"
+            For a slow task taking 5.2 seconds:
+            - WARNING: "SLOW - idx=42 (generated) took 5200.0ms"
+        """
         worker_start_time = time.time()
 
         if self.idx < 5:
@@ -280,7 +335,7 @@ class ThumbnailWorker(QRunnable):
                         with Image.open(self.filename3) as img:
                             img_array = np.array(img)
                         logger.debug(f"Loaded existing thumbnail shape: {img_array.shape}")
-                    except Exception as e:
+                    except (OSError, IOError) as e:
                         logger.error(f"Error opening existing thumbnail: {e}")
             else:
                 # Generate new thumbnail
@@ -375,12 +430,13 @@ class ThumbnailWorker(QRunnable):
 
             return None
 
-        except Exception as e:
+        except (OSError, IOError, ValueError) as e:
             logger.error(
                 f"Error creating thumbnail {self.filename3}: {e}\n{traceback.format_exc()}"
             )
             return None
         finally:
             # Periodic garbage collection
-            if self.idx % 10 == 0:
+            from config.constants import GARBAGE_COLLECTION_INTERVAL
+            if self.idx % GARBAGE_COLLECTION_INTERVAL == 0:
                 gc.collect()

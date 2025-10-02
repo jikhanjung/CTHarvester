@@ -209,7 +209,7 @@ class ThumbnailGenerator:
 
                 def cancel_check():
                     """Check if user cancelled via progress dialog"""
-                    return progress_dialog.was_cancelled if hasattr(progress_dialog, 'was_cancelled') else False
+                    return progress_dialog.is_cancelled if hasattr(progress_dialog, 'is_cancelled') else False
 
             # Use unified return format
             rust_success = self.generate_rust(directory, progress_callback, cancel_check)
@@ -282,16 +282,14 @@ class ThumbnailGenerator:
 
         try:
             # Call Rust thumbnail generation
-            success = build_thumbnails(directory, internal_progress_callback)
+            # Note: build_thumbnails returns None on success, raises exception on failure
+            build_thumbnails(directory, internal_progress_callback)
 
             if self.rust_cancelled:
                 logger.info("Thumbnail generation was cancelled by user")
                 return False
 
-            if not success:
-                logger.error("Rust thumbnail generation failed")
-                return False
-
+            # If we reach here, Rust succeeded (no exception raised)
             # Calculate elapsed time
             elapsed = time.time() - self.thumbnail_start_time
             logger.info(f"=== Rust thumbnail generation completed in {elapsed:.2f} seconds ===")
@@ -363,7 +361,7 @@ class ThumbnailGenerator:
 
         try:
             # Extract settings
-            MAX_THUMBNAIL_SIZE = 512
+            from config.constants import MAX_THUMBNAIL_SIZE
             size = max(int(settings["image_width"]), int(settings["image_height"]))
             width = int(settings["image_width"])
             height = int(settings["image_height"])
@@ -395,7 +393,7 @@ class ThumbnailGenerator:
                     f"Thread pool: max={threadpool.maxThreadCount()}, "
                     f"active={threadpool.activeThreadCount()}"
                 )
-            except Exception as e:
+            except (AttributeError, ImportError) as e:
                 logger.warning(f"Could not get system info: {e}")
 
             # Check if directory is on network drive
@@ -407,7 +405,7 @@ class ThumbnailGenerator:
                     )
                 elif drive:
                     logger.info(f"Working on local drive: {drive}")
-            except Exception as e:
+            except (OSError, AttributeError) as e:
                 logger.debug(f"Could not determine drive type: {e}")
 
             logger.info(f"Processing sequence: {seq_begin} to {seq_end}, directory: {directory}")
@@ -437,11 +435,13 @@ class ThumbnailGenerator:
 
             if user_sample_size is not None:
                 # User has configured sample_size in settings
-                base_sample = max(1, min(100, int(user_sample_size)))  # Clamp to reasonable range
+                from config.constants import MIN_SAMPLE_SIZE, MAX_SAMPLE_SIZE
+                base_sample = max(MIN_SAMPLE_SIZE, min(MAX_SAMPLE_SIZE, int(user_sample_size)))  # Clamp to reasonable range
                 logger.info(f"Using user-configured sample_size: {base_sample}")
             else:
                 # Fallback: auto-calculate based on total work
-                base_sample = max(20, min(30, int(total_work * 0.02)))
+                from config.constants import DEFAULT_ADAPTIVE_SAMPLE_MIN, DEFAULT_ADAPTIVE_SAMPLE_MAX, ADAPTIVE_SAMPLE_RATIO
+                base_sample = max(DEFAULT_ADAPTIVE_SAMPLE_MIN, min(DEFAULT_ADAPTIVE_SAMPLE_MAX, int(total_work * ADAPTIVE_SAMPLE_RATIO)))
                 logger.info(f"Auto-calculated sample_size: {base_sample} (2% of {total_work} work)")
 
             sample_size = base_sample
@@ -647,7 +647,7 @@ class ThumbnailGenerator:
                     try:
                         with Image.open(os.path.join(smallest_dir, tif_file)) as img:
                             minimum_volume.append(np.array(img))
-                    except Exception as e:
+                    except (OSError, IOError) as e:
                         logger.error(f"Error loading {tif_file}: {e}")
 
                 if minimum_volume:
@@ -687,7 +687,10 @@ class ThumbnailGenerator:
                 'elapsed_time': time.time() - thumbnail_start_time if 'thumbnail_start_time' in locals() else 0
             }
 
-    def load_thumbnail_data(self, directory, max_thumbnail_size=512):
+    def load_thumbnail_data(self, directory, max_thumbnail_size=None):
+        from config.constants import MAX_THUMBNAIL_SIZE as DEFAULT_MAX_SIZE
+        if max_thumbnail_size is None:
+            max_thumbnail_size = DEFAULT_MAX_SIZE
         """Load generated thumbnail data from disk
 
         Finds and loads the appropriate level of thumbnails for 3D visualization.
@@ -709,7 +712,8 @@ class ThumbnailGenerator:
 
         # Find all level directories
         level_dirs = []
-        for i in range(1, 20):  # Check up to level 20
+        from config.constants import MAX_THUMBNAIL_LEVELS
+        for i in range(1, MAX_THUMBNAIL_LEVELS):  # Check up to max levels
             level_dir = os.path.join(thumbnail_base, str(i))
             if os.path.exists(level_dir):
                 level_dirs.append((i, level_dir))
@@ -771,7 +775,8 @@ class ThumbnailGenerator:
                 # Normalize to 8-bit range (0-255) for marching cubes
                 if img_array.dtype == np.uint16:
                     # Convert 16-bit to 8-bit
-                    img_array = (img_array / 256).astype(np.uint8)
+                    from config.constants import BIT_DEPTH_16_TO_8_DIVISOR
+                    img_array = (img_array / BIT_DEPTH_16_TO_8_DIVISOR).astype(np.uint8)
                 elif img_array.dtype != np.uint8:
                     # For other types, normalize to 0-255
                     img_min = img_array.min()

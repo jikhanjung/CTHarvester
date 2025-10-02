@@ -161,6 +161,11 @@ class VolumeProcessor:
                 logger.error("minimum_volume is empty list")
                 return np.array([]), [0, 0, 0, 0, 0, 0]
 
+        # Check if minimum_volume is None
+        if minimum_volume is None:
+            logger.error("minimum_volume is None")
+            return np.array([]), [0, 0, 0, 0, 0, 0]
+
         # Validate array
         if minimum_volume.size == 0:
             logger.error("minimum_volume is empty array")
@@ -171,7 +176,7 @@ class VolumeProcessor:
             volume = minimum_volume[
                 bottom_idx_small:top_idx_small, from_y_small:to_y_small, from_x_small:to_x_small
             ]
-        except Exception as e:
+        except (IndexError, ValueError, TypeError) as e:
             logger.error(f"Error cropping volume: {e}")
             logger.error(f"minimum_volume shape: {minimum_volume.shape}")
             logger.error(

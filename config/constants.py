@@ -60,13 +60,28 @@ THUMBNAIL_EXTENSION = ".tif"
 
 # Thumbnail Generation Parameters
 DEFAULT_THUMBNAIL_MAX_SIZE = 500
+MAX_THUMBNAIL_SIZE = 512  # Maximum size for thumbnail in memory
 DEFAULT_SAMPLE_SIZE = 20
+MIN_SAMPLE_SIZE = 1
+MAX_SAMPLE_SIZE = 100
+DEFAULT_ADAPTIVE_SAMPLE_MIN = 20
+DEFAULT_ADAPTIVE_SAMPLE_MAX = 30
+ADAPTIVE_SAMPLE_RATIO = 0.02  # 2% of total work
 DEFAULT_MAX_LEVEL = 10
+MAX_THUMBNAIL_LEVELS = 20  # Maximum levels to check when loading
+BIT_DEPTH_16_TO_8_DIVISOR = 256  # Division factor for 16-bit to 8-bit conversion
 
 # Thread Settings
 MIN_THREADS = 1
 MAX_THREADS = 8
 DEFAULT_THREADS = 1  # Single thread optimal for Python fallback
+GARBAGE_COLLECTION_INTERVAL = 10  # Collect garbage every N items
+
+# Performance Monitoring
+STALL_DETECTION_THRESHOLD = 12  # Number of 5-second checks before stall warning (60 seconds)
+STALL_CHECK_INTERVAL_MS = 5000  # Check for stalls every 5 seconds
+SLOW_IMAGE_THRESHOLD_MS = 1000  # Warn if image load takes over 1 second
+FAST_PROCESSING_THRESHOLD = 10  # Images per second threshold for "fast" processing
 
 # Memory Settings
 MEMORY_THRESHOLD_MB = 4096
@@ -76,6 +91,17 @@ IMAGE_MEMORY_ESTIMATE_MB = 50  # Estimated memory per image
 DEFAULT_WINDOW_WIDTH = 1200
 DEFAULT_WINDOW_HEIGHT = 800
 PROGRESS_UPDATE_INTERVAL_MS = 100
+THREAD_SLEEP_MS = 10  # Sleep duration for worker threads
+
+# Progress Reporting
+PROGRESS_LOG_INTERVAL = 10  # Log progress every N items
+PROGRESS_LOG_INITIAL = 5  # Log first N items
+PROGRESS_PERCENTAGE_MULTIPLIER = 100
+
+# Time Display
+SECONDS_PER_MINUTE = 60
+SECONDS_PER_HOUR = 3600
+MINUTES_PER_HOUR = 60
 
 # 3D Rendering
 DEFAULT_THRESHOLD = 128

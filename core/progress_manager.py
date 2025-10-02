@@ -103,12 +103,13 @@ class ProgressManager(QObject):
                 return ""
 
         # Format time with ETA prefix
-        if remaining_time < 60:
+        from config.constants import SECONDS_PER_MINUTE, SECONDS_PER_HOUR
+        if remaining_time < SECONDS_PER_MINUTE:
             return f"ETA: {int(remaining_time)}s"
-        elif remaining_time < 3600:
-            return f"ETA: {int(remaining_time/60)}m {int(remaining_time%60)}s"
+        elif remaining_time < SECONDS_PER_HOUR:
+            return f"ETA: {int(remaining_time/SECONDS_PER_MINUTE)}m {int(remaining_time%SECONDS_PER_MINUTE)}s"
         else:
-            return f"ETA: {int(remaining_time/3600)}h {int((remaining_time%3600)/60)}m"
+            return f"ETA: {int(remaining_time/SECONDS_PER_HOUR)}h {int((remaining_time%SECONDS_PER_HOUR)/SECONDS_PER_MINUTE)}m"
 
     def get_detail_text(self, level=None, completed=None, total=None):
         """Get detail text for current state"""

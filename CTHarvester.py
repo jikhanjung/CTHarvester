@@ -25,10 +25,9 @@ try:
             DB_BACKUP_DIRECTORY,
         ]
     )
-except Exception as e:
+except (OSError, PermissionError) as e:
     # Use print here since logger might not be initialized yet
     print(f"Warning: Directory initialization failed: {e}")
-    pass
 
 # Setup logger
 from CTLogger import setup_logger

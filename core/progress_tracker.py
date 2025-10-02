@@ -59,15 +59,16 @@ class ProgressInfo:
         if self.eta_seconds is None:
             return "Calculating..."
 
-        if self.eta_seconds < 60:
+        from config.constants import SECONDS_PER_MINUTE, SECONDS_PER_HOUR
+        if self.eta_seconds < SECONDS_PER_MINUTE:
             return f"{int(self.eta_seconds)}s"
-        elif self.eta_seconds < 3600:
-            minutes = int(self.eta_seconds / 60)
-            seconds = int(self.eta_seconds % 60)
+        elif self.eta_seconds < SECONDS_PER_HOUR:
+            minutes = int(self.eta_seconds / SECONDS_PER_MINUTE)
+            seconds = int(self.eta_seconds % SECONDS_PER_MINUTE)
             return f"{minutes}m {seconds}s"
         else:
-            hours = int(self.eta_seconds / 3600)
-            minutes = int((self.eta_seconds % 3600) / 60)
+            hours = int(self.eta_seconds / SECONDS_PER_HOUR)
+            minutes = int((self.eta_seconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE)
             return f"{hours}h {minutes}m"
 
     @property

@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "CTHarvester"
-version = "1.0.0"
+version = "0.2.3-beta.1"
 description = "CT scan image processing and visualization tool"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -34,14 +34,14 @@ dependencies = [
     "pyopengl-accelerate>=3.1.5,<4.0.0",
     "superqt>=0.6.0,<1.0.0",
     # Image Processing
-    "pillow>=10.0.0,<11.0.0",
-    "numpy>=1.24.0,<2.0.0",
+    "pillow>=11.0.0",
+    "numpy>=2.0.0",
     # Scientific Computing
     "pymcubes>=0.1.4,<1.0.0",
     "scipy>=1.10.0,<2.0.0",
     # Utilities
     "semver>=3.0.0,<4.0.0",
-    "psutil>=5.9.0,<6.0.0",
+    "psutil>=7.0.0",
     "pyyaml>=6.0.0,<7.0.0",
 ]
 
@@ -175,7 +175,7 @@ exclude_lines = [
 
 # mypy configuration
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false

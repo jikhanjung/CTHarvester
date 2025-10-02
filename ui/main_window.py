@@ -12,7 +12,7 @@ from copy import deepcopy
 
 import numpy as np
 from PIL import Image
-from PyQt5.QtCore import QMargins, QObject, QPoint, QRect, Qt, QThreadPool, QTimer, QTranslator
+from PyQt5.QtCore import QMargins, QObject, QPoint, QRect, Qt, QThread, QThreadPool, QTimer, QTranslator
 from PyQt5.QtGui import QCursor, QIcon, QPixmap
 from PyQt5.QtWidgets import (
     QAbstractItemView,
@@ -210,6 +210,11 @@ class CTHarvesterMainWindow(QMainWindow):
         The method scales bounding box dimensions based on current pyramid level
         to ensure proper visualization across different resolution levels.
         """
+        # Check if minimum_volume is initialized
+        if self.minimum_volume is None:
+            logger.warning("minimum_volume not initialized in update_3D_view, skipping update")
+            return
+
         # print("update 3d view")
         volume, roi_box = self.get_cropped_volume()
 
@@ -604,10 +609,12 @@ class CTHarvesterMainWindow(QMainWindow):
 
         def progress_callback(percentage):
             """Progress callback from Rust module"""
-            # Check for cancellation first
+            # Process events FIRST to handle any pending Cancel button clicks
+            QApplication.processEvents()
+
+            # Check for cancellation after processing events
             if self.progress_dialog.is_cancelled:
                 self.rust_cancelled = True
-                logger.info(f"Cancellation requested at {percentage:.1f}%")
                 return False  # Signal Rust to stop
 
             # Update progress bar
@@ -629,7 +636,7 @@ class CTHarvesterMainWindow(QMainWindow):
             else:
                 self.progress_dialog.lbl_detail.setText(f"{percentage:.1f}%")
 
-            # Process events to keep UI responsive
+            # Process events again to keep UI responsive
             QApplication.processEvents()
 
             self.last_progress = percentage
@@ -654,9 +661,20 @@ class CTHarvesterMainWindow(QMainWindow):
             if self.rust_cancelled:
                 success = False
                 logger.info("Rust thumbnail generation cancelled by user")
+
                 # Give Rust threads a moment to clean up
                 QApplication.processEvents()
                 QThread.msleep(100)  # Small delay for thread cleanup
+
+                # Close progress dialog
+                if hasattr(self, 'progress_dialog') and self.progress_dialog:
+                    self.progress_dialog.close()
+                    self.progress_dialog = None
+
+                QApplication.restoreOverrideCursor()
+
+                # Return early - don't try to load thumbnails
+                return
             else:
                 success = True
 

@@ -7,7 +7,6 @@ use pyo3::{wrap_pyfunction, Bound};
 use rayon::prelude::*;
 use std::cmp::min;
 use std::collections::HashSet;
-use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -24,6 +23,8 @@ enum ThumbError {
     Empty,
     #[error("Dimension mismatch: expected {0}x{1}, got {2}x{3}")]
     Dim(usize, usize, usize, usize),
+    #[error("Cancelled by user")]
+    Cancelled,
 }
 
 fn to_pyerr(e: ThumbError) -> PyErr {
@@ -312,7 +313,7 @@ fn process_group_all_levels(
                 }
             });
             if !should_continue {
-                return Ok(());  // Early exit on cancellation
+                return Err(ThumbError::Cancelled);  // Signal cancellation
             }
         }
 
@@ -396,7 +397,7 @@ fn process_group_all_levels(
                     }
                 });
                 if !should_continue {
-                    return Ok(());  // Early exit on cancellation
+                    return Err(ThumbError::Cancelled);  // Signal cancellation
                 }
             }
 
@@ -479,9 +480,10 @@ fn process_group_all_levels(
 
             let pct = (new_done / total_units * 100.0).min(100.0);
 
-            // Report progress if significant change
+            // Report progress and check for cancellation
+            // Check more frequently for cancellation (every 0.1% or every pair)
             if let Some(cb) = py_callback {
-                if (pct - last_reported_pct).abs() > 1.0 ||
+                if (pct - last_reported_pct).abs() > 0.1 ||
                    (pair_idx == pairs_in_level - 1 && level == levels_needed) {
                     let should_continue = Python::with_gil(|py| {
                         match cb.call1(py, (pct,)) {
@@ -499,8 +501,8 @@ fn process_group_all_levels(
                     });
 
                     if !should_continue {
-                        // User cancelled, exit early
-                        return Ok(());
+                        // User cancelled, signal cancellation
+                        return Err(ThumbError::Cancelled);
                     }
 
                     last_reported_pct = pct;
@@ -647,13 +649,14 @@ fn build_thumbnails_optimized(
 
     // Process groups sequentially to avoid Python GIL issues
     // But still use parallelism within each group's processing
+    let mut cancelled = false;
     for group_idx in 0..n_groups {
         let group_start = group_idx * group_size;
         let group_end = min(group_start + group_size, n_files);
         let group_files = &files[group_start..group_end];
 
 
-        process_group_all_levels(
+        match process_group_all_levels(
             group_files,
             group_start,
             w0,
@@ -665,7 +668,20 @@ fn build_thumbnails_optimized(
             total_units,
             done_units.clone(),
             py_progress_cb.as_ref(),
-        ).map_err(to_pyerr)?;
+        ) {
+            Ok(()) => {},
+            Err(ThumbError::Cancelled) => {
+                // User cancelled, break out of loop immediately
+                cancelled = true;
+                break;
+            },
+            Err(e) => return Err(to_pyerr(e)),
+        }
+    }
+
+    // Don't send final 100% callback if cancelled
+    if cancelled {
+        return Ok(());
     }
 
     // Final callback

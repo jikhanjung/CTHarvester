@@ -138,9 +138,11 @@ class ThumbnailManager(QObject):
             try:
                 from utils.settings_manager import SettingsManager
                 settings = SettingsManager()
-                self.sample_size = settings.get('thumbnails.sample_size', 20)
-            except Exception:
-                self.sample_size = 20  # Default value
+                from config.constants import DEFAULT_SAMPLE_SIZE
+                self.sample_size = settings.get('thumbnails.sample_size', DEFAULT_SAMPLE_SIZE)
+            except (ImportError, KeyError, AttributeError):
+                from config.constants import DEFAULT_SAMPLE_SIZE
+                self.sample_size = DEFAULT_SAMPLE_SIZE  # Default value
 
         # Inherit performance data from parent if exists (from previous levels)
         if hasattr(parent, "measured_images_per_second"):
@@ -209,7 +211,20 @@ class ThumbnailManager(QObject):
         return 1
 
     def update_eta_and_progress(self):
-        """Delegate to centralized progress manager"""
+        """Update progress bar and ETA display.
+
+        Delegates progress tracking to the centralized ProgressManager, updating
+        both the progress value and estimated time to completion. This method
+        synchronizes the thumbnail manager's state (sampling status, processing speed)
+        with the progress manager before requesting an update.
+
+        The progress manager will emit signals that update the UI progress bar
+        and ETA text through connected Qt slots.
+
+        Note:
+            This method should be called periodically during thumbnail generation
+            to keep the UI responsive and provide accurate progress feedback.
+        """
         # Update progress manager state
         if self.is_sampling != self.progress_manager.is_sampling:
             self.progress_manager.set_sampling(self.is_sampling)
@@ -240,7 +255,35 @@ class ThumbnailManager(QObject):
         max_thumbnail_size,
         num_tasks,
     ):
-        """Process thumbnails sequentially without threadpool - no threading issues"""
+        """Process thumbnails sequentially in a single thread (Python fallback mode).
+
+        This method provides a stable, predictable alternative to multithreaded processing
+        when the high-performance Rust module is unavailable. It processes each thumbnail
+        pair one at a time, avoiding GIL contention and threading issues at the cost of
+        reduced throughput.
+
+        Args:
+            level: Pyramid level (0=from original images, 1+=from previous thumbnails)
+            from_dir: Source directory containing input images
+            to_dir: Output directory for generated thumbnails
+            seq_begin: Starting sequence number (inclusive)
+            seq_end: Ending sequence number (inclusive)
+            settings_hash: Dictionary with image metadata ('prefix', 'file_type', 'index_length')
+            size: Current thumbnail size in pixels
+            max_thumbnail_size: Maximum size to load into memory
+            num_tasks: Number of thumbnail pairs to process
+
+        Note:
+            This is the Python fallback implementation. The primary implementation
+            uses the Rust module with true multithreading for 3-5x better performance.
+            Sequential processing takes 9-10 minutes vs 2-3 minutes with Rust.
+
+        Side Effects:
+            - Updates self.completed_tasks, self.generated_count, self.loaded_count
+            - Updates progress dialog through self.progress_manager
+            - Creates thumbnail files in to_dir
+            - Stores image arrays in self.results if size < max_thumbnail_size
+        """
         import logging
         import os
         import time
@@ -302,7 +345,7 @@ class ThumbnailManager(QObject):
                     try:
                         with Image.open(filename3) as img:
                             img_array = np.array(img)
-                    except Exception as e:
+                    except (OSError, IOError) as e:
                         logger.error(f"Error loading thumbnail {filename3}: {e}")
             else:
                 # Generate new thumbnail
@@ -332,7 +375,7 @@ class ThumbnailManager(QObject):
                                 if img1.mode == "P":
                                     img1 = img1.convert("L")
                                 arr1 = np.array(img1)
-                        except Exception as e:
+                        except (OSError, IOError) as e:
                             logger.error(f"Error loading {filename1}: {e}")
 
                     if file2_path and os.path.exists(file2_path):
@@ -345,7 +388,7 @@ class ThumbnailManager(QObject):
                                 if img2.mode == "P":
                                     img2 = img2.convert("L")
                                 arr2 = np.array(img2)
-                        except Exception as e:
+                        except (OSError, IOError) as e:
                             logger.error(f"Error loading {filename2}: {e}")
 
                     # Average and resize
@@ -372,9 +415,9 @@ class ThumbnailManager(QObject):
 
                             if size < max_thumbnail_size:
                                 img_array = downsampled
-                        except Exception as e:
+                        except (OSError, IOError, ValueError) as e:
                             logger.error(f"Error creating thumbnail: {e}")
-                except Exception as e:
+                except (OSError, IOError, ValueError) as e:
                     logger.error(f"Unexpected error in thumbnail processing: {e}")
 
             # Update progress
@@ -400,7 +443,8 @@ class ThumbnailManager(QObject):
                 logger.info(f"Task {idx}: {task_time:.1f}ms")
 
             # Update ETA periodically
-            if self.completed_tasks % 10 == 0 or self.completed_tasks <= 5:
+            from config.constants import PROGRESS_LOG_INTERVAL, PROGRESS_LOG_INITIAL
+            if self.completed_tasks % PROGRESS_LOG_INTERVAL == 0 or self.completed_tasks <= PROGRESS_LOG_INITIAL:
                 self.update_eta_and_progress()
                 QApplication.processEvents()
 
@@ -433,7 +477,55 @@ class ThumbnailManager(QObject):
         max_thumbnail_size,
         global_step_offset,
     ):
-        """Process a complete thumbnail level using multiple worker threads"""
+        """Process a complete thumbnail level using multiple worker threads.
+
+        Orchestrates multithreaded thumbnail generation for a single pyramid level.
+        Creates worker threads that process image pairs in parallel, averaging and
+        downsampling them to create the next level of the thumbnail pyramid.
+
+        Args:
+            level: Pyramid level index (0=from original images, 1+=from previous thumbnails)
+            from_dir: Source directory containing input images or thumbnails
+            to_dir: Output directory for generated thumbnails
+            seq_begin: Starting sequence number (inclusive)
+            seq_end: Ending sequence number (inclusive)
+            settings_hash: Dictionary with image metadata including 'prefix', 'file_type',
+                'index_length' for filename generation
+            size: Target thumbnail size in pixels (width and height)
+            max_thumbnail_size: Maximum size to keep in memory. Larger thumbnails are
+                saved to disk but not loaded into the returned array
+            global_step_offset: Starting value for global progress counter, accounting
+                for work completed in previous levels
+
+        Returns:
+            Tuple[List[np.ndarray], bool]: (thumbnail_arrays, was_cancelled)
+                - thumbnail_arrays: List of numpy arrays for thumbnails smaller than
+                  max_thumbnail_size, in sequential order
+                - was_cancelled: True if user cancelled the operation, False otherwise
+
+        Side Effects:
+            - Creates thumbnail files in to_dir (sequential naming: 000000.tif, 000001.tif, ...)
+            - Updates progress dialog with ETA and completion percentage
+            - Performs multi-stage performance sampling on level 0 to estimate total time
+            - Stores performance metrics in parent object for subsequent levels
+            - Updates self.generated_count and self.loaded_count statistics
+
+        Example:
+            >>> manager = ThumbnailManager(parent, dialog, threadpool)
+            >>> thumbnails, cancelled = manager.process_level(
+            ...     level=0,
+            ...     from_dir="/data/ct_scans/original",
+            ...     to_dir="/data/ct_scans/.thumbnails/level_0",
+            ...     seq_begin=0,
+            ...     seq_end=1513,
+            ...     settings_hash={'prefix': 'slice_', 'file_type': 'tif', 'index_length': 4},
+            ...     size=512,
+            ...     max_thumbnail_size=512,
+            ...     global_step_offset=0
+            ... )
+            >>> if not cancelled:
+            ...     print(f"Generated {len(thumbnails)} thumbnail arrays")
+        """
         import logging
         import time
 
@@ -525,7 +617,8 @@ class ThumbnailManager(QObject):
             wait_start = time.time()
             while self.threadpool.activeThreadCount() > 0 and time.time() - wait_start < 30:
                 QApplication.processEvents()
-                QThread.msleep(100)
+                from config.constants import PROGRESS_UPDATE_INTERVAL_MS
+                QThread.msleep(PROGRESS_UPDATE_INTERVAL_MS)
             if self.threadpool.activeThreadCount() > 0:
                 logger.warning(
                     f"Still {self.threadpool.activeThreadCount()} active threads after 30s wait"
@@ -713,7 +806,24 @@ class ThumbnailManager(QObject):
 
     @pyqtSlot(int)
     def on_worker_progress(self, idx):
-        """Handle progress updates from worker threads"""
+        """Handle progress updates from worker threads.
+
+        Qt slot that receives progress signals from ThumbnailWorker threads when they
+        start processing a task. Updates the global progress counter and UI display.
+
+        Args:
+            idx: Task index of the worker reporting progress
+
+        Thread Safety:
+            This method is thread-safe. It uses QMutexLocker to protect shared state
+            (global_step_counter) from concurrent access by multiple worker threads.
+
+        Side Effects:
+            - Increments global_step_counter by level_weight
+            - Updates progress dialog text to "Generating thumbnails"
+            - Triggers centralized ETA and progress update
+            - Processes Qt events periodically to keep UI responsive
+        """
         import logging
 
         logger = logging.getLogger("CTHarvester")
@@ -741,7 +851,41 @@ class ThumbnailManager(QObject):
 
     @pyqtSlot(object)
     def on_worker_result(self, result):
-        """Handle results from worker threads"""
+        """Handle results from worker threads.
+
+        Qt slot that receives result signals from ThumbnailWorker threads when they
+        complete processing a thumbnail. Collects results, updates completion counts,
+        and performs multi-stage performance sampling on the first level.
+
+        Args:
+            result: Tuple of (idx, img_array, was_generated) or legacy (idx, img_array)
+                - idx: Task index
+                - img_array: Numpy array of thumbnail image, or None if not loaded
+                - was_generated: Boolean indicating if thumbnail was newly created (True)
+                  or loaded from existing file (False)
+
+        Thread Safety:
+            This method is thread-safe. It uses QMutexLocker to protect shared state
+            (results dict, completed_tasks, generated_count, loaded_count) from
+            concurrent access by multiple worker threads.
+
+        Performance Sampling:
+            For level 0, implements a three-stage sampling strategy:
+            - Stage 1: After sample_size images, provides initial time estimate
+            - Stage 2: After 2×sample_size images, provides refined estimate
+            - Stage 3: After 3×sample_size images, finalizes estimate with trend analysis
+
+            This progressive refinement handles variable I/O performance (SSD vs HDD)
+            and provides increasingly accurate ETAs as processing continues.
+
+        Side Effects:
+            - Stores result in self.results dictionary
+            - Increments self.completed_tasks counter
+            - Updates self.generated_count or self.loaded_count
+            - For level 0 sampling: calculates and logs performance estimates,
+              updates parent's performance metrics for subsequent levels
+            - Calls update_eta_and_progress() to refresh UI
+        """
         import logging
         import time
 
@@ -961,7 +1105,22 @@ class ThumbnailManager(QObject):
 
     @pyqtSlot(tuple)
     def on_worker_error(self, error_tuple):
-        """Handle errors from worker threads"""
+        """Handle errors from worker threads.
+
+        Qt slot that receives error signals from ThumbnailWorker threads when they
+        encounter exceptions during thumbnail processing. Logs the error details
+        for debugging.
+
+        Args:
+            error_tuple: Tuple of (exctype, value, traceback_str)
+                - exctype: Exception class
+                - value: Exception instance
+                - traceback_str: Formatted traceback string
+
+        Note:
+            Errors are logged but don't stop the overall processing. Other workers
+            continue to run, allowing partial completion even when some images fail.
+        """
         import logging
 
         logger = logging.getLogger("CTHarvester")
@@ -971,7 +1130,17 @@ class ThumbnailManager(QObject):
 
     @pyqtSlot()
     def on_worker_finished(self):
-        """Handle finished signal from worker threads"""
+        """Handle finished signal from worker threads.
+
+        Qt slot that receives finished signals from ThumbnailWorker threads when they
+        complete execution (whether successful or not). Currently a placeholder to
+        properly handle the Qt signal connection.
+
+        Note:
+            The actual result handling is done in on_worker_result(). This slot exists
+            to complete the Qt signal/slot pattern and could be extended for cleanup
+            operations if needed in the future.
+        """
         # This is just a placeholder to properly handle the finished signal
         pass
 

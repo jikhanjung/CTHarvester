@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/jikhanjung/CTHarvester/branch/main/graph/badge.svg)](https://codecov.io/gh/jikhanjung/CTHarvester)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Tests: 195 passing](https://img.shields.io/badge/tests-195%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
+[![Tests: 485 passing](https://img.shields.io/badge/tests-485%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
 
 *Read this in other languages: [English](README.md), [한국어](README.ko.md)*
 
@@ -193,7 +193,7 @@ pytest tests/ -v -m "not slow"        # Skip slow tests
 #### Coverage
 - **Overall**: ~95% for core utility modules
 - **Modules at 100%**: utils/common, utils/worker, utils/image_utils
-- **Total**: 195 tests, all passing ✅
+- **Total**: 485 tests passing, 1 skipped ✅
 
 ### CI/CD
 The project uses GitHub Actions for continuous integration and deployment:
@@ -242,7 +242,7 @@ CTHarvester/
 │       ├── build.yml          # Development builds
 │       └── release.yml        # Release builds
 │
-├── tests/                 # Comprehensive test suite (195 tests)
+├── tests/                 # Comprehensive test suite (485 tests)
 │   ├── test_common.py         # Utility function tests
 │   ├── test_worker.py         # Worker thread tests
 │   ├── test_image_utils.py    # Image processing tests

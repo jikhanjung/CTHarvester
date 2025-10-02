@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/jikhanjung/CTHarvester/branch/main/graph/badge.svg)](https://codecov.io/gh/jikhanjung/CTHarvester)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![Tests: 195 passing](https://img.shields.io/badge/tests-195%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
+[![Tests: 485 passing](https://img.shields.io/badge/tests-485%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
 
 *다른 언어로 읽기: [English](README.md), [한국어](README.ko.md)*
 
@@ -155,7 +155,7 @@ pytest tests/ -v -m "not slow"        # 느린 테스트 제외
 #### 커버리지
 - **전체**: 핵심 유틸리티 모듈 ~95%
 - **100% 모듈**: utils/common, utils/worker, utils/image_utils
-- **총계**: 195개 테스트, 모두 통과 ✅
+- **총계**: 485개 테스트 통과, 1개 스킵 ✅
 
 ### CI/CD
 프로젝트는 지속적 통합 및 배포를 위해 GitHub Actions를 사용합니다:
@@ -204,7 +204,7 @@ CTHarvester/
 │       ├── build.yml          # 개발 빌드
 │       └── release.yml        # 릴리스 빌드
 │
-├── tests/                 # 포괄적인 테스트 스위트 (195개 테스트)
+├── tests/                 # 포괄적인 테스트 스위트 (485개 테스트)
 │   ├── test_common.py         # 유틸리티 함수 테스트
 │   ├── test_worker.py         # 워커 스레드 테스트
 │   ├── test_image_utils.py    # 이미지 처리 테스트

@@ -244,7 +244,7 @@ class FileHandler:
             try:
                 with Image.open(first_file_path) as img:
                     width, height = img.size
-            except Exception as e:
+            except (OSError, IOError) as e:
                 logger.error(f"Error opening image {first_file_path}: {e}")
                 return None
 
@@ -412,7 +412,7 @@ class FileHandler:
             logger.info("No log file found in directory")
             return None
 
-        except Exception as e:
+        except (OSError, PermissionError) as e:
             logger.error(f"Error searching for log file: {e}")
             return None
 
@@ -437,6 +437,6 @@ class FileHandler:
 
             return len(files)
 
-        except Exception as e:
+        except (OSError, PermissionError) as e:
             logger.error(f"Error counting files: {e}")
             return 0
