@@ -125,7 +125,7 @@ jobs:
           script: |
             const fs = require('fs');
 
-            let comment = '## =Ê Performance Benchmark Results\n\n';
+            let comment = '## Performance Benchmark Results\n\n';
 
             try {
               const metrics = JSON.parse(fs.readFileSync('performance_data/current_metrics.json', 'utf8'));
@@ -145,7 +145,7 @@ jobs:
                 comment += '### Comparison with Main Branch\n```\n' + comparison + '\n```\n';
               }
             } catch (e) {
-              comment += '  Could not parse performance results\n';
+              comment += 'Could not parse performance results\n';
             }
 
             comment += '\n---\n*Performance tracking powered by Phase 3 profiling tools*';
