@@ -3,12 +3,22 @@ Image Processing Utility Functions
 """
 
 import logging
-from typing import Optional, Tuple
+import os
+from typing import Dict, Optional, Tuple, TypedDict
 
 import numpy as np
 from PIL import Image
 
 logger = logging.getLogger(__name__)
+
+
+class ImageMetadata(TypedDict):
+    """Metadata extracted from image file"""
+    width: int
+    height: int
+    bit_depth: int  # 8 or 16
+    mode: str  # PIL mode string
+    file_size: int
 
 
 def detect_bit_depth(image_path: str) -> int:
@@ -189,3 +199,103 @@ def get_image_dimensions(image_path: str) -> Tuple[int, int]:
     except Exception as e:
         logger.error(f"Failed to get image dimensions: {e}")
         raise
+
+
+def load_image_with_metadata(image_path: str) -> Tuple[np.ndarray, ImageMetadata]:
+    """Load image and extract metadata in one operation
+
+    This consolidated function combines image loading with metadata extraction
+    to avoid redundant file operations when both are needed.
+
+    Args:
+        image_path: Path to image file
+
+    Returns:
+        Tuple of (image_array, metadata):
+            - image_array: numpy array with appropriate dtype (uint8 or uint16)
+            - metadata: Dictionary with width, height, bit_depth, mode, file_size
+
+    Raises:
+        FileNotFoundError: If image doesn't exist
+        ValueError: If image format is unsupported
+
+    Example:
+        >>> arr, meta = load_image_with_metadata('slice_0001.tif')
+        >>> print(f"{meta['width']}x{meta['height']}, {meta['bit_depth']}-bit")
+        2048x2048, 16-bit
+    """
+    if not os.path.exists(image_path):
+        raise FileNotFoundError(f"Image not found: {image_path}")
+
+    try:
+        with Image.open(image_path) as img:
+            width, height = img.size
+            mode = img.mode
+            bit_depth = 16 if mode in ("I;16", "I;16L", "I;16B") else 8
+
+            # Convert to numpy array with appropriate dtype
+            if bit_depth == 16:
+                img_array = np.array(img, dtype=np.uint16)
+            else:
+                img_array = np.array(img, dtype=np.uint8)
+
+            # Get file size
+            file_size = os.path.getsize(image_path)
+
+            metadata: ImageMetadata = {
+                'width': width,
+                'height': height,
+                'bit_depth': bit_depth,
+                'mode': mode,
+                'file_size': file_size
+            }
+
+            return img_array, metadata
+
+    except Exception as e:
+        logger.error(f"Failed to load image with metadata from {image_path}: {e}")
+        raise ValueError(f"Cannot load image: {e}") from e
+
+
+def load_image_normalized(
+    image_path: str,
+    target_bit_depth: int = 8
+) -> np.ndarray:
+    """Load image and normalize to target bit depth
+
+    Handles conversion between 8-bit and 16-bit automatically, useful when
+    you need consistent bit depth across a mixed dataset.
+
+    Args:
+        image_path: Path to image file
+        target_bit_depth: Target bit depth (8 or 16)
+
+    Returns:
+        numpy array with target bit depth
+
+    Raises:
+        ValueError: If target_bit_depth is not 8 or 16
+
+    Example:
+        >>> # Force 8-bit output even if source is 16-bit
+        >>> arr = load_image_normalized('16bit_image.tif', target_bit_depth=8)
+        >>> arr.dtype
+        dtype('uint8')
+    """
+    if target_bit_depth not in (8, 16):
+        raise ValueError(f"target_bit_depth must be 8 or 16, got {target_bit_depth}")
+
+    img_array, metadata = load_image_with_metadata(image_path)
+
+    if metadata['bit_depth'] == target_bit_depth:
+        return img_array
+    elif metadata['bit_depth'] == 16 and target_bit_depth == 8:
+        # Convert 16-bit to 8-bit by bit-shifting
+        return (img_array >> 8).astype(np.uint8)
+    elif metadata['bit_depth'] == 8 and target_bit_depth == 16:
+        # Convert 8-bit to 16-bit by bit-shifting
+        return (img_array.astype(np.uint16) << 8)
+    else:
+        raise ValueError(
+            f"Unsupported bit depth conversion: {metadata['bit_depth']} -> {target_bit_depth}"
+        )
