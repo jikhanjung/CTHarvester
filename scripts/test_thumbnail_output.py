@@ -22,9 +22,9 @@ def check_thumbnail_dimensions(base_dir):
     # Check original images first
     orig_files = list(Path(base_dir).glob("*.tif")) + list(Path(base_dir).glob("*.bmp"))
     if orig_files:
-        first_orig = Image.open(orig_files[0])
-        orig_w, orig_h = first_orig.size
-        print(f"Original image size: {orig_w} x {orig_h}")
+        with Image.open(orig_files[0]) as first_orig:
+            orig_w, orig_h = first_orig.size
+            print(f"Original image size: {orig_w} x {orig_h}")
     else:
         print("No original images found")
         orig_w = orig_h = 0

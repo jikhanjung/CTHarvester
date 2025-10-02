@@ -49,7 +49,7 @@ def test_bmp_methods(file_path):
         total_time = (time.time() - start) * 1000
         print(f"  cv2.imread: {total_time:.1f}ms")
         print(f"  Shape: {arr.shape}, dtype: {arr.dtype}\n")
-    except:
+    except Exception:
         print("  OpenCV not available\n")
 
     # Method 4: PIL load() to force pixel access

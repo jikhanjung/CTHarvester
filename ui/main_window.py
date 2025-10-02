@@ -249,7 +249,7 @@ class CTHarvesterMainWindow(QMainWindow):
             _, curr, _ = self.timeline.values()
             denom = float(self.timeline.maximum()) if self.timeline.maximum() > 0 else 1.0
             curr_slice_val = curr / denom * scaled_depth
-        except Exception:
+        except (AttributeError, ValueError, ZeroDivisionError):
             curr_slice_val = 0
 
         self.mcube_widget.update_boxes(bounding_box, roi_box, curr_slice_val)
@@ -299,7 +299,7 @@ class CTHarvesterMainWindow(QMainWindow):
             _, curr, _ = self.timeline.values()
             denom = float(self.timeline.maximum()) if self.timeline.maximum() > 0 else 1.0
             curr_slice_val = curr / denom * scaled_depth
-        except Exception:
+        except (AttributeError, ValueError, ZeroDivisionError):
             curr_slice_val = 0
 
         self.update_3D_view(False)
@@ -807,7 +807,7 @@ class CTHarvesterMainWindow(QMainWindow):
             _, curr, _ = self.timeline.values()
             denom = float(self.timeline.maximum()) if self.timeline.maximum() > 0 else 1.0
             curr_slice_val = curr / denom * scaled_depth
-        except Exception:
+        except (AttributeError, ValueError, ZeroDivisionError):
             curr_slice_val = 0
 
         logger.info(f"Updating mcube_widget with scaled_bounding_box: {scaled_bounding_box}")

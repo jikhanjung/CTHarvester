@@ -456,7 +456,7 @@ class ObjectViewer2D(QLabel):
         # overlay: filename, current index, bounds on separate lines
         try:
             file_name = os.path.basename(getattr(self, "fullpath", "") or "")
-        except Exception:
+        except (AttributeError, TypeError):
             file_name = ""
         curr_txt = str(self.curr_idx) if isinstance(self.curr_idx, int) else "-"
         low_txt = (
@@ -493,7 +493,7 @@ class ObjectViewer2D(QLabel):
                         x = x_right
                     else:
                         x = x_left
-                except Exception:
+                except (AttributeError, TypeError, RuntimeError):
                     x = x_left
             y = 6
             bg_rect = QRect(x, y, tw + pad_x * 2, total_h + pad_y * 2)
