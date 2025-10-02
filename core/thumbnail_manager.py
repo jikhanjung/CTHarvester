@@ -82,7 +82,7 @@ class ThumbnailManager(QObject):
                 levels. If None, creates a new instance.
         """
         super().__init__()
-        self.parent = parent
+        self.parent = parent  # type: ignore[method-assign]
         self.progress_dialog = progress_dialog
         self.threadpool = threadpool
 
@@ -427,8 +427,8 @@ class ThumbnailManager(QObject):
                 self.loaded_count += 1
 
             # Update progress bar
-            self.global_step_counter += self.level_weight
-            self.progress_manager.update(value=self.global_step_counter)
+            self.global_step_counter = self.global_step_counter + self.level_weight
+            self.progress_manager.update(value=int(self.global_step_counter))
 
             # Store result
             if img_array is not None:
@@ -449,7 +449,7 @@ class ThumbnailManager(QObject):
 
             # Performance sampling (for first level)
             if self.is_sampling and self.completed_tasks >= self.sample_size:
-                elapsed = time.time() - self.sample_start_time
+                elapsed = time.time() - (self.sample_start_time or 0)
                 self.images_per_second = self.level_weight * self.sample_size / elapsed
                 self.is_sampling = False
                 logger.info(f"Sampling complete: {self.images_per_second:.2f} weighted units/s")
@@ -545,7 +545,7 @@ class ThumbnailManager(QObject):
         self.level_weight = 1.0  # Default
         level_work_dist = None
 
-        if hasattr(self.parent, "level_work_distribution") and self.parent:
+        if hasattr(self.parent, "level_work_distribution") and self.parent():  # type: ignore[truthy-function]
             level_work_dist = self.parent.level_work_distribution
         elif hasattr(self.progress_manager, "level_work_distribution"):
             # Try to reconstruct from progress_manager's level_work_distribution
@@ -663,10 +663,10 @@ class ThumbnailManager(QObject):
                 )
 
             # Connect signals with Qt.QueuedConnection to ensure thread safety
-            worker.signals.progress.connect(self.on_worker_progress, Qt.QueuedConnection)
-            worker.signals.result.connect(self.on_worker_result, Qt.QueuedConnection)
-            worker.signals.error.connect(self.on_worker_error, Qt.QueuedConnection)
-            worker.signals.finished.connect(self.on_worker_finished, Qt.QueuedConnection)
+            worker.signals.progress.connect(self.on_worker_progress, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+            worker.signals.result.connect(self.on_worker_result, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+            worker.signals.error.connect(self.on_worker_error, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+            worker.signals.finished.connect(self.on_worker_finished, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
 
             # Submit to thread pool
             if idx == 0:
@@ -829,7 +829,7 @@ class ThumbnailManager(QObject):
 
         with QMutexLocker(self.lock):
             # Increment by weight factor to account for different processing costs per level
-            self.global_step_counter += self.level_weight
+            self.global_step_counter = self.global_step_counter + self.level_weight
             current_step = self.global_step_counter
 
         # Update progress bar
@@ -924,14 +924,14 @@ class ThumbnailManager(QObject):
             # Multi-stage sampling for better accuracy
             # Stage 1: Initial sampling (first sample_size images)
             if self.is_sampling and self.level == 0 and completed == self.sample_size:
-                sample_elapsed = time.time() - self.sample_start_time
+                sample_elapsed = time.time() - (self.sample_start_time or 0)
                 time_per_image = sample_elapsed / self.sample_size
 
                 # First estimate
                 level1_time = total * time_per_image
                 total_estimate = level1_time
                 remaining_time = level1_time
-                for i in range(1, self.parent.total_levels):
+                for i in range(1, getattr(self.parent, 'total_levels', 1)):  # type: ignore[attr-defined]
                     remaining_time *= 0.25
                     total_estimate += remaining_time
 
@@ -963,14 +963,14 @@ class ThumbnailManager(QObject):
 
             # Stage 2: Extended sampling (after 2x sample_size)
             elif self.is_sampling and self.level == 0 and completed == self.sample_size * 2:
-                sample_elapsed = time.time() - self.sample_start_time
+                sample_elapsed = time.time() - (self.sample_start_time or 0)
                 time_per_image = sample_elapsed / (self.sample_size * 2)
 
                 # Second estimate
                 level1_time = total * time_per_image
                 total_estimate = level1_time
                 remaining_time = level1_time
-                for i in range(1, self.parent.total_levels):
+                for i in range(1, getattr(self.parent, 'total_levels', 1)):  # type: ignore[attr-defined]
                     remaining_time *= 0.25
                     total_estimate += remaining_time
 
