@@ -13,20 +13,18 @@ Arguments:
 Example:
     python build_cross_platform.py --platform windows --clean
 """
-import os
-import sys
-import platform
-import subprocess
-import shutil
+
 import argparse
-from pathlib import Path
 import logging
+import os
+import platform
+import shutil
+import subprocess
+import sys
+from pathlib import Path
 
 # Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -40,26 +38,26 @@ def detect_platform():
         RuntimeError: If platform is not supported
     """
     system = platform.system().lower()
-    if system == 'darwin':
-        return 'macos'
-    elif system == 'windows':
-        return 'windows'
-    elif system == 'linux':
-        return 'linux'
+    if system == "darwin":
+        return "macos"
+    elif system == "windows":
+        return "windows"
+    elif system == "linux":
+        return "linux"
     else:
         raise RuntimeError(f"Unsupported platform: {system}")
 
 
 def clean_build_dirs():
     """Clean build and dist directories."""
-    dirs_to_clean = ['build', 'dist']
+    dirs_to_clean = ["build", "dist"]
     for dir_name in dirs_to_clean:
         if os.path.exists(dir_name):
             logger.info(f"Cleaning {dir_name}/")
             shutil.rmtree(dir_name)
 
     # Remove spec file
-    spec_file = 'CTHarvester.spec'
+    spec_file = "CTHarvester.spec"
     if os.path.exists(spec_file):
         logger.info(f"Removing {spec_file}")
         os.remove(spec_file)
@@ -74,12 +72,12 @@ def get_icon_path(platform_name):
     Returns:
         str: Path to icon file
     """
-    if platform_name == 'windows':
-        return 'resources/icons/CTHarvester_64.png'  # PyInstaller will convert to .ico
-    elif platform_name == 'macos':
-        return 'resources/icons/CTHarvester_64.png'  # PyInstaller will convert to .icns
+    if platform_name == "windows":
+        return "resources/icons/CTHarvester_64.png"  # PyInstaller will convert to .ico
+    elif platform_name == "macos":
+        return "resources/icons/CTHarvester_64.png"  # PyInstaller will convert to .icns
     else:  # linux
-        return 'resources/icons/CTHarvester_64.png'
+        return "resources/icons/CTHarvester_64.png"
 
 
 def build_executable(platform_name):
@@ -95,49 +93,51 @@ def build_executable(platform_name):
 
     # Base PyInstaller command
     cmd = [
-        'pyinstaller',
-        '--name=CTHarvester',
-        '--windowed' if platform_name in ['windows', 'macos'] else '--onefile',
-        '--onefile',
-        f'--icon={get_icon_path(platform_name)}',
+        "pyinstaller",
+        "--name=CTHarvester",
+        "--windowed" if platform_name in ["windows", "macos"] else "--onefile",
+        "--onefile",
+        f"--icon={get_icon_path(platform_name)}",
     ]
 
     # Add data files
     data_files = [
-        ('resources/icons/*.png', 'resources/icons'),
-        ('resources/translations/*.qm', 'resources/translations'),
-        ('config/settings.yaml', 'config'),
+        ("resources/icons/*.png", "resources/icons"),
+        ("resources/translations/*.qm", "resources/translations"),
+        ("config/settings.yaml", "config"),
     ]
 
     for src, dst in data_files:
-        if platform_name == 'windows':
-            cmd.append(f'--add-data={src};{dst}')
+        if platform_name == "windows":
+            cmd.append(f"--add-data={src};{dst}")
         else:
-            cmd.append(f'--add-data={src}:{dst}')
+            cmd.append(f"--add-data={src}:{dst}")
 
     # Hidden imports
     hidden_imports = [
-        'numpy',
-        'PIL',
-        'PyQt5',
-        'yaml',
-        'mcubes',
-        'OpenGL',
-        'configparser',
+        "numpy",
+        "PIL",
+        "PyQt5",
+        "yaml",
+        "mcubes",
+        "OpenGL",
+        "configparser",
     ]
 
     for module in hidden_imports:
-        cmd.append(f'--hidden-import={module}')
+        cmd.append(f"--hidden-import={module}")
 
     # Platform-specific options
-    if platform_name == 'macos':
-        cmd.extend([
-            '--osx-bundle-identifier=com.ctharvester.app',
-            '--codesign-identity=-',  # Ad-hoc signing
-        ])
+    if platform_name == "macos":
+        cmd.extend(
+            [
+                "--osx-bundle-identifier=com.ctharvester.app",
+                "--codesign-identity=-",  # Ad-hoc signing
+            ]
+        )
 
     # Entry point
-    cmd.append('CTHarvester.py')
+    cmd.append("CTHarvester.py")
 
     # Run PyInstaller
     logger.info(f"Running: {' '.join(cmd)}")
@@ -161,24 +161,24 @@ def create_distribution_archive(platform_name):
     Returns:
         str: Path to created archive
     """
-    import zipfile
     import tarfile
+    import zipfile
 
-    dist_dir = Path('dist')
+    dist_dir = Path("dist")
     if not dist_dir.exists():
         logger.error("dist/ directory not found")
         return None
 
     # Find executable
-    if platform_name == 'windows':
-        exe_name = 'CTHarvester.exe'
-        archive_name = f'CTHarvester-{platform_name}.zip'
-    elif platform_name == 'macos':
-        exe_name = 'CTHarvester.app'
-        archive_name = f'CTHarvester-{platform_name}.zip'
+    if platform_name == "windows":
+        exe_name = "CTHarvester.exe"
+        archive_name = f"CTHarvester-{platform_name}.zip"
+    elif platform_name == "macos":
+        exe_name = "CTHarvester.app"
+        archive_name = f"CTHarvester-{platform_name}.zip"
     else:  # linux
-        exe_name = 'CTHarvester'
-        archive_name = f'CTHarvester-{platform_name}.tar.gz'
+        exe_name = "CTHarvester"
+        archive_name = f"CTHarvester-{platform_name}.tar.gz"
 
     exe_path = dist_dir / exe_name
     if not exe_path.exists():
@@ -190,11 +190,11 @@ def create_distribution_archive(platform_name):
     # Create archive
     logger.info(f"Creating distribution archive: {archive_path}")
 
-    if platform_name in ['windows', 'macos']:
+    if platform_name in ["windows", "macos"]:
         # ZIP for Windows and macOS
-        with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as zipf:
             if exe_path.is_dir():  # macOS .app bundle
-                for file in exe_path.rglob('*'):
+                for file in exe_path.rglob("*"):
                     if file.is_file():
                         arcname = file.relative_to(dist_dir)
                         zipf.write(file, arcname)
@@ -202,14 +202,14 @@ def create_distribution_archive(platform_name):
                 zipf.write(exe_path, exe_name)
 
             # Add README
-            if Path('README.md').exists():
-                zipf.write('README.md', 'README.md')
+            if Path("README.md").exists():
+                zipf.write("README.md", "README.md")
     else:
         # TAR.GZ for Linux
-        with tarfile.open(archive_path, 'w:gz') as tarf:
+        with tarfile.open(archive_path, "w:gz") as tarf:
             tarf.add(exe_path, arcname=exe_name)
-            if Path('README.md').exists():
-                tarf.add('README.md', arcname='README.md')
+            if Path("README.md").exists():
+                tarf.add("README.md", arcname="README.md")
 
     logger.info(f"Distribution archive created: {archive_path}")
     return str(archive_path)
@@ -217,30 +217,24 @@ def create_distribution_archive(platform_name):
 
 def main():
     """Main build function."""
-    parser = argparse.ArgumentParser(
-        description='Build CTHarvester for multiple platforms'
+    parser = argparse.ArgumentParser(description="Build CTHarvester for multiple platforms")
+    parser.add_argument(
+        "--platform",
+        choices=["windows", "macos", "linux", "auto"],
+        default="auto",
+        help="Target platform (default: auto-detect)",
     )
     parser.add_argument(
-        '--platform',
-        choices=['windows', 'macos', 'linux', 'auto'],
-        default='auto',
-        help='Target platform (default: auto-detect)'
+        "--clean", action="store_true", help="Clean build directories before building"
     )
     parser.add_argument(
-        '--clean',
-        action='store_true',
-        help='Clean build directories before building'
-    )
-    parser.add_argument(
-        '--no-archive',
-        action='store_true',
-        help='Skip creating distribution archive'
+        "--no-archive", action="store_true", help="Skip creating distribution archive"
     )
 
     args = parser.parse_args()
 
     # Detect platform if auto
-    if args.platform == 'auto':
+    if args.platform == "auto":
         platform_name = detect_platform()
         logger.info(f"Auto-detected platform: {platform_name}")
     else:
@@ -252,8 +246,7 @@ def main():
 
     # Check PyInstaller is installed
     try:
-        subprocess.run(['pyinstaller', '--version'],
-                      capture_output=True, check=True)
+        subprocess.run(["pyinstaller", "--version"], capture_output=True, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
         logger.error("PyInstaller not found. Install with: pip install pyinstaller")
         return 1
@@ -280,5 +273,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
