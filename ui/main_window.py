@@ -1139,9 +1139,10 @@ class CTHarvesterMainWindow(QMainWindow):
 
         if actual_path:
             try:
+                from config.constants import PREVIEW_WIDTH
                 pixmap = QPixmap(actual_path)
                 if not pixmap.isNull():
-                    self.image_label.setPixmap(pixmap.scaledToWidth(512))
+                    self.image_label.setPixmap(pixmap.scaledToWidth(PREVIEW_WIDTH))
                 else:
                     logger.error(f"QPixmap is null for {actual_path}")
             except Exception as e:

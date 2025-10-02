@@ -205,7 +205,8 @@ class ProgressDialog(QDialog):
         self.update()
 
         # Process events periodically to maintain UI responsiveness
-        if step % 10 == 0:  # Every 10 steps
+        from config.constants import PROGRESS_UPDATE_STEP_INTERVAL
+        if step % PROGRESS_UPDATE_STEP_INTERVAL == 0:
             QApplication.processEvents()
 
     def _calculate_eta(self, current_time):

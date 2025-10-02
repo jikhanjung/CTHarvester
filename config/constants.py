@@ -90,8 +90,11 @@ IMAGE_MEMORY_ESTIMATE_MB = 50  # Estimated memory per image
 # UI Settings
 DEFAULT_WINDOW_WIDTH = 1200
 DEFAULT_WINDOW_HEIGHT = 800
+PREVIEW_WIDTH = 512  # Width for image preview scaling
+THUMBNAIL_ICON_SIZE = 128  # Size for thumbnail icons
 PROGRESS_UPDATE_INTERVAL_MS = 100
 THREAD_SLEEP_MS = 10  # Sleep duration for worker threads
+PROGRESS_UPDATE_STEP_INTERVAL = 10  # Update UI every N steps
 
 # Progress Reporting
 PROGRESS_LOG_INTERVAL = 10  # Log progress every N items
