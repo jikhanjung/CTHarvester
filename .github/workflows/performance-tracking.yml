@@ -1,0 +1,186 @@
+name: Performance Tracking
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run weekly on Sunday at midnight UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  performance-benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for comparison
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install psutil  # For detailed system metrics
+
+      - name: Create sample test data
+        run: |
+          # Create minimal sample CT data for benchmarking
+          mkdir -p tests/fixtures/sample_ct_data
+          python -c "
+          from PIL import Image
+          import numpy as np
+          for i in range(10):
+              img_array = np.random.randint(0, 255, (512, 512), dtype=np.uint8)
+              img = Image.fromarray(img_array)
+              img.save(f'tests/fixtures/sample_ct_data/slice_{i:04d}.tif')
+          print('Created 10 sample test images')
+          "
+
+      - name: Run performance profiling
+        run: |
+          echo "::group::Performance Profiling"
+          python scripts/profiling/profile_performance.py \
+            --sample-dir tests/fixtures/sample_ct_data \
+            --output performance_data/profile_results_${{ github.sha }}.json
+          echo "::endgroup::"
+
+      - name: Collect performance metrics
+        run: |
+          echo "::group::Performance Metrics Collection"
+          python scripts/profiling/collect_performance_metrics.py \
+            --sample-dir tests/fixtures/sample_ct_data \
+            --output performance_data/current_metrics.json
+          echo "::endgroup::"
+
+      - name: Download baseline metrics
+        id: download-baseline
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: baseline-metrics
+          path: performance_data/
+
+      - name: Compare with baseline
+        id: compare
+        continue-on-error: true
+        run: |
+          echo "::group::Baseline Comparison"
+
+          if [ -f "performance_data/baseline_metrics.json" ]; then
+            python scripts/profiling/collect_performance_metrics.py \
+              --sample-dir tests/fixtures/sample_ct_data \
+              --compare-baseline > comparison_output.txt
+
+            cat comparison_output.txt
+
+            # Check for regression
+            if grep -q "REGRESSION DETECTED" comparison_output.txt; then
+              echo "regression=true" >> $GITHUB_OUTPUT
+              echo "::error::Performance regression detected!"
+            else
+              echo "regression=false" >> $GITHUB_OUTPUT
+              echo "::notice::Performance is stable or improved"
+            fi
+          else
+            echo "No baseline found, creating new baseline"
+            python scripts/profiling/collect_performance_metrics.py \
+              --sample-dir tests/fixtures/sample_ct_data \
+              --save-baseline
+            echo "regression=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "::endgroup::"
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results-${{ github.sha }}
+          path: |
+            performance_data/*.json
+            performance_data/*.prof
+          retention-days: 30
+
+      - name: Upload baseline (on main branch)
+        if: github.ref == 'refs/heads/main' && steps.compare.outputs.regression == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-metrics
+          path: performance_data/baseline_metrics.json
+          retention-days: 90
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let comment = '## =Ê Performance Benchmark Results\n\n';
+
+            try {
+              const metrics = JSON.parse(fs.readFileSync('performance_data/current_metrics.json', 'utf8'));
+              const thumb = metrics.benchmarks.thumbnail_generation;
+
+              comment += '### Thumbnail Generation\n';
+              comment += `- **Speed:** ${thumb.images_per_second} images/sec\n`;
+              comment += `- **Time:** ${thumb.elapsed_time_seconds}s\n`;
+              if (thumb.memory_used_mb) {
+                comment += `- **Memory:** ${thumb.memory_used_mb} MB\n`;
+              }
+              comment += '\n';
+
+              // Add comparison if available
+              if (fs.existsSync('comparison_output.txt')) {
+                const comparison = fs.readFileSync('comparison_output.txt', 'utf8');
+                comment += '### Comparison with Main Branch\n```\n' + comparison + '\n```\n';
+              }
+            } catch (e) {
+              comment += '  Could not parse performance results\n';
+            }
+
+            comment += '\n---\n*Performance tracking powered by Phase 3 profiling tools*';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Fail if regression detected
+        if: steps.compare.outputs.regression == 'true'
+        run: |
+          echo "::error::Performance regression detected (>20% slower)"
+          echo "Review the performance results and optimize before merging"
+          exit 1
+
+      - name: Summary
+        run: |
+          echo "### Performance Benchmark Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "performance_data/current_metrics.json" ]; then
+            python -c "
+          import json
+          with open('performance_data/current_metrics.json') as f:
+              metrics = json.load(f)
+          thumb = metrics['benchmarks']['thumbnail_generation']
+          print(f\"- **Thumbnail Generation:** {thumb['images_per_second']} images/sec\")
+          print(f\"- **Elapsed Time:** {thumb['elapsed_time_seconds']}s\")
+          if thumb.get('memory_used_mb'):
+              print(f\"- **Memory Used:** {thumb['memory_used_mb']} MB\")
+          " >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Full results available in artifacts." >> $GITHUB_STEP_SUMMARY

@@ -2,14 +2,14 @@
 
 Tools for profiling and tracking CTHarvester performance over time.
 
-## =À Overview
+## =ÔøΩ Overview
 
 This directory contains scripts for:
 - **CPU Profiling**: Identify performance bottlenecks
 - **Memory Profiling**: Track memory usage
 - **Performance Metrics**: Benchmark and compare performance over time
 
-## =Ä Quick Start
+## =ÔøΩ Quick Start
 
 ### 1. Install Dependencies (Optional)
 
@@ -60,7 +60,7 @@ python scripts/profiling/collect_performance_metrics.py --save-baseline
 python scripts/profiling/collect_performance_metrics.py --compare-baseline
 ```
 
-## =  Scripts
+## =ÔøΩ Scripts
 
 ### `profile_performance.py`
 
@@ -95,7 +95,7 @@ Profiling: Thumbnail Generation
 ============================================================
 
  Profiling complete in 12.45s
-=  Profile saved to: performance_data/thumbnail_generation.prof
+=ÔøΩ Profile saved to: performance_data/thumbnail_generation.prof
 
 Top 20 functions by cumulative time:
    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
@@ -145,8 +145,8 @@ Collecting Performance Metrics
 ============================================================
 Benchmarking thumbnail generation...
    Complete in 12.35s
-  ° Speed: 15.3 images/sec
-  =æ Memory: 45.2 MB
+  ÔøΩ Speed: 15.3 images/sec
+  =ÔøΩ Memory: 45.2 MB
 
  Metrics saved to: performance_data/current_metrics.json
 
@@ -162,7 +162,7 @@ Thumbnail Generation:
 ============================================================
 ```
 
-## =» Analyzing Results
+## =ÔøΩ Analyzing Results
 
 ### View cProfile Results
 
@@ -216,7 +216,7 @@ snakeviz performance_data/thumbnail_generation.prof
 }
 ```
 
-## <Ø Use Cases
+## <ÔøΩ Use Cases
 
 ### 1. Find Performance Bottlenecks
 
@@ -264,7 +264,7 @@ python scripts/profiling/collect_performance_metrics.py --compare-baseline
 # Look for "REGRESSION DETECTED" warnings
 ```
 
-## =¡ Output Files
+## =ÔøΩ Output Files
 
 All outputs are saved to `performance_data/`:
 
@@ -304,13 +304,13 @@ pip install psutil
 - **Check**: Disk I/O (SSD vs HDD makes huge difference)
 - **Monitor**: Background processes using system resources
 
-## =⁄ Further Reading
+## =ÔøΩ Further Reading
 
 - [Python cProfile Documentation](https://docs.python.org/3/library/profile.html)
 - [pstats - Statistics object for profilers](https://docs.python.org/3/library/profile.html#pstats.Stats)
 - [psutil Documentation](https://psutil.readthedocs.io/)
 
-## <ì Tips
+## <ÔøΩ Tips
 
 1. **Consistent Environment**: Run profiling on the same machine for accurate comparisons
 2. **Multiple Runs**: Run 3 times, use median result
@@ -318,6 +318,84 @@ pip install psutil
 4. **Background Apps**: Close unnecessary applications before profiling
 5. **Sample Size**: Use consistent sample data size for comparisons
 
+## ü§ñ GitHub Actions Integration
+
+Performance tracking runs automatically on every push to main:
+
+**Workflow:** `.github/workflows/performance-tracking.yml`
+
+**Triggers:**
+- Push to `main` branch
+- Pull requests
+- Weekly schedule (Sunday midnight)
+- Manual dispatch
+
+**Features:**
+- ‚úÖ Automatic benchmarking on CI
+- ‚úÖ Compare with baseline
+- ‚úÖ Comment results on PRs
+- ‚úÖ Fail build if regression detected (>20% slower)
+- ‚úÖ Store results as artifacts
+
+**View Results:**
+1. Go to Actions tab on GitHub
+2. Select "Performance Tracking" workflow
+3. Download artifacts to see detailed results
+
+## üìä Additional Tools
+
+### `compare_performance.py`
+
+Compare two performance measurements:
+
+```bash
+python scripts/profiling/compare_performance.py \
+    --baseline performance_data/baseline_metrics.json \
+    --current performance_data/current_metrics.json \
+    --threshold 20
+```
+
+**Output:**
+```
+============================================================
+Performance Comparison Results
+============================================================
+
+üìà Throughput (images/sec):
+  Current:  18.5 img/s
+  Baseline: 15.3 img/s
+  Change:   +20.9% ‚úÖ IMPROVEMENT
+
+‚è±Ô∏è  Execution Time (seconds):
+  Current:  10.2s
+  Baseline: 12.3s
+  Change:   -17.1% ‚úÖ FASTER
+
+‚úÖ PERFORMANCE IMPROVED
+```
+
+### `visualize_performance.py`
+
+Generate performance reports:
+
+```bash
+# HTML report
+python scripts/profiling/visualize_performance.py \
+    --metrics-dir performance_data \
+    --output performance_report.html
+
+# Text report
+python scripts/profiling/visualize_performance.py \
+    --format text \
+    --output performance_report.txt
+```
+
+**Features:**
+- Performance trends over time
+- ASCII charts (text mode)
+- Interactive HTML reports
+- Historical comparison
+
 ---
 
-**Part of Phase 3: Performance Profiling Automation**
+**Part of Phase 3: Performance Profiling Automation ‚úÖ COMPLETE**
