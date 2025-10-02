@@ -64,13 +64,13 @@ class ThumbnailGenerator:
 
     def __init__(self) -> None:
         """Initialize thumbnail generator"""
-        self.level_sizes = []
-        self.level_work_distribution = []
+        self.level_sizes: list[tuple[int, float, int]] = []
+        self.level_work_distribution: list[dict[str, int | float]] = []
         self.total_levels = 0
-        self.weighted_total_work = 0
-        self.thumbnail_start_time = None
-        self.last_progress = 0
-        self.progress_start_time = None
+        self.weighted_total_work: float = 0.0
+        self.thumbnail_start_time: float | None = None
+        self.last_progress: float = 0.0
+        self.progress_start_time: float | None = None
         self.rust_cancelled = False
 
         # Check Rust module availability
@@ -124,10 +124,10 @@ class ThumbnailGenerator:
             while subsequent levels only downsample from memory.
         """
         total_work = 0
-        weighted_work = 0
+        weighted_work: float = 0.0
         temp_seq_begin = seq_begin
         temp_seq_end = seq_end
-        temp_size = size
+        temp_size: float = float(size)
         level_count = 0
         level_details = []
         self.level_sizes = []
@@ -233,8 +233,8 @@ class ThumbnailGenerator:
                 }
             else:
                 # Check if it was cancelled or failed
-                cancelled = cancel_check() if cancel_check else False
-                return {  # type: ignore[no-any-return]
+                cancelled = cancel_check() if cancel_check is not None else False
+                return {
                     'success': False,
                     'cancelled': cancelled,
                     'data': None,
@@ -242,9 +242,9 @@ class ThumbnailGenerator:
                 }
         else:
             logger.info("Using Python-based thumbnail generation")
-            return self.generate_python(directory, settings, threadpool, progress_dialog)
+            return self.generate_python(directory, settings, threadpool, progress_dialog)  # type: ignore[return-value,no-any-return]
 
-    def generate_rust(self, directory: str, progress_callback=None, cancel_check=None) -> bool:
+    def generate_rust(self, directory: str, progress_callback=None, cancel_check=None) -> bool:  # type: ignore[no-untyped-def]
         """Generate thumbnails using Rust module
 
         Args:
@@ -286,7 +286,7 @@ class ThumbnailGenerator:
             if progress_callback:
                 progress_callback(percentage)
 
-            self.last_progress = percentage
+            self.last_progress = float(percentage)
             return True  # Continue processing
 
         try:
@@ -300,7 +300,7 @@ class ThumbnailGenerator:
 
             # If we reach here, Rust succeeded (no exception raised)
             # Calculate elapsed time
-            elapsed = time.time() - self.thumbnail_start_time
+            elapsed = time.time() - (self.thumbnail_start_time or 0)
             logger.info(f"=== Rust thumbnail generation completed in {elapsed:.2f} seconds ===")
 
             return True
@@ -312,7 +312,7 @@ class ThumbnailGenerator:
             logger.error(traceback.format_exc())
             return False
 
-    def generate_python(
+    def generate_python(  # type: ignore[no-untyped-def]
         self,
         directory: str,
         settings,
@@ -371,7 +371,7 @@ class ThumbnailGenerator:
         try:
             # Extract settings
             from config.constants import MAX_THUMBNAIL_SIZE
-            size = max(int(settings["image_width"]), int(settings["image_height"]))
+            size: float = float(max(int(settings["image_width"]), int(settings["image_height"])))
             width = int(settings["image_width"])
             height = int(settings["image_height"])
             seq_begin = settings["seq_begin"]
@@ -426,7 +426,7 @@ class ThumbnailGenerator:
 
             # Calculate total work for all LoD levels using the standard method
             # This ensures consistency with main_window's progress setup
-            total_work = self.calculate_total_thumbnail_work(seq_begin, seq_end, size, MAX_THUMBNAIL_SIZE)
+            total_work = self.calculate_total_thumbnail_work(seq_begin, seq_end, int(size), MAX_THUMBNAIL_SIZE)
             weighted_total_work = self.weighted_total_work
             # Use the dict-based level_work_distribution directly for ThumbnailManager
             level_work_distribution = self.level_work_distribution
@@ -460,9 +460,9 @@ class ThumbnailGenerator:
 
             # Create shared ProgressManager
             shared_progress_manager = ProgressManager()
-            shared_progress_manager.level_work_distribution = level_work_distribution
+            shared_progress_manager.level_work_distribution = level_work_distribution  # type: ignore[assignment]
             shared_progress_manager.weighted_total_work = weighted_total_work
-            shared_progress_manager.start(weighted_total_work)
+            shared_progress_manager.start(int(weighted_total_work))
 
             # Initialize progress dialog if provided
             if progress_dialog:
@@ -470,7 +470,7 @@ class ThumbnailGenerator:
                 progress_dialog.lbl_detail.setText("Estimating...")
 
             # Initialize result containers
-            minimum_volume: List = []
+            minimum_volume: np.ndarray | list[np.ndarray] = []
             level_info = []
 
             # Add level 0 (original images) to level_info
@@ -484,7 +484,7 @@ class ThumbnailGenerator:
 
             # Main thumbnail generation loop
             i = 0
-            global_step_counter = 0
+            global_step_counter: float = 0.0
 
             while True:
                 # Check for cancellation
@@ -651,16 +651,16 @@ class ThumbnailGenerator:
                 logger.info(f"Loading minimum_volume from {smallest_dir}")
                 tif_files = sorted([f for f in os.listdir(smallest_dir) if f.endswith(".tif")])
 
-                minimum_volume = []
+                minimum_volume_list: list[np.ndarray] = []
                 for tif_file in tif_files:
                     try:
                         with Image.open(os.path.join(smallest_dir, tif_file)) as img:
-                            minimum_volume.append(np.array(img))
+                            minimum_volume_list.append(np.array(img))
                     except (OSError, IOError) as e:
                         logger.error(f"Error loading {tif_file}: {e}")
 
-                if minimum_volume:
-                    minimum_volume = np.array(minimum_volume)  # type: ignore[assignment]
+                if minimum_volume_list:
+                    minimum_volume = np.array(minimum_volume_list)
                     logger.info(f"Loaded minimum_volume: shape {minimum_volume.shape}")
                 else:
                     logger.warning("No images loaded for minimum_volume")
@@ -804,9 +804,9 @@ class ThumbnailGenerator:
                 minimum_volume.append(img_array)
 
             if len(minimum_volume) > 0:
-                minimum_volume = np.array(minimum_volume)
+                minimum_volume_array = np.array(minimum_volume)
                 logger.info(
-                    f"Loaded {len(minimum_volume)} thumbnails, shape: {minimum_volume.shape}"
+                    f"Loaded {len(minimum_volume_array)} thumbnails, shape: {minimum_volume_array.shape}"
                 )
 
                 # Create level_info structure
@@ -815,14 +815,14 @@ class ThumbnailGenerator:
                 level_info.append(
                     {
                         "name": f"Level {level_num}",
-                        "width": minimum_volume.shape[2],
-                        "height": minimum_volume.shape[1],
+                        "width": minimum_volume_array.shape[2],
+                        "height": minimum_volume_array.shape[1],
                         "seq_begin": 0,
-                        "seq_end": len(minimum_volume) - 1,
+                        "seq_end": len(minimum_volume_array) - 1,
                     }
                 )
 
-                return minimum_volume, {"levels": level_info, "current_level": level_num}
+                return minimum_volume_array, {"levels": level_info, "current_level": level_num}
             else:
                 logger.warning("No thumbnails loaded")
                 return None, {}

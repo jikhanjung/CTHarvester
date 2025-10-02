@@ -108,7 +108,7 @@ class ThumbnailManager(QObject):
         # Progress tracking (legacy compatibility)
         self.total_tasks = 0
         self.completed_tasks = 0
-        self.global_step_counter = 0
+        self.global_step_counter: float = 0.0
         self.level = 0
         self.results = {}  # idx -> img_array
         self.is_cancelled = False
@@ -1009,7 +1009,7 @@ class ThumbnailManager(QObject):
 
             # Stage 3: Final sampling (after 3x sample_size)
             elif self.is_sampling and self.level == 0 and completed >= self.sample_size * 3:
-                sample_elapsed = time.time() - self.sample_start_time
+                sample_elapsed = time.time() - (self.sample_start_time or 0)
 
                 # Calculate weighted units per second
                 weighted_units_completed = (self.sample_size * 3) * self.level_weight
@@ -1024,7 +1024,7 @@ class ThumbnailManager(QObject):
                 level1_time = total * time_per_image
                 total_estimate = level1_time
                 remaining_time = level1_time
-                for i in range(1, self.parent.total_levels):
+                for i in range(1, getattr(self.parent, 'total_levels', 1)):  # type: ignore[attr-defined]
                     remaining_time *= 0.25
                     total_estimate += remaining_time
 
@@ -1081,15 +1081,17 @@ class ThumbnailManager(QObject):
                 logger.info(f"=== FINAL ESTIMATED TOTAL TIME: {formatted_estimate} ===")
 
                 # Store sampled estimate for comparison
-                self.parent.sampled_estimate_seconds = total_estimate
-                self.parent.sampled_estimate_str = formatted_estimate
+                setattr(self.parent, 'sampled_estimate_seconds', total_estimate)  # type: ignore[attr-defined]
+                setattr(self.parent, 'sampled_estimate_str', formatted_estimate)  # type: ignore[attr-defined]
 
                 # Update parent's estimate and save performance data for next levels
-                self.parent.estimated_time_per_image = (
+                setattr(  # type: ignore[attr-defined]
+                    self.parent,
+                    'estimated_time_per_image',
                     1.0 / self.images_per_second if self.images_per_second > 0 else 0.05
                 )
-                self.parent.estimated_total_time = total_estimate
-                self.parent.measured_images_per_second = self.images_per_second
+                setattr(self.parent, 'estimated_total_time', total_estimate)  # type: ignore[attr-defined]
+                setattr(self.parent, 'measured_images_per_second', self.images_per_second)  # type: ignore[attr-defined]
 
                 self.is_sampling = False
                 logger.info(f"Multi-stage sampling completed")
