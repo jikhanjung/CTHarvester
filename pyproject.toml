@@ -135,6 +135,8 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+    "benchmark: marks tests as benchmarks",
+    "property: marks tests as property-based tests"
 ]
 filterwarnings = [
     "error",
@@ -222,3 +224,8 @@ max-line-length = 100
 [tool.pylint.design]
 max-args = 7
 max-attributes = 10
+# Hypothesis (property-based testing) configuration
+[tool.hypothesis]
+max_examples = 100
+derandomize = true
+deadline = 500  # milliseconds

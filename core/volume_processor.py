@@ -6,7 +6,7 @@ Provides volume cropping, scaling, and ROI management for CT data.
 """
 
 import logging
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -54,14 +54,14 @@ class VolumeProcessor:
         use the same instance concurrently without synchronization.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize volume processor"""
         pass
 
     def get_cropped_volume(
         self,
         minimum_volume: np.ndarray,
-        level_info: List[dict],
+        level_info: List[Dict[str, int]],
         curr_level_idx: int,
         top_idx: int,
         bottom_idx: int,
@@ -303,12 +303,12 @@ class VolumeProcessor:
 
     def calculate_cropped_dimensions(
         self,
-        level_info: List[dict],
+        level_info: List[Dict[str, int]],
         curr_level_idx: int,
         top_idx: int,
         bottom_idx: int,
         crop_box: List[int],
-    ) -> dict:
+    ) -> Dict[str, int]:
         """Calculate dimensions of cropped volume at current level
 
         Args:
@@ -360,7 +360,7 @@ class VolumeProcessor:
 
         return True
 
-    def get_volume_statistics(self, volume: np.ndarray) -> dict:
+    def get_volume_statistics(self, volume: np.ndarray) -> Dict[str, object]:
         """Calculate volume statistics
 
         Args:

@@ -6,6 +6,7 @@ Extracted from CTHarvester.py during refactoring.
 
 import sys
 import traceback
+from typing import Any, Callable
 
 from PyQt5.QtCore import QObject, QRunnable, pyqtSignal, pyqtSlot
 
@@ -50,7 +51,7 @@ class Worker(QRunnable):
 
     """
 
-    def __init__(self, fn, *args, **kwargs):
+    def __init__(self, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
         super().__init__()
 
         # Store constructor arguments (re-used for processing)
@@ -60,7 +61,7 @@ class Worker(QRunnable):
         self.signals = WorkerSignals()
 
     @pyqtSlot()
-    def run(self):
+    def run(self) -> None:
         """
         Initialise the runner function with passed args, kwargs.
         """

@@ -1,0 +1,17 @@
+{
+  "timestamp": 1759385246.7958302,
+  "version": "0.2.3",
+  "metrics": {
+    "thumbnail_generation": {
+      "images_per_second": 0,
+      "memory_mb": 0
+    },
+    "type_hints": {
+      "coverage_percent": 46.7
+    },
+    "tests": {
+      "total": 603,
+      "coverage_percent": 60.0
+    }
+  }
+}

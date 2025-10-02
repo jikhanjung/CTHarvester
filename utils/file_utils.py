@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 def find_image_files(
-    directory: str, extensions: Optional[tuple] = None, recursive: bool = False
+    directory: str, extensions: Optional[Tuple[str, ...]] = None, recursive: bool = False
 ) -> List[str]:
     """
     Find image files in directory
@@ -221,8 +221,9 @@ def format_file_size(size_bytes: int) -> str:
     Returns:
         Formatted string (e.g., "1.5 GB")
     """
+    size_value: float = float(size_bytes)
     for unit in ["B", "KB", "MB", "GB", "TB"]:
-        if size_bytes < 1024.0:
-            return f"{size_bytes:.2f} {unit}"
-        size_bytes /= 1024.0
-    return f"{size_bytes:.2f} PB"
+        if size_value < 1024.0:
+            return f"{size_value:.2f} {unit}"
+        size_value /= 1024.0
+    return f"{size_value:.2f} PB"
