@@ -62,7 +62,7 @@ class ThumbnailGenerator:
         Progress tracking state (self.last_progress, etc.) is not synchronized.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize thumbnail generator"""
         self.level_sizes = []
         self.level_work_distribution = []
@@ -134,7 +134,7 @@ class ThumbnailGenerator:
         self.level_work_distribution = []
 
         while temp_size >= max_size:
-            temp_size /= 2
+            temp_size = temp_size / 2
             level_count += 1
 
             # Each level processes half the images from previous level
@@ -148,7 +148,7 @@ class ThumbnailGenerator:
             # Using (temp_size/size)² gives correct per-image weight
             size_factor = (temp_size / size) ** 2
 
-            weighted_work += images_to_process * size_factor
+            weighted_work = weighted_work + (images_to_process * size_factor)
 
             level_details.append(
                 f"Level {level_count}: {images_to_process} images, "
@@ -209,14 +209,14 @@ class ThumbnailGenerator:
             cancel_check = None
 
             if progress_dialog:
-                def progress_callback(percentage):
+                def progress_callback(percentage: float) -> None:
                     """Update progress dialog with percentage"""
                     progress_dialog.lbl_text.setText(f"Generating thumbnails: {percentage:.1f}%")
                     progress_dialog.pb_progress.setValue(int(percentage))
                     progress_dialog.update()
                     QApplication.processEvents()
 
-                def cancel_check():
+                def cancel_check() -> bool:
                     """Check if user cancelled via progress dialog"""
                     return progress_dialog.is_cancelled if hasattr(progress_dialog, 'is_cancelled') else False
 
@@ -234,7 +234,7 @@ class ThumbnailGenerator:
             else:
                 # Check if it was cancelled or failed
                 cancelled = cancel_check() if cancel_check else False
-                return {
+                return {  # type: ignore[no-any-return]
                     'success': False,
                     'cancelled': cancelled,
                     'data': None,
@@ -244,7 +244,7 @@ class ThumbnailGenerator:
             logger.info("Using Python-based thumbnail generation")
             return self.generate_python(directory, settings, threadpool, progress_dialog)
 
-    def generate_rust(self, directory, progress_callback=None, cancel_check=None):
+    def generate_rust(self, directory: str, progress_callback=None, cancel_check=None) -> bool:
         """Generate thumbnails using Rust module
 
         Args:
@@ -274,7 +274,7 @@ class ThumbnailGenerator:
         self.progress_start_time = time.time()
         self.rust_cancelled = False
 
-        def internal_progress_callback(percentage):
+        def internal_progress_callback(percentage: float) -> bool:
             """Internal progress callback wrapper"""
             # Check for cancellation first
             if cancel_check and cancel_check():
@@ -314,11 +314,11 @@ class ThumbnailGenerator:
 
     def generate_python(
         self,
-        directory,
+        directory: str,
         settings,
         threadpool,
         progress_dialog=None
-    ):
+    ):  # type: ignore[no-untyped-def]
         """Generate thumbnails using Python implementation (fallback)
 
         This method implements the full Python-based thumbnail generation logic,
@@ -470,7 +470,7 @@ class ThumbnailGenerator:
                 progress_dialog.lbl_detail.setText("Estimating...")
 
             # Initialize result containers
-            minimum_volume = []
+            minimum_volume: List = []
             level_info = []
 
             # Add level 0 (original images) to level_info
@@ -502,7 +502,7 @@ class ThumbnailGenerator:
                 level_start_time = time.time()
                 level_start_datetime = datetime.now()
 
-                size /= 2
+                size = size / 2
                 width = int(width / 2)
                 height = int(height / 2)
 
@@ -660,7 +660,7 @@ class ThumbnailGenerator:
                         logger.error(f"Error loading {tif_file}: {e}")
 
                 if minimum_volume:
-                    minimum_volume = np.array(minimum_volume)
+                    minimum_volume = np.array(minimum_volume)  # type: ignore[assignment]
                     logger.info(f"Loaded minimum_volume: shape {minimum_volume.shape}")
                 else:
                     logger.warning("No images loaded for minimum_volume")

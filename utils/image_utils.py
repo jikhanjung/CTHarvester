@@ -64,9 +64,9 @@ def load_image_as_array(image_path: str, target_dtype: Optional[np.dtype] = None
             # Auto-detect dtype
             if target_dtype is None:
                 if img.mode == "I;16":
-                    target_dtype = np.uint16
+                    target_dtype = np.uint16  # type: ignore[assignment]
                 else:
-                    target_dtype = np.uint8
+                    target_dtype = np.uint8  # type: ignore[assignment]
 
             arr = np.array(img, dtype=target_dtype)
             return arr
@@ -105,13 +105,13 @@ def downsample_image(
             reshaped = img_array[: new_h * factor, : new_w * factor].reshape(
                 new_h, factor, new_w, factor
             )
-            return reshaped.mean(axis=(1, 3)).astype(img_array.dtype)
+            return reshaped.mean(axis=(1, 3)).astype(img_array.dtype)  # type: ignore[no-any-return]
         else:
             # Color
             reshaped = img_array[: new_h * factor, : new_w * factor].reshape(
                 new_h, factor, new_w, factor, -1
             )
-            return reshaped.mean(axis=(1, 3)).astype(img_array.dtype)
+            return reshaped.mean(axis=(1, 3)).astype(img_array.dtype)  # type: ignore[no-any-return]
 
     else:
         raise ValueError(f"Unknown method: {method}")
@@ -130,11 +130,11 @@ def average_images(img1: np.ndarray, img2: np.ndarray) -> np.ndarray:
     """
     # Use larger dtype to prevent overflow
     if img1.dtype == np.uint8:
-        temp_dtype = np.uint16
+        temp_dtype = np.uint16  # type: ignore[assignment]
     elif img1.dtype == np.uint16:
-        temp_dtype = np.uint32
+        temp_dtype = np.uint32  # type: ignore[assignment]
     else:
-        temp_dtype = np.float64
+        temp_dtype = np.float64  # type: ignore[assignment]
 
     # Calculate average
     avg = (img1.astype(temp_dtype) + img2.astype(temp_dtype)) // 2
