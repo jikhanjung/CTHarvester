@@ -5,10 +5,11 @@ Part of Phase 2: Integration Tests Expansion
 Tests complete UI workflows with real widget interactions
 """
 
+from pathlib import Path
+
 import pytest
 from PyQt5.QtCore import Qt
 from PyQt5.QtTest import QTest
-from pathlib import Path
 
 
 @pytest.mark.integration
@@ -25,15 +26,16 @@ class TestUIWorkflows:
         assert main_window.edtDirname.text() == str(sample_ct_directory)
 
         # Verify UI widget exists
-        assert hasattr(main_window, 'edtDirname')
+        assert hasattr(main_window, "edtDirname")
 
     def test_settings_persistence(self, qapp, tmp_path):
         """Test that settings persist across window sessions"""
-        from ui.main_window import CTHarvesterMainWindow
         import os
 
+        from ui.main_window import CTHarvesterMainWindow
+
         # Set temp settings location
-        os.environ['CTHARVESTER_SETTINGS_DIR'] = str(tmp_path)
+        os.environ["CTHARVESTER_SETTINGS_DIR"] = str(tmp_path)
 
         # First session - change settings
         window1 = CTHarvesterMainWindow()
@@ -41,8 +43,8 @@ class TestUIWorkflows:
         QTest.qWaitForWindowExposed(window1)
 
         # Change a setting if settings manager exists
-        if hasattr(window1, 'settings'):
-            window1.settings.set('application.language', 'ko')
+        if hasattr(window1, "settings"):
+            window1.settings.set("application.language", "ko")
             window1.settings.save()
 
         # Get window geometry
@@ -59,9 +61,9 @@ class TestUIWorkflows:
         QTest.qWaitForWindowExposed(window2)
 
         # Verify setting persisted
-        if hasattr(window2, 'settings'):
-            lang = window2.settings.get('application.language')
-            assert lang == 'ko'
+        if hasattr(window2, "settings"):
+            lang = window2.settings.get("application.language")
+            assert lang == "ko"
 
         # Cleanup
         window2.close()
@@ -104,9 +106,9 @@ class TestUIWorkflows:
 
         # Check for essential widgets (if they exist)
         # These are defensive checks - only verify if widgets exist
-        if hasattr(main_window, 'menu_bar'):
+        if hasattr(main_window, "menu_bar"):
             assert main_window.menuBar() is not None
 
-        if hasattr(main_window, 'status_bar'):
+        if hasattr(main_window, "status_bar"):
             # Status bar should exist
             assert main_window.statusBar() is not None

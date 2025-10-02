@@ -183,7 +183,7 @@ class ThumbnailGenerator:
         settings: Dict[str, Any],
         threadpool: Any,  # QThreadPool
         use_rust_preference: bool = True,
-        progress_dialog: Optional[Any] = None  # ProgressDialog
+        progress_dialog: Optional[Any] = None,  # ProgressDialog
     ) -> Optional[Dict[str, Any]]:
         """Generate thumbnails using best available method
 
@@ -209,6 +209,7 @@ class ThumbnailGenerator:
             cancel_check = None
 
             if progress_dialog:
+
                 def progress_callback(percentage: float) -> None:
                     """Update progress dialog with percentage"""
                     progress_dialog.lbl_text.setText(f"Generating thumbnails: {percentage:.1f}%")
@@ -218,7 +219,11 @@ class ThumbnailGenerator:
 
                 def cancel_check() -> bool:
                     """Check if user cancelled via progress dialog"""
-                    return progress_dialog.is_cancelled if hasattr(progress_dialog, 'is_cancelled') else False
+                    return (
+                        progress_dialog.is_cancelled
+                        if hasattr(progress_dialog, "is_cancelled")
+                        else False
+                    )
 
             # Use unified return format
             rust_success = self.generate_rust(directory, progress_callback, cancel_check)
@@ -226,19 +231,19 @@ class ThumbnailGenerator:
             # Convert legacy bool to unified dict format
             if rust_success:
                 return {
-                    'success': True,
-                    'cancelled': False,
-                    'data': None,  # Rust doesn't return thumbnail data
-                    'error': None
+                    "success": True,
+                    "cancelled": False,
+                    "data": None,  # Rust doesn't return thumbnail data
+                    "error": None,
                 }
             else:
                 # Check if it was cancelled or failed
                 cancelled = cancel_check() if cancel_check is not None else False
                 return {
-                    'success': False,
-                    'cancelled': cancelled,
-                    'data': None,
-                    'error': 'Rust thumbnail generation failed' if not cancelled else None
+                    "success": False,
+                    "cancelled": cancelled,
+                    "data": None,
+                    "error": "Rust thumbnail generation failed" if not cancelled else None,
                 }
         else:
             logger.info("Using Python-based thumbnail generation")
@@ -313,11 +318,7 @@ class ThumbnailGenerator:
             return False
 
     def generate_python(  # type: ignore[no-untyped-def]
-        self,
-        directory: str,
-        settings,
-        threadpool,
-        progress_dialog=None
+        self, directory: str, settings, threadpool, progress_dialog=None
     ):  # type: ignore[no-untyped-def]
         """Generate thumbnails using Python implementation (fallback)
 
@@ -355,6 +356,7 @@ class ThumbnailGenerator:
 
         try:
             import psutil
+
             has_psutil = True
         except ImportError:
             has_psutil = False
@@ -371,6 +373,7 @@ class ThumbnailGenerator:
         try:
             # Extract settings
             from config.constants import MAX_THUMBNAIL_SIZE
+
             size: float = float(max(int(settings["image_width"]), int(settings["image_height"])))
             width = int(settings["image_width"])
             height = int(settings["image_height"])
@@ -420,19 +423,24 @@ class ThumbnailGenerator:
             logger.info(f"Processing sequence: {seq_begin} to {seq_end}, directory: {directory}")
 
             # Import dependencies for thumbnail generation
-            from core.thumbnail_manager import ThumbnailManager
-            from core.progress_manager import ProgressManager
             from PyQt5.QtWidgets import QApplication
+
+            from core.progress_manager import ProgressManager
+            from core.thumbnail_manager import ThumbnailManager
 
             # Calculate total work for all LoD levels using the standard method
             # This ensures consistency with main_window's progress setup
-            total_work = self.calculate_total_thumbnail_work(seq_begin, seq_end, int(size), MAX_THUMBNAIL_SIZE)
+            total_work = self.calculate_total_thumbnail_work(
+                seq_begin, seq_end, int(size), MAX_THUMBNAIL_SIZE
+            )
             weighted_total_work = self.weighted_total_work
             # Use the dict-based level_work_distribution directly for ThumbnailManager
             level_work_distribution = self.level_work_distribution
             total_levels = self.total_levels
 
-            logger.info(f"Starting thumbnail generation: {total_levels} levels, {total_work} unweighted operations")
+            logger.info(
+                f"Starting thumbnail generation: {total_levels} levels, {total_work} unweighted operations"
+            )
             logger.info(f"Weighted total work: {weighted_total_work:.1f}")
 
             # Initialize variables for multi-stage sampling
@@ -440,23 +448,36 @@ class ThumbnailGenerator:
             user_sample_size = None
             if settings and isinstance(settings, dict):
                 # Try to get sample_size from settings dict
-                user_sample_size = settings.get('sample_size')
+                user_sample_size = settings.get("sample_size")
 
             if user_sample_size is not None:
                 # User has configured sample_size in settings
-                from config.constants import MIN_SAMPLE_SIZE, MAX_SAMPLE_SIZE
-                base_sample = max(MIN_SAMPLE_SIZE, min(MAX_SAMPLE_SIZE, int(user_sample_size)))  # Clamp to reasonable range
+                from config.constants import MAX_SAMPLE_SIZE, MIN_SAMPLE_SIZE
+
+                base_sample = max(
+                    MIN_SAMPLE_SIZE, min(MAX_SAMPLE_SIZE, int(user_sample_size))
+                )  # Clamp to reasonable range
                 logger.info(f"Using user-configured sample_size: {base_sample}")
             else:
                 # Fallback: auto-calculate based on total work
-                from config.constants import DEFAULT_ADAPTIVE_SAMPLE_MIN, DEFAULT_ADAPTIVE_SAMPLE_MAX, ADAPTIVE_SAMPLE_RATIO
-                base_sample = max(DEFAULT_ADAPTIVE_SAMPLE_MIN, min(DEFAULT_ADAPTIVE_SAMPLE_MAX, int(total_work * ADAPTIVE_SAMPLE_RATIO)))
+                from config.constants import (
+                    ADAPTIVE_SAMPLE_RATIO,
+                    DEFAULT_ADAPTIVE_SAMPLE_MAX,
+                    DEFAULT_ADAPTIVE_SAMPLE_MIN,
+                )
+
+                base_sample = max(
+                    DEFAULT_ADAPTIVE_SAMPLE_MIN,
+                    min(DEFAULT_ADAPTIVE_SAMPLE_MAX, int(total_work * ADAPTIVE_SAMPLE_RATIO)),
+                )
                 logger.info(f"Auto-calculated sample_size: {base_sample} (2% of {total_work} work)")
 
             sample_size = base_sample
             total_sample = base_sample * 3
 
-            logger.info(f"Multi-stage sampling: {base_sample} images per stage, {total_sample} total images")
+            logger.info(
+                f"Multi-stage sampling: {base_sample} images per stage, {total_sample} total images"
+            )
 
             # Create shared ProgressManager
             shared_progress_manager = ProgressManager()
@@ -474,13 +495,15 @@ class ThumbnailGenerator:
             level_info = []
 
             # Add level 0 (original images) to level_info
-            level_info.append({
-                "name": "Level 0",
-                "width": width,
-                "height": height,
-                "seq_begin": seq_begin,
-                "seq_end": seq_end,
-            })
+            level_info.append(
+                {
+                    "name": "Level 0",
+                    "width": width,
+                    "height": height,
+                    "seq_begin": seq_begin,
+                    "seq_end": seq_end,
+                }
+            )
 
             # Main thumbnail generation loop
             i = 0
@@ -491,11 +514,13 @@ class ThumbnailGenerator:
                 if progress_dialog and progress_dialog.is_cancelled:
                     logger.info("Thumbnail generation cancelled by user before level start")
                     return {
-                        'minimum_volume': np.array(minimum_volume) if minimum_volume else np.array([]),
-                        'level_info': level_info,
-                        'success': False,
-                        'cancelled': True,
-                        'elapsed_time': time.time() - thumbnail_start_time
+                        "minimum_volume": (
+                            np.array(minimum_volume) if minimum_volume else np.array([])
+                        ),
+                        "level_info": level_info,
+                        "success": False,
+                        "cancelled": True,
+                        "elapsed_time": time.time() - thumbnail_start_time,
                     }
 
                 # Start timing for this level
@@ -526,7 +551,9 @@ class ThumbnailGenerator:
                         actual_files = [f for f in os.listdir(from_dir) if f.endswith(".tif")]
                         total_count = len(actual_files)
                         seq_end = seq_begin + total_count - 1
-                        logger.info(f"Level {i+1}: Found {total_count} actual files in previous level")
+                        logger.info(
+                            f"Level {i+1}: Found {total_count} actual files in previous level"
+                        )
                     else:
                         total_count = seq_end - seq_begin + 1
                         logger.warning(
@@ -548,7 +575,9 @@ class ThumbnailGenerator:
                 logger.info(
                     f"Level {i+1} start time: {level_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
                 )
-                logger.info(f"Level {i+1}: Processing {total_count} images (size: {int(size)}x{int(size)})")
+                logger.info(
+                    f"Level {i+1}: Processing {total_count} images (size: {int(size)}x{int(size)})"
+                )
 
                 # Initialize ThumbnailManager for this level
                 # Pass progress_dialog directly - ThumbnailManager will connect signals
@@ -557,11 +586,13 @@ class ThumbnailGenerator:
                     None,  # main_window (not needed for core logic)
                     progress_dialog,  # Pass progress dialog directly
                     threadpool,
-                    shared_progress_manager
+                    shared_progress_manager,
                 )
                 # Set sample_size for progress sampling
                 thumbnail_manager.sample_size = sample_size
-                logger.info(f"ThumbnailManager created with sample_size={sample_size}, starting process_level")
+                logger.info(
+                    f"ThumbnailManager created with sample_size={sample_size}, starting process_level"
+                )
 
                 # Process this level
                 process_start = time.time()
@@ -594,18 +625,22 @@ class ThumbnailGenerator:
                 if was_cancelled or (progress_dialog and progress_dialog.is_cancelled):
                     logger.info("Thumbnail generation cancelled by user")
                     return {
-                        'minimum_volume': np.array(minimum_volume) if minimum_volume else np.array([]),
-                        'level_info': level_info,
-                        'success': False,
-                        'cancelled': True,
-                        'elapsed_time': time.time() - thumbnail_start_time
+                        "minimum_volume": (
+                            np.array(minimum_volume) if minimum_volume else np.array([])
+                        ),
+                        "level_info": level_info,
+                        "success": False,
+                        "cancelled": True,
+                        "elapsed_time": time.time() - thumbnail_start_time,
                     }
 
                 # Update for next level
                 current_count = seq_end - seq_begin + 1
                 next_count = (current_count // 2) + (current_count % 2)
                 seq_end = seq_begin + next_count - 1
-                logger.info(f"Level {i+1}: {current_count} images -> {next_count} thumbnails generated")
+                logger.info(
+                    f"Level {i+1}: {current_count} images -> {next_count} thumbnails generated"
+                )
                 logger.info(f"Next level will process range: {seq_begin}-{seq_end}")
 
                 i += 1
@@ -614,13 +649,15 @@ class ThumbnailGenerator:
                 level_name = f"Level {i}"
                 level_exists = any(level["name"] == level_name for level in level_info)
                 if not level_exists:
-                    level_info.append({
-                        "name": level_name,
-                        "width": width,
-                        "height": height,
-                        "seq_begin": seq_begin,
-                        "seq_end": seq_end,
-                    })
+                    level_info.append(
+                        {
+                            "name": level_name,
+                            "width": width,
+                            "height": height,
+                            "seq_begin": seq_begin,
+                            "seq_end": seq_end,
+                        }
+                    )
 
                 # Check if we've reached size limit
                 if current_level_size < MAX_THUMBNAIL_SIZE:
@@ -635,7 +672,9 @@ class ThumbnailGenerator:
 
             logger.info(f"=== Thumbnail generation completed ===")
             logger.info(f"End time: {thumbnail_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
-            logger.info(f"Total duration: {total_elapsed:.2f} seconds ({total_elapsed/60:.2f} minutes)")
+            logger.info(
+                f"Total duration: {total_elapsed:.2f} seconds ({total_elapsed/60:.2f} minutes)"
+            )
             logger.info(f"Total levels processed: {i + 1}")
 
             if total_elapsed > 0:
@@ -656,7 +695,7 @@ class ThumbnailGenerator:
                     try:
                         with Image.open(os.path.join(smallest_dir, tif_file)) as img:
                             minimum_volume_list.append(np.array(img))
-                    except (OSError, IOError) as e:
+                    except OSError as e:
                         logger.error(f"Error loading {tif_file}: {e}")
 
                 if minimum_volume_list:
@@ -675,25 +714,28 @@ class ThumbnailGenerator:
                 progress_dialog.lbl_detail.setText("")
 
             return {
-                'minimum_volume': minimum_volume,
-                'level_info': level_info,
-                'success': True,
-                'cancelled': False,
-                'elapsed_time': total_elapsed
+                "minimum_volume": minimum_volume,
+                "level_info": level_info,
+                "success": True,
+                "cancelled": False,
+                "elapsed_time": total_elapsed,
             }
 
         except Exception as e:
             logger.error(f"Error during Python thumbnail generation: {e}")
             import traceback
+
             logger.error(traceback.format_exc())
 
             return {
-                'minimum_volume': np.array([]),
-                'level_info': [],
-                'success': False,
-                'cancelled': False,
-                'error': str(e),
-                'elapsed_time': time.time() - thumbnail_start_time if 'thumbnail_start_time' in locals() else 0
+                "minimum_volume": np.array([]),
+                "level_info": [],
+                "success": False,
+                "cancelled": False,
+                "error": str(e),
+                "elapsed_time": (
+                    time.time() - thumbnail_start_time if "thumbnail_start_time" in locals() else 0
+                ),
             }
 
     def load_thumbnail_data(
@@ -714,6 +756,7 @@ class ThumbnailGenerator:
                 - level_info: Dictionary with 'levels' and 'current_level' keys
         """
         from config.constants import MAX_THUMBNAIL_SIZE as DEFAULT_MAX_SIZE
+
         if max_thumbnail_size is None:
             max_thumbnail_size = DEFAULT_MAX_SIZE
         # Find the highest level thumbnail directory
@@ -726,6 +769,7 @@ class ThumbnailGenerator:
         # Find all level directories
         level_dirs = []
         from config.constants import MAX_THUMBNAIL_LEVELS
+
         for i in range(1, MAX_THUMBNAIL_LEVELS):  # Check up to max levels
             level_dir = os.path.join(thumbnail_base, str(i))
             if os.path.exists(level_dir):
@@ -789,6 +833,7 @@ class ThumbnailGenerator:
                 if img_array.dtype == np.uint16:
                     # Convert 16-bit to 8-bit
                     from config.constants import BIT_DEPTH_16_TO_8_DIVISOR
+
                     img_array = (img_array / BIT_DEPTH_16_TO_8_DIVISOR).astype(np.uint8)
                 elif img_array.dtype != np.uint8:
                     # For other types, normalize to 0-255

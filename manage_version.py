@@ -24,9 +24,9 @@ Commands:
     (e.g., 1.3.0-alpha.2 -> 1.3.0)
 """
 
-import sys
 import re
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -37,32 +37,30 @@ except ImportError:
     print("Error: 'semver' library not found. Please install it with 'pip install semver'")
     sys.exit(1)
 
+
 def get_current_version() -> str:
     """Read current version from version.py"""
     version_file = Path("version.py")
     if not version_file.exists():
         raise FileNotFoundError("version.py not found")
-    
+
     content = version_file.read_text()
     match = re.search(r'__version__ = "(.*?)"', content)
     if match:
         return match.group(1)
     raise RuntimeError("Unable to find version string in version.py")
 
+
 def update_version_file(new_version: str) -> None:
     """Update version.py with new version"""
     version_file = Path("version.py")
     content = version_file.read_text()
-    
-    new_content = re.sub(
-        r'__version__ = ".*?"',
-        f'__version__ = "{new_version}"',
-        content
-    )
-    
-    backup_file = version_file.with_suffix('.py.bak')
+
+    new_content = re.sub(r'__version__ = ".*?"', f'__version__ = "{new_version}"', content)
+
+    backup_file = version_file.with_suffix(".py.bak")
     version_file.rename(backup_file)
-    
+
     try:
         version_file.write_text(new_content)
         print(f"✅ Version updated to {new_version}")
@@ -71,35 +69,42 @@ def update_version_file(new_version: str) -> None:
         backup_file.rename(version_file)
         raise e
 
-def get_new_version(command: str, current_ver_info: semver.VersionInfo, token: Optional[str] = None) -> str:
+
+def get_new_version(
+    command: str, current_ver_info: semver.VersionInfo, token: Optional[str] = None
+) -> str:
     """Get the new version based on the command."""
-    if command in ['major', 'minor', 'patch']:
+    if command in ["major", "minor", "patch"]:
         if current_ver_info.prerelease:
             return str(current_ver_info.finalize_version())
         return str(getattr(current_ver_info, f"bump_{command}")())
 
-    if command.startswith('pre') and command != 'prerelease':
-        base_command = command.replace('pre', '')
-        if base_command not in ['major', 'minor', 'patch']:
+    if command.startswith("pre") and command != "prerelease":
+        base_command = command.replace("pre", "")
+        if base_command not in ["major", "minor", "patch"]:
             raise ValueError(f"Invalid command: {command}")
         next_version = getattr(current_ver_info.finalize_version(), f"bump_{base_command}")()
-        return str(next_version.bump_prerelease(token or 'alpha'))
+        return str(next_version.bump_prerelease(token or "alpha"))
 
-    if command == 'prerelease':
+    if command == "prerelease":
         if not current_ver_info.prerelease:
-            raise ValueError("Cannot bump prerelease on a stable version. Start a pre-release cycle first (e.g., 'prepatch').")
+            raise ValueError(
+                "Cannot bump prerelease on a stable version. Start a pre-release cycle first (e.g., 'prepatch')."
+            )
         return str(current_ver_info.bump_prerelease())
 
-    if command == 'stage':
+    if command == "stage":
         if not current_ver_info.prerelease:
-            raise ValueError("Cannot transition stage on a stable version. Start a pre-release cycle first.")
-        if not token or token not in ['alpha', 'beta', 'rc']:
+            raise ValueError(
+                "Cannot transition stage on a stable version. Start a pre-release cycle first."
+            )
+        if not token or token not in ["alpha", "beta", "rc"]:
             raise ValueError("A valid stage token (alpha, beta, rc) is required.")
-        if token == current_ver_info.prerelease.split('.')[0]:
-             raise ValueError(f"Already in '{token}' stage.")
+        if token == current_ver_info.prerelease.split(".")[0]:
+            raise ValueError(f"Already in '{token}' stage.")
         return str(current_ver_info.replace(prerelease=f"{token}.1"))
 
-    if command == 'release':
+    if command == "release":
         if not current_ver_info.prerelease:
             print("Version is already stable.")
             return str(current_ver_info)
@@ -107,21 +112,22 @@ def get_new_version(command: str, current_ver_info: semver.VersionInfo, token: O
 
     raise ValueError(f"Invalid command: {command}")
 
+
 def create_git_tag(version: str, message: Optional[str] = None) -> None:
     """Create and optionally push git tag"""
     tag_name = f"v{version}"
     if message is None:
         message = f"Release version {version}"
-    
+
     try:
-        result = subprocess.run(['git', 'tag', '-l', tag_name], capture_output=True, text=True)
+        result = subprocess.run(["git", "tag", "-l", tag_name], capture_output=True, text=True)
         if result.stdout.strip():
             print(f"⚠️  Tag {tag_name} already exists")
             return
-        
-        subprocess.run(['git', 'tag', '-a', tag_name, '-m', message], check=True)
+
+        subprocess.run(["git", "tag", "-a", tag_name, "-m", message], check=True)
         print(f"✅ Git tag created: {tag_name}")
-        
+
         # Removed automatic push to remote
         # response = input("Push tag to remote? (y/N): ")
         # if response.lower() == 'y':
@@ -130,11 +136,12 @@ def create_git_tag(version: str, message: Optional[str] = None) -> None:
     except subprocess.CalledProcessError as e:
         print(f"❌ Failed to create git tag: {e}")
 
+
 def update_changelog(version: str) -> None:
     """Update or create CHANGELOG.md"""
     changelog_file = Path("CHANGELOG.md")
-    date_str = datetime.now().strftime('%Y-%m-%d')
-    
+    date_str = datetime.now().strftime("%Y-%m-%d")
+
     header = f"## [{version}] - {date_str}"
     if changelog_file.exists() and header in changelog_file.read_text():
         print(f"⚠️  Version {version} already in CHANGELOG.md")
@@ -144,16 +151,16 @@ def update_changelog(version: str) -> None:
 {header}
 
 ### Added
-- 
+-
 
 ### Changed
-- 
+-
 
 ### Fixed
-- 
+-
 
 """
-    
+
     if not changelog_file.exists():
         content = f"""# Changelog
 
@@ -167,44 +174,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     else:
         content = changelog_file.read_text()
         insert_index = -1
-        lines = content.split('\n')
+        lines = content.split("\n")
         for i, line in enumerate(lines):
-            if line.startswith('## ['):
+            if line.startswith("## ["):
                 insert_index = i
                 break
         if insert_index == -1:
             lines.append(new_section)
         else:
             lines.insert(insert_index, new_section)
-        
-        changelog_file.write_text('\n'.join(lines))
+
+        changelog_file.write_text("\n".join(lines))
         print("✅ CHANGELOG.md updated")
     print("⚠️  Please update the changelog entries before committing")
+
 
 def check_git_status() -> bool:
     """Check if git working directory is clean"""
     try:
-        result = subprocess.run(['git', 'status', '--porcelain'], capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            ["git", "status", "--porcelain"], capture_output=True, text=True, check=True
+        )
         if result.stdout.strip():
             print("⚠️  Warning: You have uncommitted changes")
             response = input("Continue anyway? (y/N): ")
-            return response.lower() == 'y'
+            return response.lower() == "y"
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         print("⚠️  Not a git repository or git not available. Skipping check.")
         return True
 
+
 def main():
     """Main execution function"""
     args = sys.argv[1:]
-    if not args or args[0] in ['-h', '--help']:
+    if not args or args[0] in ["-h", "--help"]:
         print(__doc__)
         sys.exit(0)
 
     command = args[0]
     token = args[1] if len(args) > 1 else None
 
-    valid_commands = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease', 'release', 'stage']
+    valid_commands = [
+        "major",
+        "minor",
+        "patch",
+        "premajor",
+        "preminor",
+        "prepatch",
+        "prerelease",
+        "release",
+        "stage",
+    ]
     if command not in valid_commands:
         print(f"Error: Invalid command '{command}'")
         print("See 'python manage_version.py --help' for usage.")
@@ -228,25 +249,25 @@ def main():
         print(f"New version will be: {new_version}")
 
         response = input(f"Update version to {new_version}? (y/N): ")
-        if response.lower() != 'y':
+        if response.lower() != "y":
             print("Aborted")
             sys.exit(0)
 
         update_version_file(new_version)
 
         response = input("Update CHANGELOG.md? (y/N): ")
-        if response.lower() == 'y':
+        if response.lower() == "y":
             update_changelog(new_version)
 
         response = input("Create git commit? (y/N): ")
-        if response.lower() == 'y':
-            subprocess.run(['git', 'add', 'version.py', 'CHANGELOG.md'], check=True)
+        if response.lower() == "y":
+            subprocess.run(["git", "add", "version.py", "CHANGELOG.md"], check=True)
             commit_message = f"chore: bump version to {new_version}"
-            subprocess.run(['git', 'commit', '-m', commit_message], check=True)
+            subprocess.run(["git", "commit", "-m", commit_message], check=True)
             print(f"✅ Git commit created: {commit_message}")
 
             response = input("Create git tag? (y/N): ")
-            if response.lower() == 'y':
+            if response.lower() == "y":
                 create_git_tag(new_version)
 
         print(f"\n🎉 Version {new_version} is ready!")
@@ -260,6 +281,7 @@ def main():
     except Exception as e:
         print(f"❌ Error: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

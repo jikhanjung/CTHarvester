@@ -27,35 +27,32 @@ class TestThumbnailCompleteWorkflow:
         # Mock settings and threadpool
         mock_settings = MagicMock()
         mock_settings.get.side_effect = lambda key, default=None: {
-            'thumbnails.max_size': 128,
-            'thumbnails.use_rust': False  # Force Python for testing
+            "thumbnails.max_size": 128,
+            "thumbnails.use_rust": False,  # Force Python for testing
         }.get(key, default)
 
         mock_threadpool = MagicMock()
 
         # Generate thumbnails
         result = generator.generate(
-            str(sample_ct_directory),
-            mock_settings,
-            mock_threadpool,
-            use_rust_preference=False
+            str(sample_ct_directory), mock_settings, mock_threadpool, use_rust_preference=False
         )
 
         # Verify success
-        assert result['success'] is True
-        assert result['cancelled'] is False
+        assert result["success"] is True
+        assert result["cancelled"] is False
 
         # Verify data structure
-        assert 'level_info' in result
-        assert 'minimum_volume' in result
-        assert isinstance(result['level_info'], list)
+        assert "level_info" in result
+        assert "minimum_volume" in result
+        assert isinstance(result["level_info"], list)
 
         # Verify thumbnail directories were created (.thumbnail is the actual dir name)
-        thumb_dir = sample_ct_directory / '.thumbnail'
+        thumb_dir = sample_ct_directory / ".thumbnail"
 
         # Directory might not exist if generation had issues, but result should indicate success
         # Just verify the result structure is correct
-        assert len(result['level_info']) > 0
+        assert len(result["level_info"]) > 0
 
     def test_rust_fallback_scenario(self, sample_ct_directory):
         """Test Rust failure and Python fallback"""
@@ -63,25 +60,25 @@ class TestThumbnailCompleteWorkflow:
 
         mock_settings = MagicMock()
         mock_settings.get.side_effect = lambda key, default=None: {
-            'thumbnails.max_size': 128,
-            'thumbnails.use_rust': True  # Request Rust
+            "thumbnails.max_size": 128,
+            "thumbnails.use_rust": True,  # Request Rust
         }.get(key, default)
 
         mock_threadpool = MagicMock()
 
         # Mock Rust import to fail - the generator will automatically fall back to Python
-        with patch.dict('sys.modules', {'ct_thumbnail': None}):
+        with patch.dict("sys.modules", {"ct_thumbnail": None}):
             result = generator.generate(
                 str(sample_ct_directory),
                 mock_settings,
                 mock_threadpool,
-                use_rust_preference=True  # Request Rust but it will fail
+                use_rust_preference=True,  # Request Rust but it will fail
             )
 
         # Should fall back to Python and succeed
-        assert result['success'] is True
-        assert result['cancelled'] is False
-        assert 'level_info' in result
+        assert result["success"] is True
+        assert result["cancelled"] is False
+        assert "level_info" in result
 
     def test_large_dataset_handling(self, large_ct_dataset):
         """Test with 50+ images"""
@@ -89,8 +86,8 @@ class TestThumbnailCompleteWorkflow:
 
         mock_settings = MagicMock()
         mock_settings.get.side_effect = lambda key, default=None: {
-            'thumbnails.max_size': 256,
-            'thumbnails.use_rust': False
+            "thumbnails.max_size": 256,
+            "thumbnails.use_rust": False,
         }.get(key, default)
 
         mock_threadpool = MagicMock()
@@ -119,18 +116,18 @@ class TestThumbnailCompleteWorkflow:
             mock_settings,
             mock_threadpool,
             use_rust_preference=False,
-            progress_dialog=progress_dialog
+            progress_dialog=progress_dialog,
         )
 
         # Verify success
-        assert result['success'] is True
-        assert 'level_info' in result
+        assert result["success"] is True
+        assert "level_info" in result
 
         # Verify progress was tracked
         # For large datasets, there should be some indication of progress
         # Either through our custom tracking or through the standard progress bar
         # Just verify the test completed without errors
-        assert result['success'] is True
+        assert result["success"] is True
 
     def test_workflow_with_cancellation(self, sample_ct_directory):
         """Test cancellation during thumbnail generation"""
@@ -138,8 +135,8 @@ class TestThumbnailCompleteWorkflow:
 
         mock_settings = MagicMock()
         mock_settings.get.side_effect = lambda key, default=None: {
-            'thumbnails.max_size': 128,
-            'thumbnails.use_rust': False
+            "thumbnails.max_size": 128,
+            "thumbnails.use_rust": False,
         }.get(key, default)
 
         mock_threadpool = MagicMock()
@@ -163,7 +160,7 @@ class TestThumbnailCompleteWorkflow:
             mock_settings,
             mock_threadpool,
             use_rust_preference=False,
-            progress_dialog=progress_dialog
+            progress_dialog=progress_dialog,
         )
 
         # Should detect cancellation
@@ -176,26 +173,23 @@ class TestThumbnailCompleteWorkflow:
 
         mock_settings = MagicMock()
         mock_settings.get.side_effect = lambda key, default=None: {
-            'thumbnails.max_size': 128,
-            'thumbnails.use_rust': False
+            "thumbnails.max_size": 128,
+            "thumbnails.use_rust": False,
         }.get(key, default)
 
         mock_threadpool = MagicMock()
 
         # Generate thumbnails
         result = generator.generate(
-            str(sample_ct_directory),
-            mock_settings,
-            mock_threadpool,
-            use_rust_preference=False
+            str(sample_ct_directory), mock_settings, mock_threadpool, use_rust_preference=False
         )
 
-        assert result['success'] is True
+        assert result["success"] is True
 
         # Verify level info has reasonable data
-        assert len(result['level_info']) > 0
-        first_level = result['level_info'][0]
-        assert 'width' in first_level
-        assert 'height' in first_level
-        assert first_level['width'] > 0
-        assert first_level['height'] > 0
+        assert len(result["level_info"]) > 0
+        first_level = result["level_info"][0]
+        assert "width" in first_level
+        assert "height" in first_level
+        assert first_level["width"] > 0
+        assert first_level["height"] > 0

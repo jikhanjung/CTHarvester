@@ -5,7 +5,8 @@ Part of Phase 4: Advanced Testing Patterns
 """
 
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import given
+from hypothesis import strategies as st
 
 
 @pytest.mark.property
@@ -14,7 +15,7 @@ class TestImageProperties:
 
     @given(
         width=st.integers(min_value=1, max_value=4096),
-        height=st.integers(min_value=1, max_value=4096)
+        height=st.integers(min_value=1, max_value=4096),
     )
     def test_downsample_preserves_aspect_ratio(self, width, height):
         """Property: Downsampling preserves aspect ratio"""

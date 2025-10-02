@@ -5,9 +5,10 @@ Tests boundary conditions and unusual input scenarios that might occur
 in production but aren't covered by standard unit tests.
 """
 
-import pytest
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+import pytest
 
 
 class TestFileHandlerEdgeCases:
@@ -20,11 +21,11 @@ class TestFileHandlerEdgeCases:
         handler = FileHandler()
         # This should handle gracefully - no crash
         settings = {
-            'prefix': 'img_',
-            'file_type': 'tif',
-            'seq_begin': 100,
-            'seq_end': 50,
-            'index_length': 4
+            "prefix": "img_",
+            "file_type": "tif",
+            "seq_begin": 100,
+            "seq_end": 50,
+            "index_length": 4,
         }
         result = handler.get_file_list(str(tmp_path), settings)
         assert result == []  # Should return empty list, not crash
@@ -35,11 +36,11 @@ class TestFileHandlerEdgeCases:
 
         handler = FileHandler()
         settings = {
-            'prefix': 'img_',
-            'file_type': 'tif',
-            'seq_begin': -10,
-            'seq_end': -5,
-            'index_length': 4
+            "prefix": "img_",
+            "file_type": "tif",
+            "seq_begin": -10,
+            "seq_end": -5,
+            "index_length": 4,
         }
         result = handler.get_file_list(str(tmp_path), settings)
         assert result == []  # Should handle gracefully
@@ -51,11 +52,11 @@ class TestFileHandlerEdgeCases:
         handler = FileHandler()
         # Should not cause memory issues or hang
         settings = {
-            'prefix': 'img_',
-            'file_type': 'tif',
-            'seq_begin': 0,
-            'seq_end': 1000000,
-            'index_length': 4
+            "prefix": "img_",
+            "file_type": "tif",
+            "seq_begin": 0,
+            "seq_end": 1000000,
+            "index_length": 4,
         }
         result = handler.get_file_list(str(tmp_path), settings)
         # Should return empty list since files don't exist
@@ -67,11 +68,11 @@ class TestFileHandlerEdgeCases:
 
         handler = FileHandler()
         settings = {
-            'prefix': 'img_',
-            'file_type': 'tif',
-            'seq_begin': 0,
-            'seq_end': 10,
-            'index_length': 0
+            "prefix": "img_",
+            "file_type": "tif",
+            "seq_begin": 0,
+            "seq_end": 10,
+            "index_length": 0,
         }
         result = handler.get_file_list(str(tmp_path), settings)
         # Should handle gracefully
@@ -87,11 +88,11 @@ class TestFileHandlerEdgeCases:
 
         handler = FileHandler()
         settings = {
-            'prefix': '',
-            'file_type': 'tif',
-            'seq_begin': 0,
-            'seq_end': 10,
-            'index_length': 4
+            "prefix": "",
+            "file_type": "tif",
+            "seq_begin": 0,
+            "seq_end": 10,
+            "index_length": 4,
         }
         result = handler.get_file_list(str(tmp_path), settings)
         assert isinstance(result, list)
@@ -102,11 +103,11 @@ class TestFileHandlerEdgeCases:
 
         handler = FileHandler()
         settings = {
-            'prefix': '이미지_',
-            'file_type': 'tif',
-            'seq_begin': 0,
-            'seq_end': 10,
-            'index_length': 4
+            "prefix": "이미지_",
+            "file_type": "tif",
+            "seq_begin": 0,
+            "seq_end": 10,
+            "index_length": 4,
         }
         result = handler.get_file_list(str(tmp_path), settings)
         assert isinstance(result, list)
@@ -121,12 +122,7 @@ class TestVolumeProcessorEdgeCases:
 
         processor = VolumeProcessor()
         empty_volume = np.array([])
-        level_info = [{
-            'seq_begin': 0,
-            'seq_end': 10,
-            'width': 512,
-            'height': 512
-        }]
+        level_info = [{"seq_begin": 0, "seq_end": 10, "width": 512, "height": 512}]
 
         result, roi = processor.get_cropped_volume(
             empty_volume, level_info, 0, 0, 10, [0, 0, 100, 100]
@@ -141,12 +137,7 @@ class TestVolumeProcessorEdgeCases:
 
         processor = VolumeProcessor()
         single_slice = np.ones((1, 100, 100), dtype=np.uint8)
-        level_info = [{
-            'seq_begin': 0,
-            'seq_end': 0,
-            'width': 100,
-            'height': 100
-        }]
+        level_info = [{"seq_begin": 0, "seq_end": 0, "width": 100, "height": 100}]
 
         result, roi = processor.get_cropped_volume(
             single_slice, level_info, 0, 0, 0, [0, 0, 50, 50]
@@ -160,12 +151,7 @@ class TestVolumeProcessorEdgeCases:
 
         processor = VolumeProcessor()
         volume = np.ones((10, 100, 100), dtype=np.uint8)
-        level_info = [{
-            'seq_begin': 0,
-            'seq_end': 9,
-            'width': 100,
-            'height': 100
-        }]
+        level_info = [{"seq_begin": 0, "seq_end": 9, "width": 100, "height": 100}]
 
         # Crop box way outside bounds
         result, roi = processor.get_cropped_volume(
@@ -181,17 +167,10 @@ class TestVolumeProcessorEdgeCases:
 
         processor = VolumeProcessor()
         volume = np.ones((10, 100, 100), dtype=np.uint8)
-        level_info = [{
-            'seq_begin': 0,
-            'seq_end': 9,
-            'width': 100,
-            'height': 100
-        }]
+        level_info = [{"seq_begin": 0, "seq_end": 9, "width": 100, "height": 100}]
 
         # Zero width crop box
-        result, roi = processor.get_cropped_volume(
-            volume, level_info, 0, 0, 9, [50, 50, 50, 100]
-        )
+        result, roi = processor.get_cropped_volume(volume, level_info, 0, 0, 9, [50, 50, 50, 100])
 
         # Should handle gracefully
         assert isinstance(result, np.ndarray)
@@ -202,16 +181,9 @@ class TestVolumeProcessorEdgeCases:
 
         processor = VolumeProcessor()
         volume = np.ones((10, 100, 100), dtype=np.uint8)
-        level_info = [{
-            'seq_begin': 0,
-            'seq_end': 9,
-            'width': 100,
-            'height': 100
-        }]
+        level_info = [{"seq_begin": 0, "seq_end": 9, "width": 100, "height": 100}]
 
-        result, roi = processor.get_cropped_volume(
-            volume, level_info, 0, 0, 9, [-10, -10, 50, 50]
-        )
+        result, roi = processor.get_cropped_volume(volume, level_info, 0, 0, 9, [-10, -10, 50, 50])
 
         # Should handle gracefully - may result in empty or clamped array
         assert isinstance(result, np.ndarray)
@@ -226,9 +198,7 @@ class TestVolumeProcessorEdgeCases:
 
         # Empty level_info may or may not raise - just test it doesn't crash
         try:
-            result, roi = processor.get_cropped_volume(
-                volume, [], 0, 0, 9, [0, 0, 50, 50]
-            )
+            result, roi = processor.get_cropped_volume(volume, [], 0, 0, 9, [0, 0, 50, 50])
             # If no exception, just verify result types
             assert isinstance(result, np.ndarray)
             assert isinstance(roi, list)
@@ -248,19 +218,19 @@ class TestThumbnailGeneratorEdgeCases:
 
         # Test with minimal valid settings
         settings = {
-            'directory': '/tmp/test',
-            'image_width': 512,
-            'image_height': 512,
-            'seq_begin': 0,
-            'seq_end': 10,
-            'prefix': 'img_',
-            'file_type': 'tif',
-            'index_length': 4
+            "directory": "/tmp/test",
+            "image_width": 512,
+            "image_height": 512,
+            "seq_begin": 0,
+            "seq_end": 10,
+            "prefix": "img_",
+            "file_type": "tif",
+            "index_length": 4,
         }
 
         # Should not crash during initialization
         assert gen is not None
-        assert settings['image_width'] == 512
+        assert settings["image_width"] == 512
 
     def test_single_image_sequence(self):
         """Test handling when seq_begin == seq_end."""
@@ -268,18 +238,18 @@ class TestThumbnailGeneratorEdgeCases:
 
         gen = ThumbnailGenerator()
         settings = {
-            'directory': '/tmp/test',
-            'image_width': 512,
-            'image_height': 512,
-            'seq_begin': 10,
-            'seq_end': 10,  # Same as begin - single image
-            'prefix': 'img_',
-            'file_type': 'tif',
-            'index_length': 4
+            "directory": "/tmp/test",
+            "image_width": 512,
+            "image_height": 512,
+            "seq_begin": 10,
+            "seq_end": 10,  # Same as begin - single image
+            "prefix": "img_",
+            "file_type": "tif",
+            "index_length": 4,
         }
 
         # Should handle single image case without crashing
-        assert settings['seq_end'] - settings['seq_begin'] == 0
+        assert settings["seq_end"] - settings["seq_begin"] == 0
 
     def test_negative_sequence_numbers(self):
         """Test handling of negative sequence numbers in settings."""
@@ -287,18 +257,18 @@ class TestThumbnailGeneratorEdgeCases:
 
         gen = ThumbnailGenerator()
         settings = {
-            'directory': '/tmp/test',
-            'image_width': 512,
-            'image_height': 512,
-            'seq_begin': -5,
-            'seq_end': -1,
-            'prefix': 'img_',
-            'file_type': 'tif',
-            'index_length': 4
+            "directory": "/tmp/test",
+            "image_width": 512,
+            "image_height": 512,
+            "seq_begin": -5,
+            "seq_end": -1,
+            "prefix": "img_",
+            "file_type": "tif",
+            "index_length": 4,
         }
 
         # Should handle negative numbers gracefully
-        assert isinstance(settings['seq_begin'], int)
+        assert isinstance(settings["seq_begin"], int)
 
 
 class TestProgressManagerEdgeCases:

@@ -12,7 +12,17 @@ from copy import deepcopy
 
 import numpy as np
 from PIL import Image
-from PyQt5.QtCore import QMargins, QObject, QPoint, QRect, Qt, QThread, QThreadPool, QTimer, QTranslator
+from PyQt5.QtCore import (
+    QMargins,
+    QObject,
+    QPoint,
+    QRect,
+    Qt,
+    QThread,
+    QThreadPool,
+    QTimer,
+    QTranslator,
+)
 from PyQt5.QtGui import QCursor, QIcon, QPixmap
 from PyQt5.QtWidgets import (
     QAbstractItemView,
@@ -154,7 +164,9 @@ class CTHarvesterMainWindow(QMainWindow):
         Loads translation file and updates all translatable UI strings.
         """
         translator = QTranslator()
-        translator.load(resource_path(f"resources/translations/CTHarvester_{self.m_app.language}.qm"))
+        translator.load(
+            resource_path(f"resources/translations/CTHarvester_{self.m_app.language}.qm")
+        )
         self.m_app.installTranslator(translator)
 
         self.setWindowTitle(f"{self.tr(PROGRAM_NAME)} v{PROGRAM_VERSION}")
@@ -667,7 +679,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 QThread.msleep(100)  # Small delay for thread cleanup
 
                 # Close progress dialog
-                if hasattr(self, 'progress_dialog') and self.progress_dialog:
+                if hasattr(self, "progress_dialog") and self.progress_dialog:
                     self.progress_dialog.close()
                     self.progress_dialog = None
 
@@ -878,7 +890,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 directory=self.edtDirname.text(),
                 settings=self.settings_hash,
                 threadpool=self.threadpool,
-                progress_dialog=self.progress_dialog
+                progress_dialog=self.progress_dialog,
             )
 
             # Restore cursor
@@ -895,12 +907,12 @@ class CTHarvesterMainWindow(QMainWindow):
                 QMessageBox.critical(
                     self,
                     self.tr("Thumbnail Generation Failed"),
-                    self.tr("An unknown error occurred during thumbnail generation.")
+                    self.tr("An unknown error occurred during thumbnail generation."),
                 )
                 return
 
             # Handle cancellation
-            if result.get('cancelled'):
+            if result.get("cancelled"):
                 logger.info("Thumbnail generation cancelled by user")
                 if self.progress_dialog:
                     self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation cancelled"))
@@ -910,13 +922,13 @@ class CTHarvesterMainWindow(QMainWindow):
                 QMessageBox.information(
                     self,
                     self.tr("Thumbnail Generation Cancelled"),
-                    self.tr("Thumbnail generation was cancelled by user.")
+                    self.tr("Thumbnail generation was cancelled by user."),
                 )
                 return
 
             # Handle generation failure (not cancelled, but success=False)
-            if not result.get('success'):
-                error_msg = result.get('error', 'Thumbnail generation failed')
+            if not result.get("success"):
+                error_msg = result.get("error", "Thumbnail generation failed")
                 logger.error(f"Thumbnail generation failed: {error_msg}")
                 if self.progress_dialog:
                     self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation failed"))
@@ -926,13 +938,13 @@ class CTHarvesterMainWindow(QMainWindow):
                 QMessageBox.critical(
                     self,
                     self.tr("Thumbnail Generation Failed"),
-                    self.tr("Thumbnail generation failed:\n\n{}").format(error_msg)
+                    self.tr("Thumbnail generation failed:\n\n{}").format(error_msg),
                 )
                 return
 
             # Update instance state from result (only if successful)
-            self.minimum_volume = result.get('minimum_volume', [])
-            self.level_info = result.get('level_info', [])
+            self.minimum_volume = result.get("minimum_volume", [])
+            self.level_info = result.get("level_info", [])
 
             # Show completion message
             if self.progress_dialog:
@@ -949,7 +961,9 @@ class CTHarvesterMainWindow(QMainWindow):
             self.load_thumbnail_data_from_disk()
 
             # If loading from disk failed and minimum_volume is still empty
-            if self.minimum_volume is None or (hasattr(self.minimum_volume, '__len__') and len(self.minimum_volume) == 0):
+            if self.minimum_volume is None or (
+                hasattr(self.minimum_volume, "__len__") and len(self.minimum_volume) == 0
+            ):
                 logger.warning("Failed to load thumbnails from disk after Python generation")
 
             # Initialize UI components
@@ -1140,6 +1154,7 @@ class CTHarvesterMainWindow(QMainWindow):
         if actual_path:
             try:
                 from config.constants import PREVIEW_WIDTH
+
                 pixmap = QPixmap(actual_path)
                 if not pixmap.isNull():
                     self.image_label.setPixmap(pixmap.scaledToWidth(PREVIEW_WIDTH))

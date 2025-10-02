@@ -5,13 +5,14 @@ Fixtures include QApplication setup, sample CT data generation, and main window
 initialization for testing complete workflows.
 """
 
-import pytest
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtTest import QTest
-from PyQt5.QtCore import Qt
 from pathlib import Path
+
 import numpy as np
+import pytest
 from PIL import Image
+from PyQt5.QtCore import Qt
+from PyQt5.QtTest import QTest
+from PyQt5.QtWidgets import QApplication
 
 
 @pytest.fixture(scope="session")
@@ -59,7 +60,7 @@ def sample_ct_directory(tmp_path):
     # Generate 10 test slices with varying intensity
     for i in range(10):
         # Create gradient image
-        img_array = np.linspace(0, 255, 256*256, dtype=np.uint8)
+        img_array = np.linspace(0, 255, 256 * 256, dtype=np.uint8)
         img_array = img_array.reshape((256, 256))
 
         # Add unique horizontal band per slice for identification
@@ -96,11 +97,12 @@ def main_window(qapp, tmp_path):
         ...     assert main_window.isVisible()
         ...     # Interact with window widgets
     """
-    from ui.main_window import CTHarvesterMainWindow
     import os
 
+    from ui.main_window import CTHarvesterMainWindow
+
     # Set temp settings location to isolate from user settings
-    os.environ['CTHARVESTER_SETTINGS_DIR'] = str(tmp_path)
+    os.environ["CTHARVESTER_SETTINGS_DIR"] = str(tmp_path)
 
     window = CTHarvesterMainWindow()
     window.show()
@@ -131,7 +133,7 @@ def sample_ct_16bit_directory(tmp_path):
 
     for i in range(10):
         # Create 16-bit gradient image
-        img_array = np.linspace(0, 65535, 256*256, dtype=np.uint16)
+        img_array = np.linspace(0, 65535, 256 * 256, dtype=np.uint16)
         img_array = img_array.reshape((256, 256))
 
         # Add unique pattern
@@ -167,7 +169,7 @@ def large_ct_dataset(tmp_path):
 
     for i in range(50):
         # Create larger gradient image
-        img_array = np.linspace(0, 255, 512*512, dtype=np.uint8)
+        img_array = np.linspace(0, 255, 512 * 512, dtype=np.uint8)
         img_array = img_array.reshape((512, 512))
 
         # Add checkerboard pattern for more complex data

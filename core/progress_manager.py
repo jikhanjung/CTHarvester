@@ -28,7 +28,9 @@ class ProgressManager(QObject):
         self.start_time: Optional[float] = None
         self.is_sampling: bool = False
         self.speed: Optional[float] = None  # units per second
-        self.level_work_distribution: Optional[Dict[int, Dict[str, int]]] = None  # Store level work info
+        self.level_work_distribution: Optional[Dict[int, Dict[str, int]]] = (
+            None  # Store level work info
+        )
         self.weighted_total_work: Optional[float] = None  # Store weighted total
 
     def start(self, total: int) -> None:
@@ -104,7 +106,8 @@ class ProgressManager(QObject):
                 return ""
 
         # Format time with ETA prefix
-        from config.constants import SECONDS_PER_MINUTE, SECONDS_PER_HOUR
+        from config.constants import SECONDS_PER_HOUR, SECONDS_PER_MINUTE
+
         if remaining_time < SECONDS_PER_MINUTE:
             return f"ETA: {int(remaining_time)}s"
         elif remaining_time < SECONDS_PER_HOUR:
@@ -113,7 +116,10 @@ class ProgressManager(QObject):
             return f"ETA: {int(remaining_time/SECONDS_PER_HOUR)}h {int((remaining_time%SECONDS_PER_HOUR)/SECONDS_PER_MINUTE)}m"
 
     def get_detail_text(
-        self, level: Optional[int] = None, completed: Optional[int] = None, total: Optional[int] = None
+        self,
+        level: Optional[int] = None,
+        completed: Optional[int] = None,
+        total: Optional[int] = None,
     ) -> str:
         """Get detail text for current state"""
         if level is not None and completed is not None and total is not None:

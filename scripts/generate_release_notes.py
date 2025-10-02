@@ -11,10 +11,10 @@ Usage:
 import argparse
 import re
 import sys
-from pathlib import Path
-from datetime import datetime
-from typing import List, Dict, Tuple
 from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Tuple
 
 try:
     import git
@@ -25,22 +25,22 @@ except ImportError:
 
 # Conventional commit types
 COMMIT_TYPES = {
-    'feat': ('Added', '✨'),
-    'fix': ('Fixed', '🐛'),
-    'docs': ('Documentation', '📝'),
-    'style': ('Style', '💄'),
-    'refactor': ('Changed', '♻️'),
-    'perf': ('Performance', '⚡'),
-    'test': ('Tests', '✅'),
-    'build': ('Build', '🏗️'),
-    'ci': ('CI/CD', '👷'),
-    'chore': ('Maintenance', '🔧'),
-    'revert': ('Reverted', '⏪'),
-    'security': ('Security', '🔒'),
+    "feat": ("Added", "✨"),
+    "fix": ("Fixed", "🐛"),
+    "docs": ("Documentation", "📝"),
+    "style": ("Style", "💄"),
+    "refactor": ("Changed", "♻️"),
+    "perf": ("Performance", "⚡"),
+    "test": ("Tests", "✅"),
+    "build": ("Build", "🏗️"),
+    "ci": ("CI/CD", "👷"),
+    "chore": ("Maintenance", "🔧"),
+    "revert": ("Reverted", "⏪"),
+    "security": ("Security", "🔒"),
 }
 
 # Breaking change markers
-BREAKING_MARKERS = ['BREAKING CHANGE', 'BREAKING-CHANGE', '!']
+BREAKING_MARKERS = ["BREAKING CHANGE", "BREAKING-CHANGE", "!"]
 
 
 def parse_commit_message(message: str) -> Tuple[str, str, str, bool]:
@@ -56,20 +56,22 @@ def parse_commit_message(message: str) -> Tuple[str, str, str, bool]:
     is_breaking = any(marker in message.upper() for marker in BREAKING_MARKERS[:2])
 
     # Parse conventional commit format: type(scope)!: description
-    pattern = r'^(\w+)(?:\(([^)]+)\))?(!)?:\s*(.+)$'
-    match = re.match(pattern, message.split('\n')[0])
+    pattern = r"^(\w+)(?:\(([^)]+)\))?(!)?:\s*(.+)$"
+    match = re.match(pattern, message.split("\n")[0])
 
     if match:
         commit_type, scope, breaking_marker, description = match.groups()
-        if breaking_marker == '!':
+        if breaking_marker == "!":
             is_breaking = True
-        return commit_type, scope or '', description, is_breaking
+        return commit_type, scope or "", description, is_breaking
     else:
         # Non-conventional commit
-        return 'other', '', message.split('\n')[0], False
+        return "other", "", message.split("\n")[0], False
 
 
-def get_commits_between_tags(repo: git.Repo, from_tag: str, to_tag: str = 'HEAD') -> List[git.Commit]:
+def get_commits_between_tags(
+    repo: git.Repo, from_tag: str, to_tag: str = "HEAD"
+) -> List[git.Commit]:
     """Get commits between two tags.
 
     Args:
@@ -81,10 +83,10 @@ def get_commits_between_tags(repo: git.Repo, from_tag: str, to_tag: str = 'HEAD'
         List of commits
     """
     try:
-        if to_tag == 'HEAD':
-            commits = list(repo.iter_commits(f'{from_tag}..HEAD'))
+        if to_tag == "HEAD":
+            commits = list(repo.iter_commits(f"{from_tag}..HEAD"))
         else:
-            commits = list(repo.iter_commits(f'{from_tag}..{to_tag}'))
+            commits = list(repo.iter_commits(f"{from_tag}..{to_tag}"))
         return commits
     except git.GitCommandError as e:
         print(f"Error getting commits: {e}")
@@ -130,16 +132,16 @@ def categorize_commits(commits: List[git.Commit]) -> Dict[str, List[Dict]]:
         commit_type, scope, description, is_breaking = parse_commit_message(message)
 
         # Get full commit message body for breaking changes
-        body_lines = message.split('\n')[1:]
-        body = '\n'.join(line.strip() for line in body_lines if line.strip())
+        body_lines = message.split("\n")[1:]
+        body = "\n".join(line.strip() for line in body_lines if line.strip())
 
         commit_info = {
-            'hash': commit.hexsha[:7],
-            'description': description,
-            'scope': scope,
-            'author': commit.author.name,
-            'date': datetime.fromtimestamp(commit.committed_date).strftime('%Y-%m-%d'),
-            'body': body
+            "hash": commit.hexsha[:7],
+            "description": description,
+            "scope": scope,
+            "author": commit.author.name,
+            "date": datetime.fromtimestamp(commit.committed_date).strftime("%Y-%m-%d"),
+            "body": body,
         }
 
         # Handle breaking changes
@@ -151,20 +153,17 @@ def categorize_commits(commits: List[git.Commit]) -> Dict[str, List[Dict]]:
             category, emoji = COMMIT_TYPES[commit_type]
             categories[category].append(commit_info)
         else:
-            categories['Other'].append(commit_info)
+            categories["Other"].append(commit_info)
 
     # Add breaking changes as separate category if any
     if breaking_changes:
-        categories['⚠️ BREAKING CHANGES'] = breaking_changes
+        categories["⚠️ BREAKING CHANGES"] = breaking_changes
 
     return dict(categories)
 
 
 def format_release_notes(
-    tag: str,
-    date: str,
-    categories: Dict[str, List[Dict]],
-    repo_url: str = None
+    tag: str, date: str, categories: Dict[str, List[Dict]], repo_url: str = None
 ) -> str:
     """Format release notes in markdown.
 
@@ -186,13 +185,13 @@ def format_release_notes(
 
     # Priority order for categories
     priority_categories = [
-        '⚠️ BREAKING CHANGES',
-        'Added',
-        'Changed',
-        'Fixed',
-        'Security',
-        'Performance',
-        'Documentation',
+        "⚠️ BREAKING CHANGES",
+        "Added",
+        "Changed",
+        "Fixed",
+        "Security",
+        "Performance",
+        "Documentation",
     ]
 
     # Add priority categories first
@@ -205,7 +204,7 @@ def format_release_notes(
     for category, commits in sorted(categories.items()):
         lines.extend(_format_category(category, commits, repo_url))
 
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 def _format_category(category: str, commits: List[Dict], repo_url: str = None) -> List[str]:
@@ -229,17 +228,21 @@ def _format_category(category: str, commits: List[Dict], repo_url: str = None) -
 
     for commit in commits:
         # Format: - Description (scope) [hash]
-        scope = f" **({commit['scope']})**" if commit['scope'] else ""
-        hash_link = f"[`{commit['hash']}`]({repo_url}/commit/{commit['hash']})" if repo_url else f"`{commit['hash']}`"
+        scope = f" **({commit['scope']})**" if commit["scope"] else ""
+        hash_link = (
+            f"[`{commit['hash']}`]({repo_url}/commit/{commit['hash']})"
+            if repo_url
+            else f"`{commit['hash']}`"
+        )
 
         lines.append(f"- {commit['description']}{scope} {hash_link}")
 
         # Add body for breaking changes
-        if category == '⚠️ BREAKING CHANGES' and commit['body']:
+        if category == "⚠️ BREAKING CHANGES" and commit["body"]:
             # Extract BREAKING CHANGE description
-            for line in commit['body'].split('\n'):
-                if 'BREAKING CHANGE:' in line:
-                    desc = line.split('BREAKING CHANGE:')[1].strip()
+            for line in commit["body"].split("\n"):
+                if "BREAKING CHANGE:" in line:
+                    desc = line.split("BREAKING CHANGE:")[1].strip()
                     lines.append(f"  > {desc}")
 
     lines.append("")
@@ -248,39 +251,22 @@ def _format_category(category: str, commits: List[Dict], repo_url: str = None) -
 
 def main():
     """Main function."""
-    parser = argparse.ArgumentParser(
-        description='Generate release notes from git commits'
+    parser = argparse.ArgumentParser(description="Generate release notes from git commits")
+    parser.add_argument("--tag", help="Tag to generate notes for (will compare with previous tag)")
+    parser.add_argument("--from", dest="from_tag", help="Starting tag/commit")
+    parser.add_argument(
+        "--to", dest="to_tag", default="HEAD", help="Ending tag/commit (default: HEAD)"
     )
     parser.add_argument(
-        '--tag',
-        help='Tag to generate notes for (will compare with previous tag)'
+        "--output", default="release_notes.md", help="Output file (default: release_notes.md)"
     )
-    parser.add_argument(
-        '--from',
-        dest='from_tag',
-        help='Starting tag/commit'
-    )
-    parser.add_argument(
-        '--to',
-        dest='to_tag',
-        default='HEAD',
-        help='Ending tag/commit (default: HEAD)'
-    )
-    parser.add_argument(
-        '--output',
-        default='release_notes.md',
-        help='Output file (default: release_notes.md)'
-    )
-    parser.add_argument(
-        '--repo-url',
-        help='Repository URL for commit links'
-    )
+    parser.add_argument("--repo-url", help="Repository URL for commit links")
 
     args = parser.parse_args()
 
     # Open repository
     try:
-        repo = git.Repo('.')
+        repo = git.Repo(".")
     except git.InvalidGitRepositoryError:
         print("Error: Not a git repository")
         return 1
@@ -314,17 +300,17 @@ def main():
     categories = categorize_commits(commits)
 
     # Format release notes
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = datetime.now().strftime("%Y-%m-%d")
     release_notes = format_release_notes(
-        tag=to_tag if to_tag != 'HEAD' else 'Unreleased',
+        tag=to_tag if to_tag != "HEAD" else "Unreleased",
         date=today,
         categories=categories,
-        repo_url=args.repo_url
+        repo_url=args.repo_url,
     )
 
     # Write output
     output_path = Path(args.output)
-    output_path.write_text(release_notes, encoding='utf-8')
+    output_path.write_text(release_notes, encoding="utf-8")
     print(f"Release notes written to: {output_path}")
 
     # Print summary
@@ -335,5 +321,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

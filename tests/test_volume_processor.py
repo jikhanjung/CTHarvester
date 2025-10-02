@@ -491,7 +491,9 @@ class TestVolumeProcessorCropBoundary:
         assert volume[0, 4, 0] == 40, "Bottom-left-front corner should be (0,4,0) = 40"
         assert volume[4, 4, 4] == 444, "Bottom-right-back corner should be (4,4,4) = 444"
 
-    def test_crop_full_volume_preserves_all_data(self, processor, precise_volume, simple_level_info):
+    def test_crop_full_volume_preserves_all_data(
+        self, processor, precise_volume, simple_level_info
+    ):
         """Cropping the entire volume should preserve all data"""
         volume, roi = processor.get_cropped_volume(
             minimum_volume=precise_volume,
@@ -538,7 +540,9 @@ class TestVolumeProcessorCropBoundary:
         assert volume.shape == (1, 1, 1), f"Expected (1,1,1), got {volume.shape}"
         assert volume[0, 0, 0] == 999, "Last pixel should be (9,9,9) = 999"
 
-    def test_crop_size_matches_roi_specification(self, processor, precise_volume, simple_level_info):
+    def test_crop_size_matches_roi_specification(
+        self, processor, precise_volume, simple_level_info
+    ):
         """Crop size should match user's ROI specification exactly"""
         # User selects X=[2,7] (width=5), Y=[3,8] (height=5), Z=[1,6] (depth=5)
         volume, roi = processor.get_cropped_volume(

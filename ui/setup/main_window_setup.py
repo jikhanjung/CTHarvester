@@ -109,9 +109,7 @@ class MainWindowSetup:
         # Level selector
         self.window.lblLevel = QLabel(self.window.tr("Level"))
         self.window.comboLevel = QComboBox()
-        self.window.comboLevel.currentIndexChanged.connect(
-            self.window.comboLevelIndexChanged
-        )
+        self.window.comboLevel.currentIndexChanged.connect(self.window.comboLevelIndexChanged)
 
         # Image dimension display
         self.window.edtImageDimension = QLineEdit()
@@ -171,9 +169,7 @@ class MainWindowSetup:
         self.window.threshold_slider.sliderReleased.connect(self.window.slider2SliderReleased)
 
         # External numeric readout to avoid any internal 0-99 label limit
-        self.window.threshold_value_label = QLabel(
-            str(self.window.threshold_slider.value())
-        )
+        self.window.threshold_value_label = QLabel(str(self.window.threshold_slider.value()))
         self.window.threshold_value_label.setAlignment(Qt.AlignHCenter)
         self.window.threshold_value_label.setMinimumWidth(30)
         self.window.threshold_value_label.setStyleSheet("QLabel { color: #202020; }")
@@ -246,9 +242,7 @@ class MainWindowSetup:
         self.window.btnExport.clicked.connect(self.window.export_3d_model)
 
         # Preferences button
-        self.window.btnPreferences = QPushButton(
-            QIcon(resource_path("M2Preferences_2.png")), ""
-        )
+        self.window.btnPreferences = QPushButton(QIcon(resource_path("M2Preferences_2.png")), "")
         self.window.btnPreferences.clicked.connect(self.window.show_advanced_settings)
         self.window.btnPreferences.setToolTip("Settings (Advanced)")
 
@@ -302,13 +296,9 @@ class MainWindowSetup:
         self.window.progress_text_1_1 = self.window.tr("Saving image stack...")
         self.window.progress_text_1_2 = self.window.tr("Saving image stack... {}/{}")
         self.window.progress_text_2_1 = self.window.tr("Generating thumbnails (Level {})")
-        self.window.progress_text_2_2 = self.window.tr(
-            "Generating thumbnails (Level {}) - {}/{}"
-        )
+        self.window.progress_text_2_2 = self.window.tr("Generating thumbnails (Level {}) - {}/{}")
         self.window.progress_text_3_1 = self.window.tr("Loading thumbnails (Level {})")
-        self.window.progress_text_3_2 = self.window.tr(
-            "Loading thumbnails (Level {}) - {}/{}"
-        )
+        self.window.progress_text_3_2 = self.window.tr("Loading thumbnails (Level {}) - {}/{}")
 
     def setup_3d_viewer(self):
         """Initialize 3D mesh viewer widget."""

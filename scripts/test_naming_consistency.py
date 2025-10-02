@@ -7,13 +7,14 @@ import os
 import sys
 from pathlib import Path
 
+
 def check_thumbnail_naming(thumbnail_dir):
     """Check the naming pattern of thumbnail files in a directory."""
     if not os.path.exists(thumbnail_dir):
         print(f"Directory does not exist: {thumbnail_dir}")
         return None
 
-    files = sorted([f for f in os.listdir(thumbnail_dir) if f.endswith('.tif')])
+    files = sorted([f for f in os.listdir(thumbnail_dir) if f.endswith(".tif")])
 
     if not files:
         print(f"No .tif files found in {thumbnail_dir}")
@@ -25,7 +26,7 @@ def check_thumbnail_naming(thumbnail_dir):
         print(f"  {i+1}. {f}")
 
     # Check naming pattern
-    uses_rust_pattern = all(f.replace('.tif', '').isdigit() for f in files)
+    uses_rust_pattern = all(f.replace(".tif", "").isdigit() for f in files)
 
     if uses_rust_pattern:
         print("✓ Uses Rust naming pattern (sequential numbers like 000000.tif)")
@@ -34,11 +35,12 @@ def check_thumbnail_naming(thumbnail_dir):
 
     return uses_rust_pattern
 
+
 def main():
     """Main test function."""
-    print("="*60)
+    print("=" * 60)
     print("Thumbnail Naming Consistency Test")
-    print("="*60)
+    print("=" * 60)
 
     if len(sys.argv) > 1:
         base_dir = sys.argv[1]
@@ -70,14 +72,15 @@ def main():
         else:
             break
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     if all_consistent:
         print("✓ SUCCESS: All thumbnail levels use consistent Rust naming pattern")
     else:
         print("✗ INCONSISTENT: Some levels use legacy Python naming pattern")
         print("  This may happen if thumbnails were generated with different versions")
         print("  Consider regenerating thumbnails for consistency")
-    print("="*60)
+    print("=" * 60)
+
 
 if __name__ == "__main__":
     main()

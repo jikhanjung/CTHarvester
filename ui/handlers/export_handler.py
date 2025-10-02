@@ -70,10 +70,7 @@ class ExportHandler:
             str: Selected filename, or empty string if cancelled
         """
         obj_filename, _ = QFileDialog.getSaveFileName(
-            self.window,
-            "Save File As",
-            self.window.edtDirname.text(),
-            "OBJ format (*.obj)"
+            self.window, "Save File As", self.window.edtDirname.text(), "OBJ format (*.obj)"
         )
 
         if obj_filename:
@@ -102,11 +99,7 @@ class ExportHandler:
 
         # Transform vertices (swap axes for correct orientation)
         for i in range(len(vertices)):
-            vertices[i] = np.array([
-                vertices[i][2],
-                vertices[i][0],
-                vertices[i][1]
-            ])
+            vertices[i] = np.array([vertices[i][2], vertices[i][0], vertices[i][1]])
 
         return vertices, triangles
 
@@ -180,9 +173,7 @@ class ExportHandler:
             str: Selected directory, or empty string if cancelled
         """
         target_dirname = QFileDialog.getExistingDirectory(
-            self.window,
-            self.window.tr("Select directory to save"),
-            self.window.edtDirname.text()
+            self.window, self.window.tr("Select directory to save"), self.window.edtDirname.text()
         )
 
         if not target_dirname:
@@ -242,12 +233,7 @@ class ExportHandler:
 
             # Process and save image
             try:
-                self._process_and_save_image(
-                    source_path,
-                    target_dir,
-                    filename,
-                    crop_info
-                )
+                self._process_and_save_image(source_path, target_dir, filename, crop_info)
             except Exception as e:
                 logger.error(f"Error opening/saving image {source_path}: {e}")
                 continue
@@ -312,12 +298,9 @@ class ExportHandler:
         with Image.open(source_path) as img:
             # Apply crop if specified
             if crop_info["from_x"] > -1:
-                img = img.crop((
-                    crop_info["from_x"],
-                    crop_info["from_y"],
-                    crop_info["to_x"],
-                    crop_info["to_y"]
-                ))
+                img = img.crop(
+                    (crop_info["from_x"], crop_info["from_y"], crop_info["to_x"], crop_info["to_y"])
+                )
 
             # Save image with secure path
             output_path = validator.safe_join(target_dir, filename)
@@ -332,12 +315,8 @@ class ExportHandler:
             current (int): Current progress (1-based)
             total (int): Total count
         """
-        progress_dialog.lbl_text.setText(
-            self.window.progress_text_1_2.format(current, total)
-        )
-        progress_dialog.pb_progress.setValue(
-            int((current / float(total)) * 100)
-        )
+        progress_dialog.lbl_text.setText(self.window.progress_text_1_2.format(current, total))
+        progress_dialog.pb_progress.setValue(int((current / float(total)) * 100))
         progress_dialog.update()
         QApplication.processEvents()
 
@@ -348,8 +327,4 @@ class ExportHandler:
         Args:
             message (str): Error message to display
         """
-        QMessageBox.critical(
-            self.window,
-            self.window.tr("Error"),
-            self.window.tr(message)
-        )
+        QMessageBox.critical(self.window, self.window.tr("Error"), self.window.tr(message))

@@ -301,6 +301,7 @@ class TestSettingsDialogSaveLoad:
 
     def test_apply_button_saves_settings(self, dialog, qtbot, settings_manager, monkeypatch):
         """Apply button should save without closing"""
+
         # Mock message box that appears after applying settings
         def mock_information(*args, **kwargs):
             return QMessageBox.Ok
@@ -325,6 +326,7 @@ class TestSettingsDialogSaveLoad:
 
     def test_ok_button_saves_and_closes(self, dialog, qtbot, settings_manager, monkeypatch):
         """OK button should save and close"""
+
         # Mock message box
         def mock_information(*args, **kwargs):
             return QMessageBox.Ok
@@ -684,6 +686,7 @@ class TestDialogIntegration:
 
     def test_settings_dialog_workflow(self, qtbot, tmp_path, monkeypatch):
         """Test complete settings workflow"""
+
         # Mock message box
         def mock_information(*args, **kwargs):
             return QMessageBox.Ok

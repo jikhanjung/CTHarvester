@@ -99,7 +99,9 @@ class TestInfoDialog:
         labels = dialog.findChildren(QLabel)
 
         # Find copyright label
-        copyright_labels = [label for label in labels if "©" in label.text() or "2023" in label.text()]
+        copyright_labels = [
+            label for label in labels if "©" in label.text() or "2023" in label.text()
+        ]
         assert len(copyright_labels) > 0
 
         # Should contain year
@@ -245,7 +247,9 @@ class TestShortcutDialog:
 
         # At least some common modifiers should appear
         # (Ctrl, Shift, etc. in various combinations)
-        has_shortcuts = any("Ctrl" in text or "Shift" in text or "Alt" in text for text in label_texts)
+        has_shortcuts = any(
+            "Ctrl" in text or "Shift" in text or "Alt" in text for text in label_texts
+        )
         assert has_shortcuts
 
     def test_shortcut_descriptions_display(self, dialog):

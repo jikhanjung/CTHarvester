@@ -36,7 +36,7 @@ def setup_logger(name, log_dir=None, level=logging.INFO, console_level=None):
         logger = setup_logger('CTHarvester')
     """
     # Read log level from environment variable
-    env_level = os.getenv('CTHARVESTER_LOG_LEVEL')
+    env_level = os.getenv("CTHARVESTER_LOG_LEVEL")
     if env_level:
         try:
             level = getattr(logging, env_level.upper())
@@ -44,7 +44,7 @@ def setup_logger(name, log_dir=None, level=logging.INFO, console_level=None):
             print(f"Warning: Invalid log level '{env_level}', using default")
 
     # Read console level from environment variable
-    env_console_level = os.getenv('CTHARVESTER_CONSOLE_LEVEL')
+    env_console_level = os.getenv("CTHARVESTER_CONSOLE_LEVEL")
     if env_console_level:
         try:
             console_level = getattr(logging, env_console_level.upper())
@@ -54,12 +54,12 @@ def setup_logger(name, log_dir=None, level=logging.INFO, console_level=None):
         console_level = level
 
     # Read log directory from environment variable
-    env_log_dir = os.getenv('CTHARVESTER_LOG_DIR')
+    env_log_dir = os.getenv("CTHARVESTER_LOG_DIR")
     if env_log_dir:
         log_dir = env_log_dir
     elif log_dir is None:
-        user_profile = os.path.expanduser('~')
-        log_dir = os.path.join(user_profile, "PaleoBytes", name.replace(' ', '_'), "logs")
+        user_profile = os.path.expanduser("~")
+        log_dir = os.path.join(user_profile, "PaleoBytes", name.replace(" ", "_"), "logs")
 
     # Ensure log directory exists
     if not os.path.exists(log_dir):
@@ -76,11 +76,11 @@ def setup_logger(name, log_dir=None, level=logging.INFO, console_level=None):
     logfile_path = os.path.join(log_dir, f"{name.replace(' ', '_')}.{date_str}.log")
 
     # Create formatter
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     # Create file handler
     try:
-        handler = logging.FileHandler(logfile_path, encoding='utf-8')
+        handler = logging.FileHandler(logfile_path, encoding="utf-8")
         handler.setFormatter(formatter)
         handler.setLevel(level)
     except Exception as e:

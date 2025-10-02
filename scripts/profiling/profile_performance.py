@@ -39,8 +39,9 @@ def profile_thumbnail_generation(sample_dir: str) -> dict:
     Returns:
         Dictionary with profiling results
     """
-    from core.thumbnail_generator import ThumbnailGenerator
     from unittest.mock import MagicMock
+
+    from core.thumbnail_generator import ThumbnailGenerator
 
     print("=" * 60)
     print("Profiling: Thumbnail Generation")
@@ -52,8 +53,8 @@ def profile_thumbnail_generation(sample_dir: str) -> dict:
     # Mock settings
     mock_settings = MagicMock()
     mock_settings.get.side_effect = lambda key, default=None: {
-        'thumbnails.max_size': 128,
-        'thumbnails.use_rust': False  # Profile Python implementation
+        "thumbnails.max_size": 128,
+        "thumbnails.use_rust": False,  # Profile Python implementation
     }.get(key, default)
 
     mock_threadpool = MagicMock()
@@ -68,12 +69,9 @@ def profile_thumbnail_generation(sample_dir: str) -> dict:
 
     try:
         result = generator.generate(
-            str(sample_dir),
-            mock_settings,
-            mock_threadpool,
-            use_rust_preference=False
+            str(sample_dir), mock_settings, mock_threadpool, use_rust_preference=False
         )
-        success = result.get('success', False)
+        success = result.get("success", False)
     except Exception as e:
         print(f"Error during profiling: {e}")
         success = False
@@ -83,7 +81,7 @@ def profile_thumbnail_generation(sample_dir: str) -> dict:
 
     # Generate statistics
     stats = pstats.Stats(profiler)
-    stats.sort_stats('cumulative')
+    stats.sort_stats("cumulative")
 
     # Capture top functions
     stream = StringIO()
@@ -105,7 +103,7 @@ def profile_thumbnail_generation(sample_dir: str) -> dict:
         "success": success,
         "elapsed_time": elapsed,
         "profile_file": str(profile_file),
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
 
@@ -118,8 +116,8 @@ def profile_image_processing(sample_dir: str) -> dict:
     Returns:
         Dictionary with profiling results
     """
-    from PIL import Image
     import numpy as np
+    from PIL import Image
 
     print("\n" + "=" * 60)
     print("Profiling: Image Processing")
@@ -154,7 +152,7 @@ def profile_image_processing(sample_dir: str) -> dict:
 
     # Generate statistics
     stats = pstats.Stats(profiler)
-    stats.sort_stats('cumulative')
+    stats.sort_stats("cumulative")
 
     # Save profile
     profile_file = project_root / "performance_data" / "image_processing.prof"
@@ -176,7 +174,7 @@ def profile_image_processing(sample_dir: str) -> dict:
         "images_processed": len(image_files),
         "avg_time_per_image": elapsed / len(image_files),
         "profile_file": str(profile_file),
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
 
@@ -184,22 +182,22 @@ def main():
     """Main profiling function"""
     parser = argparse.ArgumentParser(description="Profile CTHarvester performance")
     parser.add_argument(
-        '--operation',
-        choices=['thumbnail_generation', 'image_processing', 'all'],
-        default='all',
-        help='Operation to profile'
+        "--operation",
+        choices=["thumbnail_generation", "image_processing", "all"],
+        default="all",
+        help="Operation to profile",
     )
     parser.add_argument(
-        '--sample-dir',
+        "--sample-dir",
         type=str,
-        default='tests/fixtures/sample_ct_data',
-        help='Directory with sample CT data'
+        default="tests/fixtures/sample_ct_data",
+        help="Directory with sample CT data",
     )
     parser.add_argument(
-        '--output',
+        "--output",
         type=str,
-        default='performance_data/profile_results.json',
-        help='Output file for results'
+        default="performance_data/profile_results.json",
+        help="Output file for results",
     )
 
     args = parser.parse_args()
@@ -214,11 +212,11 @@ def main():
     # Run profiling
     results = []
 
-    if args.operation in ['thumbnail_generation', 'all']:
+    if args.operation in ["thumbnail_generation", "all"]:
         result = profile_thumbnail_generation(sample_dir)
         results.append(result)
 
-    if args.operation in ['image_processing', 'all']:
+    if args.operation in ["image_processing", "all"]:
         result = profile_image_processing(sample_dir)
         results.append(result)
 
@@ -226,12 +224,16 @@ def main():
     output_file = project_root / args.output
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_file, 'w') as f:
-        json.dump({
-            "profiling_date": datetime.now().isoformat(),
-            "sample_directory": str(sample_dir),
-            "results": results
-        }, f, indent=2)
+    with open(output_file, "w") as f:
+        json.dump(
+            {
+                "profiling_date": datetime.now().isoformat(),
+                "sample_directory": str(sample_dir),
+                "results": results,
+            },
+            f,
+            indent=2,
+        )
 
     print("\n" + "=" * 60)
     print(f"✅ All profiling complete!")
@@ -241,5 +243,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

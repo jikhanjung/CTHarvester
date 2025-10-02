@@ -24,7 +24,7 @@ class TestProgressInfo:
             percentage=50.0,
             eta_seconds=30.0,
             elapsed_seconds=30.0,
-            speed=1.67
+            speed=1.67,
         )
 
         assert info.current == 50
@@ -37,12 +37,7 @@ class TestProgressInfo:
     def test_eta_formatted_calculating(self):
         """Test ETA formatting when ETA is not available"""
         info = ProgressInfo(
-            current=5,
-            total=100,
-            percentage=5.0,
-            eta_seconds=None,
-            elapsed_seconds=1.0,
-            speed=5.0
+            current=5, total=100, percentage=5.0, eta_seconds=None, elapsed_seconds=1.0, speed=5.0
         )
 
         assert info.eta_formatted == "Calculating..."
@@ -55,7 +50,7 @@ class TestProgressInfo:
             percentage=50.0,
             eta_seconds=45.0,
             elapsed_seconds=45.0,
-            speed=1.11
+            speed=1.11,
         )
 
         assert info.eta_formatted == "45s"
@@ -68,7 +63,7 @@ class TestProgressInfo:
             percentage=50.0,
             eta_seconds=150.0,  # 2m 30s
             elapsed_seconds=150.0,
-            speed=0.33
+            speed=0.33,
         )
 
         assert info.eta_formatted == "2m 30s"
@@ -81,7 +76,7 @@ class TestProgressInfo:
             percentage=10.0,
             eta_seconds=4500.0,  # 1h 15m
             elapsed_seconds=500.0,
-            speed=0.02
+            speed=0.02,
         )
 
         assert info.eta_formatted == "1h 15m"
@@ -94,7 +89,7 @@ class TestProgressInfo:
             percentage=10.0,
             eta_seconds=None,
             elapsed_seconds=45.0,
-            speed=0.22
+            speed=0.22,
         )
 
         assert info.elapsed_formatted == "45s"
@@ -107,7 +102,7 @@ class TestProgressInfo:
             percentage=50.0,
             eta_seconds=None,
             elapsed_seconds=150.0,  # 2m 30s
-            speed=0.33
+            speed=0.33,
         )
 
         assert info.elapsed_formatted == "2m 30s"
@@ -120,7 +115,7 @@ class TestProgressInfo:
             percentage=90.0,
             eta_seconds=None,
             elapsed_seconds=4500.0,  # 1h 15m
-            speed=0.02
+            speed=0.02,
         )
 
         assert info.elapsed_formatted == "1h 15m"
@@ -129,22 +124,34 @@ class TestProgressInfo:
         """Test ETA formatting edge cases"""
         # Exactly 1 minute
         info = ProgressInfo(
-            current=50, total=100, percentage=50.0,
-            eta_seconds=60.0, elapsed_seconds=60.0, speed=0.83
+            current=50,
+            total=100,
+            percentage=50.0,
+            eta_seconds=60.0,
+            elapsed_seconds=60.0,
+            speed=0.83,
         )
         assert info.eta_formatted == "1m 0s"
 
         # Exactly 1 hour
         info = ProgressInfo(
-            current=50, total=100, percentage=50.0,
-            eta_seconds=3600.0, elapsed_seconds=3600.0, speed=0.014
+            current=50,
+            total=100,
+            percentage=50.0,
+            eta_seconds=3600.0,
+            elapsed_seconds=3600.0,
+            speed=0.014,
         )
         assert info.eta_formatted == "1h 0m"
 
         # Zero seconds
         info = ProgressInfo(
-            current=99, total=100, percentage=99.0,
-            eta_seconds=0.5, elapsed_seconds=100.0, speed=0.99
+            current=99,
+            total=100,
+            percentage=99.0,
+            eta_seconds=0.5,
+            elapsed_seconds=100.0,
+            speed=0.99,
         )
         assert info.eta_formatted == "0s"
 
@@ -168,10 +175,7 @@ class TestSimpleProgressTracker:
         """Test tracker initialization with custom parameters"""
         callback = MagicMock()
         tracker = SimpleProgressTracker(
-            total_items=50,
-            callback=callback,
-            smoothing_window=20,
-            min_samples_for_eta=10
+            total_items=50, callback=callback, smoothing_window=20, min_samples_for_eta=10
         )
 
         assert tracker.total_items == 50
@@ -248,11 +252,7 @@ class TestSimpleProgressTracker:
     def test_eta_calculation_requires_minimum_samples(self):
         """Test that ETA requires minimum samples"""
         callback = MagicMock()
-        tracker = SimpleProgressTracker(
-            total_items=100,
-            callback=callback,
-            min_samples_for_eta=5
-        )
+        tracker = SimpleProgressTracker(total_items=100, callback=callback, min_samples_for_eta=5)
 
         # First update - not enough samples
         tracker.update()
@@ -271,11 +271,7 @@ class TestSimpleProgressTracker:
     def test_eta_calculation_with_speed(self):
         """Test ETA calculation based on speed"""
         callback = MagicMock()
-        tracker = SimpleProgressTracker(
-            total_items=100,
-            callback=callback,
-            min_samples_for_eta=1
-        )
+        tracker = SimpleProgressTracker(total_items=100, callback=callback, min_samples_for_eta=1)
 
         # Simulate work
         for i in range(10):
@@ -292,11 +288,7 @@ class TestSimpleProgressTracker:
 
     def test_moving_average_smoothing(self):
         """Test moving average window for speed smoothing"""
-        tracker = SimpleProgressTracker(
-            total_items=100,
-            smoothing_window=3,
-            min_samples_for_eta=1
-        )
+        tracker = SimpleProgressTracker(total_items=100, smoothing_window=3, min_samples_for_eta=1)
 
         # Add 5 updates
         for _ in range(5):
@@ -370,11 +362,7 @@ class TestSimpleProgressTracker:
     def test_completion_scenario(self):
         """Test complete workflow from start to finish"""
         callback = MagicMock()
-        tracker = SimpleProgressTracker(
-            total_items=10,
-            callback=callback,
-            min_samples_for_eta=2
-        )
+        tracker = SimpleProgressTracker(total_items=10, callback=callback, min_samples_for_eta=2)
 
         # Simulate processing 10 items
         for i in range(10):
@@ -425,14 +413,14 @@ class TestSimpleProgressTracker:
         info = callback.call_args[0][0]
 
         # Verify all ProgressInfo fields are present
-        assert hasattr(info, 'current')
-        assert hasattr(info, 'total')
-        assert hasattr(info, 'percentage')
-        assert hasattr(info, 'eta_seconds')
-        assert hasattr(info, 'elapsed_seconds')
-        assert hasattr(info, 'speed')
-        assert hasattr(info, 'eta_formatted')
-        assert hasattr(info, 'elapsed_formatted')
+        assert hasattr(info, "current")
+        assert hasattr(info, "total")
+        assert hasattr(info, "percentage")
+        assert hasattr(info, "eta_seconds")
+        assert hasattr(info, "elapsed_seconds")
+        assert hasattr(info, "speed")
+        assert hasattr(info, "eta_formatted")
+        assert hasattr(info, "elapsed_formatted")
 
 
 @pytest.mark.integration
@@ -444,16 +432,12 @@ class TestProgressTrackerIntegration:
         results = []
 
         def collect_progress(info: ProgressInfo):
-            results.append({
-                'percentage': info.percentage,
-                'speed': info.speed,
-                'eta': info.eta_seconds
-            })
+            results.append(
+                {"percentage": info.percentage, "speed": info.speed, "eta": info.eta_seconds}
+            )
 
         tracker = SimpleProgressTracker(
-            total_items=50,
-            callback=collect_progress,
-            min_samples_for_eta=3
+            total_items=50, callback=collect_progress, min_samples_for_eta=3
         )
 
         # Simulate processing
@@ -462,11 +446,11 @@ class TestProgressTrackerIntegration:
             tracker.update()
 
         # Verify progress went from 0 to 100%
-        assert results[0]['percentage'] == 2.0  # First update: 1/50
-        assert results[-1]['percentage'] == 100.0  # Last update: 50/50
+        assert results[0]["percentage"] == 2.0  # First update: 1/50
+        assert results[-1]["percentage"] == 100.0  # Last update: 50/50
 
         # Verify ETA decreased over time (after initial samples)
-        etas_with_values = [r['eta'] for r in results[3:] if r['eta'] is not None]
+        etas_with_values = [r["eta"] for r in results[3:] if r["eta"] is not None]
         if len(etas_with_values) > 1:
             # ETA should generally decrease (allowing some fluctuation)
             assert etas_with_values[-1] < etas_with_values[0]
@@ -478,11 +462,7 @@ class TestProgressTrackerIntegration:
         def collect_speed(info: ProgressInfo):
             speeds.append(info.speed)
 
-        tracker = SimpleProgressTracker(
-            total_items=20,
-            callback=collect_speed,
-            smoothing_window=5
-        )
+        tracker = SimpleProgressTracker(total_items=20, callback=collect_speed, smoothing_window=5)
 
         # Variable speed processing
         for i in range(20):

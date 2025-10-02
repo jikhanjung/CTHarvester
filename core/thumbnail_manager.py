@@ -137,11 +137,14 @@ class ThumbnailManager(QObject):
             # Fallback: try to read from settings
             try:
                 from utils.settings_manager import SettingsManager
+
                 settings = SettingsManager()
                 from config.constants import DEFAULT_SAMPLE_SIZE
-                self.sample_size = settings.get('thumbnails.sample_size', DEFAULT_SAMPLE_SIZE)
+
+                self.sample_size = settings.get("thumbnails.sample_size", DEFAULT_SAMPLE_SIZE)
             except (ImportError, KeyError, AttributeError):
                 from config.constants import DEFAULT_SAMPLE_SIZE
+
                 self.sample_size = DEFAULT_SAMPLE_SIZE  # Default value
 
         # Inherit performance data from parent if exists (from previous levels)
@@ -344,7 +347,7 @@ class ThumbnailManager(QObject):
                     try:
                         with Image.open(filename3) as img:
                             img_array = np.array(img)
-                    except (OSError, IOError) as e:
+                    except OSError as e:
                         logger.error(f"Error loading thumbnail {filename3}: {e}")
             else:
                 # Generate new thumbnail
@@ -374,7 +377,7 @@ class ThumbnailManager(QObject):
                                 if img1.mode == "P":
                                     img1 = img1.convert("L")
                                 arr1 = np.array(img1)
-                        except (OSError, IOError) as e:
+                        except OSError as e:
                             logger.error(f"Error loading {filename1}: {e}")
 
                     if file2_path and os.path.exists(file2_path):
@@ -387,7 +390,7 @@ class ThumbnailManager(QObject):
                                 if img2.mode == "P":
                                     img2 = img2.convert("L")
                                 arr2 = np.array(img2)
-                        except (OSError, IOError) as e:
+                        except OSError as e:
                             logger.error(f"Error loading {filename2}: {e}")
 
                     # Average and resize
@@ -414,9 +417,9 @@ class ThumbnailManager(QObject):
 
                             if size < max_thumbnail_size:
                                 img_array = downsampled
-                        except (OSError, IOError, ValueError) as e:
+                        except (OSError, ValueError) as e:
                             logger.error(f"Error creating thumbnail: {e}")
-                except (OSError, IOError, ValueError) as e:
+                except (OSError, ValueError) as e:
                     logger.error(f"Unexpected error in thumbnail processing: {e}")
 
             # Update progress
@@ -442,8 +445,12 @@ class ThumbnailManager(QObject):
                 logger.info(f"Task {idx}: {task_time:.1f}ms")
 
             # Update ETA periodically
-            from config.constants import PROGRESS_LOG_INTERVAL, PROGRESS_LOG_INITIAL
-            if self.completed_tasks % PROGRESS_LOG_INTERVAL == 0 or self.completed_tasks <= PROGRESS_LOG_INITIAL:
+            from config.constants import PROGRESS_LOG_INITIAL, PROGRESS_LOG_INTERVAL
+
+            if (
+                self.completed_tasks % PROGRESS_LOG_INTERVAL == 0
+                or self.completed_tasks <= PROGRESS_LOG_INITIAL
+            ):
                 self.update_eta_and_progress()
                 QApplication.processEvents()
 
@@ -558,13 +565,19 @@ class ThumbnailManager(QObject):
                 if isinstance(level_work_dist[level], dict):
                     # Dict format: {'level': 1, 'images': 757, 'weight': 0.25}
                     for level_info in level_work_dist:
-                        if level_info["level"] == level + 1:  # level is 0-indexed, but stored as 1-indexed
+                        if (
+                            level_info["level"] == level + 1
+                        ):  # level is 0-indexed, but stored as 1-indexed
                             self.level_weight = level_info["weight"]
-                            logger.info(f"Level {level+1}: Using weight factor {self.level_weight:.4f}")
+                            logger.info(
+                                f"Level {level+1}: Using weight factor {self.level_weight:.4f}"
+                            )
                             break
                 else:
                     # For now, use default weight if we only have int list
-                    logger.warning(f"Level {level+1}: level_work_distribution is int list, using default weight")
+                    logger.warning(
+                        f"Level {level+1}: level_work_distribution is int list, using default weight"
+                    )
         self.results.clear()
         self.is_cancelled = False
 
@@ -617,6 +630,7 @@ class ThumbnailManager(QObject):
             while self.threadpool.activeThreadCount() > 0 and time.time() - wait_start < 30:
                 QApplication.processEvents()
                 from config.constants import PROGRESS_UPDATE_INTERVAL_MS
+
                 QThread.msleep(PROGRESS_UPDATE_INTERVAL_MS)
             if self.threadpool.activeThreadCount() > 0:
                 logger.warning(
@@ -931,7 +945,7 @@ class ThumbnailManager(QObject):
                 level1_time = total * time_per_image
                 total_estimate = level1_time
                 remaining_time = level1_time
-                for i in range(1, getattr(self.parent, 'total_levels', 1)):  # type: ignore[attr-defined]
+                for i in range(1, getattr(self.parent, "total_levels", 1)):  # type: ignore[attr-defined]
                     remaining_time *= 0.25
                     total_estimate += remaining_time
 
@@ -970,7 +984,7 @@ class ThumbnailManager(QObject):
                 level1_time = total * time_per_image
                 total_estimate = level1_time
                 remaining_time = level1_time
-                for i in range(1, getattr(self.parent, 'total_levels', 1)):  # type: ignore[attr-defined]
+                for i in range(1, getattr(self.parent, "total_levels", 1)):  # type: ignore[attr-defined]
                     remaining_time *= 0.25
                     total_estimate += remaining_time
 
@@ -1024,7 +1038,7 @@ class ThumbnailManager(QObject):
                 level1_time = total * time_per_image
                 total_estimate = level1_time
                 remaining_time = level1_time
-                for i in range(1, getattr(self.parent, 'total_levels', 1)):  # type: ignore[attr-defined]
+                for i in range(1, getattr(self.parent, "total_levels", 1)):  # type: ignore[attr-defined]
                     remaining_time *= 0.25
                     total_estimate += remaining_time
 
@@ -1081,17 +1095,17 @@ class ThumbnailManager(QObject):
                 logger.info(f"=== FINAL ESTIMATED TOTAL TIME: {formatted_estimate} ===")
 
                 # Store sampled estimate for comparison
-                setattr(self.parent, 'sampled_estimate_seconds', total_estimate)  # type: ignore[attr-defined]
-                setattr(self.parent, 'sampled_estimate_str', formatted_estimate)  # type: ignore[attr-defined]
+                setattr(self.parent, "sampled_estimate_seconds", total_estimate)  # type: ignore[attr-defined]
+                setattr(self.parent, "sampled_estimate_str", formatted_estimate)  # type: ignore[attr-defined]
 
                 # Update parent's estimate and save performance data for next levels
                 setattr(  # type: ignore[attr-defined]
                     self.parent,
-                    'estimated_time_per_image',
-                    1.0 / self.images_per_second if self.images_per_second > 0 else 0.05
+                    "estimated_time_per_image",
+                    1.0 / self.images_per_second if self.images_per_second > 0 else 0.05,
                 )
-                setattr(self.parent, 'estimated_total_time', total_estimate)  # type: ignore[attr-defined]
-                setattr(self.parent, 'measured_images_per_second', self.images_per_second)  # type: ignore[attr-defined]
+                setattr(self.parent, "estimated_total_time", total_estimate)  # type: ignore[attr-defined]
+                setattr(self.parent, "measured_images_per_second", self.images_per_second)  # type: ignore[attr-defined]
 
                 self.is_sampling = False
                 logger.info(f"Multi-stage sampling completed")

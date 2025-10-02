@@ -59,7 +59,8 @@ class ProgressInfo:
         if self.eta_seconds is None:
             return "Calculating..."
 
-        from config.constants import SECONDS_PER_MINUTE, SECONDS_PER_HOUR
+        from config.constants import SECONDS_PER_HOUR, SECONDS_PER_MINUTE
+
         if self.eta_seconds < SECONDS_PER_MINUTE:
             return f"{int(self.eta_seconds)}s"
         elif self.eta_seconds < SECONDS_PER_HOUR:

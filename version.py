@@ -2,6 +2,7 @@
 CTHarvester Version Information
 Single Source of Truth for version management
 """
+
 import semver
 
 __version__ = "0.2.3-beta.1"

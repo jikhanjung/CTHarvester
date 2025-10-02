@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class ImageMetadata(TypedDict):
     """Metadata extracted from image file"""
+
     width: int
     height: int
     bit_depth: int  # 8 or 16
@@ -243,11 +244,11 @@ def load_image_with_metadata(image_path: str) -> Tuple[np.ndarray, ImageMetadata
             file_size = os.path.getsize(image_path)
 
             metadata: ImageMetadata = {
-                'width': width,
-                'height': height,
-                'bit_depth': bit_depth,
-                'mode': mode,
-                'file_size': file_size
+                "width": width,
+                "height": height,
+                "bit_depth": bit_depth,
+                "mode": mode,
+                "file_size": file_size,
             }
 
             return img_array, metadata
@@ -257,10 +258,7 @@ def load_image_with_metadata(image_path: str) -> Tuple[np.ndarray, ImageMetadata
         raise ValueError(f"Cannot load image: {e}") from e
 
 
-def load_image_normalized(
-    image_path: str,
-    target_bit_depth: int = 8
-) -> np.ndarray:
+def load_image_normalized(image_path: str, target_bit_depth: int = 8) -> np.ndarray:
     """Load image and normalize to target bit depth
 
     Handles conversion between 8-bit and 16-bit automatically, useful when
@@ -287,14 +285,14 @@ def load_image_normalized(
 
     img_array, metadata = load_image_with_metadata(image_path)
 
-    if metadata['bit_depth'] == target_bit_depth:
+    if metadata["bit_depth"] == target_bit_depth:
         return img_array
-    elif metadata['bit_depth'] == 16 and target_bit_depth == 8:
+    elif metadata["bit_depth"] == 16 and target_bit_depth == 8:
         # Convert 16-bit to 8-bit by bit-shifting
         return (img_array >> 8).astype(np.uint8)
-    elif metadata['bit_depth'] == 8 and target_bit_depth == 16:
+    elif metadata["bit_depth"] == 8 and target_bit_depth == 16:
         # Convert 8-bit to 16-bit by bit-shifting
-        return (img_array.astype(np.uint16) << 8)
+        return img_array.astype(np.uint16) << 8
     else:
         raise ValueError(
             f"Unsupported bit depth conversion: {metadata['bit_depth']} -> {target_bit_depth}"

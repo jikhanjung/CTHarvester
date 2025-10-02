@@ -46,7 +46,7 @@ class TestWindowSettingsHandler:
     @pytest.fixture
     def handler(self, mock_window, mock_settings_manager, mock_app):
         """Create a WindowSettingsHandler instance"""
-        with patch('ui.handlers.settings_handler.QApplication.instance', return_value=mock_app):
+        with patch("ui.handlers.settings_handler.QApplication.instance", return_value=mock_app):
             return WindowSettingsHandler(mock_window, mock_settings_manager)
 
     def test_initialization(self, handler, mock_window, mock_settings_manager, mock_app):
@@ -59,7 +59,7 @@ class TestWindowSettingsHandler:
         """Test reading directory settings when remember is enabled"""
         handler.settings.get.side_effect = lambda key, default=None: {
             "window.remember_position": True,
-            "application.default_directory": "/test/path"
+            "application.default_directory": "/test/path",
         }.get(key, default)
 
         handler._read_directory_settings()
@@ -83,7 +83,7 @@ class TestWindowSettingsHandler:
         handler.settings.get.side_effect = lambda key, default=None: {
             "window.remember_size": True,
             "window.main_geometry": {"x": 150, "y": 200, "width": 1024, "height": 768},
-            "window.mcube_geometry": {"x": 5, "y": 10, "width": 200, "height": 200}
+            "window.mcube_geometry": {"x": 5, "y": 10, "width": 200, "height": 200},
         }.get(key, default)
 
         handler._read_geometry_settings()
@@ -162,8 +162,8 @@ class TestWindowSettingsHandler:
         }.get(key, default)
 
         # Remove checkbox attribute
-        if hasattr(handler.window, 'cbxUseRust'):
-            delattr(handler.window, 'cbxUseRust')
+        if hasattr(handler.window, "cbxUseRust"):
+            delattr(handler.window, "cbxUseRust")
 
         # Should not crash
         handler._read_processing_settings()
@@ -179,7 +179,7 @@ class TestWindowSettingsHandler:
             "window.main_geometry": {"x": 100, "y": 100, "width": 800, "height": 600},
             "window.mcube_geometry": {"x": 0, "y": 0, "width": 150, "height": 150},
             "application.language": "ko",
-            "processing.use_rust_module": False
+            "processing.use_rust_module": False,
         }.get(key, default)
 
         handler.read_all_settings()
@@ -232,8 +232,7 @@ class TestWindowSettingsHandler:
         handler._save_directory_settings()
 
         handler.settings.set.assert_called_once_with(
-            "application.default_directory",
-            "/my/custom/path"
+            "application.default_directory", "/my/custom/path"
         )
 
     def test_save_geometry_settings(self, handler):
@@ -249,44 +248,28 @@ class TestWindowSettingsHandler:
 
         # Check main window geometry
         assert calls[0][0][0] == "window.main_geometry"
-        assert calls[0][0][1] == {
-            "x": 150,
-            "y": 200,
-            "width": 1024,
-            "height": 768
-        }
+        assert calls[0][0][1] == {"x": 150, "y": 200, "width": 1024, "height": 768}
 
         # Check mcube geometry
         assert calls[1][0][0] == "window.mcube_geometry"
-        assert calls[1][0][1] == {
-            "x": 5,
-            "y": 10,
-            "width": 250,
-            "height": 250
-        }
+        assert calls[1][0][1] == {"x": 5, "y": 10, "width": 250, "height": 250}
 
     def test_save_processing_settings(self, handler):
         """Test saving processing settings"""
         handler.app.use_rust_thumbnail = False
         handler._save_processing_settings()
 
-        handler.settings.set.assert_called_once_with(
-            "processing.use_rust_module",
-            False
-        )
+        handler.settings.set.assert_called_once_with("processing.use_rust_module", False)
 
     def test_save_processing_settings_default_value(self, handler):
         """Test saving processing settings when attribute doesn't exist"""
         # Remove attribute
-        delattr(handler.app, 'use_rust_thumbnail')
+        delattr(handler.app, "use_rust_thumbnail")
 
         handler._save_processing_settings()
 
         # Should save True as default
-        handler.settings.set.assert_called_once_with(
-            "processing.use_rust_module",
-            True
-        )
+        handler.settings.set.assert_called_once_with("processing.use_rust_module", True)
 
     def test_save_all_settings_remember_enabled(self, handler):
         """Test saving all settings when remember options are enabled"""
@@ -322,7 +305,9 @@ class TestWindowSettingsHandler:
             handler.save_all_settings()
 
         # Verify error was logged
-        assert any("Error saving main window settings" in record.message for record in caplog.records)
+        assert any(
+            "Error saving main window settings" in record.message for record in caplog.records
+        )
 
     def test_geometry_dict_validation(self, handler):
         """Test geometry settings with invalid dict format"""
@@ -330,7 +315,7 @@ class TestWindowSettingsHandler:
         handler.settings.get.side_effect = lambda key, default=None: {
             "window.remember_size": True,
             "window.main_geometry": "invalid",  # Not a dict
-            "window.mcube_geometry": None  # None value
+            "window.mcube_geometry": None,  # None value
         }.get(key, default)
 
         handler._read_geometry_settings()
@@ -346,7 +331,7 @@ class TestWindowSettingsHandler:
         handler.settings.get.side_effect = lambda key, default=None: {
             "window.remember_size": True,
             "window.main_geometry": {"x": 200},  # Missing y, width, height
-            "window.mcube_geometry": {"width": 300, "height": 400}  # Missing x, y
+            "window.mcube_geometry": {"width": 300, "height": 400},  # Missing x, y
         }.get(key, default)
 
         handler._read_geometry_settings()
@@ -379,6 +364,7 @@ class TestWindowSettingsHandlerIntegration:
     def real_settings_manager(self, temp_config_dir):
         """Create a real SettingsManager instance"""
         from utils.settings_manager import SettingsManager
+
         return SettingsManager(temp_config_dir)
 
     @pytest.fixture
@@ -398,7 +384,9 @@ class TestWindowSettingsHandlerIntegration:
     @pytest.fixture
     def handler_real(self, mock_window_real, real_settings_manager, mock_app_real):
         """Create a handler with real SettingsManager"""
-        with patch('ui.handlers.settings_handler.QApplication.instance', return_value=mock_app_real):
+        with patch(
+            "ui.handlers.settings_handler.QApplication.instance", return_value=mock_app_real
+        ):
             return WindowSettingsHandler(mock_window_real, real_settings_manager)
 
     def test_full_save_load_cycle(self, handler_real):
@@ -418,7 +406,7 @@ class TestWindowSettingsHandlerIntegration:
         new_window = MagicMock()
         new_window.mcube_widget.geometry.return_value = QRect(10, 20, 200, 200)
 
-        with patch('ui.handlers.settings_handler.QApplication.instance', return_value=new_app):
+        with patch("ui.handlers.settings_handler.QApplication.instance", return_value=new_app):
             new_handler = WindowSettingsHandler(new_window, handler_real.settings)
 
         # Load settings

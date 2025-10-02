@@ -54,6 +54,7 @@ from OpenGL.GL import (
     glViewport,
 )
 from OpenGL.GLU import gluLookAt, gluPerspective
+from PIL import Image
 from PyQt5.QtCore import Qt, QThread, QThreadPool, QTimer, pyqtSignal
 from PyQt5.QtGui import QCursor, QPixmap
 from PyQt5.QtOpenGL import QGLWidget
@@ -219,12 +220,16 @@ class MCubeWidget(QGLWidget):
         self.moveButton.mouseMoveEvent = self.moveButton_mouseMoveEvent
         self.moveButton.mouseReleaseEvent = self.moveButton_mouseReleaseEvent
         self.expandButton = QLabel(self)
-        self.expandButton.setPixmap(QPixmap(resource_path("resources/icons/expand.png")).scaled(15, 15))
+        self.expandButton.setPixmap(
+            QPixmap(resource_path("resources/icons/expand.png")).scaled(15, 15)
+        )
         self.expandButton.hide()
         self.expandButton.setGeometry(15, 0, 15, 15)
         self.expandButton.mousePressEvent = self.expandButton_mousePressEvent
         self.shrinkButton = QLabel(self)
-        self.shrinkButton.setPixmap(QPixmap(resource_path("resources/icons/shrink.png")).scaled(15, 15))
+        self.shrinkButton.setPixmap(
+            QPixmap(resource_path("resources/icons/shrink.png")).scaled(15, 15)
+        )
         self.shrinkButton.hide()
         self.shrinkButton.setGeometry(30, 0, 15, 15)
         self.shrinkButton.mousePressEvent = self.shrinkButton_mousePressEvent

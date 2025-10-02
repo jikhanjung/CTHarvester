@@ -4,10 +4,12 @@ PIL/Pillow Performance Test
 Tests image loading speed to diagnose performance issues
 """
 
-import time
 import os
-from PIL import Image
 import statistics
+import time
+
+from PIL import Image
+
 
 def test_pil_performance(image_dir, num_tests=10):
     """Test PIL image loading performance"""
@@ -15,7 +17,7 @@ def test_pil_performance(image_dir, num_tests=10):
     # Find first few image files
     image_files = []
     for file in os.listdir(image_dir):
-        if file.lower().endswith(('.tif', '.tiff', '.bmp', '.png', '.jpg')):
+        if file.lower().endswith((".tif", ".tiff", ".bmp", ".png", ".jpg")):
             image_files.append(os.path.join(image_dir, file))
             if len(image_files) >= num_tests:
                 break
@@ -72,6 +74,7 @@ def test_pil_performance(image_dir, num_tests=10):
         if slow_count > 0:
             print(f"\n⚠️  {slow_count}/{len(load_times)} images took over 1 second to load!")
             print("This indicates a PIL/system performance issue.")
+
 
 if __name__ == "__main__":
     # Test with the same directory you're using for thumbnails

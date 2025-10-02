@@ -176,7 +176,7 @@ class ThumbnailWorker(QRunnable):
 
             return img, is_16bit
 
-        except (OSError, IOError) as e:
+        except OSError as e:
             logger.error(f"Error loading image {filepath}: {e}")
             return None, False
 
@@ -335,7 +335,7 @@ class ThumbnailWorker(QRunnable):
                         with Image.open(self.filename3) as img:
                             img_array = np.array(img)
                         logger.debug(f"Loaded existing thumbnail shape: {img_array.shape}")
-                    except (OSError, IOError) as e:
+                    except OSError as e:
                         logger.error(f"Error opening existing thumbnail: {e}")
             else:
                 # Generate new thumbnail
@@ -430,7 +430,7 @@ class ThumbnailWorker(QRunnable):
 
             return None
 
-        except (OSError, IOError, ValueError) as e:
+        except (OSError, ValueError) as e:
             logger.error(
                 f"Error creating thumbnail {self.filename3}: {e}\n{traceback.format_exc()}"
             )
@@ -438,5 +438,6 @@ class ThumbnailWorker(QRunnable):
         finally:
             # Periodic garbage collection
             from config.constants import GARBAGE_COLLECTION_INTERVAL
+
             if self.idx % GARBAGE_COLLECTION_INTERVAL == 0:
                 gc.collect()

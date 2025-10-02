@@ -65,9 +65,7 @@ class WindowSettingsHandler:
         self.app.remember_directory = self.settings.get("window.remember_position", True)
 
         if self.app.remember_directory:
-            self.app.default_directory = self.settings.get(
-                "application.default_directory", "."
-            )
+            self.app.default_directory = self.settings.get("application.default_directory", ".")
         else:
             self.app.default_directory = "."
 
@@ -165,10 +163,7 @@ class WindowSettingsHandler:
 
     def _save_directory_settings(self):
         """Save default directory setting."""
-        self.settings.set(
-            "application.default_directory",
-            self.app.default_directory
-        )
+        self.settings.set("application.default_directory", self.app.default_directory)
 
     def _save_geometry_settings(self):
         """Save window geometry settings."""
@@ -176,12 +171,7 @@ class WindowSettingsHandler:
         geom = self.window.geometry()
         self.settings.set(
             "window.main_geometry",
-            {
-                "x": geom.x(),
-                "y": geom.y(),
-                "width": geom.width(),
-                "height": geom.height()
-            },
+            {"x": geom.x(), "y": geom.y(), "width": geom.width(), "height": geom.height()},
         )
 
         # Save mcube widget geometry
@@ -201,6 +191,6 @@ class WindowSettingsHandler:
         # Note: cbxUseRust checkbox doesn't exist in main_window
         # Settings are managed through SettingsDialog instead
         # Only save the current app state (which should be updated by SettingsDialog)
-        current_value = getattr(self.app, 'use_rust_thumbnail', True)
+        current_value = getattr(self.app, "use_rust_thumbnail", True)
         self.settings.set("processing.use_rust_module", current_value)
         logger.info(f"Settings handler: saving processing.use_rust_module = {current_value}")

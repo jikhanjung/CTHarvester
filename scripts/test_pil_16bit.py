@@ -3,10 +3,12 @@
 Test PIL's native 16-bit image handling vs NumPy conversion
 """
 
+import os
 import time
+
 import numpy as np
 from PIL import Image, ImageChops
-import os
+
 
 def test_methods(file1_path, file2_path):
     print(f"Testing with:\n  {file1_path}\n  {file2_path}\n")
@@ -60,10 +62,10 @@ def test_methods(file1_path, file2_path):
         new_h, new_w = h // 2, w // 2
         avg_arr_32 = avg_arr.astype(np.uint32)
         downscaled = (
-            avg_arr_32[0:2*new_h:2, 0:2*new_w:2] +
-            avg_arr_32[0:2*new_h:2, 1:2*new_w:2] +
-            avg_arr_32[1:2*new_h:2, 0:2*new_w:2] +
-            avg_arr_32[1:2*new_h:2, 1:2*new_w:2]
+            avg_arr_32[0 : 2 * new_h : 2, 0 : 2 * new_w : 2]
+            + avg_arr_32[0 : 2 * new_h : 2, 1 : 2 * new_w : 2]
+            + avg_arr_32[1 : 2 * new_h : 2, 0 : 2 * new_w : 2]
+            + avg_arr_32[1 : 2 * new_h : 2, 1 : 2 * new_w : 2]
         ) // 4
         downscaled = downscaled.astype(np.uint16)
         resize_time = (time.time() - start) * 1000
@@ -97,9 +99,12 @@ def test_methods(file1_path, file2_path):
     except Exception as e:
         print(f"  Error: {e}")
 
+
 if __name__ == "__main__":
     # Test with actual TIFF files
-    test_dir = input("Enter directory with TIFF files (or press Enter for D:\\Lichas_tif): ").strip()
+    test_dir = input(
+        "Enter directory with TIFF files (or press Enter for D:\\Lichas_tif): "
+    ).strip()
     if not test_dir:
         test_dir = "D:\\Lichas_tif"
 

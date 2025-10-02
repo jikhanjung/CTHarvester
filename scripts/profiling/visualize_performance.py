@@ -33,11 +33,11 @@ def load_all_metrics(metrics_dir: Path) -> list:
             with open(json_file) as f:
                 data = json.load(f)
 
-            timestamp = data.get('timestamp')
+            timestamp = data.get("timestamp")
             if timestamp:
                 all_metrics.append((timestamp, data))
         except (json.JSONDecodeError, KeyError) as e:
-            print(f"   Skipping {json_file}: {e}")
+            print(f"Â   Skipping {json_file}: {e}")
 
     # Sort by timestamp
     all_metrics.sort(key=lambda x: x[0])
@@ -67,7 +67,7 @@ def generate_ascii_chart(data: list, title: str, width: int = 60) -> str:
 
     for label, value in data:
         bar_length = int((value / max_value) * (width - 25))
-        bar = "ˆ" * bar_length
+        bar = "Âˆ" * bar_length
         lines.append(f"{label:15s} {bar} {value:.2f}")
 
     return "\n".join(lines)
@@ -97,15 +97,15 @@ def generate_text_report(metrics_history: list) -> str:
     memories = []
 
     for timestamp, metrics in metrics_history:
-        thumb = metrics.get('benchmarks', {}).get('thumbnail_generation', {})
-        if thumb.get('success'):
-            speeds.append(thumb.get('images_per_second', 0))
-            times.append(thumb.get('elapsed_time_seconds', 0))
-            if thumb.get('memory_used_mb'):
-                memories.append(thumb['memory_used_mb'])
+        thumb = metrics.get("benchmarks", {}).get("thumbnail_generation", {})
+        if thumb.get("success"):
+            speeds.append(thumb.get("images_per_second", 0))
+            times.append(thumb.get("elapsed_time_seconds", 0))
+            if thumb.get("memory_used_mb"):
+                memories.append(thumb["memory_used_mb"])
 
     if speeds:
-        report.append(f"=Ê Summary ({len(speeds)} measurements)")
+        report.append(f"=ÃŠ Summary ({len(speeds)} measurements)")
         report.append("")
         report.append(f"Thumbnail Generation Speed (images/sec):")
         report.append(f"  Current: {speeds[-1]:.2f}")
@@ -131,23 +131,23 @@ def generate_text_report(metrics_history: list) -> str:
             speed = speeds[i]
             # Parse timestamp
             try:
-                dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-                label = dt.strftime('%m-%d %H:%M')
+                dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                label = dt.strftime("%m-%d %H:%M")
             except:
                 label = f"Entry {len(speeds) + i + 1}"
 
             recent_data.append((label, speed))
 
-        report.append(generate_ascii_chart(
-            recent_data,
-            f"=È Recent Performance (last {recent_count} runs)",
-            width=70
-        ))
+        report.append(
+            generate_ascii_chart(
+                recent_data, f"=Ãˆ Recent Performance (last {recent_count} runs)", width=70
+            )
+        )
         report.append("")
 
     # Memory usage (if available)
     if memories:
-        report.append(f"=¾ Memory Usage (MB):")
+        report.append(f"=Â¾ Memory Usage (MB):")
         report.append(f"  Current: {memories[-1]:.2f}")
         report.append(f"  Average: {sum(memories)/len(memories):.2f}")
         report.append(f"  Min:     {min(memories):.2f}")
@@ -172,9 +172,9 @@ def generate_html_report(metrics_history: list) -> str:
     timestamps = []
 
     for timestamp, metrics in metrics_history:
-        thumb = metrics.get('benchmarks', {}).get('thumbnail_generation', {})
-        if thumb.get('success'):
-            speeds.append(thumb.get('images_per_second', 0))
+        thumb = metrics.get("benchmarks", {}).get("thumbnail_generation", {})
+        if thumb.get("success"):
+            speeds.append(thumb.get("images_per_second", 0))
             timestamps.append(timestamp)
 
     # Simple HTML report (no external dependencies)
@@ -243,10 +243,10 @@ def generate_html_report(metrics_history: list) -> str:
 </head>
 <body>
     <div class="container">
-        <h1>=€ CTHarvester Performance Report</h1>
+        <h1>=Â€ CTHarvester Performance Report</h1>
         <p>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
 
-        <h2>=Ê Summary</h2>
+        <h2>=ÃŠ Summary</h2>
 """
 
     if speeds:
@@ -264,17 +264,19 @@ def generate_html_report(metrics_history: list) -> str:
         if len(speeds) > 1:
             trend = speeds[-1] - speeds[0]
             trend_pct = (trend / speeds[0] * 100) if speeds[0] > 0 else 0
-            trend_class = "metric-value" if trend_pct >= 0 else "metric-value" + ' style="color: #f44336"'
+            trend_class = (
+                "metric-value" if trend_pct >= 0 else "metric-value" + ' style="color: #f44336"'
+            )
             html += f"""
         <div class="metric-card">
-            <h3>=È Trend</h3>
+            <h3>=Ãˆ Trend</h3>
             <p>Change from first measurement: <span class="{trend_class}">{trend_pct:+.1f}%</span></p>
         </div>
 """
 
         # Recent history table
         html += """
-        <h2>=Ë Recent History</h2>
+        <h2>=Ã‹ Recent History</h2>
         <table>
             <tr>
                 <th>Timestamp</th>
@@ -289,14 +291,14 @@ def generate_html_report(metrics_history: list) -> str:
             speed = speeds[i]
 
             try:
-                dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-                ts_display = dt.strftime('%Y-%m-%d %H:%M')
+                dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                ts_display = dt.strftime("%Y-%m-%d %H:%M")
             except:
                 ts_display = timestamp[:19]
 
             # Calculate trend from previous
             if i < -1:
-                prev_speed = speeds[i-1]
+                prev_speed = speeds[i - 1]
                 trend = ((speed - prev_speed) / prev_speed * 100) if prev_speed > 0 else 0
                 trend_str = f"{trend:+.1f}%"
                 trend_color = "#4CAF50" if trend >= 0 else "#f44336"
@@ -334,36 +336,31 @@ def generate_html_report(metrics_history: list) -> str:
 
 def main():
     """Main visualization function"""
-    parser = argparse.ArgumentParser(
-        description="Visualize CTHarvester performance metrics"
-    )
+    parser = argparse.ArgumentParser(description="Visualize CTHarvester performance metrics")
     parser.add_argument(
-        '--metrics-dir',
+        "--metrics-dir",
         type=str,
-        default='performance_data',
-        help='Directory containing metrics JSON files'
+        default="performance_data",
+        help="Directory containing metrics JSON files",
     )
     parser.add_argument(
-        '--output',
-        type=str,
-        default='performance_report.html',
-        help='Output file (HTML or TXT)'
+        "--output", type=str, default="performance_report.html", help="Output file (HTML or TXT)"
     )
     parser.add_argument(
-        '--format',
-        choices=['html', 'text', 'auto'],
-        default='auto',
-        help='Output format (default: auto-detect from extension)'
+        "--format",
+        choices=["html", "text", "auto"],
+        default="auto",
+        help="Output format (default: auto-detect from extension)",
     )
 
     args = parser.parse_args()
 
     # Determine format
-    if args.format == 'auto':
-        if args.output.endswith('.html'):
-            output_format = 'html'
+    if args.format == "auto":
+        if args.output.endswith(".html"):
+            output_format = "html"
         else:
-            output_format = 'text'
+            output_format = "text"
     else:
         output_format = args.format
 
@@ -379,14 +376,14 @@ def main():
     metrics_history = load_all_metrics(metrics_dir)
 
     if not metrics_history:
-        print("   No metrics files found")
+        print("Â   No metrics files found")
         print(f"   Run: python scripts/profiling/collect_performance_metrics.py")
         return 1
 
     print(f"Found {len(metrics_history)} metrics files")
 
     # Generate report
-    if output_format == 'html':
+    if output_format == "html":
         report = generate_html_report(metrics_history)
     else:
         report = generate_text_report(metrics_history)
@@ -395,18 +392,18 @@ def main():
     output_path = project_root / args.output
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         f.write(report)
 
     print(f" Report generated: {output_path}")
 
     # Also print text summary
-    if output_format == 'html':
+    if output_format == "html":
         print("\nPerformance Summary:")
         print(generate_text_report(metrics_history))
 
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

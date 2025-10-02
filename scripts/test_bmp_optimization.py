@@ -3,11 +3,13 @@
 Test BMP optimization strategies
 """
 
+import os
 import time
+
+import cv2
 import numpy as np
 from PIL import Image
-import cv2
-import os
+
 
 def test_bmp_methods(file_path):
     print(f"Testing BMP loading methods for: {file_path}")
@@ -70,6 +72,7 @@ def test_bmp_methods(file_path):
     print(f"  np.array: {convert_time:.1f}ms")
     print(f"  Total: {open_time + load_time + convert_time:.1f}ms\n")
 
+
 if __name__ == "__main__":
     # Test with BMP file
     test_path = input("Enter BMP file path (or directory to find one): ").strip()
@@ -77,11 +80,11 @@ if __name__ == "__main__":
     if os.path.isdir(test_path):
         # Find first BMP file
         for f in os.listdir(test_path):
-            if f.lower().endswith('.bmp'):
+            if f.lower().endswith(".bmp"):
                 test_path = os.path.join(test_path, f)
                 break
 
-    if os.path.exists(test_path) and test_path.lower().endswith('.bmp'):
+    if os.path.exists(test_path) and test_path.lower().endswith(".bmp"):
         test_bmp_methods(test_path)
     else:
         print("No BMP file found. Testing with any image...")

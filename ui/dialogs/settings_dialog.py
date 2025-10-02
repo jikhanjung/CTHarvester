@@ -376,11 +376,13 @@ class SettingsDialog(QDialog):
 
         # Update app state to prevent it from being overwritten on window close
         parent = self.parent()
-        if parent and hasattr(parent, 'm_app'):
+        if parent and hasattr(parent, "m_app"):
             parent.m_app.use_rust_thumbnail = use_rust
             logger.info(f"Settings dialog: updated app.use_rust_thumbnail = {use_rust}")
         else:
-            logger.warning(f"Settings dialog: parent={parent}, has m_app={hasattr(parent, 'm_app') if parent else False}")
+            logger.warning(
+                f"Settings dialog: parent={parent}, has m_app={hasattr(parent, 'm_app') if parent else False}"
+            )
 
         # Rendering
         s.set("rendering.default_threshold", self.threshold_spin.value())

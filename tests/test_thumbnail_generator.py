@@ -235,12 +235,14 @@ class TestThumbnailGenerator:
                 class MockLabel:
                     def __init__(self):
                         self.text = ""
+
                     def setText(self, text):
                         self.text = text
 
                 class MockProgressBar:
                     def __init__(self):
                         self.value = 0
+
                     def setValue(self, value):
                         self.value = value
 
@@ -258,7 +260,7 @@ class TestThumbnailGenerator:
             "seq_end": 9,
             "prefix": "test_",
             "index_length": 4,
-            "file_type": "tif"
+            "file_type": "tif",
         }
 
         # Create thread pool
@@ -270,25 +272,25 @@ class TestThumbnailGenerator:
             settings=settings,
             threadpool=threadpool,
             use_rust_preference=False,  # Force Python path for testing
-            progress_dialog=progress_dialog
+            progress_dialog=progress_dialog,
         )
 
         # Python returns a result dictionary
         assert isinstance(result, dict)
-        assert 'success' in result
-        assert 'cancelled' in result
-        assert 'minimum_volume' in result
-        assert 'level_info' in result
+        assert "success" in result
+        assert "cancelled" in result
+        assert "minimum_volume" in result
+        assert "level_info" in result
 
         # Test direct Python call still works
         result_python = generator.generate_python(
             directory=temp_image_dir,
             settings=settings,
             threadpool=threadpool,
-            progress_dialog=progress_dialog
+            progress_dialog=progress_dialog,
         )
         assert isinstance(result_python, dict)
-        assert 'success' in result_python
+        assert "success" in result_python
 
 
 @pytest.mark.integration

@@ -5,9 +5,10 @@ Part of Phase 2: Integration Tests Expansion
 Tests export functionality with real data
 """
 
+from pathlib import Path
+
 import numpy as np
 import pytest
-from pathlib import Path
 from PIL import Image
 
 from ui.handlers.export_handler import ExportHandler
@@ -21,6 +22,7 @@ class TestExportWorkflows:
         """Test complete image stack export workflow"""
         # Create export handler with mock main window
         from unittest.mock import MagicMock
+
         mock_window = MagicMock()
         handler = ExportHandler(mock_window)
 
@@ -36,15 +38,12 @@ class TestExportWorkflows:
         handler.export_directory = str(export_dir)
 
         # Manually trigger export since we can't use dialog
-        if hasattr(handler, 'save_image_stack'):
+        if hasattr(handler, "save_image_stack"):
             # Create dummy ROI
             roi = [0, 10, 0, 256, 0, 256]  # Full volume
 
             success = handler.save_image_stack(
-                str(export_dir / "slice.tif"),
-                volume,
-                roi,
-                open_after=False
+                str(export_dir / "slice.tif"), volume, roi, open_after=False
             )
 
             if success:
@@ -55,6 +54,7 @@ class TestExportWorkflows:
     def test_export_with_cropping(self, tmp_path):
         """Test export with cropped region"""
         from unittest.mock import MagicMock
+
         mock_window = MagicMock()
         handler = ExportHandler(mock_window)
 
@@ -67,12 +67,9 @@ class TestExportWorkflows:
         export_dir = tmp_path / "export_cropped"
         export_dir.mkdir()
 
-        if hasattr(handler, 'save_image_stack'):
+        if hasattr(handler, "save_image_stack"):
             success = handler.save_image_stack(
-                str(export_dir / "cropped.tif"),
-                volume,
-                roi,
-                open_after=False
+                str(export_dir / "cropped.tif"), volume, roi, open_after=False
             )
 
             if success:
@@ -92,6 +89,7 @@ class TestExportWorkflows:
     def test_export_quality_verification(self, tmp_path):
         """Test that exported images maintain quality"""
         from unittest.mock import MagicMock
+
         mock_window = MagicMock()
         handler = ExportHandler(mock_window)
 
@@ -105,12 +103,9 @@ class TestExportWorkflows:
 
         roi = [0, 5, 0, 100, 0, 100]
 
-        if hasattr(handler, 'save_image_stack'):
+        if hasattr(handler, "save_image_stack"):
             success = handler.save_image_stack(
-                str(export_dir / "quality.tif"),
-                volume,
-                roi,
-                open_after=False
+                str(export_dir / "quality.tif"), volume, roi, open_after=False
             )
 
             if success:

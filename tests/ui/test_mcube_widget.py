@@ -33,7 +33,9 @@ else:
     OPENGL_AVAILABLE = False
 
 
-@pytest.mark.skipif(not PYQT_AVAILABLE or not OPENGL_AVAILABLE, reason="PyQt5 or OpenGL not available")
+@pytest.mark.skipif(
+    not PYQT_AVAILABLE or not OPENGL_AVAILABLE, reason="PyQt5 or OpenGL not available"
+)
 @pytest.mark.qt
 class TestMeshGenerationThread:
     """Tests for MeshGenerationThread (non-OpenGL parts)"""
@@ -58,9 +60,9 @@ class TestMeshGenerationThread:
         thread = MeshGenerationThread(volume, 50, 1.0, False)
 
         # Verify signals exist
-        assert hasattr(thread, 'finished')
-        assert hasattr(thread, 'error')
-        assert hasattr(thread, 'progress')
+        assert hasattr(thread, "finished")
+        assert hasattr(thread, "error")
+        assert hasattr(thread, "progress")
 
     def test_inverse_mode(self):
         """Should accept inverse mode flag"""
@@ -91,7 +93,9 @@ class TestMeshGenerationThread:
             assert thread.isovalue == iso
 
 
-@pytest.mark.skipif(not PYQT_AVAILABLE or not OPENGL_AVAILABLE, reason="PyQt5 or OpenGL not available")
+@pytest.mark.skipif(
+    not PYQT_AVAILABLE or not OPENGL_AVAILABLE, reason="PyQt5 or OpenGL not available"
+)
 @pytest.mark.qt
 @pytest.mark.slow
 class TestMeshGeneration:
@@ -105,7 +109,7 @@ class TestMeshGeneration:
         for x in range(20):
             for y in range(20):
                 for z in range(20):
-                    dist = np.sqrt((x-center)**2 + (y-center)**2 + (z-center)**2)
+                    dist = np.sqrt((x - center) ** 2 + (y - center) ** 2 + (z - center) ** 2)
                     if dist < 5:
                         volume[x, y, z] = 200
 
@@ -147,7 +151,9 @@ class TestMeshGeneration:
         assert blocker.signal_triggered
 
 
-@pytest.mark.skipif(not PYQT_AVAILABLE or not OPENGL_AVAILABLE, reason="PyQt5 or OpenGL not available")
+@pytest.mark.skipif(
+    not PYQT_AVAILABLE or not OPENGL_AVAILABLE, reason="PyQt5 or OpenGL not available"
+)
 @pytest.mark.qt
 class TestMeshGenerationEdgeCases:
     """Edge case tests for mesh generation"""

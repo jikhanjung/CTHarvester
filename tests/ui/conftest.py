@@ -100,9 +100,9 @@ def mock_large_image_stack(tmp_path):
 
     for i in range(100):
         # Create realistic test data with some variation
-        img_array = (
-            np.random.randint(0, 256, (512, 512), dtype=np.uint8) * 0.5 + i * 2
-        ).astype(np.uint8)
+        img_array = (np.random.randint(0, 256, (512, 512), dtype=np.uint8) * 0.5 + i * 2).astype(
+            np.uint8
+        )
         img = Image.fromarray(img_array)
         img.save(image_dir / f"volume_{i:04d}.tif")
 

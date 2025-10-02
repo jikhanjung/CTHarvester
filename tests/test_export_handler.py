@@ -72,9 +72,7 @@ class TestExportHandler:
 
         # Create 10 test images
         for i in range(1, 11):
-            img = Image.fromarray(
-                np.ones((100, 100), dtype=np.uint8) * (i * 25)
-            )
+            img = Image.fromarray(np.ones((100, 100), dtype=np.uint8) * (i * 25))
             img.save(os.path.join(temp_dir, f"slice_{i:04d}.tif"))
 
         yield temp_dir
@@ -87,10 +85,12 @@ class TestExportHandler:
         assert handler is not None
         assert handler.window == mock_main_window
 
-    @patch('ui.handlers.export_handler.QFileDialog.getSaveFileName')
-    @patch('ui.handlers.export_handler.mcubes.marching_cubes')
-    @patch('ui.handlers.export_handler.SecureFileValidator')
-    def test_export_obj_basic(self, mock_validator_cls, mock_mcubes, mock_dialog, handler, tmp_path):
+    @patch("ui.handlers.export_handler.QFileDialog.getSaveFileName")
+    @patch("ui.handlers.export_handler.mcubes.marching_cubes")
+    @patch("ui.handlers.export_handler.SecureFileValidator")
+    def test_export_obj_basic(
+        self, mock_validator_cls, mock_mcubes, mock_dialog, handler, tmp_path
+    ):
         """Test basic OBJ export functionality"""
         # Setup
         obj_file = str(tmp_path / "test.obj")
@@ -111,12 +111,12 @@ class TestExportHandler:
 
         # Verify
         assert os.path.exists(obj_file)
-        with open(obj_file, 'r') as f:
+        with open(obj_file) as f:
             content = f.read()
             assert "v " in content  # Vertex lines
             assert "f " in content  # Face lines
 
-    @patch('ui.handlers.export_handler.QFileDialog.getSaveFileName')
+    @patch("ui.handlers.export_handler.QFileDialog.getSaveFileName")
     def test_export_obj_cancelled(self, mock_dialog, handler):
         """Test OBJ export when user cancels"""
         # User cancels dialog
@@ -128,10 +128,12 @@ class TestExportHandler:
         # Verify dialog was called
         mock_dialog.assert_called_once()
 
-    @patch('ui.handlers.export_handler.QFileDialog.getSaveFileName')
-    @patch('ui.handlers.export_handler.mcubes.marching_cubes')
-    @patch('ui.handlers.export_handler.QMessageBox.critical')
-    def test_export_obj_mesh_generation_failure(self, mock_msg, mock_mcubes, mock_dialog, handler, tmp_path):
+    @patch("ui.handlers.export_handler.QFileDialog.getSaveFileName")
+    @patch("ui.handlers.export_handler.mcubes.marching_cubes")
+    @patch("ui.handlers.export_handler.QMessageBox.critical")
+    def test_export_obj_mesh_generation_failure(
+        self, mock_msg, mock_mcubes, mock_dialog, handler, tmp_path
+    ):
         """Test OBJ export when mesh generation fails"""
         # Setup
         obj_file = str(tmp_path / "test.obj")
@@ -150,10 +152,12 @@ class TestExportHandler:
         call_args = mock_msg.call_args[0]
         assert "Failed to generate 3D mesh" in call_args[2]
 
-    @patch('ui.handlers.export_handler.QFileDialog.getSaveFileName')
-    @patch('ui.handlers.export_handler.mcubes.marching_cubes')
-    @patch('ui.handlers.export_handler.SecureFileValidator')
-    def test_export_obj_vertex_transformation(self, mock_validator_cls, mock_mcubes, mock_dialog, handler, tmp_path):
+    @patch("ui.handlers.export_handler.QFileDialog.getSaveFileName")
+    @patch("ui.handlers.export_handler.mcubes.marching_cubes")
+    @patch("ui.handlers.export_handler.SecureFileValidator")
+    def test_export_obj_vertex_transformation(
+        self, mock_validator_cls, mock_mcubes, mock_dialog, handler, tmp_path
+    ):
         """Test that vertices are properly transformed (axis swap)"""
         # Setup
         obj_file = str(tmp_path / "test.obj")
@@ -173,15 +177,17 @@ class TestExportHandler:
         handler.export_3d_model_to_obj()
 
         # Verify transformation (should swap to [z, x, y])
-        with open(obj_file, 'r') as f:
+        with open(obj_file) as f:
             content = f.read()
             assert "v 3.0 1.0 2.0" in content  # First vertex transformed
             assert "v 6.0 4.0 5.0" in content  # Second vertex transformed
 
-    @patch('ui.handlers.export_handler.QFileDialog.getSaveFileName')
-    @patch('ui.handlers.export_handler.mcubes.marching_cubes')
-    @patch('ui.handlers.export_handler.SecureFileValidator')
-    def test_export_obj_face_indexing(self, mock_validator_cls, mock_mcubes, mock_dialog, handler, tmp_path):
+    @patch("ui.handlers.export_handler.QFileDialog.getSaveFileName")
+    @patch("ui.handlers.export_handler.mcubes.marching_cubes")
+    @patch("ui.handlers.export_handler.SecureFileValidator")
+    def test_export_obj_face_indexing(
+        self, mock_validator_cls, mock_mcubes, mock_dialog, handler, tmp_path
+    ):
         """Test that faces use 1-based indexing in OBJ format"""
         # Setup
         obj_file = str(tmp_path / "test.obj")
@@ -200,13 +206,13 @@ class TestExportHandler:
         handler.export_3d_model_to_obj()
 
         # Verify 1-based indexing in output
-        with open(obj_file, 'r') as f:
+        with open(obj_file) as f:
             content = f.read()
             assert "f 1 2 3" in content  # Should be 1-based
 
-    @patch('ui.handlers.export_handler.QFileDialog.getExistingDirectory')
-    @patch('ui.handlers.export_handler.QApplication.setOverrideCursor')
-    @patch('ui.handlers.export_handler.QApplication.restoreOverrideCursor')
+    @patch("ui.handlers.export_handler.QFileDialog.getExistingDirectory")
+    @patch("ui.handlers.export_handler.QApplication.setOverrideCursor")
+    @patch("ui.handlers.export_handler.QApplication.restoreOverrideCursor")
     def test_save_image_stack_cancelled(self, mock_restore, mock_cursor, mock_dialog, handler):
         """Test save operation when user cancels directory selection"""
         # User cancels
@@ -219,10 +225,12 @@ class TestExportHandler:
         mock_cursor.assert_not_called()
         mock_restore.assert_not_called()
 
-    @patch('ui.handlers.export_handler.QFileDialog.getExistingDirectory')
-    @patch('ui.handlers.export_handler.ProgressDialog')
-    @patch('ui.handlers.export_handler.QApplication')
-    def test_save_image_stack_no_crop(self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path):
+    @patch("ui.handlers.export_handler.QFileDialog.getExistingDirectory")
+    @patch("ui.handlers.export_handler.ProgressDialog")
+    @patch("ui.handlers.export_handler.QApplication")
+    def test_save_image_stack_no_crop(
+        self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path
+    ):
         """Test saving images without cropping"""
         # Setup
         target_dir = str(tmp_path / "output")
@@ -247,10 +255,12 @@ class TestExportHandler:
         assert "slice_0001.tif" in output_files
         assert "slice_0010.tif" in output_files
 
-    @patch('ui.handlers.export_handler.QFileDialog.getExistingDirectory')
-    @patch('ui.handlers.export_handler.ProgressDialog')
-    @patch('ui.handlers.export_handler.QApplication')
-    def test_save_image_stack_with_crop(self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path):
+    @patch("ui.handlers.export_handler.QFileDialog.getExistingDirectory")
+    @patch("ui.handlers.export_handler.ProgressDialog")
+    @patch("ui.handlers.export_handler.QApplication")
+    def test_save_image_stack_with_crop(
+        self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path
+    ):
         """Test saving images with cropping applied"""
         # Setup
         target_dir = str(tmp_path / "output")
@@ -281,10 +291,12 @@ class TestExportHandler:
             # Should be cropped to 40x40 (from 10,10 to 50,50)
             assert img.size == (40, 40)
 
-    @patch('ui.handlers.export_handler.QFileDialog.getExistingDirectory')
-    @patch('ui.handlers.export_handler.ProgressDialog')
-    @patch('ui.handlers.export_handler.QApplication')
-    def test_save_image_stack_progress_updates(self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path):
+    @patch("ui.handlers.export_handler.QFileDialog.getExistingDirectory")
+    @patch("ui.handlers.export_handler.ProgressDialog")
+    @patch("ui.handlers.export_handler.QApplication")
+    def test_save_image_stack_progress_updates(
+        self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path
+    ):
         """Test that progress dialog is updated correctly"""
         # Setup
         target_dir = str(tmp_path / "output")
@@ -305,15 +317,17 @@ class TestExportHandler:
         assert mock_progress.pb_progress.setValue.call_count >= 5
         assert mock_progress.lbl_text.setText.call_count >= 5
 
-    @patch('ui.handlers.export_handler.QFileDialog.getExistingDirectory')
-    @patch('ui.handlers.export_handler.ProgressDialog')
-    @patch('ui.handlers.export_handler.QApplication')
-    def test_save_image_stack_open_after(self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path):
+    @patch("ui.handlers.export_handler.QFileDialog.getExistingDirectory")
+    @patch("ui.handlers.export_handler.ProgressDialog")
+    @patch("ui.handlers.export_handler.QApplication")
+    def test_save_image_stack_open_after(
+        self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path
+    ):
         """Test opening directory after save when checkbox is enabled"""
         import sys
 
         # Only test os.startfile on Windows
-        if sys.platform != 'win32':
+        if sys.platform != "win32":
             pytest.skip("os.startfile only available on Windows")
 
         # Setup
@@ -329,7 +343,7 @@ class TestExportHandler:
         handler.window.image_label.top_idx = 2
         handler.window.image_label.bottom_idx = 0
 
-        with patch('os.startfile') as mock_startfile:
+        with patch("os.startfile") as mock_startfile:
             # Execute
             handler.save_cropped_image_stack()
 
@@ -356,10 +370,12 @@ class TestExportHandler:
         assert crop_info["top_idx"] == 9
         assert crop_info["bottom_idx"] == 0
 
-    @patch('ui.handlers.export_handler.QFileDialog.getExistingDirectory')
-    @patch('ui.handlers.export_handler.ProgressDialog')
-    @patch('ui.handlers.export_handler.QApplication')
-    def test_save_handles_missing_images(self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path, caplog):
+    @patch("ui.handlers.export_handler.QFileDialog.getExistingDirectory")
+    @patch("ui.handlers.export_handler.ProgressDialog")
+    @patch("ui.handlers.export_handler.QApplication")
+    def test_save_handles_missing_images(
+        self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path, caplog
+    ):
         """Test that missing images are handled gracefully"""
         import logging
 
@@ -388,7 +404,7 @@ class TestExportHandler:
 
     def test_get_source_path_original(self, handler):
         """Test source path for original images (level 0)"""
-        with patch('ui.handlers.export_handler.SecureFileValidator') as mock_validator_cls:
+        with patch("ui.handlers.export_handler.SecureFileValidator") as mock_validator_cls:
             mock_validator = MagicMock()
             mock_validator.safe_join.return_value = "/test/path/image.tif"
             mock_validator_cls.return_value = mock_validator
@@ -401,10 +417,13 @@ class TestExportHandler:
 
     def test_get_source_path_thumbnail(self, handler):
         """Test source path for thumbnail images (level > 0)"""
-        with patch('ui.handlers.export_handler.SecureFileValidator') as mock_validator_cls:
+        with patch("ui.handlers.export_handler.SecureFileValidator") as mock_validator_cls:
             mock_validator = MagicMock()
             # Two calls: one for directory, one for filename
-            mock_validator.safe_join.side_effect = ["/test/path/.thumbnail/1", "/test/path/.thumbnail/1/image.tif"]
+            mock_validator.safe_join.side_effect = [
+                "/test/path/.thumbnail/1",
+                "/test/path/.thumbnail/1/image.tif",
+            ]
             mock_validator_cls.return_value = mock_validator
 
             path = handler._get_source_path("image.tif", 1)
@@ -413,10 +432,12 @@ class TestExportHandler:
             assert mock_validator.safe_join.call_count == 2
             assert path == "/test/path/.thumbnail/1/image.tif"
 
-    @patch('ui.handlers.export_handler.QFileDialog.getExistingDirectory')
-    @patch('ui.handlers.export_handler.ProgressDialog')
-    @patch('ui.handlers.export_handler.QApplication')
-    def test_save_image_stack_cursor_restoration(self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path):
+    @patch("ui.handlers.export_handler.QFileDialog.getExistingDirectory")
+    @patch("ui.handlers.export_handler.ProgressDialog")
+    @patch("ui.handlers.export_handler.QApplication")
+    def test_save_image_stack_cursor_restoration(
+        self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path
+    ):
         """Test that cursor is restored even if save fails"""
         # Setup
         target_dir = str(tmp_path / "output")
@@ -447,7 +468,7 @@ class TestExportHelperMethods:
         window = MagicMock()
         return ExportHandler(window)
 
-    @patch('ui.handlers.export_handler.QMessageBox.critical')
+    @patch("ui.handlers.export_handler.QMessageBox.critical")
     def test_show_error(self, mock_msg, handler_with_window):
         """Test error message display"""
         # Mock tr() to return the actual string
