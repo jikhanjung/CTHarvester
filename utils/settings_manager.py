@@ -41,7 +41,7 @@ import logging
 import os
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import yaml
 
@@ -78,7 +78,7 @@ class SettingsManager:
 
     DEFAULT_CONFIG_FILE = "settings.yaml"
 
-    def __init__(self, config_dir: str = None):
+    def __init__(self, config_dir: Optional[str] = None):
         """Initialize the settings manager.
 
         Creates the configuration directory if it doesn't exist and loads settings
@@ -108,7 +108,7 @@ class SettingsManager:
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
         # Load settings
-        self.settings = {}
+        self.settings: Dict[str, Any] = {}
         self.default_settings = self._load_default_settings()
         self.load()
 
@@ -163,7 +163,7 @@ class SettingsManager:
             "paths": {"last_directory": "", "export_directory": ""},
         }
 
-    def load(self):
+    def load(self) -> None:
         """Load settings from file"""
         if self.config_file.exists():
             try:
@@ -178,7 +178,7 @@ class SettingsManager:
             self.settings = deepcopy(self.default_settings)
             self.save()
 
-    def save(self):
+    def save(self) -> None:
         """Save settings to file"""
         try:
             with open(self.config_file, "w", encoding="utf-8") as f:
@@ -209,7 +209,7 @@ class SettingsManager:
 
         return value
 
-    def set(self, key: str, value: Any):
+    def set(self, key: str, value: Any) -> None:
         """
         Set setting value (supports dot notation)
 
@@ -229,13 +229,13 @@ class SettingsManager:
         # Set value
         settings[keys[-1]] = value
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset to default settings"""
         self.settings = deepcopy(self.default_settings)
         self.save()
         logger.info("Settings reset to defaults")
 
-    def export(self, file_path: str):
+    def export(self, file_path: str) -> None:
         """
         Export settings to file
 
@@ -250,7 +250,7 @@ class SettingsManager:
             logger.error(f"Failed to export settings: {e}")
             raise
 
-    def import_settings(self, file_path: str):
+    def import_settings(self, file_path: str) -> None:
         """
         Import settings from file
 

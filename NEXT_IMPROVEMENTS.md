@@ -81,9 +81,13 @@ Tests:
 **Priority Files:**
 - [x] `core/progress_manager.py` - Add type hints to all methods ✅
 - [x] `core/volume_processor.py` - Complete partial coverage ✅
-- [ ] `core/thumbnail_manager.py` - Add missing hints (complex, many dependencies)
+- [x] `core/file_handler.py` - Complete coverage ✅
+- [x] `core/progress_tracker.py` - Complete coverage ✅
+- [ ] `core/thumbnail_manager.py` - Add missing hints (24 errors, complex)
+- [ ] `core/thumbnail_generator.py` - Add missing hints (22 errors, complex)
 - [x] `utils/worker.py` - Add signal type annotations ✅
 - [x] `utils/file_utils.py` - Complete coverage ✅
+- [x] `utils/settings_manager.py` - Complete coverage ✅
 
 **Commands:**
 ```bash
@@ -208,9 +212,9 @@ pytest tests/snapshots/ --snapshot-update
 
 ### Week 1-2 Progress
 - [x] Phase 1 started
-- [x] Type hints: 60% coverage in core/ (target: 80%)
-- [x] Type hints: 68% coverage in utils/ (target: 80%)
-- [x] Files completed: 4/5 (progress_manager, volume_processor, worker, file_utils)
+- [x] Type hints: 63% coverage in core/ (target: 80%)
+- [x] Type hints: 84% coverage in utils/ ✅ (exceeded 80% target!)
+- [x] Files completed: 7 files (progress_manager, volume_processor, file_handler, progress_tracker, worker, file_utils, settings_manager)
 - [x] mypy passes on completed files: ✅
 
 ### Week 2-3 Progress

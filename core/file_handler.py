@@ -46,7 +46,7 @@ class FileHandler:
     # Supported image extensions
     SUPPORTED_EXTENSIONS = {".tif", ".tiff", ".bmp", ".jpg", ".jpeg", ".png"}
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize file handler"""
         self.validator = SecureFileValidator()
 
@@ -159,8 +159,8 @@ class FileHandler:
             ct_stack_files = []
             matching_files = []
             other_files = []
-            prefix_hash = {}
-            extension_hash = {}
+            prefix_hash: Dict[str, int] = {}
+            extension_hash: Dict[str, int] = {}
 
             # Step 3: Analyze all files
             for file in all_files:
@@ -294,7 +294,7 @@ class FileHandler:
             List[str]: Naturally sorted file list
         """
 
-        def extract_number(filename):
+        def extract_number(filename: str) -> int:
             match = re.match(pattern, filename)
             if match:
                 return int(match.group(2))  # Extract numeric part

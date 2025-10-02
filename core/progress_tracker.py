@@ -20,7 +20,7 @@ Typical usage example:
 import logging
 import time
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Callable, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +150,7 @@ class SimpleProgressTracker:
         self.last_update_time = self.start_time
 
         # Speed tracking (for moving average)
-        self.speed_samples = []
+        self.speed_samples: List[float] = []
 
     def update(self, increment: int = 1):
         """Update progress by specified number of items.
