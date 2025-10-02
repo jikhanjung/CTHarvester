@@ -9,6 +9,7 @@ import logging
 import os
 import time
 from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 from PIL import Image
@@ -75,8 +76,12 @@ class ThumbnailGenerator:
         # Check Rust module availability
         self.rust_available = self._check_rust_availability()
 
-    def _check_rust_availability(self):
-        """Check if Rust thumbnail module is available"""
+    def _check_rust_availability(self) -> bool:
+        """Check if Rust thumbnail module is available
+
+        Returns:
+            bool: True if Rust module available, False otherwise
+        """
         try:
             from ct_thumbnail import build_thumbnails
 
@@ -86,7 +91,9 @@ class ThumbnailGenerator:
             logger.info("Rust thumbnail module not available, will use Python fallback")
             return False
 
-    def calculate_total_thumbnail_work(self, seq_begin, seq_end, size, max_size):
+    def calculate_total_thumbnail_work(
+        self, seq_begin: int, seq_end: int, size: int, max_size: int
+    ) -> float:
         """Calculate total number of operations for all LoD levels with size weighting
 
         This function computes the weighted total work required to generate thumbnails
@@ -94,10 +101,13 @@ class ThumbnailGenerator:
         and requires less work, but the first level has extra weight due to I/O overhead.
 
         Args:
-            seq_begin (int): Starting sequence number (inclusive)
-            seq_end (int): Ending sequence number (inclusive)
-            size (int): Initial image dimension (width or height, assumed square)
-            max_size (int): Maximum thumbnail size threshold for stopping LoD generation
+            seq_begin: Starting sequence number (inclusive)
+            seq_end: Ending sequence number (inclusive)
+            size: Initial image dimension (width or height, assumed square)
+            max_size: Maximum thumbnail size threshold for stopping LoD generation
+
+        Returns:
+            float: Weighted total work units
 
         Returns:
             int: Total work units (unweighted)
@@ -169,26 +179,25 @@ class ThumbnailGenerator:
 
     def generate(
         self,
-        directory,
-        settings,
-        threadpool,
-        use_rust_preference=True,
-        progress_dialog=None
-    ):
+        directory: str,
+        settings: Dict[str, Any],
+        threadpool: Any,  # QThreadPool
+        use_rust_preference: bool = True,
+        progress_dialog: Optional[Any] = None  # ProgressDialog
+    ) -> Optional[Dict[str, Any]]:
         """Generate thumbnails using best available method
 
         Args:
-            directory (str): Directory containing CT images
-            settings (dict): Settings hash containing image parameters
-            threadpool (QThreadPool): Qt thread pool for parallel processing
-            use_rust_preference (bool): Prefer Rust module if available
-            progress_dialog (ProgressDialog, optional): Progress dialog for UI updates
+            directory: Directory containing CT images
+            settings: Settings hash containing image parameters
+            threadpool: Qt thread pool for parallel processing
+            use_rust_preference: Prefer Rust module if available
+            progress_dialog: Progress dialog for UI updates
 
         Returns:
-            dict or None: Result dictionary containing success status, data, and error info.
-                For Python: {'success': bool, 'cancelled': bool, 'minimum_volume': np.ndarray,
-                            'level_info': list, 'elapsed_time': float, 'error': str (optional)}
-                For Rust: bool (True if successful, False otherwise)
+            Result dictionary containing success status, data, and error info:
+                {'success': bool, 'cancelled': bool, 'data': Any,
+                'error': Optional[str]}
         """
         # Determine which method to use
         use_rust = self.rust_available and use_rust_preference
@@ -687,22 +696,26 @@ class ThumbnailGenerator:
                 'elapsed_time': time.time() - thumbnail_start_time if 'thumbnail_start_time' in locals() else 0
             }
 
-    def load_thumbnail_data(self, directory, max_thumbnail_size=None):
-        from config.constants import MAX_THUMBNAIL_SIZE as DEFAULT_MAX_SIZE
-        if max_thumbnail_size is None:
-            max_thumbnail_size = DEFAULT_MAX_SIZE
+    def load_thumbnail_data(
+        self, directory: str, max_thumbnail_size: Optional[int] = None
+    ) -> Tuple[Optional[np.ndarray], Dict[str, Any]]:
         """Load generated thumbnail data from disk
 
         Finds and loads the appropriate level of thumbnails for 3D visualization.
 
         Args:
-            directory (str): Base directory containing .thumbnail subfolder
-            max_thumbnail_size (int): Maximum size for loaded thumbnails
+            directory: Base directory containing .thumbnail subfolder
+            max_thumbnail_size: Maximum size for loaded thumbnails. If None,
+                uses DEFAULT_MAX_SIZE from config.
 
         Returns:
-            tuple: (numpy.ndarray or None, dict) - (thumbnail volume, level_info)
-                   Returns (None, {}) if no thumbnails found
+            Tuple of (thumbnail_volume, level_info):
+                - thumbnail_volume: 3D numpy array or None if not found
+                - level_info: Dictionary with 'levels' and 'current_level' keys
         """
+        from config.constants import MAX_THUMBNAIL_SIZE as DEFAULT_MAX_SIZE
+        if max_thumbnail_size is None:
+            max_thumbnail_size = DEFAULT_MAX_SIZE
         # Find the highest level thumbnail directory
         thumbnail_base = os.path.join(directory, ".thumbnail")
 
