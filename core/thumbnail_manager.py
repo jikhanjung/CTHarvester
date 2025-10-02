@@ -169,35 +169,34 @@ class ThumbnailManager(QObject):
                 self.progress_dialog.lbl_detail.setText(eta_text)
 
     def _determine_optimal_thread_count(self):
-        """
-        Python 폴백에서 단일 스레드를 사용하는 이유
+        """Why Python fallback uses single thread
 
-        [배경]
-        Python 구현은 Rust 모듈의 백업입니다.
-        - 주력: Rust 모듈 (2-3분, 진정한 멀티스레드)
-        - 보조: Python 폴백 (Rust 설치 실패 시)
+        [Background]
+        Python implementation is a backup for the Rust module.
+        - Primary: Rust module (2-3 min, true multithreading)
+        - Backup: Python fallback (when Rust installation fails)
 
-        [멀티스레드 문제]
-        평균적으로는 더 빠르지만, 예측 불가능한 병목이 발생:
-        - 대부분 이미지: 100-200ms (정상)
-        - 일부 이미지: 10-20초 (락 경합, PIL 내부 문제)
-        - 원인: GIL 경합, 디스크 I/O 경합, PIL/NumPy 내부 락
+        [Multithreading Issues]
+        While faster on average, unpredictable bottlenecks occur:
+        - Most images: 100-200ms (normal)
+        - Some images: 10-20 seconds (lock contention, PIL internal issues)
+        - Causes: GIL contention, disk I/O contention, PIL/NumPy internal locks
 
-        [단일 스레드 선택 이유]
-        1. 예측 가능성: 모든 이미지가 일정한 속도 (180-200ms)
-        2. 안정성: 간헐적 멈춤 현상 없음
-        3. 디버깅 용이성: 문제 추적 쉬움
-        4. 코드 단순성: 백업 구현은 단순함 우선
-        5. 사용자 경험: 느리지만 일정 > 빠르지만 가끔 멈춤
+        [Single Thread Choice Rationale]
+        1. Predictability: All images process at consistent speed (180-200ms)
+        2. Stability: No intermittent freezing
+        3. Debuggability: Easy problem tracking
+        4. Code Simplicity: Backup implementation prioritizes simplicity
+        5. User Experience: Slow but consistent > Fast but occasionally frozen
 
-        [성능 비교]
-        - 단일 스레드: 안정적으로 9-10분
-        - 멀티 스레드: 평균 6-7분, 최악 30-40분 (일부 이미지에서)
+        [Performance Comparison]
+        - Single thread: Stable 9-10 minutes
+        - Multi-thread: Average 6-7 min, worst case 30-40 min (some images)
 
-        백업 구현의 목표는 "최고 성능"이 아니라 "안정적 작동"입니다.
+        The goal of backup implementation is "stable operation", not "maximum performance".
 
         Returns:
-            int: 1 (단일 스레드, 안정성과 예측 가능성 우선)
+            int: 1 (single thread, prioritizing stability and predictability)
         """
         import logging
 
