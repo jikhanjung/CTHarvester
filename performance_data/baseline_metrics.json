@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-10-02T00:00:00",
+  "note": "Placeholder baseline - run with --save-baseline to create real baseline",
+  "system": {
+    "platform": "Unknown",
+    "python_version": "3.12.0"
+  },
+  "benchmarks": {
+    "thumbnail_generation": {
+      "success": false,
+      "note": "No baseline data yet. Create with: python scripts/profiling/collect_performance_metrics.py --save-baseline"
+    }
+  }
+}

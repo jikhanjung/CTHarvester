@@ -1,0 +1,5 @@
+# Performance profiling data (generated files)
+*.prof
+current_metrics.json
+profile_results.json
+
