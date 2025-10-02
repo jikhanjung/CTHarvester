@@ -5,6 +5,7 @@
 Following the successful completion of the 7-phase code quality improvement plan, this guide provides a quick start for the next set of improvements.
 
 **Full Plan:** `devlog/20251002_068_next_improvements_plan.md`
+**Progress Log:** `devlog/20251002_069_phase1_phase2_progress.md`
 
 ---
 
