@@ -111,10 +111,13 @@ def benchmark_thumbnail_generation(sample_dir: str) -> dict:
 
     # Get image count if available
     level_info = result.get("level_info", [])
+    images_count = 0
     if level_info and len(level_info) > 0:
-        images_count = level_info[0].get("seq_end", 0) - level_info[0].get("seq_begin", 0) + 1
-    else:
-        images_count = 0
+        seq_end = level_info[0].get("seq_end", 0)
+        seq_begin = level_info[0].get("seq_begin", 0)
+        # Ensure we have actual integers, not mocks
+        if isinstance(seq_end, int) and isinstance(seq_begin, int):
+            images_count = seq_end - seq_begin + 1
 
     metrics = {
         "success": success,
