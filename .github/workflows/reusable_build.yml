@@ -19,10 +19,7 @@ jobs:
           python-version: '3.12'
 
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install Windows dependencies
         run: |
@@ -141,10 +138,7 @@ jobs:
           python-version: '3.12'
 
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install macOS system dependencies
         run: |
@@ -225,10 +219,7 @@ jobs:
           python-version: '3.12'
 
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install Linux system dependencies
         run: |
