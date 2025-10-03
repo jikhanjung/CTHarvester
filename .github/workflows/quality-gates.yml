@@ -197,28 +197,73 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install bandit
+    - name: Install security tools
       run: |
         pip install bandit[toml]
 
-    - name: Run security scan
+    - name: Run Bandit (code security)
       run: |
         bandit -r core/ utils/ ui/ -ll -f json -o bandit-report.json || true
         bandit -r core/ utils/ ui/ -ll || true
       continue-on-error: true
 
-    - name: Security summary
+    - name: Check for known vulnerabilities with pip-audit
+      run: |
+        pip install pip-audit
+        pip-audit --format json --output pip-audit-report.json || true
+        pip-audit || true
+      continue-on-error: true
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          pip-audit-report.json
+        retention-days: 30
+
+    - name: Parse and display security results
       if: always()
       run: |
-        echo "## Security Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo "## 🔒 Security Scan Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
+        # Bandit results
         if [ -f bandit-report.json ]; then
-          echo "🔒 Security scan completed" >> $GITHUB_STEP_SUMMARY
+          BANDIT_ISSUES=$(python -c "import json; data=json.load(open('bandit-report.json')); print(len(data.get('results', [])))" 2>/dev/null || echo "0")
+          echo "### Bandit (Code Security)" >> $GITHUB_STEP_SUMMARY
           echo "- Scanned: core/, utils/, ui/" >> $GITHUB_STEP_SUMMARY
-          echo "- Severity: Medium and High issues only" >> $GITHUB_STEP_SUMMARY
+          echo "- Severity filter: Medium and High" >> $GITHUB_STEP_SUMMARY
+          echo "- Issues found: $BANDIT_ISSUES" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$BANDIT_ISSUES" -eq 0 ]; then
+            echo "- ✅ No security issues detected" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️  Review bandit-report.json in artifacts" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
         else
-          echo "ℹ️  Security scan report not available" >> $GITHUB_STEP_SUMMARY
+          echo "### Bandit (Code Security)" >> $GITHUB_STEP_SUMMARY
+          echo "- ⚠️  Report not generated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        # pip-audit results
+        if [ -f pip-audit-report.json ]; then
+          PIP_AUDIT_VULNS=$(python -c "import json; data=json.load(open('pip-audit-report.json')); print(len(data.get('dependencies', [])))" 2>/dev/null || echo "0")
+          echo "### pip-audit (Dependency Vulnerabilities)" >> $GITHUB_STEP_SUMMARY
+          echo "- Vulnerabilities found: $PIP_AUDIT_VULNS" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$PIP_AUDIT_VULNS" -eq 0 ]; then
+            echo "- ✅ No known vulnerabilities in dependencies" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️  Review pip-audit-report.json in artifacts" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "### pip-audit (Dependency Vulnerabilities)" >> $GITHUB_STEP_SUMMARY
+          echo "- ℹ️  Check completed (see workflow logs)" >> $GITHUB_STEP_SUMMARY
         fi
 
   quality-gate-summary:
