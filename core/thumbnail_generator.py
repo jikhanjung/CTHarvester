@@ -239,12 +239,17 @@ class ThumbnailGenerator:
             else:
                 # Check if it was cancelled or failed
                 cancelled = cancel_check() if cancel_check is not None else False
-                return {
-                    "success": False,
-                    "cancelled": cancelled,
-                    "data": None,
-                    "error": "Rust thumbnail generation failed" if not cancelled else None,
-                }
+                if not cancelled:
+                    # Rust failed but wasn't cancelled - fall back to Python
+                    logger.warning("Rust thumbnail generation failed, falling back to Python")
+                    return self.generate_python(directory, settings, threadpool, progress_dialog)  # type: ignore[return-value,no-any-return]
+                else:
+                    return {
+                        "success": False,
+                        "cancelled": True,
+                        "data": None,
+                        "error": None,
+                    }
         else:
             logger.info("Using Python-based thumbnail generation")
             return self.generate_python(directory, settings, threadpool, progress_dialog)  # type: ignore[return-value,no-any-return]
@@ -732,6 +737,7 @@ class ThumbnailGenerator:
                 "level_info": [],
                 "success": False,
                 "cancelled": False,
+                "data": None,
                 "error": str(e),
                 "elapsed_time": (
                     time.time() - thumbnail_start_time if "thumbnail_start_time" in locals() else 0

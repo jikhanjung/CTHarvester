@@ -145,23 +145,38 @@ class TestRustGenerationReturnFormat:
         assert result["data"] is None
         assert result["error"] is None
 
-    def test_rust_failure_returns_unified_format(self):
-        """Test failed Rust generation returns unified dict format"""
+    def test_rust_failure_falls_back_to_python(self):
+        """Test failed Rust generation falls back to Python"""
         generator = ThumbnailGenerator()
         generator.rust_available = True
         generator.generate_rust = MagicMock(return_value=False)
+        generator.generate_python = MagicMock(
+            return_value={"success": True, "cancelled": False, "data": None, "error": None}
+        )
+
+        # Mock settings with all required keys
+        mock_settings = {
+            "prefix": "test_",
+            "file_type": "tif",
+            "seq_begin": 1,
+            "seq_end": 10,
+            "index_length": 4,
+            "image_width": 512,
+            "image_height": 512,
+        }
 
         result = generator.generate(
             "/test/dir",
-            {"prefix": "test_", "file_type": "tif"},
+            mock_settings,
             MagicMock(),
             use_rust_preference=True,
         )
 
+        # Should fall back to Python and succeed
         assert isinstance(result, dict)
-        assert result["success"] is False
+        assert result["success"] is True
         assert result["data"] is None
-        assert result["error"] == "Rust thumbnail generation failed"
+        generator.generate_python.assert_called_once()
 
     def test_rust_cancellation_detected(self):
         """Test cancellation is properly detected"""

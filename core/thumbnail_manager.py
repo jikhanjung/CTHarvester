@@ -461,7 +461,7 @@ class ThumbnailManager(QObject):
                 self.is_sampling = False
                 logger.info(f"Sampling complete: {self.images_per_second:.2f} weighted units/s")
                 # Store for parent
-                if hasattr(self.parent, "measured_images_per_second"):
+                if self.parent is not None and hasattr(self.parent, "measured_images_per_second"):
                     self.parent.measured_images_per_second = self.images_per_second
 
         seq_total_time = time.time() - seq_start_time
@@ -1078,7 +1078,7 @@ class ThumbnailManager(QObject):
                 )
                 drive_label = (
                     f"{self.parent.current_drive}"
-                    if hasattr(self.parent, "current_drive")
+                    if self.parent is not None and hasattr(self.parent, "current_drive")
                     else "unknown"
                 )
                 logger.info(f"Drive {drive_label} estimated as: {storage_type}")
@@ -1094,18 +1094,19 @@ class ThumbnailManager(QObject):
                     )
                 logger.info(f"=== FINAL ESTIMATED TOTAL TIME: {formatted_estimate} ===")
 
-                # Store sampled estimate for comparison
-                setattr(self.parent, "sampled_estimate_seconds", total_estimate)  # type: ignore[attr-defined]
-                setattr(self.parent, "sampled_estimate_str", formatted_estimate)  # type: ignore[attr-defined]
+                # Store sampled estimate for comparison (only if parent is not None)
+                if self.parent is not None:
+                    setattr(self.parent, "sampled_estimate_seconds", total_estimate)  # type: ignore[attr-defined]
+                    setattr(self.parent, "sampled_estimate_str", formatted_estimate)  # type: ignore[attr-defined]
 
-                # Update parent's estimate and save performance data for next levels
-                setattr(  # type: ignore[attr-defined]
-                    self.parent,
-                    "estimated_time_per_image",
-                    1.0 / self.images_per_second if self.images_per_second > 0 else 0.05,
-                )
-                setattr(self.parent, "estimated_total_time", total_estimate)  # type: ignore[attr-defined]
-                setattr(self.parent, "measured_images_per_second", self.images_per_second)  # type: ignore[attr-defined]
+                    # Update parent's estimate and save performance data for next levels
+                    setattr(  # type: ignore[attr-defined]
+                        self.parent,
+                        "estimated_time_per_image",
+                        1.0 / self.images_per_second if self.images_per_second > 0 else 0.05,
+                    )
+                    setattr(self.parent, "estimated_total_time", total_estimate)  # type: ignore[attr-defined]
+                    setattr(self.parent, "measured_images_per_second", self.images_per_second)  # type: ignore[attr-defined]
 
                 self.is_sampling = False
                 logger.info(f"Multi-stage sampling completed")
