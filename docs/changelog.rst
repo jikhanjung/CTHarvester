@@ -9,6 +9,63 @@ and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 [Unreleased]
 ------------
 
+[0.2.3-beta.2] - 2025-10-03
+---------------------------
+
+Added
+~~~~~
+
+**Phase 3: Production Readiness - Error Handling & Logging**
+
+* Performance logging utility (``utils/performance_logger.py``)
+
+  * ``PerformanceTimer`` class for manual/context-manager timing
+  * ``@log_performance`` decorator for automatic function timing
+  * ``log_performance_context`` for custom context data
+  * Structured logging with operation metadata
+
+* Improved exception handling across all core modules
+
+  * Specific exception types (MemoryError, OSError, FileNotFoundError, PermissionError)
+  * Structured logging with ``exc_info=True`` for automatic traceback
+  * Contextual information using ``extra_fields`` for better debugging
+  * Better error diagnostics with file paths and operation context
+
+**Phase 2: Type Safety & Testing Infrastructure**
+
+* Protocol definitions for type safety (``core/protocols.py``)
+
+  * ``ThumbnailParent`` protocol for parent objects
+  * ``ProgressDialog`` protocol for progress dialog interface
+  * Reduced ``type:ignore`` from 28 to 9 (68% reduction)
+
+* Centralized test infrastructure (``tests/conftest.py``)
+
+  * Shared fixtures: ``temp_image_dir``, ``temp_empty_dir``
+  * Mock objects: ``MockProgressDialog``, ``MockLabel``, ``MockProgressBar``
+  * Reduced code duplication by ~70 lines across test files
+
+* Performance regression tests (``tests/test_performance.py``)
+
+  * 12 benchmark tests for image processing, file I/O, memory usage
+  * Performance baselines: downsample <0.1s, averaging <0.05s
+  * Memory tracking for large image operations
+
+Changed
+~~~~~~~
+
+* Exception handling now uses specific exception types instead of bare ``except Exception``
+* Logging uses ``logger.exception()`` for automatic traceback instead of manual ``traceback.format_exc()``
+* Test infrastructure centralized in ``conftest.py`` for better reusability
+* Improved error messages with structured logging and extra context
+
+Performance
+~~~~~~~~~~~
+
+* Performance bottleneck identification with ``@log_performance`` decorator
+* Memory footprint tracking for large image operations
+* Automatic timing for critical operations
+
 [0.2.3-beta.1] - 2025-10-01
 ---------------------------
 

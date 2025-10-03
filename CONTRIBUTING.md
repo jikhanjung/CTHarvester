@@ -34,7 +34,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.11 or higher (3.12+ recommended)
 - Git
 - Virtual environment tool (venv or conda)
 
@@ -50,10 +50,12 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 2. **Install dependencies**:
    ```bash
-   make install-dev
-   # or manually:
-   pip install -r requirements.txt
-   pip install -r requirements-dev.txt
+   # Install with development dependencies
+   pip install -e .[dev]
+
+   # Or install separately
+   pip install -e .
+   pip install pytest pytest-cov pytest-qt black flake8 mypy pre-commit
    ```
 
 3. **Install pre-commit hooks**:
@@ -61,9 +63,15 @@ By participating in this project, you agree to maintain a respectful and inclusi
    pre-commit install
    ```
 
+   This automatically runs code quality checks (black, isort, flake8, mypy) before each commit.
+
 4. **Verify setup**:
    ```bash
-   make test
+   # Run tests
+   pytest tests/ -v
+
+   # Run application
+   python CTHarvester.py
    ```
 
 ## Development Workflow
@@ -99,20 +107,29 @@ Before committing, ensure all checks pass:
 
 ```bash
 # Format code
-make format
+black .
+isort .
 
 # Run linter
-make lint
+flake8 . --max-line-length=100
 
-# Run type checker (optional)
-make type-check
+# Run type checker on core modules
+mypy core/ utils/ --ignore-missing-imports
 
 # Run tests
-make test
+pytest tests/ -v
 
-# Or run all checks at once
-make dev-check
+# Run tests with coverage
+pytest tests/ --cov=. --cov-report=html
+
+# Run specific test categories
+pytest tests/ -m unit              # Unit tests only
+pytest tests/ -m integration       # Integration tests
+pytest tests/ -m "not slow"        # Skip slow tests
+pytest tests/ -m benchmark         # Performance benchmarks
 ```
+
+**Pre-commit hooks** will automatically run these checks before each commit.
 
 ### 4. Commit Changes
 
@@ -271,9 +288,16 @@ make test-integration
 
 ### Test Coverage
 
-- Aim for >70% overall coverage
-- Core modules should have >80% coverage
-- Security modules should have >90% coverage
+- **Overall**: Maintain ≥85% coverage
+- **New modules**: ≥90% coverage required
+- **Core modules**: Currently at ~95% coverage
+- **Total**: 485+ tests passing
+
+Check coverage report:
+```bash
+pytest tests/ --cov=. --cov-report=html
+open htmlcov/index.html  # View coverage report
+```
 
 ## Documentation
 
@@ -442,11 +466,77 @@ pytest tests/ -v
 mypy . --ignore-missing-imports --no-strict-optional
 ```
 
+## Project Architecture (Updated Phase 3)
+
+CTHarvester follows a clean, modular architecture after multiple refactoring phases:
+
+```
+CTHarvester/
+├── core/                      # Core business logic
+│   ├── file_handler.py            # File operations & CT stack detection
+│   ├── thumbnail_generator.py     # Thumbnail generation (Rust/Python)
+│   ├── thumbnail_manager.py       # Thumbnail coordination & workers
+│   ├── thumbnail_worker.py        # Worker threads
+│   ├── volume_processor.py        # Volume cropping & ROI
+│   ├── progress_manager.py        # Progress tracking
+│   └── progress_tracker.py        # Simple progress tracker
+│
+├── ui/                        # User interface
+│   ├── main_window.py             # Main application window
+│   ├── dialogs/                   # Dialog windows
+│   ├── widgets/                   # Custom Qt widgets
+│   ├── handlers/                  # UI event handlers
+│   └── setup/                     # UI setup modules
+│
+├── utils/                     # Utilities
+│   ├── image_utils.py             # Image processing (with error handling)
+│   ├── file_utils.py              # File system utilities
+│   ├── settings_manager.py        # YAML-based configuration
+│   ├── error_messages.py          # User-friendly error messages
+│   └── performance_logger.py      # Performance tracking (NEW in Phase 3)
+│
+├── config/                    # Configuration
+│   ├── constants.py               # Application constants
+│   ├── settings.yaml              # Default settings
+│   ├── shortcuts.py               # Keyboard shortcuts
+│   ├── tooltips.py                # Tooltip definitions
+│   ├── i18n.py                    # Internationalization
+│   └── view_modes.py              # View mode definitions
+│
+├── security/                  # Security validation
+│   └── file_validator.py          # Secure file operations
+│
+├── tests/                     # Test suite (485+ tests)
+│   ├── conftest.py                # Shared fixtures & mocks
+│   ├── test_*.py                  # Test modules
+│   └── ...
+│
+└── docs/                      # Sphinx documentation
+    ├── index.rst                  # Documentation index
+    ├── user_guide.rst             # User guide
+    ├── developer_guide.rst        # Developer guide
+    └── changelog.rst              # Version history
+```
+
+### Recent Improvements (Phase 2 & 3)
+
+**Phase 2: Type Safety & Testing**
+- Reduced `type:ignore` from 28 to 9 (68% reduction)
+- Added Protocol definitions for type safety
+- Centralized test fixtures in `conftest.py`
+- Created performance regression tests
+
+**Phase 3: Production Readiness**
+- Added `utils/performance_logger.py` for performance tracking
+- Improved exception handling with specific error types
+- Added structured logging with `exc_info=True` and `extra_fields`
+- Better error diagnostics (MemoryError, OSError, FileNotFoundError, etc.)
+
 ## Questions?
 
 - Check [documentation](docs/)
-- Search [existing issues](https://github.com/OWNER/CTHarvester/issues)
-- Ask in [discussions](https://github.com/OWNER/CTHarvester/discussions)
+- Search [existing issues](https://github.com/jikhanjung/CTHarvester/issues)
+- Ask in [discussions](https://github.com/jikhanjung/CTHarvester/discussions)
 - Create new issue if needed
 
 ## License
