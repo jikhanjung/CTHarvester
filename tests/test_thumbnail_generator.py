@@ -297,6 +297,128 @@ class TestThumbnailGenerator:
 class TestThumbnailGeneratorIntegration:
     """Integration tests for thumbnail generation workflow"""
 
+    @pytest.fixture
+    def temp_image_dir(self):
+        """Create a temporary directory with test images"""
+        temp_dir = tempfile.mkdtemp()
+
+        # Create 10 test images (100x100, grayscale)
+        for i in range(10):
+            img = Image.fromarray(np.ones((100, 100), dtype=np.uint8) * (i * 25))
+            img.save(os.path.join(temp_dir, f"test_{i:04d}.tif"))
+
+        yield temp_dir
+
+        # Cleanup
+        shutil.rmtree(temp_dir)
+
+    @pytest.mark.slow
+    def test_cancellation_handling(self, temp_image_dir):
+        """Test that thumbnail generation handles cancellation correctly"""
+        from PyQt5.QtCore import QThreadPool
+
+        generator = ThumbnailGenerator()
+
+        # Mock progress dialog that cancels immediately
+        class MockLabel:
+            def setText(self, text):
+                pass
+
+        class MockProgressBar:
+            def setValue(self, value):
+                pass
+
+            def setMaximum(self, maximum):
+                pass
+
+        class MockProgressDialog:
+            def __init__(self):
+                self.is_cancelled = True  # Simulate immediate cancellation
+                self.lbl_text = MockLabel()
+                self.lbl_status = MockLabel()
+                self.lbl_detail = MockLabel()
+                self.pb_progress = MockProgressBar()
+
+        progress_dialog = MockProgressDialog()
+
+        settings = {
+            "image_width": "100",
+            "image_height": "100",
+            "seq_begin": 0,
+            "seq_end": 9,
+            "prefix": "test_",
+            "index_length": 4,
+            "file_type": "tif",
+        }
+
+        threadpool = QThreadPool()
+
+        result = generator.generate(
+            directory=temp_image_dir,
+            settings=settings,
+            threadpool=threadpool,
+            use_rust_preference=False,
+            progress_dialog=progress_dialog,
+        )
+
+        # Should return cancelled status
+        assert isinstance(result, dict)
+        assert result.get("cancelled") is True or result.get("success") is False
+
+    @pytest.mark.slow
+    def test_missing_directory_handling(self):
+        """Test error handling when directory doesn't exist"""
+        from PyQt5.QtCore import QThreadPool
+
+        generator = ThumbnailGenerator()
+
+        class MockLabel:
+            def setText(self, text):
+                pass
+
+        class MockProgressBar:
+            def setValue(self, value):
+                pass
+
+            def setMaximum(self, maximum):
+                pass
+
+        class MockProgressDialog:
+            def __init__(self):
+                self.is_cancelled = False
+                self.lbl_text = MockLabel()
+                self.lbl_status = MockLabel()
+                self.lbl_detail = MockLabel()
+                self.pb_progress = MockProgressBar()
+
+        progress_dialog = MockProgressDialog()
+
+        settings = {
+            "image_width": "100",
+            "image_height": "100",
+            "seq_begin": 0,
+            "seq_end": 9,
+            "prefix": "test_",
+            "index_length": 4,
+            "file_type": "tif",
+        }
+
+        threadpool = QThreadPool()
+
+        # Try to generate with non-existent directory
+        result = generator.generate(
+            directory="/nonexistent/directory",
+            settings=settings,
+            threadpool=threadpool,
+            use_rust_preference=False,
+            progress_dialog=progress_dialog,
+        )
+
+        # Should handle error gracefully
+        assert isinstance(result, dict)
+        assert result.get("success") is False
+        assert "error" in result
+
     @pytest.mark.slow
     def test_full_workflow_python(self):
         """Test complete thumbnail generation workflow (Python)"""
