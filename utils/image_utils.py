@@ -140,7 +140,8 @@ def average_images(img1: np.ndarray, img2: np.ndarray) -> np.ndarray:
     # Calculate average
     avg = (img1.astype(temp_dtype) + img2.astype(temp_dtype)) // 2
 
-    return avg.astype(img1.dtype)
+    result: np.ndarray = avg.astype(img1.dtype)
+    return result
 
 
 def save_image_from_array(img_array: np.ndarray, output_path: str, compress: bool = True) -> bool:
@@ -196,7 +197,8 @@ def get_image_dimensions(image_path: str) -> Tuple[int, int]:
     """
     try:
         with Image.open(image_path) as img:
-            return img.size
+            width, height = img.size
+            return (width, height)
     except Exception as e:
         logger.error(f"Failed to get image dimensions: {e}")
         raise

@@ -219,11 +219,12 @@ class ThumbnailGenerator:
 
                 def cancel_check() -> bool:
                     """Check if user cancelled via progress dialog"""
-                    return (
+                    result: bool = (
                         progress_dialog.is_cancelled
                         if hasattr(progress_dialog, "is_cancelled")
                         else False
                     )
+                    return result
 
             # Use unified return format
             rust_success = self.generate_rust(directory, progress_callback, cancel_check)

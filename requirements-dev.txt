@@ -20,6 +20,7 @@ pylint>=3.0.0,<4.0.0
 
 # Type Checking
 mypy>=1.7.0,<2.0.0
+types-PyYAML>=6.0.0
 
 # Profiling
 memory-profiler>=0.61.0,<1.0.0
