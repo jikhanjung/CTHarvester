@@ -66,7 +66,7 @@ class TestDetectBitDepth:
 
     def test_nonexistent_file(self):
         """Should raise error for nonexistent file"""
-        with pytest.raises(ValueError):
+        with pytest.raises(FileNotFoundError):
             detect_bit_depth("/nonexistent/file.tif")
 
     def test_detect_rgb(self):
