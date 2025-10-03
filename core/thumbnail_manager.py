@@ -26,6 +26,7 @@ Typical usage example:
 import logging
 import os
 import time
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from PIL import Image
@@ -33,6 +34,7 @@ from PyQt5.QtCore import QMutex, QMutexLocker, QObject, Qt, QThread, QThreadPool
 from PyQt5.QtWidgets import QApplication
 
 from core.progress_manager import ProgressManager
+from core.protocols import ProgressDialog, ThumbnailParent
 from core.thumbnail_worker import ThumbnailWorker, ThumbnailWorkerSignals
 
 logger = logging.getLogger(__name__)
@@ -71,7 +73,13 @@ class ThumbnailManager(QObject):
         ...     print(f"Generated {len(images)} thumbnails")
     """
 
-    def __init__(self, parent, progress_dialog, threadpool, shared_progress_manager=None):
+    def __init__(
+        self,
+        parent: Optional[ThumbnailParent],
+        progress_dialog: Optional[ProgressDialog],
+        threadpool: QThreadPool,
+        shared_progress_manager: Optional[ProgressManager] = None,
+    ):
         """Initialize the thumbnail manager.
 
         Args:
@@ -82,7 +90,7 @@ class ThumbnailManager(QObject):
                 levels. If None, creates a new instance.
         """
         super().__init__()
-        self.parent = parent  # type: ignore[method-assign]
+        self.thumbnail_parent = parent
         self.progress_dialog = progress_dialog
         self.threadpool = threadpool
 
@@ -92,11 +100,14 @@ class ThumbnailManager(QObject):
         else:
             # Create new progress manager as fallback
             self.progress_manager = ProgressManager()
-            # Pass weighted work distribution if available
-            if hasattr(parent, "level_work_distribution"):
-                self.progress_manager.level_work_distribution = parent.level_work_distribution
-            if hasattr(parent, "weighted_total_work"):
-                self.progress_manager.weighted_total_work = parent.weighted_total_work
+            # Pass weighted work distribution if available from parent
+            if self.thumbnail_parent is not None:
+                self.progress_manager.level_work_distribution = (
+                    self.thumbnail_parent.level_work_distribution
+                )
+                self.progress_manager.weighted_total_work = (
+                    self.thumbnail_parent.weighted_total_work
+                )
 
         # Connect progress manager signals to UI
         if progress_dialog:
@@ -461,8 +472,10 @@ class ThumbnailManager(QObject):
                 self.is_sampling = False
                 logger.info(f"Sampling complete: {self.images_per_second:.2f} weighted units/s")
                 # Store for parent
-                if self.parent is not None and hasattr(self.parent, "measured_images_per_second"):
-                    self.parent.measured_images_per_second = self.images_per_second
+                if self.thumbnail_parent is not None and hasattr(
+                    self.thumbnail_parent, "measured_images_per_second"
+                ):
+                    self.thumbnail_parent.measured_images_per_second = self.images_per_second
 
         seq_total_time = time.time() - seq_start_time
         logger.info(
@@ -552,8 +565,8 @@ class ThumbnailManager(QObject):
         self.level_weight = 1.0  # Default
         level_work_dist = None
 
-        if hasattr(self.parent, "level_work_distribution") and self.parent():  # type: ignore[truthy-function]
-            level_work_dist = self.parent.level_work_distribution
+        if self.thumbnail_parent is not None:
+            level_work_dist = self.thumbnail_parent.level_work_distribution
         elif hasattr(self.progress_manager, "level_work_distribution"):
             # Try to reconstruct from progress_manager's level_work_distribution
             # This is for when parent=None (called from ThumbnailGenerator)
@@ -677,10 +690,10 @@ class ThumbnailManager(QObject):
                 )
 
             # Connect signals with Qt.QueuedConnection to ensure thread safety
-            worker.signals.progress.connect(self.on_worker_progress, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
-            worker.signals.result.connect(self.on_worker_result, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
-            worker.signals.error.connect(self.on_worker_error, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
-            worker.signals.finished.connect(self.on_worker_finished, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+            worker.signals.progress.connect(self.on_worker_progress, Qt.QueuedConnection)
+            worker.signals.result.connect(self.on_worker_result, Qt.QueuedConnection)
+            worker.signals.error.connect(self.on_worker_error, Qt.QueuedConnection)
+            worker.signals.finished.connect(self.on_worker_finished, Qt.QueuedConnection)
 
             # Submit to thread pool
             if idx == 0:
@@ -945,7 +958,10 @@ class ThumbnailManager(QObject):
                 level1_time = total * time_per_image
                 total_estimate = level1_time
                 remaining_time = level1_time
-                for i in range(1, getattr(self.parent, "total_levels", 1)):  # type: ignore[attr-defined]
+                total_levels = (
+                    self.thumbnail_parent.total_levels if self.thumbnail_parent is not None else 1
+                )
+                for i in range(1, total_levels):
                     remaining_time *= 0.25
                     total_estimate += remaining_time
 
@@ -984,7 +1000,10 @@ class ThumbnailManager(QObject):
                 level1_time = total * time_per_image
                 total_estimate = level1_time
                 remaining_time = level1_time
-                for i in range(1, getattr(self.parent, "total_levels", 1)):  # type: ignore[attr-defined]
+                total_levels = (
+                    self.thumbnail_parent.total_levels if self.thumbnail_parent is not None else 1
+                )
+                for i in range(1, total_levels):
                     remaining_time *= 0.25
                     total_estimate += remaining_time
 
@@ -1038,7 +1057,10 @@ class ThumbnailManager(QObject):
                 level1_time = total * time_per_image
                 total_estimate = level1_time
                 remaining_time = level1_time
-                for i in range(1, getattr(self.parent, "total_levels", 1)):  # type: ignore[attr-defined]
+                total_levels = (
+                    self.thumbnail_parent.total_levels if self.thumbnail_parent is not None else 1
+                )
+                for i in range(1, total_levels):
                     remaining_time *= 0.25
                     total_estimate += remaining_time
 
@@ -1077,8 +1099,9 @@ class ThumbnailManager(QObject):
                     else "HDD" if self.images_per_second > 2 else "Network/Slow"
                 )
                 drive_label = (
-                    f"{self.parent.current_drive}"
-                    if self.parent is not None and hasattr(self.parent, "current_drive")
+                    f"{self.thumbnail_parent.current_drive}"
+                    if self.thumbnail_parent is not None
+                    and hasattr(self.thumbnail_parent, "current_drive")
                     else "unknown"
                 )
                 logger.info(f"Drive {drive_label} estimated as: {storage_type}")
@@ -1095,16 +1118,16 @@ class ThumbnailManager(QObject):
                 logger.info(f"=== FINAL ESTIMATED TOTAL TIME: {formatted_estimate} ===")
 
                 # Store sampled estimate for comparison (only if parent is not None)
-                if self.parent is not None:
-                    self.parent.sampled_estimate_seconds = total_estimate  # type: ignore[attr-defined]
-                    self.parent.sampled_estimate_str = formatted_estimate  # type: ignore[attr-defined]
+                if self.thumbnail_parent is not None:
+                    self.thumbnail_parent.sampled_estimate_seconds = total_estimate
+                    self.thumbnail_parent.sampled_estimate_str = formatted_estimate
 
                     # Update parent's estimate and save performance data for next levels
-                    self.parent.estimated_time_per_image = (  # type: ignore[attr-defined]
+                    self.thumbnail_parent.estimated_time_per_image = (
                         1.0 / self.images_per_second if self.images_per_second > 0 else 0.05
                     )
-                    self.parent.estimated_total_time = total_estimate  # type: ignore[attr-defined]
-                    self.parent.measured_images_per_second = self.images_per_second  # type: ignore[attr-defined]
+                    self.thumbnail_parent.estimated_total_time = total_estimate
+                    self.thumbnail_parent.measured_images_per_second = self.images_per_second
 
                 self.is_sampling = False
                 logger.info(f"Multi-stage sampling completed")

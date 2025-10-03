@@ -13,7 +13,10 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 from PIL import Image
+from PyQt5.QtCore import QThreadPool
 from PyQt5.QtWidgets import QApplication
+
+from core.protocols import ProgressDialog
 
 logger = logging.getLogger(__name__)
 
@@ -243,7 +246,7 @@ class ThumbnailGenerator:
                 if not cancelled:
                     # Rust failed but wasn't cancelled - fall back to Python
                     logger.warning("Rust thumbnail generation failed, falling back to Python")
-                    return self.generate_python(directory, settings, threadpool, progress_dialog)  # type: ignore[return-value,no-any-return]
+                    return self.generate_python(directory, settings, threadpool, progress_dialog)
                 else:
                     return {
                         "success": False,
@@ -253,9 +256,14 @@ class ThumbnailGenerator:
                     }
         else:
             logger.info("Using Python-based thumbnail generation")
-            return self.generate_python(directory, settings, threadpool, progress_dialog)  # type: ignore[return-value,no-any-return]
+            return self.generate_python(directory, settings, threadpool, progress_dialog)
 
-    def generate_rust(self, directory: str, progress_callback=None, cancel_check=None) -> bool:  # type: ignore[no-untyped-def]
+    def generate_rust(
+        self,
+        directory: str,
+        progress_callback: Optional[Callable[[float], None]] = None,
+        cancel_check: Optional[Callable[[], bool]] = None,
+    ) -> bool:
         """Generate thumbnails using Rust module
 
         Args:
@@ -323,9 +331,13 @@ class ThumbnailGenerator:
             logger.error(traceback.format_exc())
             return False
 
-    def generate_python(  # type: ignore[no-untyped-def]
-        self, directory: str, settings, threadpool, progress_dialog=None
-    ):  # type: ignore[no-untyped-def]
+    def generate_python(
+        self,
+        directory: str,
+        settings: Dict[str, Any],
+        threadpool: QThreadPool,
+        progress_dialog: Optional[ProgressDialog] = None,
+    ) -> Optional[Dict[str, Any]]:
         """Generate thumbnails using Python implementation (fallback)
 
         This method implements the full Python-based thumbnail generation logic,
@@ -333,15 +345,15 @@ class ThumbnailGenerator:
         with progress tracking and cancellation support.
 
         Args:
-            directory (str): Directory containing CT images
-            settings (dict): Settings hash containing image_width, image_height,
-                           seq_begin, seq_end, prefix, index_length, file_type
-            threadpool (QThreadPool): Qt thread pool for parallel processing
-            progress_dialog (ProgressDialog, optional): Progress dialog for UI updates.
+            directory: Directory containing CT images
+            settings: Settings hash containing image_width, image_height,
+                     seq_begin, seq_end, prefix, index_length, file_type
+            threadpool: Qt thread pool for parallel processing
+            progress_dialog: Progress dialog for UI updates.
                 If provided, progress will be updated via shared_progress_manager signals.
 
         Returns:
-            dict or None: Result dictionary containing:
+            Result dictionary containing:
                 {
                     'minimum_volume': np.ndarray,
                     'level_info': list,
