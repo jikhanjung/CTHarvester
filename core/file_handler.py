@@ -103,11 +103,18 @@ class FileHandler:
         except FileSecurityError as e:
             logger.error(f"Security error opening directory: {e}")
             raise
+        except PermissionError as e:
+            logger.error(f"Permission denied accessing directory: {directory_path}", exc_info=True)
+            return None
+        except OSError as e:
+            logger.error(
+                f"OS error opening directory: {directory_path}",
+                exc_info=True,
+                extra={"extra_fields": {"error_type": "os_error", "path": directory_path}},
+            )
+            return None
         except Exception as e:
-            logger.error(f"Error opening directory: {e}")
-            import traceback
-
-            logger.error(traceback.format_exc())
+            logger.exception(f"Unexpected error opening directory: {directory_path}")
             return None
 
     def sort_file_list_from_dir(self, directory_path: str) -> Optional[Dict]:
@@ -244,8 +251,21 @@ class FileHandler:
             try:
                 with Image.open(first_file_path) as img:
                     width, height = img.size
-            except (OSError, IOError) as e:
-                logger.error(f"Error opening image {first_file_path}: {e}")
+            except FileNotFoundError as e:
+                logger.error(f"Image file not found: {first_file_path}", exc_info=True)
+                return None
+            except PermissionError as e:
+                logger.error(f"Permission denied reading image: {first_file_path}", exc_info=True)
+                return None
+            except OSError as e:
+                logger.error(
+                    f"Cannot read image file: {first_file_path}",
+                    exc_info=True,
+                    extra={"extra_fields": {"error_type": "image_read_error", "file": first_file}},
+                )
+                return None
+            except Exception as e:
+                logger.exception(f"Unexpected error opening image: {first_file_path}")
                 return None
 
             # Extract sequence information
@@ -273,11 +293,22 @@ class FileHandler:
 
             return settings_hash
 
+        except PermissionError as e:
+            logger.error(
+                f"Permission denied accessing directory: {directory_path}",
+                exc_info=True,
+                extra={"extra_fields": {"error_type": "permission_denied", "path": directory_path}},
+            )
+            return None
+        except OSError as e:
+            logger.error(
+                f"OS error reading directory: {directory_path}",
+                exc_info=True,
+                extra={"extra_fields": {"error_type": "os_error", "path": directory_path}},
+            )
+            return None
         except Exception as e:
-            logger.error(f"Error sorting file list: {e}")
-            import traceback
-
-            logger.error(traceback.format_exc())
+            logger.exception(f"Unexpected error sorting file list from: {directory_path}")
             return None
 
     def _natural_sort(self, file_list: List[str], pattern: str) -> List[str]:

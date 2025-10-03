@@ -324,11 +324,29 @@ class ThumbnailGenerator:
 
             return True
 
+        except ImportError as e:
+            logger.error(
+                "Rust module import failed during generation",
+                exc_info=True,
+                extra={"extra_fields": {"error_type": "rust_import_error"}},
+            )
+            return False
+        except MemoryError as e:
+            logger.error(
+                "Out of memory during Rust thumbnail generation",
+                exc_info=True,
+                extra={"extra_fields": {"error_type": "out_of_memory", "directory": directory}},
+            )
+            return False
+        except OSError as e:
+            logger.error(
+                f"File system error during Rust generation: {directory}",
+                exc_info=True,
+                extra={"extra_fields": {"error_type": "os_error", "directory": directory}},
+            )
+            return False
         except Exception as e:
-            logger.error(f"Error during Rust thumbnail generation: {e}")
-            import traceback
-
-            logger.error(traceback.format_exc())
+            logger.exception(f"Unexpected error during Rust thumbnail generation: {directory}")
             return False
 
     def generate_python(
@@ -739,19 +757,58 @@ class ThumbnailGenerator:
                 "elapsed_time": total_elapsed,
             }
 
-        except Exception as e:
-            logger.error(f"Error during Python thumbnail generation: {e}")
-            import traceback
-
-            logger.error(traceback.format_exc())
-
+        except MemoryError as e:
+            logger.error(
+                "Out of memory during Python thumbnail generation",
+                exc_info=True,
+                extra={
+                    "extra_fields": {
+                        "error_type": "out_of_memory",
+                        "directory": directory,
+                        "image_size": f"{settings.get('image_width')}x{settings.get('image_height')}",
+                        "image_count": settings.get("seq_end", 0)
+                        - settings.get("seq_begin", 0)
+                        + 1,
+                    }
+                },
+            )
             return {
                 "minimum_volume": np.array([]),
                 "level_info": [],
                 "success": False,
                 "cancelled": False,
-                "data": None,
-                "error": str(e),
+                "error": "out_of_memory",
+                "error_details": str(e),
+                "elapsed_time": (
+                    time.time() - thumbnail_start_time if "thumbnail_start_time" in locals() else 0
+                ),
+            }
+        except OSError as e:
+            logger.error(
+                f"File system error during Python generation: {directory}",
+                exc_info=True,
+                extra={"extra_fields": {"error_type": "os_error", "directory": directory}},
+            )
+            return {
+                "minimum_volume": np.array([]),
+                "level_info": [],
+                "success": False,
+                "cancelled": False,
+                "error": "file_system_error",
+                "error_details": str(e),
+                "elapsed_time": (
+                    time.time() - thumbnail_start_time if "thumbnail_start_time" in locals() else 0
+                ),
+            }
+        except Exception as e:
+            logger.exception(f"Unexpected error during Python thumbnail generation: {directory}")
+            return {
+                "minimum_volume": np.array([]),
+                "level_info": [],
+                "success": False,
+                "cancelled": False,
+                "error": "unexpected_error",
+                "error_details": str(e),
                 "elapsed_time": (
                     time.time() - thumbnail_start_time if "thumbnail_start_time" in locals() else 0
                 ),
@@ -891,9 +948,27 @@ class ThumbnailGenerator:
                 logger.warning("No thumbnails loaded")
                 return None, {}
 
+        except FileNotFoundError as e:
+            logger.error(
+                f"Thumbnail file not found in: {directory}",
+                exc_info=True,
+                extra={"extra_fields": {"error_type": "file_not_found", "directory": directory}},
+            )
+            return None, {}
+        except PermissionError as e:
+            logger.error(
+                f"Permission denied reading thumbnails: {directory}",
+                exc_info=True,
+                extra={"extra_fields": {"error_type": "permission_denied", "directory": directory}},
+            )
+            return None, {}
+        except OSError as e:
+            logger.error(
+                f"OS error loading thumbnails: {directory}",
+                exc_info=True,
+                extra={"extra_fields": {"error_type": "os_error", "directory": directory}},
+            )
+            return None, {}
         except Exception as e:
-            logger.error(f"Error loading thumbnail data: {e}")
-            import traceback
-
-            logger.error(traceback.format_exc())
+            logger.exception(f"Unexpected error loading thumbnail data: {directory}")
             return None, {}

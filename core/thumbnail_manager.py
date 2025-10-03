@@ -359,7 +359,17 @@ class ThumbnailManager(QObject):
                         with Image.open(filename3) as img:
                             img_array = np.array(img)
                     except OSError as e:
-                        logger.error(f"Error loading thumbnail {filename3}: {e}")
+                        logger.error(
+                            f"Error loading existing thumbnail: {filename3}",
+                            exc_info=True,
+                            extra={
+                                "extra_fields": {
+                                    "error_type": "thumbnail_load_error",
+                                    "file": filename3,
+                                    "size": size,
+                                }
+                            },
+                        )
             else:
                 # Generate new thumbnail
                 was_generated = True
@@ -388,8 +398,19 @@ class ThumbnailManager(QObject):
                                 if img1.mode == "P":
                                     img1 = img1.convert("L")
                                 arr1 = np.array(img1)
+                        except FileNotFoundError as e:
+                            logger.warning(f"Source image file not found: {filename1}")
                         except OSError as e:
-                            logger.error(f"Error loading {filename1}: {e}")
+                            logger.error(
+                                f"Error loading source image: {filename1}",
+                                exc_info=True,
+                                extra={
+                                    "extra_fields": {
+                                        "error_type": "image_load_error",
+                                        "file": filename1,
+                                    }
+                                },
+                            )
 
                     if file2_path and os.path.exists(file2_path):
                         try:
@@ -401,8 +422,19 @@ class ThumbnailManager(QObject):
                                 if img2.mode == "P":
                                     img2 = img2.convert("L")
                                 arr2 = np.array(img2)
+                        except FileNotFoundError as e:
+                            logger.warning(f"Source image file not found: {filename2}")
                         except OSError as e:
-                            logger.error(f"Error loading {filename2}: {e}")
+                            logger.error(
+                                f"Error loading source image: {filename2}",
+                                exc_info=True,
+                                extra={
+                                    "extra_fields": {
+                                        "error_type": "image_load_error",
+                                        "file": filename2,
+                                    }
+                                },
+                            )
 
                     # Average and resize
                     if arr1 is not None:  # Process even if arr2 is None (odd number case)
@@ -428,10 +460,44 @@ class ThumbnailManager(QObject):
 
                             if size < max_thumbnail_size:
                                 img_array = downsampled
-                        except (OSError, ValueError) as e:
-                            logger.error(f"Error creating thumbnail: {e}")
+                        except MemoryError as e:
+                            logger.error(
+                                "Out of memory creating thumbnail",
+                                exc_info=True,
+                                extra={
+                                    "extra_fields": {
+                                        "error_type": "out_of_memory",
+                                        "output_file": filename3,
+                                    }
+                                },
+                            )
+                        except OSError as e:
+                            logger.error(
+                                f"Error saving thumbnail: {filename3}",
+                                exc_info=True,
+                                extra={
+                                    "extra_fields": {
+                                        "error_type": "thumbnail_save_error",
+                                        "file": filename3,
+                                    }
+                                },
+                            )
+                        except ValueError as e:
+                            logger.error(
+                                f"Invalid data processing thumbnail",
+                                exc_info=True,
+                                extra={
+                                    "extra_fields": {"error_type": "value_error", "file": filename3}
+                                },
+                            )
+                except MemoryError as e:
+                    logger.error(
+                        "Out of memory in thumbnail processing",
+                        exc_info=True,
+                        extra={"extra_fields": {"error_type": "out_of_memory", "idx": idx}},
+                    )
                 except (OSError, ValueError) as e:
-                    logger.error(f"Unexpected error in thumbnail processing: {e}")
+                    logger.exception(f"Unexpected error in thumbnail processing at idx={idx}")
 
             # Update progress
             self.completed_tasks += 1

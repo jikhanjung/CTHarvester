@@ -176,12 +176,38 @@ class VolumeProcessor:
             volume = minimum_volume[
                 bottom_idx_small:top_idx_small, from_y_small:to_y_small, from_x_small:to_x_small
             ]
-        except (IndexError, ValueError, TypeError) as e:
-            logger.error(f"Error cropping volume: {e}")
-            logger.error(f"minimum_volume shape: {minimum_volume.shape}")
+        except IndexError as e:
             logger.error(
-                f"Crop indices: Z[{bottom_idx_small}:{top_idx_small}], "
-                f"Y[{from_y_small}:{to_y_small}], X[{from_x_small}:{to_x_small}]"
+                "Index out of bounds during volume cropping",
+                exc_info=True,
+                extra={
+                    "extra_fields": {
+                        "error_type": "index_error",
+                        "volume_shape": str(minimum_volume.shape),
+                        "crop_z": f"{bottom_idx_small}:{top_idx_small}",
+                        "crop_y": f"{from_y_small}:{to_y_small}",
+                        "crop_x": f"{from_x_small}:{to_x_small}",
+                    }
+                },
+            )
+            return np.array([]), [0, 0, 0, 0, 0, 0]
+        except ValueError as e:
+            logger.error(
+                "Invalid value during volume cropping",
+                exc_info=True,
+                extra={
+                    "extra_fields": {
+                        "error_type": "value_error",
+                        "volume_shape": str(minimum_volume.shape),
+                    }
+                },
+            )
+            return np.array([]), [0, 0, 0, 0, 0, 0]
+        except TypeError as e:
+            logger.error(
+                "Type error during volume cropping",
+                exc_info=True,
+                extra={"extra_fields": {"error_type": "type_error"}},
             )
             return np.array([]), [0, 0, 0, 0, 0, 0]
 
