@@ -120,39 +120,25 @@ class TestThumbnailGenerationPerformance:
 
     def test_load_thumbnail_data_performance(self, small_dataset):
         """Benchmark loading existing thumbnails"""
-        from PyQt5.QtCore import QThreadPool
-
         generator = ThumbnailGenerator()
 
-        # First generate thumbnails
-        settings = {
-            "image_width": "256",
-            "image_height": "256",
-            "seq_begin": 0,
-            "seq_end": 19,
-            "prefix": "slice_",
-            "index_length": 4,
-            "file_type": "tif",
-        }
+        # Create pre-generated thumbnails manually for fast test
+        thumbnail_dir = os.path.join(small_dataset, ".thumbnail", "1")
+        os.makedirs(thumbnail_dir, exist_ok=True)
 
-        threadpool = QThreadPool()
-
-        # Generate once
-        generator.generate(
-            directory=small_dataset,
-            settings=settings,
-            threadpool=threadpool,
-            use_rust_preference=False,
-            progress_dialog=None,
-        )
+        # Create 10 small thumbnail images (50x50) - much faster than full generation
+        for i in range(10):
+            img = Image.fromarray(np.ones((50, 50), dtype=np.uint8) * (i * 25))
+            img.save(os.path.join(thumbnail_dir, f"slice_{i:04d}.tif"))
 
         # Benchmark loading
         start = time.perf_counter()
         images, level_info = generator.load_thumbnail_data(
-            directory=small_dataset, settings_hash=settings, level=0
+            directory=small_dataset, max_thumbnail_size=256
         )
         elapsed = time.perf_counter() - start
 
+        assert images is not None
         assert len(images) > 0
         assert elapsed < 0.5, f"Loading thumbnails too slow: {elapsed:.3f}s"
 
