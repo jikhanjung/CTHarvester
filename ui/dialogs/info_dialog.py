@@ -20,29 +20,29 @@ class InfoDialog(QDialog):
 
     def __init__(self, parent):
         super().__init__()
-        self.parent = parent
+        self._parent = parent  # Avoid shadowing parent() method
 
         # Create layout
         layout = QVBoxLayout()
 
         # Add title
         title_label = QLabel("<h2>CTHarvester</h2>")
-        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setAlignment(Qt.AlignCenter)  # type: ignore[attr-defined]
         layout.addWidget(title_label)
 
         # Add version info
         version_label = QLabel(self.tr("Version {}").format(PROGRAM_VERSION))
-        version_label.setAlignment(Qt.AlignCenter)
+        version_label.setAlignment(Qt.AlignCenter)  # type: ignore[attr-defined]
         layout.addWidget(version_label)
 
         # Add description
         desc_label = QLabel(self.tr("CT Image Stack Processing Tool"))
-        desc_label.setAlignment(Qt.AlignCenter)
+        desc_label.setAlignment(Qt.AlignCenter)  # type: ignore[attr-defined]
         layout.addWidget(desc_label)
 
         # Add copyright
         copyright_label = QLabel(self.tr(PROGRAM_COPYRIGHT))
-        copyright_label.setAlignment(Qt.AlignCenter)
+        copyright_label.setAlignment(Qt.AlignCenter)  # type: ignore[attr-defined]
         layout.addWidget(copyright_label)
 
         # Add GitHub link
@@ -50,7 +50,7 @@ class InfoDialog(QDialog):
             '<a href="https://github.com/jikhanjung/CTHarvester">GitHub Repository</a>'
         )
         github_label.setOpenExternalLinks(True)
-        github_label.setAlignment(Qt.AlignCenter)
+        github_label.setAlignment(Qt.AlignCenter)  # type: ignore[attr-defined]
         layout.addWidget(github_label)
 
         # Add spacing
@@ -68,4 +68,4 @@ class InfoDialog(QDialog):
         self.setLayout(layout)
         self.setWindowTitle(self.tr("About CTHarvester"))
         self.setFixedSize(300, 200)
-        self.move(self.parent.pos() + QPoint(150, 150))
+        self.move(self._parent.pos() + QPoint(150, 150))

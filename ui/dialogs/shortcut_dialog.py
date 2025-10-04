@@ -38,7 +38,7 @@ class ShortcutDialog(QDialog):
         # Title
         title = QLabel("Keyboard Shortcuts")
         title.setStyleSheet("font-size: 16pt; font-weight: bold; padding: 10px;")
-        title.setAlignment(Qt.AlignCenter)
+        title.setAlignment(Qt.AlignCenter)  # type: ignore[attr-defined]
         main_layout.addWidget(title)
 
         # Scrollable area for shortcuts
@@ -92,7 +92,7 @@ class ShortcutDialog(QDialog):
                         border-radius: 3px;
                     """
                     )
-                    key_label.setAlignment(Qt.AlignCenter)
+                    key_label.setAlignment(Qt.AlignCenter)  # type: ignore[attr-defined]
                     key_label.setMinimumWidth(120)
 
                     # Description
@@ -129,7 +129,7 @@ class ShortcutDialog(QDialog):
         """
         )
         close_button.clicked.connect(self.accept)
-        button_layout.addWidget(close_button, alignment=Qt.AlignCenter)
+        button_layout.addWidget(close_button, alignment=Qt.AlignCenter)  # type: ignore[attr-defined]
         main_layout.addLayout(button_layout)
 
         self.setLayout(main_layout)

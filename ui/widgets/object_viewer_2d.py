@@ -256,13 +256,13 @@ class ObjectViewer2D(QLabel):
     def set_mode(self, mode):
         self.edit_mode = mode
         if self.edit_mode == MODE["ADD_BOX"]:
-            self.setCursor(Qt.CrossCursor)
+            self.setCursor(Qt.CrossCursor)  # type: ignore[attr-defined]
         elif self.edit_mode in [
             MODE["MOVE_BOX"],
             MODE["MOVE_BOX_READY"],
             MODE["MOVE_BOX_PROGRESS"],
         ]:
-            self.setCursor(Qt.OpenHandCursor)
+            self.setCursor(Qt.OpenHandCursor)  # type: ignore[attr-defined]
         elif self.edit_mode in [
             MODE["EDIT_BOX"],
             MODE["EDIT_BOX_READY"],
@@ -270,7 +270,7 @@ class ObjectViewer2D(QLabel):
         ]:
             pass
         else:
-            self.setCursor(Qt.ArrowCursor)
+            self.setCursor(Qt.ArrowCursor)  # type: ignore[attr-defined]
 
     def distance_check(self, x, y):
         x = self._2imgx(x)
@@ -321,27 +321,27 @@ class ObjectViewer2D(QLabel):
 
     def set_cursor_mode(self):
         if self.edit_x1 and self.edit_y1:
-            self.setCursor(Qt.SizeFDiagCursor)
+            self.setCursor(Qt.SizeFDiagCursor)  # type: ignore[attr-defined]
         elif self.edit_x2 and self.edit_y2:
-            self.setCursor(Qt.SizeFDiagCursor)
+            self.setCursor(Qt.SizeFDiagCursor)  # type: ignore[attr-defined]
         elif self.edit_x1 and self.edit_y2:
-            self.setCursor(Qt.SizeBDiagCursor)
+            self.setCursor(Qt.SizeBDiagCursor)  # type: ignore[attr-defined]
         elif self.edit_x2 and self.edit_y1:
-            self.setCursor(Qt.SizeBDiagCursor)
+            self.setCursor(Qt.SizeBDiagCursor)  # type: ignore[attr-defined]
         elif self.edit_x1 or self.edit_x2:
-            self.setCursor(Qt.SizeHorCursor)
+            self.setCursor(Qt.SizeHorCursor)  # type: ignore[attr-defined]
         elif self.edit_y1 or self.edit_y2:
-            self.setCursor(Qt.SizeVerCursor)
+            self.setCursor(Qt.SizeVerCursor)  # type: ignore[attr-defined]
         elif self.inside_box:
-            self.setCursor(Qt.OpenHandCursor)
+            self.setCursor(Qt.OpenHandCursor)  # type: ignore[attr-defined]
         else:
-            self.setCursor(Qt.ArrowCursor)
+            self.setCursor(Qt.ArrowCursor)  # type: ignore[attr-defined]
 
     def mouseMoveEvent(self, event):
         if self.orig_pixmap is None:
             return
         me = QMouseEvent(event)
-        if me.buttons() == Qt.LeftButton:
+        if me.buttons() == Qt.LeftButton:  # type: ignore[attr-defined]
             if self.edit_mode == MODE["ADD_BOX"]:
                 self.mouse_curr_x = me.x()
                 self.mouse_curr_y = me.y()
@@ -381,7 +381,7 @@ class ObjectViewer2D(QLabel):
         if self.orig_pixmap is None:
             return
         me = QMouseEvent(event)
-        if me.button() == Qt.LeftButton:
+        if me.button() == Qt.LeftButton:  # type: ignore[attr-defined]
             # If ROI is full or empty, automatically start creating a new box
             if self.is_roi_full_or_empty():
                 self.set_mode(MODE["ADD_BOX"])
@@ -444,7 +444,7 @@ class ObjectViewer2D(QLabel):
         me = QMouseEvent(ev)
         if self.mouse_down_x == me.x() and self.mouse_down_y == me.y():
             return
-        if me.button() == Qt.LeftButton:
+        if me.button() == Qt.LeftButton:  # type: ignore[attr-defined]
             if self.edit_mode == MODE["ADD_BOX"]:
                 img_x = self._2imgx(self.mouse_curr_x)
                 img_y = self._2imgy(self.mouse_curr_y)
@@ -604,9 +604,9 @@ class ObjectViewer2D(QLabel):
                 painter.drawText(tx, ty + i * (line_h + vgap), s)
 
         if self.curr_idx > self.top_idx or self.curr_idx < self.bottom_idx:
-            painter.setPen(QPen(QColor(128, 0, 0), 2, Qt.DotLine))
+            painter.setPen(QPen(QColor(128, 0, 0), 2, Qt.DotLine))  # type: ignore[attr-defined]
         else:
-            painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
+            painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))  # type: ignore[attr-defined]
         [x1, y1, x2, y2] = self.get_crop_area()
         painter.drawRect(x1, y1, x2 - x1, y2 - y1)
 
@@ -717,7 +717,7 @@ class ObjectViewer2D(QLabel):
             self.curr_pixmap = self.orig_pixmap.scaled(
                 int(self.orig_width * self.scale / self.image_canvas_ratio),
                 int(self.orig_width * self.scale / self.image_canvas_ratio),
-                Qt.KeepAspectRatio,
+                Qt.KeepAspectRatio,  # type: ignore[attr-defined],
             )
             # Always colorize current slice by threshold. If range not set, treat as full stack
             if self.isovalue > 0:

@@ -25,7 +25,7 @@ class VerticalTimeline(QtWidgets.QWidget):
         self._shaft_width = 3
         self._shade_width = 12
         self.setMouseTracking(True)
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)  # type: ignore[attr-defined]
 
         # model
         self._min = int(minimum)
@@ -149,7 +149,7 @@ class VerticalTimeline(QtWidgets.QWidget):
             shade.left(), y_lower, shade.width(), shade.bottom() - y_lower
         )
 
-        p.setPen(QtCore.Qt.NoPen)
+        p.setPen(QtCore.Qt.NoPen)  # type: ignore[attr-defined]
         p.setBrush(QtGui.QColor(150, 150, 150))  # inside (selected)
         p.drawRect(inside)
         p.setBrush(QtGui.QColor(230, 230, 230))  # outside (dim)
@@ -157,7 +157,7 @@ class VerticalTimeline(QtWidgets.QWidget):
         p.drawRect(outside_bottom)
 
         # shaft (actual stack line) - thin and dark
-        p.setPen(QtCore.Qt.NoPen)
+        p.setPen(QtCore.Qt.NoPen)  # type: ignore[attr-defined]
         p.setBrush(QtGui.QColor(20, 20, 20))
         p.drawRect(track)
 
@@ -191,7 +191,7 @@ class VerticalTimeline(QtWidgets.QWidget):
         )  # current tag on the left
 
     def mousePressEvent(self, ev):
-        if ev.button() != QtCore.Qt.LeftButton:
+        if ev.button() != QtCore.Qt.LeftButton:  # type: ignore[attr-defined]
             return
         r, track = self.rect(), self._track_rect()
         y = ev.pos().y()
@@ -206,9 +206,9 @@ class VerticalTimeline(QtWidgets.QWidget):
             # click empty area → move current
             self.setCurrent(self._y_to_val(y, track))
             self._drag_target = self.Thumb.CURRENT
-        self._shift_slip = ev.modifiers() & QtCore.Qt.ShiftModifier
+        self._shift_slip = ev.modifiers() & QtCore.Qt.ShiftModifier  # type: ignore[attr-defined]
         self._drag_offset = 0
-        self.setCursor(QtCore.Qt.ClosedHandCursor)
+        self.setCursor(QtCore.Qt.ClosedHandCursor)  # type: ignore[attr-defined]
         # show tooltip for the pressed handle
         self._show_handle_tooltip(self._drag_target, ev.globalPos())
 
@@ -268,26 +268,26 @@ class VerticalTimeline(QtWidgets.QWidget):
 
     def wheelEvent(self, ev):
         delta = ev.angleDelta().y()
-        step = self._page if (ev.modifiers() & QtCore.Qt.ControlModifier) else self._step
+        step = self._page if (ev.modifiers() & QtCore.Qt.ControlModifier) else self._step  # type: ignore[attr-defined]
         self.setCurrent(self._current + (step if delta > 0 else -step))
 
     def keyPressEvent(self, ev):
         k = ev.key()
-        if k == QtCore.Qt.Key_Up:
+        if k == QtCore.Qt.Key_Up:  # type: ignore[attr-defined]
             self.setCurrent(self._current + self._step)
-        elif k == QtCore.Qt.Key_Down:
+        elif k == QtCore.Qt.Key_Down:  # type: ignore[attr-defined]
             self.setCurrent(self._current - self._step)
-        elif k == QtCore.Qt.Key_PageUp:
+        elif k == QtCore.Qt.Key_PageUp:  # type: ignore[attr-defined]
             self.setCurrent(self._current + self._page)
-        elif k == QtCore.Qt.Key_PageDown:
+        elif k == QtCore.Qt.Key_PageDown:  # type: ignore[attr-defined]
             self.setCurrent(self._current - self._page)
-        elif k == QtCore.Qt.Key_Home:
+        elif k == QtCore.Qt.Key_Home:  # type: ignore[attr-defined]
             self.setCurrent(self._min)
-        elif k == QtCore.Qt.Key_End:
+        elif k == QtCore.Qt.Key_End:  # type: ignore[attr-defined]
             self.setCurrent(self._max)
-        elif k == QtCore.Qt.Key_L:
+        elif k == QtCore.Qt.Key_L:  # type: ignore[attr-defined]
             self.setLower(self._current)
-        elif k == QtCore.Qt.Key_U:
+        elif k == QtCore.Qt.Key_U:  # type: ignore[attr-defined]
             self.setUpper(self._current)
         else:
             super().keyPressEvent(ev)
