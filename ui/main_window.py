@@ -116,6 +116,11 @@ class CTHarvesterMainWindow(QMainWindow):
         # Initialize export handler (Phase 3: Export Operations Separation)
         self.export_handler = ExportHandler(self)
 
+        # Initialize thumbnail creation handler (Phase 4.2: Thumbnail Creation Separation)
+        from ui.handlers.thumbnail_creation_handler import ThumbnailCreationHandler
+
+        self.thumbnail_creation_handler = ThumbnailCreationHandler(self)
+
         # Read settings (must be done before UI setup to get mcube_geometry)
         self.settings_handler.read_all_settings()
 
@@ -561,205 +566,18 @@ class CTHarvesterMainWindow(QMainWindow):
         return total_work
 
     def create_thumbnail(self):
+        """Create thumbnails using Rust or Python implementation.
+
+        Delegated to ThumbnailCreationHandler (Phase 4.2).
         """
-        Creates a thumbnail using Rust module if available and enabled, otherwise falls back to Python implementation.
-        """
-        import time
-        from datetime import datetime
-
-        # Check if user wants to use Rust module (from preferences)
-        use_rust_preference = getattr(self.m_app, "use_rust_thumbnail", True)
-
-        # Try to use Rust module if preferred
-        if use_rust_preference:
-            try:
-                from ct_thumbnail import build_thumbnails
-
-                use_rust = True
-                logger.info("Using Rust-based thumbnail generation")
-            except ImportError:
-                use_rust = False
-                logger.warning(
-                    "ct_thumbnail module not found, falling back to Python implementation"
-                )
-        else:
-            use_rust = False
-            logger.info("Using Python implementation (Rust module disabled by user)")
-
-        if use_rust:
-            return self.create_thumbnail_rust()
-        else:
-            return self.create_thumbnail_python()
+        return self.thumbnail_creation_handler.create_thumbnail()
 
     def create_thumbnail_rust(self):
+        """Create thumbnails using Rust implementation.
+
+        Delegated to ThumbnailCreationHandler (Phase 4.2).
         """
-        Creates a thumbnail using Rust-based high-performance module.
-        """
-        import time
-        from datetime import datetime
-
-        from ct_thumbnail import build_thumbnails
-
-        # Start timing
-        self.thumbnail_start_time = time.time()
-        thumbnail_start_datetime = datetime.now()
-
-        dirname = self.edtDirname.text()
-
-        logger.info(f"=== Starting Rust thumbnail generation ===")
-        logger.info(f"Start time: {thumbnail_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
-        logger.info(f"Directory: {dirname}")
-
-        # Initialize progress dialog
-        self.progress_dialog = ProgressDialog(self)
-        self.progress_dialog.update_language()
-        self.progress_dialog.setModal(True)
-        self.progress_dialog.show()
-
-        # Set initial progress text
-        self.progress_dialog.lbl_text.setText(self.tr("Generating thumbnails"))
-        self.progress_dialog.lbl_detail.setText(self.tr("Initializing..."))
-
-        # Setup progress bar (0-100%)
-        self.progress_dialog.pb_progress.setMinimum(0)
-        self.progress_dialog.pb_progress.setMaximum(100)
-        self.progress_dialog.pb_progress.setValue(0)
-
-        # Variables for progress tracking
-        self.last_progress = 0
-        self.progress_start_time = time.time()
-        self.rust_cancelled = False
-
-        def progress_callback(percentage):
-            """Progress callback from Rust module"""
-            # Process events FIRST to handle any pending Cancel button clicks
-            QApplication.processEvents()
-
-            # Check if progress dialog exists
-            if not self.progress_dialog:
-                return False
-
-            # Check for cancellation after processing events
-            if self.progress_dialog.is_cancelled:
-                self.rust_cancelled = True
-                return False  # Signal Rust to stop
-
-            # Update progress bar
-            self.progress_dialog.pb_progress.setValue(int(percentage))
-
-            # Calculate elapsed time and ETA
-            elapsed = time.time() - self.progress_start_time
-            if percentage > 0 and percentage < 100:
-                eta = elapsed * (100 - percentage) / percentage
-                eta_str = f"{int(eta)}s" if eta < 60 else f"{int(eta/60)}m {int(eta%60)}s"
-                elapsed_str = (
-                    f"{int(elapsed)}s" if elapsed < 60 else f"{int(elapsed/60)}m {int(elapsed%60)}s"
-                )
-
-                # Update detail text
-                self.progress_dialog.lbl_detail.setText(
-                    f"{percentage:.1f}% - Elapsed: {elapsed_str} - ETA: {eta_str}"
-                )
-            else:
-                self.progress_dialog.lbl_detail.setText(f"{percentage:.1f}%")
-
-            # Process events again to keep UI responsive
-            QApplication.processEvents()
-
-            self.last_progress = percentage
-            return True  # Continue processing
-
-        # Run Rust thumbnail generation with file pattern info
-        success = False
-        with wait_cursor():
-            try:
-                # Pass the file pattern information to Rust
-                prefix = self.settings_hash.get("prefix", "")
-                file_type = self.settings_hash.get("file_type", "tif")
-                seq_begin = int(self.settings_hash.get("seq_begin", 0))
-                seq_end = int(self.settings_hash.get("seq_end", 0))
-                index_length = int(self.settings_hash.get("index_length", 0))
-
-                # Call Rust with pattern parameters
-                result = build_thumbnails(
-                    dirname, progress_callback, prefix, file_type, seq_begin, seq_end, index_length
-                )
-
-                # Check if user cancelled
-                if self.rust_cancelled:
-                    success = False
-                    logger.info("Rust thumbnail generation cancelled by user")
-
-                    # Give Rust threads a moment to clean up
-                    QApplication.processEvents()
-                    QThread.msleep(100)  # Small delay for thread cleanup
-
-                    # Close progress dialog
-                    if hasattr(self, "progress_dialog") and self.progress_dialog:
-                        self.progress_dialog.close()
-                        self.progress_dialog = None
-
-                    # Return early - don't try to load thumbnails
-                    return
-                else:
-                    success = True
-
-            except Exception as e:
-                success = False
-                if not self.rust_cancelled:  # Only show error if not cancelled
-                    logger.error(f"Error during Rust thumbnail generation: {e}")
-                    QMessageBox.warning(
-                        self,
-                        self.tr("Warning"),
-                        self.tr(
-                            f"Rust thumbnail generation failed: {e}\nFalling back to Python implementation."
-                        ),
-                    )
-
-        # Calculate total time
-        total_elapsed = time.time() - self.thumbnail_start_time
-        thumbnail_end_datetime = datetime.now()
-
-        logger.info(f"=== Rust thumbnail generation completed ===")
-        logger.info(f"End time: {thumbnail_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
-        logger.info(f"Total duration: {total_elapsed:.2f} seconds ({total_elapsed/60:.2f} minutes)")
-
-        if success and not self.rust_cancelled:
-            # Load the generated thumbnails
-            self.load_thumbnail_data_from_disk()
-
-            # Update progress dialog
-            if self.progress_dialog:
-                self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
-                self.progress_dialog.lbl_detail.setText(f"Completed in {int(total_elapsed)}s")
-        else:
-            if self.progress_dialog:
-                if self.rust_cancelled:
-                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation cancelled"))
-                else:
-                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation failed"))
-
-            # Initialize minimum_volume as empty to prevent errors
-            if not hasattr(self, "minimum_volume"):
-                self.minimum_volume = []
-                logger.warning(
-                    "Initialized empty minimum_volume after Rust thumbnail generation failure"
-                )
-
-        # Close progress dialog
-        if self.progress_dialog:
-            self.progress_dialog.close()
-        self.progress_dialog = None
-
-        # Initialize combo boxes
-        self.initializeComboSize()
-        self.reset_crop()
-
-        # Trigger initial display
-        if self.comboLevel.count() > 0:
-            self.comboLevel.setCurrentIndex(0)
-            if not self.initialized:
-                self.comboLevelIndexChanged()
+        return self.thumbnail_creation_handler.create_thumbnail_rust()
 
     def load_thumbnail_data_from_disk(self):
         """Load generated thumbnail data from disk into minimum_volume for 3D visualization
@@ -860,152 +678,12 @@ class CTHarvesterMainWindow(QMainWindow):
         self.mcube_widget.setGeometry(QRect(0, 0, 150, 150))
         self.mcube_widget.recalculate_geometry()
 
-    # Keep existing Python implementation as fallback
     def create_thumbnail_python(self):
+        """Create thumbnails using Python implementation.
+
+        Delegated to ThumbnailCreationHandler (Phase 4.2).
         """
-        Creates thumbnails using Python implementation (fallback when Rust is unavailable).
-
-        This method delegates thumbnail generation to ThumbnailGenerator.generate_python(),
-        which handles the actual business logic. The UI responsibilities remain here:
-        setting up progress dialog, defining callbacks, and updating UI state.
-
-        Core logic has been moved to: core/thumbnail_generator.py:263-673
-        """
-        # Calculate total work for progress tracking
-        # This must be done before creating the progress dialog
-        size = max(int(self.settings_hash["image_width"]), int(self.settings_hash["image_height"]))
-        seq_begin = self.settings_hash["seq_begin"]
-        seq_end = self.settings_hash["seq_end"]
-        MAX_THUMBNAIL_SIZE = 512
-
-        total_work = self.thumbnail_generator.calculate_total_thumbnail_work(
-            seq_begin, seq_end, size, MAX_THUMBNAIL_SIZE
-        )
-        weighted_total_work = self.thumbnail_generator.weighted_total_work
-
-        # Create progress dialog
-        self.progress_dialog = ProgressDialog(self)
-        self.progress_dialog.update_language()
-        self.progress_dialog.setModal(True)
-
-        # Setup unified progress with calculated work amount
-        self.progress_dialog.setup_unified_progress(weighted_total_work, None)
-        self.progress_dialog.lbl_text.setText(self.tr("Generating thumbnails"))
-        self.progress_dialog.lbl_detail.setText("Estimating...")
-
-        self.progress_dialog.show()
-
-        # Set wait cursor for long operation
-        with wait_cursor():
-            try:
-                # Call ThumbnailGenerator with progress dialog
-                # Pass the progress dialog directly so ThumbnailManager can connect signals properly
-                result = self.thumbnail_generator.generate_python(
-                    directory=self.edtDirname.text(),
-                    settings=self.settings_hash,
-                    threadpool=self.threadpool,
-                    progress_dialog=self.progress_dialog,
-                )
-
-                # Handle result
-                if result is None:
-                    logger.error("Thumbnail generation failed - generate_python returned None")
-                    if self.progress_dialog:
-                        self.progress_dialog.lbl_text.setText(
-                            self.tr("Thumbnail generation failed")
-                        )
-                        self.progress_dialog.lbl_detail.setText("")
-                        self.progress_dialog.close()
-                        self.progress_dialog = None
-                    QMessageBox.critical(
-                        self,
-                        self.tr("Thumbnail Generation Failed"),
-                        self.tr("An unknown error occurred during thumbnail generation."),
-                    )
-                    return
-
-                # Handle cancellation
-                if result.get("cancelled"):
-                    logger.info("Thumbnail generation cancelled by user")
-                    if self.progress_dialog:
-                        self.progress_dialog.lbl_text.setText(
-                            self.tr("Thumbnail generation cancelled")
-                        )
-                        self.progress_dialog.lbl_detail.setText("")
-                        self.progress_dialog.close()
-                        self.progress_dialog = None
-                    QMessageBox.information(
-                        self,
-                        self.tr("Thumbnail Generation Cancelled"),
-                        self.tr("Thumbnail generation was cancelled by user."),
-                    )
-                    return
-
-                # Handle generation failure (not cancelled, but success=False)
-                if not result.get("success"):
-                    error_msg = result.get("error", "Thumbnail generation failed")
-                    logger.error(f"Thumbnail generation failed: {error_msg}")
-                    if self.progress_dialog:
-                        self.progress_dialog.lbl_text.setText(
-                            self.tr("Thumbnail generation failed")
-                        )
-                        self.progress_dialog.lbl_detail.setText("")
-                        self.progress_dialog.close()
-                        self.progress_dialog = None
-                    QMessageBox.critical(
-                        self,
-                        self.tr("Thumbnail Generation Failed"),
-                        self.tr("Thumbnail generation failed:\n\n{}").format(error_msg),
-                    )
-                    return
-
-                # Update instance state from result (only if successful)
-                self.minimum_volume = result.get("minimum_volume", [])
-                self.level_info = result.get("level_info", [])
-
-                # Show completion message
-                if self.progress_dialog:
-                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
-                    self.progress_dialog.lbl_detail.setText("")
-
-                # Close progress dialog
-                if self.progress_dialog:
-                    self.progress_dialog.close()
-                    self.progress_dialog = None
-
-                # Proceed with UI updates (only if successful)
-                # Load thumbnail data from disk (same as Rust does)
-                self.load_thumbnail_data_from_disk()
-
-                # If loading from disk failed and minimum_volume is still empty
-                if self.minimum_volume is None or (
-                    hasattr(self.minimum_volume, "__len__") and len(self.minimum_volume) == 0
-                ):
-                    logger.warning("Failed to load thumbnails from disk after Python generation")
-
-                # Initialize UI components
-                self.initializeComboSize()
-                self.reset_crop()
-
-                # Trigger initial display by setting combo index if items exist
-                if self.comboLevel.count() > 0:
-                    self.comboLevel.setCurrentIndex(0)
-                    # If comboLevelIndexChanged doesn't trigger, call it manually
-                    if not self.initialized:
-                        self.comboLevelIndexChanged()
-
-                    # Update 3D view after initializing combo level
-                    self.update_3D_view(False)
-
-            except Exception as e:
-                # Handle unexpected errors
-                logger.error(f"Unexpected error in create_thumbnail_python: {e}", exc_info=True)
-
-                if self.progress_dialog:
-                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation failed"))
-                    self.progress_dialog.lbl_detail.setText(str(e))
-                    self.progress_dialog.close()
-                    self.progress_dialog = None
+        return self.thumbnail_creation_handler.create_thumbnail_python()
 
     def slider2ValueChanged(self, value):
         """
