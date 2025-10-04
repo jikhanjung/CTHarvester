@@ -1,7 +1,6 @@
 import sys
 
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication
 
 # Project modules
 from config.constants import (
@@ -12,6 +11,7 @@ from config.constants import (
     DEFAULT_STORAGE_DIRECTORY,
     PROGRAM_NAME,
 )
+from ui.ctharvester_app import CTHarvesterApp
 from ui.main_window import CTHarvesterMainWindow
 from utils.common import ensure_directories, resource_path
 
@@ -37,7 +37,7 @@ logger = setup_logger(PROGRAM_NAME)
 
 def main():
     """Main application entry point"""
-    app = QApplication(sys.argv)
+    app = CTHarvesterApp(sys.argv)
     app.setApplicationName(PROGRAM_NAME)
     app.setOrganizationName(COMPANY_NAME)
     app.setOrganizationDomain("github.com/jikhanjung")
@@ -45,12 +45,9 @@ def main():
     # Set application icon
     app.setWindowIcon(QIcon(resource_path("resources/icons/icon.png")))
 
-    # Initialize application attributes (no longer using QSettings)
-    # Settings are now managed by SettingsManager (YAML-based)
-    app.remember_geometry = True
-    app.remember_directory = True
-    app.language = "en"
-    app.use_rust_thumbnail = True  # Default to Rust (fast) thumbnail generation
+    # Application attributes are initialized in CTHarvesterApp.__init__
+    # with proper type hints for mypy compatibility
+    # Settings are managed by SettingsManager (YAML-based) and loaded in main_window
 
     # Create and show main window
     window = CTHarvesterMainWindow()

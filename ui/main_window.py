@@ -9,6 +9,7 @@ import os
 import re
 import sys
 from copy import deepcopy
+from typing import Optional
 
 import numpy as np
 from PIL import Image
@@ -61,6 +62,7 @@ from core.thumbnail_generator import ThumbnailGenerator
 from core.thumbnail_manager import ThumbnailManager
 from core.volume_processor import VolumeProcessor
 from security.file_validator import FileSecurityError, SecureFileValidator, safe_open_image
+from ui.ctharvester_app import CTHarvesterApp
 from ui.dialogs import InfoDialog, ProgressDialog, SettingsDialog
 from ui.handlers import ExportHandler, WindowSettingsHandler
 from ui.setup import MainWindowSetup
@@ -77,7 +79,7 @@ logger = logging.getLogger(__name__)
 class CTHarvesterMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.m_app = QApplication.instance()
+        self.m_app: Optional[CTHarvesterApp] = QApplication.instance()  # type: ignore[assignment]
 
         # Window configuration
         self.setWindowIcon(QIcon(resource_path("resources/icons/CTHarvester_48_2.png")))
@@ -92,6 +94,8 @@ class CTHarvesterMainWindow(QMainWindow):
         self.prev_level_idx = 0
         self.default_directory = "."
         self.threadpool = QThreadPool()
+        self.progress_dialog: Optional[ProgressDialog] = None  # Progress dialog for long operations
+        self.initialized: bool = False  # Track initialization state
         logger.info(
             f"Initialized ThreadPool with maxThreadCount={self.threadpool.maxThreadCount()}"
         )
@@ -165,6 +169,10 @@ class CTHarvesterMainWindow(QMainWindow):
 
         Loads translation file and updates all translatable UI strings.
         """
+        if not self.m_app:
+            logger.warning("Application instance not available for translation")
+            return
+
         translator = QTranslator()
         translator.load(
             resource_path(f"resources/translations/CTHarvester_{self.m_app.language}.qm")
@@ -322,6 +330,10 @@ class CTHarvesterMainWindow(QMainWindow):
 
         Uses VolumeProcessor to handle cropping and coordinate transformation.
         """
+        if self.minimum_volume is None:
+            logger.error("Cannot get cropped volume: minimum_volume is None")
+            return None
+
         # Get UI state
         top_idx = self.image_label.top_idx
         bottom_idx = self.image_label.bottom_idx
@@ -623,6 +635,10 @@ class CTHarvesterMainWindow(QMainWindow):
             # Process events FIRST to handle any pending Cancel button clicks
             QApplication.processEvents()
 
+            # Check if progress dialog exists
+            if not self.progress_dialog:
+                return False
+
             # Check for cancellation after processing events
             if self.progress_dialog.is_cancelled:
                 self.rust_cancelled = True
@@ -713,13 +729,15 @@ class CTHarvesterMainWindow(QMainWindow):
             self.load_thumbnail_data_from_disk()
 
             # Update progress dialog
-            self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
-            self.progress_dialog.lbl_detail.setText(f"Completed in {int(total_elapsed)}s")
+            if self.progress_dialog:
+                self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
+                self.progress_dialog.lbl_detail.setText(f"Completed in {int(total_elapsed)}s")
         else:
-            if self.rust_cancelled:
-                self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation cancelled"))
-            else:
-                self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation failed"))
+            if self.progress_dialog:
+                if self.rust_cancelled:
+                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation cancelled"))
+                else:
+                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation failed"))
 
             # Initialize minimum_volume as empty to prevent errors
             if not hasattr(self, "minimum_volume"):
@@ -729,7 +747,8 @@ class CTHarvesterMainWindow(QMainWindow):
                 )
 
         # Close progress dialog
-        self.progress_dialog.close()
+        if self.progress_dialog:
+            self.progress_dialog.close()
         self.progress_dialog = None
 
         # Initialize combo boxes
@@ -796,6 +815,9 @@ class CTHarvesterMainWindow(QMainWindow):
     def _update_3d_view_with_thumbnails(self):
         """Update 3D view after loading thumbnails"""
         logger.info("Updating 3D view after loading thumbnails")
+        if self.minimum_volume is None:
+            logger.warning("Cannot update 3D view: minimum_volume is None")
+            return
         bounding_box = self.minimum_volume.shape
         logger.info(f"Bounding box shape: {bounding_box}")
 
@@ -1055,16 +1077,16 @@ class CTHarvesterMainWindow(QMainWindow):
         logger.info("open_dir method called - START")
 
         # Show directory selection dialog
-        ddir = QFileDialog.getExistingDirectory(
-            self, self.tr("Select directory"), self.m_app.default_directory
-        )
+        default_dir = self.m_app.default_directory if self.m_app else "."
+        ddir = QFileDialog.getExistingDirectory(self, self.tr("Select directory"), default_dir)
         if not ddir:
             logger.info("Directory selection cancelled")
             return
 
         logger.info(f"Selected directory: {ddir}")
         self.edtDirname.setText(ddir)
-        self.m_app.default_directory = os.path.dirname(ddir)
+        if self.m_app:
+            self.m_app.default_directory = os.path.dirname(ddir)
 
         # Reset UI state
         self.settings_hash = {}
@@ -1073,8 +1095,8 @@ class CTHarvesterMainWindow(QMainWindow):
 
         with wait_cursor():
             # Use FileHandler to analyze directory
-            self.settings_hash = self.file_handler.open_directory(ddir)
-            if self.settings_hash is None:
+            settings_result = self.file_handler.open_directory(ddir)
+            if settings_result is None:
                 QMessageBox.warning(
                     self,
                     self.tr("Warning"),
@@ -1083,6 +1105,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 logger.warning("No valid image files found")
                 return
 
+            self.settings_hash = settings_result
             logger.info(
                 f"Detected image sequence: prefix={self.settings_hash.get('prefix')}, range={self.settings_hash.get('seq_begin')}-{self.settings_hash.get('seq_end')}"
             )
@@ -1228,42 +1251,11 @@ class CTHarvesterMainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
-    # logger.info(f"Starting {PROGRAM_NAME} v{PROGRAM_VERSION}")
-    app = QApplication(sys.argv)
-
-    app.setWindowIcon(QIcon(resource_path("resources/icons/CTHarvester_48_2.png")))
-
-    # Initialize YAML settings manager (no longer using QSettings)
-    settings_manager = SettingsManager()
-
-    # Apply saved log level
-    saved_log_level = settings_manager.get("logging.level", "INFO")
-    try:
-        numeric_level = getattr(logging, saved_log_level, logging.INFO)
-        logger.setLevel(numeric_level)
-        for handler in logger.handlers:
-            handler.setLevel(numeric_level)
-        logger.info(f"Log level set to {saved_log_level} from settings")
-    except Exception as e:
-        logger.warning(f"Could not set log level from settings: {e}")
-
-    translator = QTranslator(app)
-    lang_code = settings_manager.get("application.language", "auto")
-    lang_map = {"auto": "en", "en": "en", "ko": "ko"}
-    app.language = lang_map.get(lang_code, "en")
-    translator.load(resource_path(f"resources/translations/CTHarvester_{app.language}.qm"))
-    app.installTranslator(translator)
-
-    # Create instance of CTHarvesterMainWindow
-    myWindow = CTHarvesterMainWindow()
-
-    # Show the main window
-    myWindow.show()
-    # logger.info(f"{PROGRAM_NAME} main window displayed")
-
-    # Enter the event loop (start the application)
-    app.exec_()
-    # logger.info(f"{PROGRAM_NAME} terminated")
+    # This module is imported by CTHarvester.py main() function
+    # Direct execution is deprecated - use: python CTHarvester.py
+    logger.warning("Direct execution of main_window.py is deprecated")
+    logger.warning("Please use: python CTHarvester.py")
+    sys.exit(1)
 
 """
 pyinstaller --onefile --noconsole --add-data "*.png;." --add-data "*.qm;." --icon="CTHarvester_48_2.png" CTHarvester.py

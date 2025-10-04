@@ -7,9 +7,12 @@ Extracted from main_window.py read_settings() and save_settings() methods
 """
 
 import logging
+from typing import Optional
 
 from PyQt5.QtCore import QRect
 from PyQt5.QtWidgets import QApplication
+
+from ui.ctharvester_app import CTHarvesterApp
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +39,7 @@ class WindowSettingsHandler:
         """
         self.window = main_window
         self.settings = settings_manager
-        self.app = QApplication.instance()
+        self.app: Optional[CTHarvesterApp] = QApplication.instance()  # type: ignore[assignment]
 
     def read_all_settings(self):
         """
@@ -62,6 +65,9 @@ class WindowSettingsHandler:
 
     def _read_directory_settings(self):
         """Read directory-related settings."""
+        if not self.app:
+            return
+
         self.app.remember_directory = self.settings.get("window.remember_position", True)
 
         if self.app.remember_directory:
@@ -71,6 +77,9 @@ class WindowSettingsHandler:
 
     def _read_geometry_settings(self):
         """Read window geometry settings (position and size)."""
+        if not self.app:
+            return
+
         self.app.remember_geometry = self.settings.get("window.remember_size", True)
 
         if self.app.remember_geometry:
@@ -106,12 +115,18 @@ class WindowSettingsHandler:
 
     def _read_language_settings(self):
         """Read language preference."""
+        if not self.app:
+            return
+
         lang_code = self.settings.get("application.language", "auto")
         lang_map = {"auto": "en", "en": "en", "ko": "ko"}
         self.app.language = lang_map.get(lang_code, "en")
 
     def _read_processing_settings(self):
         """Read processing-related settings (Rust module preference)."""
+        if not self.app:
+            return
+
         use_rust_default = self.settings.get("processing.use_rust_module", True)
         self.app.use_rust_thumbnail = use_rust_default
 
@@ -121,6 +136,9 @@ class WindowSettingsHandler:
 
     def _apply_defaults(self):
         """Apply default settings when reading fails."""
+        if not self.app:
+            return
+
         self.app.remember_directory = True
         self.app.default_directory = "."
         self.app.remember_geometry = True
@@ -146,6 +164,10 @@ class WindowSettingsHandler:
         Persists changes to disk.
         """
         try:
+            if not self.app:
+                logger.warning("Application instance not available, cannot save settings")
+                return
+
             if self.app.remember_directory:
                 self._save_directory_settings()
 
@@ -163,7 +185,8 @@ class WindowSettingsHandler:
 
     def _save_directory_settings(self):
         """Save default directory setting."""
-        self.settings.set("application.default_directory", self.app.default_directory)
+        if self.app:
+            self.settings.set("application.default_directory", self.app.default_directory)
 
     def _save_geometry_settings(self):
         """Save window geometry settings."""
