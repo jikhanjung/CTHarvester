@@ -195,17 +195,24 @@ class VerticalTimeline(QtWidgets.QWidget):
             return
         r, track = self.rect(), self._track_rect()
         y = ev.pos().y()
-        # hit test: prioritize current, then lower/upper
-        if self._hit_diamond(y, track, self._current):
+        x = ev.pos().x()
+        # Determine if cursor is on the right side of the vertical line
+        is_right_side = x > track.center().x()
+
+        # hit test: prioritize current (only on left side), then lower/upper
+        if not is_right_side and self._hit_diamond(y, track, self._current):
             self._drag_target = self.Thumb.CURRENT
         elif self._hit_thumb(y, track, self._lower):
             self._drag_target = self.Thumb.LOWER
         elif self._hit_thumb(y, track, self._upper):
             self._drag_target = self.Thumb.UPPER
         else:
-            # click empty area → move current
-            self.setCurrent(self._y_to_val(y, track))
-            self._drag_target = self.Thumb.CURRENT
+            # click empty area → move current (only on left side)
+            if not is_right_side:
+                self.setCurrent(self._y_to_val(y, track))
+                self._drag_target = self.Thumb.CURRENT
+            else:
+                return
         self._shift_slip = ev.modifiers() & QtCore.Qt.ShiftModifier  # type: ignore[attr-defined]
         self._drag_offset = 0
         self.setCursor(QtCore.Qt.ClosedHandCursor)  # type: ignore[attr-defined]

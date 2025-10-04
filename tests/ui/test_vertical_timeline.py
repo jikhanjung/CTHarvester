@@ -429,24 +429,38 @@ class TestVerticalTimelineMouse:
         return w
 
     def test_click_empty_area_moves_current(self, widget, qtbot):
-        """Clicking empty area should move current indicator"""
-        # Click at top of widget (should be near max value)
-        top_pos = get_widget_position(widget, 0.5, 0.1)
+        """Clicking empty area on left side should move current indicator"""
+        # Click at top-left of widget (should be near max value)
+        # Use x=0.2 to ensure we're on the left side of the vertical line
+        top_pos = get_widget_position(widget, 0.2, 0.1)
         qtbot.mouseClick(widget, Qt.LeftButton, pos=top_pos)
 
         # Current should have moved toward max
         assert widget._current > 50
 
+    def test_click_right_side_does_not_move_current(self, widget, qtbot):
+        """Clicking empty area on right side should NOT move current indicator"""
+        initial_current = widget._current
+
+        # Click at top-right of widget (right side of vertical line)
+        # Use x=0.8 to ensure we're on the right side of the vertical line
+        top_pos = get_widget_position(widget, 0.8, 0.1)
+        qtbot.mouseClick(widget, Qt.LeftButton, pos=top_pos)
+
+        # Current should NOT have changed
+        assert widget._current == initial_current
+
     def test_drag_current_handle(self, widget, qtbot):
-        """Should be able to drag current handle"""
+        """Should be able to drag current handle from left side"""
         # Start with current at a known position
         widget.setCurrent(50)
         initial_current = widget._current
 
-        # Click and drag from middle to top (should increase value)
+        # Click and drag from middle-left to top-left (should increase value)
         # In vertical timeline, top = max (100), bottom = min (0)
-        middle_pos = get_widget_position(widget, 0.5, 0.5)
-        top_pos = get_widget_position(widget, 0.5, 0.2)
+        # Use x=0.2 to ensure we're on the left side where current handle can be grabbed
+        middle_pos = get_widget_position(widget, 0.2, 0.5)
+        top_pos = get_widget_position(widget, 0.2, 0.2)
 
         # Simulate drag
         qtbot.mousePress(widget, Qt.LeftButton, pos=middle_pos)
