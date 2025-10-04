@@ -160,7 +160,7 @@ class MainWindowSetup:
 
     def setup_threshold_slider(self):
         """Create threshold slider with value label."""
-        self.window.threshold_slider = QSlider(Qt.Vertical)
+        self.window.threshold_slider = QSlider(Qt.Vertical)  # type: ignore[attr-defined]
         # Ensure full 0-255 range is visible on the labeled slider
         self.window.threshold_slider.setRange(0, 255)
         self.window.threshold_slider.setValue(60)
@@ -170,7 +170,7 @@ class MainWindowSetup:
 
         # External numeric readout to avoid any internal 0-99 label limit
         self.window.threshold_value_label = QLabel(str(self.window.threshold_slider.value()))
-        self.window.threshold_value_label.setAlignment(Qt.AlignHCenter)
+        self.window.threshold_value_label.setAlignment(Qt.AlignHCenter)  # type: ignore[attr-defined]
         self.window.threshold_value_label.setMinimumWidth(30)
         self.window.threshold_value_label.setStyleSheet("QLabel { color: #202020; }")
 

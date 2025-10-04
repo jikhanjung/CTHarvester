@@ -116,8 +116,11 @@ class ExportHandler:
         validator = SecureFileValidator()
 
         try:
-            # Validate output path
-            validated_path = validator.validate_path(filename)
+            # Validate output path (use parent directory as base)
+            import os
+
+            base_dir = os.path.dirname(filename) or "."
+            validated_path = validator.validate_path(filename, base_dir)
             with open(validated_path, "w") as fh:
                 # Write vertices
                 for v in vertices:
@@ -162,7 +165,15 @@ class ExportHandler:
 
         # Open directory if requested
         if self.window.cbxOpenDirAfter.isChecked():
-            os.startfile(target_dir)
+            import platform
+            import subprocess
+
+            if platform.system() == "Windows":
+                os.startfile(target_dir)  # type: ignore[attr-defined]
+            elif platform.system() == "Darwin":  # macOS
+                subprocess.run(["open", target_dir], check=False)
+            else:  # Linux
+                subprocess.run(["xdg-open", target_dir], check=False)
 
     def _get_save_directory(self):
         """

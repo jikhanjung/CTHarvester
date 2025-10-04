@@ -731,7 +731,7 @@ class ThumbnailGenerator:
                 for tif_file in tif_files:
                     img_array = safe_load_image(os.path.join(smallest_dir, tif_file))
                     if img_array is not None:
-                        minimum_volume_list.append(img_array)
+                        minimum_volume_list.append(img_array)  # type: ignore[arg-type]
 
                 if minimum_volume_list:
                     minimum_volume = np.array(minimum_volume_list)
@@ -904,15 +904,15 @@ class ThumbnailGenerator:
                     continue
 
                 # Normalize to 8-bit range (0-255) for marching cubes
-                if img_array.dtype == np.uint16:
+                if img_array.dtype == np.uint16:  # type: ignore[union-attr]
                     # Convert 16-bit to 8-bit
                     from config.constants import BIT_DEPTH_16_TO_8_DIVISOR
 
-                    img_array = (img_array / BIT_DEPTH_16_TO_8_DIVISOR).astype(np.uint8)
-                elif img_array.dtype != np.uint8:
+                    img_array = (img_array / BIT_DEPTH_16_TO_8_DIVISOR).astype(np.uint8)  # type: ignore[union-attr,operator]
+                elif img_array.dtype != np.uint8:  # type: ignore[union-attr]
                     # For other types, normalize to 0-255
-                    img_min = img_array.min()
-                    img_max = img_array.max()
+                    img_min = img_array.min()  # type: ignore[union-attr]
+                    img_max = img_array.max()  # type: ignore[union-attr]
                     if img_max > img_min:
                         img_array = ((img_array - img_min) / (img_max - img_min) * 255).astype(
                             np.uint8
