@@ -121,6 +121,11 @@ class CTHarvesterMainWindow(QMainWindow):
 
         self.thumbnail_creation_handler = ThumbnailCreationHandler(self)
 
+        # Initialize directory open handler (Phase 4.3: Directory Opening Separation)
+        from ui.handlers.directory_open_handler import DirectoryOpenHandler
+
+        self.directory_open_handler = DirectoryOpenHandler(self)
+
         # Read settings (must be done before UI setup to get mcube_geometry)
         self.settings_handler.read_all_settings()
 
@@ -748,82 +753,11 @@ class CTHarvesterMainWindow(QMainWindow):
             self.level_volumes = {}
 
     def open_dir(self):
-        """Opens a directory dialog to select a directory containing image files and log files
+        """Open directory dialog to select CT image stack.
 
-        Delegates file detection to FileHandler.open_directory()
+        Delegated to DirectoryOpenHandler (Phase 4.3).
         """
-        logger.info("open_dir method called - START")
-
-        # Show directory selection dialog
-        default_dir = self.m_app.default_directory if self.m_app else "."
-        ddir = QFileDialog.getExistingDirectory(self, self.tr("Select directory"), default_dir)
-        if not ddir:
-            logger.info("Directory selection cancelled")
-            return
-
-        logger.info(f"Selected directory: {ddir}")
-        self.edtDirname.setText(ddir)
-        if self.m_app:
-            self.m_app.default_directory = os.path.dirname(ddir)
-
-        # Reset UI state
-        self.settings_hash = {}
-        self.initialized = False
-        self._reset_ui_state()
-
-        with wait_cursor():
-            # Use FileHandler to analyze directory
-            settings_result = self.file_handler.open_directory(ddir)
-            if settings_result is None:
-                QMessageBox.warning(
-                    self,
-                    self.tr("Warning"),
-                    self.tr("No valid image files found in the selected directory."),
-                )
-                logger.warning("No valid image files found")
-                return
-
-            self.settings_hash = settings_result
-            logger.info(
-                f"Detected image sequence: prefix={self.settings_hash.get('prefix')}, range={self.settings_hash.get('seq_begin')}-{self.settings_hash.get('seq_end')}"
-            )
-
-            # Update UI with detected settings
-            self.edtNumImages.setText(
-                str(self.settings_hash["seq_end"] - self.settings_hash["seq_begin"] + 1)
-            )
-            self.edtImageDimension.setText(
-                f"{self.settings_hash['image_width']} x {self.settings_hash['image_height']}"
-            )
-
-            # Build image file list
-            image_file_list = self.file_handler.get_file_list(ddir, self.settings_hash)
-
-            self.original_from_idx = 0
-            self.original_to_idx = len(image_file_list) - 1
-
-            # Load first image for preview
-            self._load_first_image(ddir, image_file_list)
-
-            # Initialize level_info
-            self.level_info = []
-            self.level_info.append(
-                {
-                    "name": "Original",
-                    "width": self.settings_hash["image_width"],
-                    "height": self.settings_hash["image_height"],
-                    "seq_begin": self.settings_hash["seq_begin"],
-                    "seq_end": self.settings_hash["seq_end"],
-                }
-            )
-
-            # Check for existing thumbnail directories
-            self._load_existing_thumbnail_levels(ddir)
-
-            logger.info(f"Successfully loaded directory with {len(image_file_list)} images")
-
-        # Generate thumbnails
-        self.create_thumbnail()
+        return self.directory_open_handler.open_directory()
 
     def _load_first_image(self, ddir, image_file_list):
         """Load first image from list for preview"""
