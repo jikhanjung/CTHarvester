@@ -107,10 +107,10 @@ class ThumbnailWorkerManager(QObject):
             worker: ThumbnailWorker instance to submit
         """
         # Connect signals with Qt.QueuedConnection for thread safety
-        worker.signals.progress.connect(self.on_worker_progress, Qt.QueuedConnection)
-        worker.signals.result.connect(self.on_worker_result, Qt.QueuedConnection)
-        worker.signals.error.connect(self.on_worker_error, Qt.QueuedConnection)
-        worker.signals.finished.connect(self.on_worker_finished, Qt.QueuedConnection)
+        worker.signals.progress.connect(self.on_worker_progress, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+        worker.signals.result.connect(self.on_worker_result, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+        worker.signals.error.connect(self.on_worker_error, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+        worker.signals.finished.connect(self.on_worker_finished, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
 
         # Submit to thread pool
         self.threadpool.start(worker)

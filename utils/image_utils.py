@@ -4,7 +4,7 @@ Image Processing Utility Functions
 
 import logging
 import os
-from typing import Dict, Optional, Tuple, TypedDict
+from typing import Dict, Optional, Tuple, TypedDict, Union
 
 import numpy as np
 from PIL import Image
@@ -398,7 +398,7 @@ def safe_load_image(
     convert_mode: Optional[str] = None,
     as_array: bool = True,
     handle_palette: bool = True,
-) -> Optional[np.ndarray]:
+) -> Optional[Union[np.ndarray, Image.Image]]:  # type: ignore[return]
     """Load image with standardized error handling.
 
     This function provides a centralized way to load images with consistent
@@ -463,7 +463,7 @@ def safe_load_image(
                 return np.array(img)
             else:
                 # Return a copy since we're in a context manager
-                return img.copy()
+                return img.copy()  # type: ignore[no-any-return]
 
     except FileNotFoundError:
         logger.warning(f"Image file not found: {file_path}")

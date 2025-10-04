@@ -107,9 +107,9 @@ class ThumbnailManager(QObject):
             # Pass weighted work distribution if available from parent
             if self.thumbnail_parent is not None:
                 self.progress_manager.level_work_distribution = (
-                    self.thumbnail_parent.level_work_distribution
+                    self.thumbnail_parent.level_work_distribution  # type: ignore[assignment]
                 )
-                self.progress_manager.weighted_total_work = (
+                self.progress_manager.weighted_total_work = (  # type: ignore[assignment]
                     self.thumbnail_parent.weighted_total_work
                 )
 
@@ -121,8 +121,8 @@ class ThumbnailManager(QObject):
             self.progress_manager.eta_updated.connect(lambda eta: self._update_progress_text(eta))
 
         # Get sample_size from parent if it exists (for first level sampling)
-        if hasattr(parent, "sample_size"):
-            self.sample_size = parent.sample_size
+        if hasattr(parent, "sample_size") and parent is not None:
+            self.sample_size = parent.sample_size  # type: ignore[union-attr]
         elif parent is None:
             self.sample_size = 0
         else:
@@ -140,8 +140,8 @@ class ThumbnailManager(QObject):
 
         # Get inherited speed from parent if available
         initial_speed = None
-        if hasattr(parent, "measured_images_per_second"):
-            initial_speed = parent.measured_images_per_second
+        if hasattr(parent, "measured_images_per_second") and parent is not None:
+            initial_speed = parent.measured_images_per_second  # type: ignore[union-attr]
 
         # Initialize components (Phase 3 refactoring)
         self.time_estimator = TimeEstimator()
@@ -348,9 +348,9 @@ class ThumbnailManager(QObject):
                 if self.progress_manager.weighted_total_work
                 else self.total_tasks
             )
-            self.progress_manager.start(total_to_use)
+            self.progress_manager.start(int(total_to_use))
 
-        self.progress_manager.update(value=self.global_step_counter)
+        self.progress_manager.update(value=int(self.global_step_counter))
 
     def process_level_sequential(
         self,
@@ -406,7 +406,7 @@ class ThumbnailManager(QObject):
         seq_start_time = time.time()
 
         for idx in range(num_tasks):
-            if self.progress_dialog.is_cancelled:
+            if self.progress_dialog and self.progress_dialog.is_cancelled:
                 self.is_cancelled = True
                 break
 
@@ -492,11 +492,11 @@ class ThumbnailManager(QObject):
 
                             if arr2 is not None:
                                 # Both images exist - average them
-                                averaged = average_images(arr1, arr2)
+                                averaged = average_images(arr1, arr2)  # type: ignore[arg-type]
                             else:
                                 # Only img1 exists (odd case) - no averaging needed
                                 logger.debug(f"Processing single image at idx={idx}")
-                                averaged = arr1
+                                averaged = arr1  # type: ignore[assignment]
 
                             # Downsample by factor of 2
                             downsampled = downsample_image(averaged, factor=2, method="average")
@@ -589,7 +589,7 @@ class ThumbnailManager(QObject):
                 if self.thumbnail_parent is not None and hasattr(
                     self.thumbnail_parent, "measured_images_per_second"
                 ):
-                    self.thumbnail_parent.measured_images_per_second = self.images_per_second
+                    self.thumbnail_parent.measured_images_per_second = self.images_per_second  # type: ignore[assignment]
 
         seq_total_time = time.time() - seq_start_time
         logger.info(
@@ -684,7 +684,7 @@ class ThumbnailManager(QObject):
         elif hasattr(self.progress_manager, "level_work_distribution"):
             # Try to reconstruct from progress_manager's level_work_distribution
             # This is for when parent=None (called from ThumbnailGenerator)
-            level_work_dist = self.progress_manager.level_work_distribution
+            level_work_dist = self.progress_manager.level_work_distribution  # type: ignore[assignment]
 
         if level_work_dist:
             # level_work_dist could be list of dicts or list of ints
@@ -770,7 +770,7 @@ class ThumbnailManager(QObject):
         logger.info(f"Starting to submit {num_tasks} workers to thread pool")
 
         for idx in range(num_tasks):
-            if self.progress_dialog.is_cancelled:
+            if self.progress_dialog and self.progress_dialog.is_cancelled:
                 self.is_cancelled = True
                 break
 
@@ -804,10 +804,10 @@ class ThumbnailManager(QObject):
                 )
 
             # Connect signals with Qt.QueuedConnection to ensure thread safety
-            worker.signals.progress.connect(self.on_worker_progress, Qt.QueuedConnection)
-            worker.signals.result.connect(self.on_worker_result, Qt.QueuedConnection)
-            worker.signals.error.connect(self.on_worker_error, Qt.QueuedConnection)
-            worker.signals.finished.connect(self.on_worker_finished, Qt.QueuedConnection)
+            worker.signals.progress.connect(self.on_worker_progress, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+            worker.signals.result.connect(self.on_worker_result, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+            worker.signals.error.connect(self.on_worker_error, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+            worker.signals.finished.connect(self.on_worker_finished, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
 
             # Submit to thread pool
             if idx == 0:
@@ -848,7 +848,9 @@ class ThumbnailManager(QObject):
         last_completed_count = self.completed_tasks
 
         first_log = True
-        while self.completed_tasks < self.total_tasks and not self.progress_dialog.is_cancelled:
+        while self.completed_tasks < self.total_tasks and not (
+            self.progress_dialog and self.progress_dialog.is_cancelled
+        ):
             if first_log:
                 logger.info(
                     f"Starting main wait loop. Completed: {self.completed_tasks}, Total: {self.total_tasks}"
@@ -894,7 +896,7 @@ class ThumbnailManager(QObject):
 
             QThread.msleep(10)  # Reduced delay for better responsiveness
 
-        if self.progress_dialog.is_cancelled:
+        if self.progress_dialog and self.progress_dialog.is_cancelled:
             self.is_cancelled = True
             logger.info(f"ThumbnailManager.process_level: Level {level+1} cancelled by user")
 
@@ -974,7 +976,8 @@ class ThumbnailManager(QObject):
             current_step = self.global_step_counter
 
         # Update progress bar
-        self.progress_dialog.lbl_text.setText(f"Generating thumbnails")
+        if self.progress_dialog:
+            self.progress_dialog.lbl_text.setText(f"Generating thumbnails")
 
         # Use centralized ETA and progress update
         # This will call progress_manager.update() which emits progress_updated signal
@@ -1234,7 +1237,7 @@ class ThumbnailManager(QObject):
                         1.0 / self.images_per_second if self.images_per_second > 0 else 0.05
                     )
                     self.thumbnail_parent.estimated_total_time = total_estimate
-                    self.thumbnail_parent.measured_images_per_second = self.images_per_second
+                    self.thumbnail_parent.measured_images_per_second = self.images_per_second  # type: ignore[assignment]
 
                 self.is_sampling = False
                 logger.info(f"Multi-stage sampling completed")

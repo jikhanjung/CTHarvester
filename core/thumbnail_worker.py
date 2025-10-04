@@ -332,9 +332,9 @@ class ThumbnailWorker(QRunnable):
                 was_generated = False
 
                 if self.size < self.max_thumbnail_size:
-                    img_array = safe_load_image(self.filename3)
+                    img_array = safe_load_image(self.filename3)  # type: ignore[assignment]
                     if img_array is not None:
-                        logger.debug(f"Loaded existing thumbnail shape: {img_array.shape}")
+                        logger.debug(f"Loaded existing thumbnail shape: {img_array.shape}")  # type: ignore[union-attr]
             else:
                 # Generate new thumbnail
                 if self.progress_dialog.is_cancelled:
