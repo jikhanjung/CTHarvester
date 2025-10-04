@@ -4,8 +4,8 @@ This module provides the ThumbnailManager class which coordinates multithreaded 
 generation for CT image stacks. It manages worker threads, progress tracking, and
 result collection.
 
-The module was extracted from CTHarvester.py during Phase 4c refactoring to improve
-code organization and maintainability.
+The module was refactored during Phase 3 architectural improvements to use separate
+components for progress tracking and worker management, reducing complexity from 127 to <50.
 
 Typical usage example:
 
@@ -35,7 +35,11 @@ from PyQt5.QtWidgets import QApplication
 
 from core.progress_manager import ProgressManager
 from core.protocols import ProgressDialog, ThumbnailParent
+from core.thumbnail_progress_tracker import ThumbnailProgressTracker
 from core.thumbnail_worker import ThumbnailWorker, ThumbnailWorkerSignals
+from core.thumbnail_worker_manager import ThumbnailWorkerManager
+from utils.image_utils import safe_load_image
+from utils.time_estimator import TimeEstimator
 
 logger = logging.getLogger(__name__)
 
@@ -116,58 +120,150 @@ class ThumbnailManager(QObject):
             )
             self.progress_manager.eta_updated.connect(lambda eta: self._update_progress_text(eta))
 
-        # Progress tracking (legacy compatibility)
-        self.total_tasks = 0
-        self.completed_tasks = 0
-        self.global_step_counter: float = 0.0
-        self.level = 0
-        self.results = {}  # idx -> img_array
-        self.is_cancelled = False
-
-        # Synchronization
-        self.lock = QMutex()
-
-        # Dynamic time estimation
-        self.sample_start_time = None
-        self.images_per_second = None
-        self.is_sampling = False
-
-        # Track actual generation vs loading
-        self.generated_count = 0  # Number of thumbnails actually generated
-        self.loaded_count = 0  # Number of thumbnails loaded from disk
-
         # Get sample_size from parent if it exists (for first level sampling)
-        # If parent is None, try to get from settings
         if hasattr(parent, "sample_size"):
             self.sample_size = parent.sample_size
         elif parent is None:
-            # When called from ThumbnailGenerator with parent=None,
-            # sample_size will be set after construction
             self.sample_size = 0
         else:
             # Fallback: try to read from settings
             try:
+                from config.constants import DEFAULT_SAMPLE_SIZE
                 from utils.settings_manager import SettingsManager
 
                 settings = SettingsManager()
-                from config.constants import DEFAULT_SAMPLE_SIZE
-
                 self.sample_size = settings.get("thumbnails.sample_size", DEFAULT_SAMPLE_SIZE)
             except (ImportError, KeyError, AttributeError):
                 from config.constants import DEFAULT_SAMPLE_SIZE
 
-                self.sample_size = DEFAULT_SAMPLE_SIZE  # Default value
+                self.sample_size = DEFAULT_SAMPLE_SIZE
 
-        # Inherit performance data from parent if exists (from previous levels)
+        # Get inherited speed from parent if available
+        initial_speed = None
         if hasattr(parent, "measured_images_per_second"):
-            self.images_per_second = parent.measured_images_per_second
-            logger.info(
-                f"ThumbnailManager created: sample_size={self.sample_size}, inherited speed={self.images_per_second:.1f} img/s"
-            )
-        else:
-            logger.info(
-                f"ThumbnailManager created: sample_size={self.sample_size}, no inherited speed"
-            )
+            initial_speed = parent.measured_images_per_second
+
+        # Initialize components (Phase 3 refactoring)
+        self.time_estimator = TimeEstimator()
+        self.progress_tracker = ThumbnailProgressTracker(
+            sample_size=self.sample_size,
+            level_weight=1.0,  # Will be updated in process_level
+            time_estimator=self.time_estimator,
+            initial_speed=initial_speed,
+        )
+        self.worker_manager = ThumbnailWorkerManager(
+            threadpool=self.threadpool,
+            progress_tracker=self.progress_tracker,
+            progress_dialog=self.progress_dialog,
+            level_weight=1.0,  # Will be updated in process_level
+        )
+
+        # Legacy compatibility attributes (delegate to components)
+        self.level = 0
+        self.level_weight = 1.0
+
+        speed_msg = f"{initial_speed:.1f} img/s" if initial_speed else "no inherited speed"
+        logger.info(f"ThumbnailManager created: sample_size={self.sample_size}, {speed_msg}")
+
+    # Legacy compatibility properties (delegate to components)
+    @property
+    def total_tasks(self) -> int:
+        """Total number of tasks (for backward compatibility)."""
+        return getattr(self, "_total_tasks", 0)
+
+    @total_tasks.setter
+    def total_tasks(self, value: int):
+        self._total_tasks = value
+
+    @property
+    def completed_tasks(self) -> int:
+        """Completed tasks counter (delegates to progress_tracker)."""
+        return self.progress_tracker.completed_tasks
+
+    @completed_tasks.setter
+    def completed_tasks(self, value: int):
+        """Set completed tasks (for backward compatibility)."""
+        self.progress_tracker.completed_tasks = value
+
+    @property
+    def global_step_counter(self) -> float:
+        """Global step counter (delegates to worker_manager)."""
+        return self.worker_manager.global_step_counter
+
+    @global_step_counter.setter
+    def global_step_counter(self, value: float):
+        """Set global step counter."""
+        self.worker_manager.global_step_counter = value
+
+    @property
+    def results(self) -> Dict[int, Any]:
+        """Results dictionary (delegates to worker_manager)."""
+        return self.worker_manager.results
+
+    @property
+    def is_cancelled(self) -> bool:
+        """Cancellation flag (delegates to worker_manager)."""
+        return self.worker_manager.is_cancelled
+
+    @is_cancelled.setter
+    def is_cancelled(self, value: bool):
+        """Set cancellation flag."""
+        self.worker_manager.is_cancelled = value
+
+    @property
+    def generated_count(self) -> int:
+        """Number of generated thumbnails (delegates to progress_tracker)."""
+        return self.progress_tracker.generated_count
+
+    @generated_count.setter
+    def generated_count(self, value: int):
+        """Set generated count."""
+        self.progress_tracker.generated_count = value
+
+    @property
+    def loaded_count(self) -> int:
+        """Number of loaded thumbnails (delegates to progress_tracker)."""
+        return self.progress_tracker.loaded_count
+
+    @loaded_count.setter
+    def loaded_count(self, value: int):
+        """Set loaded count."""
+        self.progress_tracker.loaded_count = value
+
+    @property
+    def is_sampling(self) -> bool:
+        """Whether currently sampling (delegates to progress_tracker)."""
+        return self.progress_tracker.is_sampling
+
+    @is_sampling.setter
+    def is_sampling(self, value: bool):
+        """Set sampling flag."""
+        self.progress_tracker.is_sampling = value
+
+    @property
+    def sample_start_time(self) -> Optional[float]:
+        """Sample start timestamp (delegates to progress_tracker)."""
+        return self.progress_tracker.sample_start_time
+
+    @sample_start_time.setter
+    def sample_start_time(self, value: Optional[float]):
+        """Set sample start time."""
+        self.progress_tracker.sample_start_time = value
+
+    @property
+    def images_per_second(self) -> Optional[float]:
+        """Processing speed (delegates to progress_tracker)."""
+        return self.progress_tracker.images_per_second
+
+    @images_per_second.setter
+    def images_per_second(self, value: Optional[float]):
+        """Set processing speed."""
+        self.progress_tracker.images_per_second = value
+
+    @property
+    def lock(self) -> QMutex:
+        """Get thread lock from worker_manager."""
+        return self.worker_manager.lock
 
     def _update_progress_text(self, eta_text):
         """Helper to update progress dialog text"""
@@ -355,21 +451,7 @@ class ThumbnailManager(QObject):
             if os.path.exists(filename3):
                 # Load existing
                 if size < max_thumbnail_size:
-                    try:
-                        with Image.open(filename3) as img:
-                            img_array = np.array(img)
-                    except OSError as e:
-                        logger.error(
-                            f"Error loading existing thumbnail: {filename3}",
-                            exc_info=True,
-                            extra={
-                                "extra_fields": {
-                                    "error_type": "thumbnail_load_error",
-                                    "file": filename3,
-                                    "size": size,
-                                }
-                            },
-                        )
+                    img_array = safe_load_image(filename3)
             else:
                 # Generate new thumbnail
                 was_generated = True
@@ -389,52 +471,18 @@ class ThumbnailManager(QObject):
                     arr2 = None
 
                     if os.path.exists(file1_path):
-                        try:
-                            load1_start = time.time()
-                            with Image.open(file1_path) as img1:
-                                load1_time = (time.time() - load1_start) * 1000
-                                if load1_time > 1000:
-                                    logger.warning(f"SLOW load img1: {load1_time:.1f}ms")
-                                if img1.mode == "P":
-                                    img1 = img1.convert("L")
-                                arr1 = np.array(img1)
-                        except FileNotFoundError as e:
-                            logger.warning(f"Source image file not found: {filename1}")
-                        except OSError as e:
-                            logger.error(
-                                f"Error loading source image: {filename1}",
-                                exc_info=True,
-                                extra={
-                                    "extra_fields": {
-                                        "error_type": "image_load_error",
-                                        "file": filename1,
-                                    }
-                                },
-                            )
+                        load1_start = time.time()
+                        arr1 = safe_load_image(file1_path)
+                        load1_time = (time.time() - load1_start) * 1000
+                        if load1_time > 1000:
+                            logger.warning(f"SLOW load img1: {load1_time:.1f}ms")
 
                     if file2_path and os.path.exists(file2_path):
-                        try:
-                            load2_start = time.time()
-                            with Image.open(file2_path) as img2:
-                                load2_time = (time.time() - load2_start) * 1000
-                                if load2_time > 1000:
-                                    logger.warning(f"SLOW load img2: {load2_time:.1f}ms")
-                                if img2.mode == "P":
-                                    img2 = img2.convert("L")
-                                arr2 = np.array(img2)
-                        except FileNotFoundError as e:
-                            logger.warning(f"Source image file not found: {filename2}")
-                        except OSError as e:
-                            logger.error(
-                                f"Error loading source image: {filename2}",
-                                exc_info=True,
-                                extra={
-                                    "extra_fields": {
-                                        "error_type": "image_load_error",
-                                        "file": filename2,
-                                    }
-                                },
-                            )
+                        load2_start = time.time()
+                        arr2 = safe_load_image(file2_path)
+                        load2_time = (time.time() - load2_start) * 1000
+                        if load2_time > 1000:
+                            logger.warning(f"SLOW load img2: {load2_time:.1f}ms")
 
                     # Average and resize
                     if arr1 is not None:  # Process even if arr2 is None (odd number case)
@@ -1018,31 +1066,26 @@ class ThumbnailManager(QObject):
             # Stage 1: Initial sampling (first sample_size images)
             if self.is_sampling and self.level == 0 and completed == self.sample_size:
                 sample_elapsed = time.time() - (self.sample_start_time or 0)
-                time_per_image = sample_elapsed / self.sample_size
-
-                # First estimate
-                level1_time = total * time_per_image
-                total_estimate = level1_time
-                remaining_time = level1_time
                 total_levels = (
                     self.thumbnail_parent.total_levels if self.thumbnail_parent is not None else 1
                 )
-                for i in range(1, total_levels):
-                    remaining_time *= 0.25
-                    total_estimate += remaining_time
 
-                if total_estimate < 60:
-                    formatted = f"{int(total_estimate)}s"
-                elif total_estimate < 3600:
-                    formatted = f"{int(total_estimate/60)}m {int(total_estimate%60)}s"
-                else:
-                    formatted = f"{int(total_estimate/3600)}h {int((total_estimate%3600)/60)}m"
+                # Use TimeEstimator for calculations
+                estimate_info = self.time_estimator.format_stage_estimate(
+                    stage=1,
+                    elapsed=sample_elapsed,
+                    sample_size=self.sample_size,
+                    total_items=total,
+                    num_levels=total_levels,
+                )
 
                 logger.info(
                     f"=== Stage 1 Sampling ({self.sample_size} images in {sample_elapsed:.2f}s) ==="
                 )
-                logger.info(f"Speed: {time_per_image:.3f}s per image")
-                logger.info(f"Initial estimate: {formatted} ({total_estimate:.1f}s)")
+                logger.info(f"Speed: {estimate_info['time_per_image']:.3f}s per image")
+                logger.info(
+                    f"Initial estimate: {estimate_info['total_estimate_formatted']} ({estimate_info['total_estimate']:.1f}s)"
+                )
 
                 # Update ProgressManager with sampled speed - stop showing "Estimating..."
                 weighted_speed = (
@@ -1054,37 +1097,32 @@ class ThumbnailManager(QObject):
                 self.progress_manager.set_sampling(False)  # Show actual ETA now
 
                 # Store for comparison
-                self.stage1_estimate = total_estimate
-                self.stage1_speed = time_per_image
+                self.stage1_estimate = estimate_info["total_estimate"]
+                self.stage1_speed = estimate_info["time_per_image"]
 
             # Stage 2: Extended sampling (after 2x sample_size)
             elif self.is_sampling and self.level == 0 and completed == self.sample_size * 2:
                 sample_elapsed = time.time() - (self.sample_start_time or 0)
-                time_per_image = sample_elapsed / (self.sample_size * 2)
-
-                # Second estimate
-                level1_time = total * time_per_image
-                total_estimate = level1_time
-                remaining_time = level1_time
                 total_levels = (
                     self.thumbnail_parent.total_levels if self.thumbnail_parent is not None else 1
                 )
-                for i in range(1, total_levels):
-                    remaining_time *= 0.25
-                    total_estimate += remaining_time
 
-                if total_estimate < 60:
-                    formatted = f"{int(total_estimate)}s"
-                elif total_estimate < 3600:
-                    formatted = f"{int(total_estimate/60)}m {int(total_estimate%60)}s"
-                else:
-                    formatted = f"{int(total_estimate/3600)}h {int((total_estimate%3600)/60)}m"
+                # Use TimeEstimator for calculations
+                estimate_info = self.time_estimator.format_stage_estimate(
+                    stage=2,
+                    elapsed=sample_elapsed,
+                    sample_size=self.sample_size * 2,
+                    total_items=total,
+                    num_levels=total_levels,
+                )
 
                 logger.info(
                     f"=== Stage 2 Sampling ({self.sample_size * 2} images in {sample_elapsed:.2f}s) ==="
                 )
-                logger.info(f"Speed: {time_per_image:.3f}s per image")
-                logger.info(f"Revised estimate: {formatted} ({total_estimate:.1f}s)")
+                logger.info(f"Speed: {estimate_info['time_per_image']:.3f}s per image")
+                logger.info(
+                    f"Revised estimate: {estimate_info['total_estimate_formatted']} ({estimate_info['total_estimate']:.1f}s)"
+                )
 
                 # Update ProgressManager with improved speed estimate
                 weighted_speed = (
@@ -1097,18 +1135,24 @@ class ThumbnailManager(QObject):
                 # Compare with stage 1
                 if hasattr(self, "stage1_estimate"):
                     diff_percent = (
-                        (total_estimate - self.stage1_estimate) / self.stage1_estimate
+                        (estimate_info["total_estimate"] - self.stage1_estimate)
+                        / self.stage1_estimate
                     ) * 100
                     logger.info(f"Difference from stage 1: {diff_percent:+.1f}%")
-                    speed_change = ((time_per_image - self.stage1_speed) / self.stage1_speed) * 100
+                    speed_change = (
+                        (estimate_info["time_per_image"] - self.stage1_speed) / self.stage1_speed
+                    ) * 100
                     logger.info(f"Speed change: {speed_change:+.1f}%")
 
                 # Store stage 2 results
-                self.stage2_estimate = total_estimate
+                self.stage2_estimate = estimate_info["total_estimate"]
 
             # Stage 3: Final sampling (after 3x sample_size)
             elif self.is_sampling and self.level == 0 and completed >= self.sample_size * 3:
                 sample_elapsed = time.time() - (self.sample_start_time or 0)
+                total_levels = (
+                    self.thumbnail_parent.total_levels if self.thumbnail_parent is not None else 1
+                )
 
                 # Calculate weighted units per second
                 weighted_units_completed = (self.sample_size * 3) * self.level_weight
@@ -1116,30 +1160,27 @@ class ThumbnailManager(QObject):
                     weighted_units_completed / sample_elapsed if sample_elapsed > 0 else 20
                 )
 
-                # Calculate time per image from sampling
-                time_per_image = sample_elapsed / (self.sample_size * 3)
-
-                # Final estimate
-                level1_time = total * time_per_image
-                total_estimate = level1_time
-                remaining_time = level1_time
-                total_levels = (
-                    self.thumbnail_parent.total_levels if self.thumbnail_parent is not None else 1
+                # Use TimeEstimator for calculations
+                estimate_info = self.time_estimator.format_stage_estimate(
+                    stage=3,
+                    elapsed=sample_elapsed,
+                    sample_size=self.sample_size * 3,
+                    total_items=total,
+                    num_levels=total_levels,
                 )
-                for i in range(1, total_levels):
-                    remaining_time *= 0.25
-                    total_estimate += remaining_time
 
                 logger.info(
                     f"=== Stage 3 Sampling ({self.sample_size * 3} images in {sample_elapsed:.2f}s) ==="
                 )
-                logger.info(f"Speed: {time_per_image:.3f}s per image")
+                logger.info(f"Speed: {estimate_info['time_per_image']:.3f}s per image")
                 logger.info(
                     f"Performance sampling complete: {self.images_per_second:.1f} weighted units/second"
                 )
 
                 # Final update to ProgressManager with most accurate speed
                 self.progress_manager.set_speed(self.images_per_second)
+
+                total_estimate = estimate_info["total_estimate"]
 
                 # Compare all stages
                 if hasattr(self, "stage1_estimate") and hasattr(self, "stage2_estimate"):

@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox
 
 from security.file_validator import SecureFileValidator
 from ui.dialogs import ProgressDialog
+from utils.ui_utils import wait_cursor
 
 logger = logging.getLogger(__name__)
 
@@ -152,14 +153,12 @@ class ExportHandler:
         progress_dialog = self._create_progress_dialog()
 
         # Save images
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-
-        try:
-            self._save_images_with_progress(target_dir, crop_info, progress_dialog, total_count)
-        finally:
-            # Cleanup
-            QApplication.restoreOverrideCursor()
-            progress_dialog.close()
+        with wait_cursor():
+            try:
+                self._save_images_with_progress(target_dir, crop_info, progress_dialog, total_count)
+            finally:
+                # Cleanup
+                progress_dialog.close()
 
         # Open directory if requested
         if self.window.cbxOpenDirAfter.isChecked():

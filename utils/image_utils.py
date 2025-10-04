@@ -382,3 +382,109 @@ def load_image_normalized(image_path: str, target_bit_depth: int = 8) -> np.ndar
         raise ValueError(
             f"Unsupported bit depth conversion: {metadata['bit_depth']} -> {target_bit_depth}"
         )
+
+
+class ImageLoadError(Exception):
+    """Raised when image loading fails critically.
+
+    Created during Phase 2 of quality improvement plan (devlog 072).
+    """
+
+    pass
+
+
+def safe_load_image(
+    file_path: str,
+    convert_mode: Optional[str] = None,
+    as_array: bool = True,
+    handle_palette: bool = True,
+) -> Optional[np.ndarray]:
+    """Load image with standardized error handling.
+
+    This function provides a centralized way to load images with consistent
+    error handling across the codebase. It replaces the pattern of:
+        try:
+            with Image.open(path) as img:
+                if img.mode == "P":
+                    img = img.convert("L")
+                arr = np.array(img)
+        except FileNotFoundError:
+            logger.warning(...)
+        except OSError:
+            logger.error(...)
+
+    Args:
+        file_path: Path to image file
+        convert_mode: PIL mode to convert to (e.g., 'L', 'RGB').
+                     If None, keeps original mode (after palette handling).
+        as_array: If True, return as numpy array. If False, return PIL Image.
+        handle_palette: If True, automatically convert palette mode ('P') to grayscale ('L')
+
+    Returns:
+        Loaded image as numpy array (if as_array=True) or PIL Image (if as_array=False).
+        Returns None if file not found (logs warning).
+
+    Raises:
+        ImageLoadError: If loading fails critically (corrupted file, permission denied, etc.)
+
+    Example:
+        >>> # Basic usage - load as numpy array
+        >>> arr = safe_load_image("image.png")
+        >>> if arr is not None:
+        ...     print(arr.shape)
+
+        >>> # Load as RGB array
+        >>> rgb = safe_load_image("image.png", convert_mode='RGB')
+
+        >>> # Load as PIL Image
+        >>> img = safe_load_image("image.png", as_array=False)
+
+    Note:
+        - FileNotFoundError returns None and logs warning (non-critical)
+        - Other errors raise ImageLoadError (critical)
+        - This is the recommended way to load images throughout the codebase
+
+    Created during Phase 2 of quality improvement plan (devlog 072).
+    """
+    try:
+        with Image.open(file_path) as img:
+            # Handle palette mode
+            if handle_palette and img.mode == "P":
+                img = img.convert("L")
+                logger.debug(f"Converted palette image to grayscale: {file_path}")
+
+            # Apply conversion if requested
+            if convert_mode and img.mode != convert_mode:
+                img = img.convert(convert_mode)
+                logger.debug(f"Converted image to {convert_mode}: {file_path}")
+
+            # Return as requested format
+            if as_array:
+                return np.array(img)
+            else:
+                # Return a copy since we're in a context manager
+                return img.copy()
+
+    except FileNotFoundError:
+        logger.warning(f"Image file not found: {file_path}")
+        return None
+
+    except PermissionError as e:
+        logger.error(f"Permission denied accessing image: {file_path}", exc_info=True)
+        raise ImageLoadError(f"Permission denied: {file_path}") from e
+
+    except OSError as e:
+        logger.error(
+            f"OS error loading image: {file_path}",
+            exc_info=True,
+            extra={"error_type": type(e).__name__, "file_path": file_path},
+        )
+        raise ImageLoadError(f"Failed to load image: {file_path}") from e
+
+    except Exception as e:
+        logger.error(
+            f"Unexpected error loading image: {file_path}",
+            exc_info=True,
+            extra={"error_type": type(e).__name__, "file_path": file_path},
+        )
+        raise ImageLoadError(f"Unexpected error loading {file_path}") from e

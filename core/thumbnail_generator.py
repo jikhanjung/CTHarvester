@@ -17,6 +17,7 @@ from PyQt5.QtCore import QThreadPool
 from PyQt5.QtWidgets import QApplication
 
 from core.protocols import ProgressDialog
+from utils.image_utils import get_image_dimensions, safe_load_image
 
 logger = logging.getLogger(__name__)
 
@@ -728,11 +729,9 @@ class ThumbnailGenerator:
 
                 minimum_volume_list: list[np.ndarray] = []
                 for tif_file in tif_files:
-                    try:
-                        with Image.open(os.path.join(smallest_dir, tif_file)) as img:
-                            minimum_volume_list.append(np.array(img))
-                    except OSError as e:
-                        logger.error(f"Error loading {tif_file}: {e}")
+                    img_array = safe_load_image(os.path.join(smallest_dir, tif_file))
+                    if img_array is not None:
+                        minimum_volume_list.append(img_array)
 
                 if minimum_volume_list:
                     minimum_volume = np.array(minimum_volume_list)
@@ -865,9 +864,7 @@ class ThumbnailGenerator:
             # Check the size of images in this level
             files = [f for f in os.listdir(ld) if f.endswith(".tif")]
             if files:
-                with Image.open(os.path.join(ld, files[0])) as img:
-                    width, height = img.size
-
+                width, height = get_image_dimensions(os.path.join(ld, files[0]))
                 size = max(width, height)
                 if size < max_thumbnail_size:
                     level_num = ln
@@ -902,8 +899,9 @@ class ThumbnailGenerator:
             minimum_volume = []
             for file in files:
                 filepath = os.path.join(thumbnail_dir, file)
-                with Image.open(filepath) as img:
-                    img_array = np.array(img)
+                img_array = safe_load_image(filepath)
+                if img_array is None:
+                    continue
 
                 # Normalize to 8-bit range (0-255) for marching cubes
                 if img_array.dtype == np.uint16:

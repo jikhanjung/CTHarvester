@@ -13,6 +13,7 @@ from typing import Dict, List, Optional
 from PIL import Image
 
 from security.file_validator import FileSecurityError, SecureFileValidator
+from utils.image_utils import get_image_dimensions
 
 logger = logging.getLogger(__name__)
 
@@ -249,23 +250,9 @@ class FileHandler:
 
             # Get image dimensions from first file
             try:
-                with Image.open(first_file_path) as img:
-                    width, height = img.size
-            except FileNotFoundError as e:
-                logger.error(f"Image file not found: {first_file_path}", exc_info=True)
-                return None
-            except PermissionError as e:
-                logger.error(f"Permission denied reading image: {first_file_path}", exc_info=True)
-                return None
-            except OSError as e:
-                logger.error(
-                    f"Cannot read image file: {first_file_path}",
-                    exc_info=True,
-                    extra={"extra_fields": {"error_type": "image_read_error", "file": first_file}},
-                )
-                return None
+                width, height = get_image_dimensions(first_file_path)
             except Exception as e:
-                logger.exception(f"Unexpected error opening image: {first_file_path}")
+                # get_image_dimensions already logs errors
                 return None
 
             # Extract sequence information

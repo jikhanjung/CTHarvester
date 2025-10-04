@@ -432,11 +432,11 @@ class TestExportHandler:
             assert mock_validator.safe_join.call_count == 2
             assert path == "/test/path/.thumbnail/1/image.tif"
 
+    @patch("utils.ui_utils.QApplication")  # Patch at wait_cursor import location
     @patch("ui.handlers.export_handler.QFileDialog.getExistingDirectory")
     @patch("ui.handlers.export_handler.ProgressDialog")
-    @patch("ui.handlers.export_handler.QApplication")
     def test_save_image_stack_cursor_restoration(
-        self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path
+        self, mock_progress_cls, mock_dialog, mock_app, handler, temp_image_stack, tmp_path
     ):
         """Test that cursor is restored even if save fails"""
         # Setup
@@ -453,8 +453,9 @@ class TestExportHandler:
         # Execute (should not crash)
         handler.save_cropped_image_stack()
 
-        # Verify cursor was restored
-        mock_app.restoreOverrideCursor.assert_called_once()
+        # Verify cursor was restored via context manager (called in __enter__ and __exit__)
+        # With wait_cursor() context manager, both set and restore are called
+        assert mock_app.restoreOverrideCursor.called
         mock_progress.close.assert_called_once()
 
 

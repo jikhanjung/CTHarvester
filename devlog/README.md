@@ -4,6 +4,15 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Recent Sessions (October 2025)
 
+- [075](20251004_075_phase3_completion_report.md) - **Phase 3 완료 보고서**: 아키텍처 리팩토링 완료 (+69 tests, 100% passing)
+- [074](20251004_074_phase3_progress_report.md) - Phase 3 진행 보고서: ThumbnailProgressTracker & ThumbnailWorkerManager 생성
+- [073](20251004_073_phase2_completion_report.md) - Phase 2 완료 보고서: 코드 중복 제거 및 테스트 확장 (+80 tests)
+- [072](20251004_072_comprehensive_code_analysis_and_improvement_plan.md) - 포괄적 코드 분석 및 개선 계획 (4단계, 21일)
+- [071](20251003_071_implementation_report.md) - 코드 품질 및 인프라 개선 구현 보고서
+- [070](20251003_070_comprehensive_improvement_plan.md) - 포괄적 개선 계획
+- [069](20251002_069_phase1_2_3_complete.md) - Phase 1-3 완료
+- [068](20251002_068_next_improvements_plan.md) - 다음 개선 계획
+- [067](20251002_067_code_quality_improvement_plan.md) - 코드 품질 개선 계획
 - [059](20251001_059_korean_documentation.md) - Sphinx i18n으로 한국어 문서 번역 (673 strings)
 - [058](20251001_058_documentation_polish.md) - 문서 정리: Copyright, 설치 가이드, 키보드 단축키 수정
 - [057](20251001_057_documentation_and_resource_organization.md) - 문서 개선 및 리소스 파일 구조화
@@ -38,6 +47,12 @@ Chronological index of all development sessions for CTHarvester.
 - [026](20250930_026_test_coverage_initial.md) - 테스트 커버리지 확대 시작
 
 ### Quality Improvements
+- [075](20251004_075_phase3_completion_report.md) - **Phase 3 완료**: 아키텍처 리팩토링, 테스트 69개 추가, 컴포넌트 분리, 100% 테스트 통과
+- [074](20251004_074_phase3_progress_report.md) - Phase 3 진행 보고서: ThumbnailProgressTracker (41 tests) & ThumbnailWorkerManager (28 tests) 생성
+- [073](20251004_073_phase2_completion_report.md) - Phase 2 완료: 코드 중복 제거, 테스트 80개 추가, 타입 에러 7개 수정
+- [072](20251004_072_comprehensive_code_analysis_and_improvement_plan.md) - 포괄적 코드 분석 및 개선 계획 (4단계, 145시간)
+- [071](20251003_071_implementation_report.md) - 코드 품질 및 인프라 개선 구현 보고서
+- [070](20251003_070_comprehensive_improvement_plan.md) - 포괄적 개선 계획
 - [053](20251001_053_comprehensive_improvement_plan.md) - 포괄적 개선 계획
 - [050](20251001_050_quality_improvements_session1_completion.md) - 품질 개선 세션 1 완료
 - [047](20251001_047_remaining_quality_improvements_plan.md) - 남은 품질 개선 계획
@@ -151,6 +166,16 @@ Chronological index of all development sessions for CTHarvester.
 - [037](20250930_037_phase2_improvements_completion_report.md) - Phase 2 Completion Report: Code Quality Improvements
 - [038](20250930_038_phase5_code_quality_tools_setup.md) - Phase 5 Completion Report: Code Quality Tools Setup and Activation
 
+### 2025-10-03
+
+- [070](20251003_070_comprehensive_improvement_plan.md) - 포괄적 개선 계획
+- [071](20251003_071_implementation_report.md) - 코드 품질 및 인프라 개선 구현 보고서
+
+### 2025-10-04
+
+- [072](20251004_072_comprehensive_code_analysis_and_improvement_plan.md) - 포괄적 코드 분석 및 개선 계획 (4단계, 21일, 145시간)
+- [073](20251004_073_phase2_completion_report.md) - Phase 2 완료 보고서: 코드 중복 -166줄, 테스트 +80개, mypy 에러 -7개
+
 ### 2025-10-01
 
 - [039](20251001_039_ui_testing_plan.md) - UI Testing Plan for CTHarvester
@@ -179,15 +204,27 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Statistics
 
-- **Total Sessions**: 59
-- **Date Range**: August 6, 2025 - October 1, 2025
+- **Total Sessions**: 75
+- **Date Range**: August 6, 2025 - October 4, 2025
+- **Current Test Count**: 873 tests (100% passing)
 - **Key Achievements**:
   - Complete Phase 1-4 refactoring
-  - Test coverage expansion to 486 tests
+  - Test coverage expansion to 873 tests (+79% from initial 486 tests)
   - Python thumbnail generation optimization
   - Rust module integration and optimization
   - UI component separation and testing
-  - Code quality improvements
+  - **Phase 2 code quality improvements** (devlog 073):
+    - Code duplication reduced by 166 lines
+    - 80 new tests added (728 total)
+    - 7 mypy type errors fixed
+    - TimeEstimator and safe_load_image() utilities created
+  - **Phase 3 architectural refactoring** (devlog 075):
+    - ThumbnailProgressTracker component created (345 lines, 41 tests)
+    - ThumbnailWorkerManager component created (322 lines, 28 tests)
+    - ThumbnailManager refactored with delegation pattern
+    - 69 new tests added (873 total, +19.9% from Phase 2)
+    - 100% backward compatibility maintained
+    - Zero regressions
 
 ## Contributing
 

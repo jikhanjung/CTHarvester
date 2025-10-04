@@ -16,6 +16,7 @@ from PIL import Image, ImageChops
 from PyQt5.QtCore import QObject, QRunnable, pyqtSignal, pyqtSlot
 
 from security.file_validator import SecureFileValidator
+from utils.image_utils import safe_load_image
 
 logger = logging.getLogger("CTHarvester")
 
@@ -331,12 +332,9 @@ class ThumbnailWorker(QRunnable):
                 was_generated = False
 
                 if self.size < self.max_thumbnail_size:
-                    try:
-                        with Image.open(self.filename3) as img:
-                            img_array = np.array(img)
+                    img_array = safe_load_image(self.filename3)
+                    if img_array is not None:
                         logger.debug(f"Loaded existing thumbnail shape: {img_array.shape}")
-                    except OSError as e:
-                        logger.error(f"Error opening existing thumbnail: {e}")
             else:
                 # Generate new thumbnail
                 if self.progress_dialog.is_cancelled:

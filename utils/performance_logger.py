@@ -207,7 +207,7 @@ def log_performance_context(operation_name: str, **context_data):
     """
     start = time.perf_counter()
 
-    extra_fields = {"operation": operation_name}
+    extra_fields: Dict[str, Any] = {"operation": operation_name}
     extra_fields.update(context_data)
 
     try:

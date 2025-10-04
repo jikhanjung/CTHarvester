@@ -348,3 +348,170 @@ class TestGetImageDimensions:
         """Should handle nonexistent file"""
         with pytest.raises(Exception):  # Could be FileNotFoundError or other
             get_image_dimensions("/nonexistent/file.tif")
+
+
+@pytest.mark.unit
+class TestSafeLoadImage:
+    """Test suite for safe_load_image function (Phase 2 - devlog 072)"""
+
+    @pytest.fixture
+    def temp_image(self, tmp_path):
+        """Create a temporary test image"""
+        img_path = tmp_path / "test.png"
+        img = Image.new("L", (100, 100), color=128)
+        img.save(img_path)
+        return str(img_path)
+
+    @pytest.fixture
+    def temp_rgb_image(self, tmp_path):
+        """Create a temporary RGB test image"""
+        img_path = tmp_path / "test_rgb.png"
+        img = Image.new("RGB", (50, 50), color=(255, 0, 0))
+        img.save(img_path)
+        return str(img_path)
+
+    @pytest.fixture
+    def temp_palette_image(self, tmp_path):
+        """Create a temporary palette mode image"""
+        img_path = tmp_path / "test_palette.png"
+        img = Image.new("P", (50, 50))
+        img.save(img_path)
+        return str(img_path)
+
+    def test_safe_load_image_basic(self, temp_image):
+        """Test basic image loading as numpy array"""
+        from utils.image_utils import safe_load_image
+
+        arr = safe_load_image(temp_image)
+
+        assert arr is not None
+        assert isinstance(arr, np.ndarray)
+        assert arr.shape == (100, 100)
+
+    def test_safe_load_image_file_not_found(self):
+        """Test that non-existent file returns None"""
+        from utils.image_utils import safe_load_image
+
+        arr = safe_load_image("/nonexistent/path/image.png")
+
+        assert arr is None  # Should return None, not raise
+
+    def test_safe_load_image_as_pil_image(self, temp_image):
+        """Test loading as PIL Image instead of array"""
+        from utils.image_utils import safe_load_image
+
+        img = safe_load_image(temp_image, as_array=False)
+
+        assert img is not None
+        assert isinstance(img, Image.Image)
+        assert img.size == (100, 100)
+
+    def test_safe_load_image_convert_mode(self, temp_image):
+        """Test mode conversion"""
+        from utils.image_utils import safe_load_image
+
+        # Load grayscale image as RGB
+        arr = safe_load_image(temp_image, convert_mode="RGB")
+
+        assert arr is not None
+        assert arr.shape == (100, 100, 3)  # RGB has 3 channels
+
+    def test_safe_load_image_palette_handling(self, temp_palette_image):
+        """Test automatic palette mode conversion"""
+        from utils.image_utils import safe_load_image
+
+        arr = safe_load_image(temp_palette_image, handle_palette=True)
+
+        assert arr is not None
+        assert isinstance(arr, np.ndarray)
+        # Should be converted to grayscale (2D array)
+        assert len(arr.shape) == 2
+
+    def test_safe_load_image_palette_no_handling(self, temp_palette_image):
+        """Test loading palette image without conversion"""
+        from utils.image_utils import safe_load_image
+
+        arr = safe_load_image(temp_palette_image, handle_palette=False)
+
+        assert arr is not None
+        # Palette mode can have different array shapes
+
+    def test_safe_load_image_permission_error(self, tmp_path, monkeypatch):
+        """Test handling of permission errors"""
+        from utils.image_utils import ImageLoadError, safe_load_image
+
+        # Create an image file
+        img_path = tmp_path / "test.png"
+        img = Image.new("L", (10, 10))
+        img.save(img_path)
+
+        # Mock Image.open to raise PermissionError
+        def mock_open(*args, **kwargs):
+            raise PermissionError("Access denied")
+
+        monkeypatch.setattr(Image, "open", mock_open)
+
+        with pytest.raises(ImageLoadError) as exc_info:
+            safe_load_image(str(img_path))
+
+        assert "Permission denied" in str(exc_info.value)
+
+    def test_safe_load_image_os_error(self, tmp_path, monkeypatch):
+        """Test handling of OS errors (corrupted file, etc.)"""
+        from utils.image_utils import ImageLoadError, safe_load_image
+
+        img_path = tmp_path / "test.png"
+        img = Image.new("L", (10, 10))
+        img.save(img_path)
+
+        # Mock Image.open to raise OSError
+        def mock_open(*args, **kwargs):
+            raise OSError("Corrupted file")
+
+        monkeypatch.setattr(Image, "open", mock_open)
+
+        with pytest.raises(ImageLoadError) as exc_info:
+            safe_load_image(str(img_path))
+
+        assert "Failed to load" in str(exc_info.value)
+
+    def test_safe_load_image_unexpected_error(self, tmp_path, monkeypatch):
+        """Test handling of unexpected errors"""
+        from utils.image_utils import ImageLoadError, safe_load_image
+
+        img_path = tmp_path / "test.png"
+        img = Image.new("L", (10, 10))
+        img.save(img_path)
+
+        # Mock Image.open to raise unexpected error
+        def mock_open(*args, **kwargs):
+            raise ValueError("Unexpected error")
+
+        monkeypatch.setattr(Image, "open", mock_open)
+
+        with pytest.raises(ImageLoadError) as exc_info:
+            safe_load_image(str(img_path))
+
+        assert "Unexpected error" in str(exc_info.value)
+
+    def test_safe_load_image_rgb_to_grayscale(self, temp_rgb_image):
+        """Test converting RGB image to grayscale"""
+        from utils.image_utils import safe_load_image
+
+        arr = safe_load_image(temp_rgb_image, convert_mode="L")
+
+        assert arr is not None
+        assert len(arr.shape) == 2  # Should be 2D (grayscale)
+
+    def test_safe_load_image_returns_copy(self, temp_image):
+        """Test that PIL Image mode returns a copy (not affected by context manager)"""
+        from utils.image_utils import safe_load_image
+
+        img = safe_load_image(temp_image, as_array=False)
+
+        assert img is not None
+        # Should be able to use the image after function returns
+        assert img.size == (100, 100)
+        # Verify it's a valid image by converting to array
+        arr = np.array(img)
+        assert arr.shape == (100, 100)

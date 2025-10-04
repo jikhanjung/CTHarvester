@@ -71,6 +71,7 @@ from config.view_modes import (
     ZOOM_MODE,
 )
 from utils.common import resource_path
+from utils.image_utils import safe_load_image
 from utils.worker import Worker
 
 logger = logging.getLogger(__name__)
@@ -636,14 +637,9 @@ class MCubeWidget(QGLWidget):
         images = []
         try:
             for filename in os.listdir(folder):
-                try:
-                    # read images using Pillow with context manager
-                    with Image.open(os.path.join(folder, filename)) as img:
-                        if img is not None:
-                            images.append(np.array(img))
-                except Exception as e:
-                    logger.error(f"Error reading image {filename}: {e}")
-                    continue
+                img_array = safe_load_image(os.path.join(folder, filename))
+                if img_array is not None:
+                    images.append(img_array)
         except Exception as e:
             logger.error(f"Error accessing folder {folder}: {e}")
             return np.array([])

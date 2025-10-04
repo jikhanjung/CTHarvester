@@ -67,7 +67,9 @@ from ui.setup import MainWindowSetup
 from ui.widgets import MCubeWidget, ObjectViewer2D
 from ui.widgets.vertical_stack_slider import VerticalTimeline
 from utils.common import resource_path, value_to_bool
+from utils.image_utils import get_image_dimensions
 from utils.settings_manager import SettingsManager
+from utils.ui_utils import wait_cursor
 
 logger = logging.getLogger(__name__)
 
@@ -268,10 +270,9 @@ class CTHarvesterMainWindow(QMainWindow):
         self.mcube_widget.adjust_boxes()
 
         if update_volume:
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            self.mcube_widget.update_volume(volume)
-            self.mcube_widget.generate_mesh_multithread()
-            QApplication.restoreOverrideCursor()
+            with wait_cursor():
+                self.mcube_widget.update_volume(volume)
+                self.mcube_widget.generate_mesh_multithread()
         self.mcube_widget.adjust_volume()
 
     def update_curr_slice(self):
@@ -612,8 +613,6 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_dialog.pb_progress.setMaximum(100)
         self.progress_dialog.pb_progress.setValue(0)
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-
         # Variables for progress tracking
         self.last_progress = 0
         self.progress_start_time = time.time()
@@ -656,53 +655,50 @@ class CTHarvesterMainWindow(QMainWindow):
 
         # Run Rust thumbnail generation with file pattern info
         success = False
-        try:
-            # Pass the file pattern information to Rust
-            prefix = self.settings_hash.get("prefix", "")
-            file_type = self.settings_hash.get("file_type", "tif")
-            seq_begin = int(self.settings_hash.get("seq_begin", 0))
-            seq_end = int(self.settings_hash.get("seq_end", 0))
-            index_length = int(self.settings_hash.get("index_length", 0))
+        with wait_cursor():
+            try:
+                # Pass the file pattern information to Rust
+                prefix = self.settings_hash.get("prefix", "")
+                file_type = self.settings_hash.get("file_type", "tif")
+                seq_begin = int(self.settings_hash.get("seq_begin", 0))
+                seq_end = int(self.settings_hash.get("seq_end", 0))
+                index_length = int(self.settings_hash.get("index_length", 0))
 
-            # Call Rust with pattern parameters
-            result = build_thumbnails(
-                dirname, progress_callback, prefix, file_type, seq_begin, seq_end, index_length
-            )
-
-            # Check if user cancelled
-            if self.rust_cancelled:
-                success = False
-                logger.info("Rust thumbnail generation cancelled by user")
-
-                # Give Rust threads a moment to clean up
-                QApplication.processEvents()
-                QThread.msleep(100)  # Small delay for thread cleanup
-
-                # Close progress dialog
-                if hasattr(self, "progress_dialog") and self.progress_dialog:
-                    self.progress_dialog.close()
-                    self.progress_dialog = None
-
-                QApplication.restoreOverrideCursor()
-
-                # Return early - don't try to load thumbnails
-                return
-            else:
-                success = True
-
-        except Exception as e:
-            success = False
-            if not self.rust_cancelled:  # Only show error if not cancelled
-                logger.error(f"Error during Rust thumbnail generation: {e}")
-                QMessageBox.warning(
-                    self,
-                    self.tr("Warning"),
-                    self.tr(
-                        f"Rust thumbnail generation failed: {e}\nFalling back to Python implementation."
-                    ),
+                # Call Rust with pattern parameters
+                result = build_thumbnails(
+                    dirname, progress_callback, prefix, file_type, seq_begin, seq_end, index_length
                 )
 
-        QApplication.restoreOverrideCursor()
+                # Check if user cancelled
+                if self.rust_cancelled:
+                    success = False
+                    logger.info("Rust thumbnail generation cancelled by user")
+
+                    # Give Rust threads a moment to clean up
+                    QApplication.processEvents()
+                    QThread.msleep(100)  # Small delay for thread cleanup
+
+                    # Close progress dialog
+                    if hasattr(self, "progress_dialog") and self.progress_dialog:
+                        self.progress_dialog.close()
+                        self.progress_dialog = None
+
+                    # Return early - don't try to load thumbnails
+                    return
+                else:
+                    success = True
+
+            except Exception as e:
+                success = False
+                if not self.rust_cancelled:  # Only show error if not cancelled
+                    logger.error(f"Error during Rust thumbnail generation: {e}")
+                    QMessageBox.warning(
+                        self,
+                        self.tr("Warning"),
+                        self.tr(
+                            f"Rust thumbnail generation failed: {e}\nFalling back to Python implementation."
+                        ),
+                    )
 
         # Calculate total time
         total_elapsed = time.time() - self.thumbnail_start_time
@@ -829,8 +825,7 @@ class CTHarvesterMainWindow(QMainWindow):
             return
 
         # Show wait cursor during 3D model generation
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        try:
+        with wait_cursor():
             self.mcube_widget.update_boxes(scaled_bounding_box, scaled_bounding_box, curr_slice_val)
             self.mcube_widget.adjust_boxes()
             self.mcube_widget.update_volume(self.minimum_volume)
@@ -838,8 +833,6 @@ class CTHarvesterMainWindow(QMainWindow):
             self.mcube_widget.adjust_volume()
             self.mcube_widget.show_buttons()
             logger.info("3D view update complete")
-        finally:
-            QApplication.restoreOverrideCursor()
 
         # Ensure the 3D widget doesn't cover the main image
         self.mcube_widget.setGeometry(QRect(0, 0, 150, 150))
@@ -881,115 +874,116 @@ class CTHarvesterMainWindow(QMainWindow):
         self.progress_dialog.show()
 
         # Set wait cursor for long operation
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        with wait_cursor():
+            try:
+                # Call ThumbnailGenerator with progress dialog
+                # Pass the progress dialog directly so ThumbnailManager can connect signals properly
+                result = self.thumbnail_generator.generate_python(
+                    directory=self.edtDirname.text(),
+                    settings=self.settings_hash,
+                    threadpool=self.threadpool,
+                    progress_dialog=self.progress_dialog,
+                )
 
-        try:
-            # Call ThumbnailGenerator with progress dialog
-            # Pass the progress dialog directly so ThumbnailManager can connect signals properly
-            result = self.thumbnail_generator.generate_python(
-                directory=self.edtDirname.text(),
-                settings=self.settings_hash,
-                threadpool=self.threadpool,
-                progress_dialog=self.progress_dialog,
-            )
+                # Handle result
+                if result is None:
+                    logger.error("Thumbnail generation failed - generate_python returned None")
+                    if self.progress_dialog:
+                        self.progress_dialog.lbl_text.setText(
+                            self.tr("Thumbnail generation failed")
+                        )
+                        self.progress_dialog.lbl_detail.setText("")
+                        self.progress_dialog.close()
+                        self.progress_dialog = None
+                    QMessageBox.critical(
+                        self,
+                        self.tr("Thumbnail Generation Failed"),
+                        self.tr("An unknown error occurred during thumbnail generation."),
+                    )
+                    return
 
-            # Restore cursor
-            QApplication.restoreOverrideCursor()
+                # Handle cancellation
+                if result.get("cancelled"):
+                    logger.info("Thumbnail generation cancelled by user")
+                    if self.progress_dialog:
+                        self.progress_dialog.lbl_text.setText(
+                            self.tr("Thumbnail generation cancelled")
+                        )
+                        self.progress_dialog.lbl_detail.setText("")
+                        self.progress_dialog.close()
+                        self.progress_dialog = None
+                    QMessageBox.information(
+                        self,
+                        self.tr("Thumbnail Generation Cancelled"),
+                        self.tr("Thumbnail generation was cancelled by user."),
+                    )
+                    return
 
-            # Handle result
-            if result is None:
-                logger.error("Thumbnail generation failed - generate_python returned None")
+                # Handle generation failure (not cancelled, but success=False)
+                if not result.get("success"):
+                    error_msg = result.get("error", "Thumbnail generation failed")
+                    logger.error(f"Thumbnail generation failed: {error_msg}")
+                    if self.progress_dialog:
+                        self.progress_dialog.lbl_text.setText(
+                            self.tr("Thumbnail generation failed")
+                        )
+                        self.progress_dialog.lbl_detail.setText("")
+                        self.progress_dialog.close()
+                        self.progress_dialog = None
+                    QMessageBox.critical(
+                        self,
+                        self.tr("Thumbnail Generation Failed"),
+                        self.tr("Thumbnail generation failed:\n\n{}").format(error_msg),
+                    )
+                    return
+
+                # Update instance state from result (only if successful)
+                self.minimum_volume = result.get("minimum_volume", [])
+                self.level_info = result.get("level_info", [])
+
+                # Show completion message
+                if self.progress_dialog:
+                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
+                    self.progress_dialog.lbl_detail.setText("")
+
+                # Close progress dialog
+                if self.progress_dialog:
+                    self.progress_dialog.close()
+                    self.progress_dialog = None
+
+                # Proceed with UI updates (only if successful)
+                # Load thumbnail data from disk (same as Rust does)
+                self.load_thumbnail_data_from_disk()
+
+                # If loading from disk failed and minimum_volume is still empty
+                if self.minimum_volume is None or (
+                    hasattr(self.minimum_volume, "__len__") and len(self.minimum_volume) == 0
+                ):
+                    logger.warning("Failed to load thumbnails from disk after Python generation")
+
+                # Initialize UI components
+                self.initializeComboSize()
+                self.reset_crop()
+
+                # Trigger initial display by setting combo index if items exist
+                if self.comboLevel.count() > 0:
+                    self.comboLevel.setCurrentIndex(0)
+                    # If comboLevelIndexChanged doesn't trigger, call it manually
+                    if not self.initialized:
+                        self.comboLevelIndexChanged()
+
+                    # Update 3D view after initializing combo level
+                    self.update_3D_view(False)
+
+            except Exception as e:
+                # Handle unexpected errors
+                logger.error(f"Unexpected error in create_thumbnail_python: {e}", exc_info=True)
+
                 if self.progress_dialog:
                     self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation failed"))
-                    self.progress_dialog.lbl_detail.setText("")
+                    self.progress_dialog.lbl_detail.setText(str(e))
                     self.progress_dialog.close()
                     self.progress_dialog = None
-                QMessageBox.critical(
-                    self,
-                    self.tr("Thumbnail Generation Failed"),
-                    self.tr("An unknown error occurred during thumbnail generation."),
-                )
-                return
-
-            # Handle cancellation
-            if result.get("cancelled"):
-                logger.info("Thumbnail generation cancelled by user")
-                if self.progress_dialog:
-                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation cancelled"))
-                    self.progress_dialog.lbl_detail.setText("")
-                    self.progress_dialog.close()
-                    self.progress_dialog = None
-                QMessageBox.information(
-                    self,
-                    self.tr("Thumbnail Generation Cancelled"),
-                    self.tr("Thumbnail generation was cancelled by user."),
-                )
-                return
-
-            # Handle generation failure (not cancelled, but success=False)
-            if not result.get("success"):
-                error_msg = result.get("error", "Thumbnail generation failed")
-                logger.error(f"Thumbnail generation failed: {error_msg}")
-                if self.progress_dialog:
-                    self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation failed"))
-                    self.progress_dialog.lbl_detail.setText("")
-                    self.progress_dialog.close()
-                    self.progress_dialog = None
-                QMessageBox.critical(
-                    self,
-                    self.tr("Thumbnail Generation Failed"),
-                    self.tr("Thumbnail generation failed:\n\n{}").format(error_msg),
-                )
-                return
-
-            # Update instance state from result (only if successful)
-            self.minimum_volume = result.get("minimum_volume", [])
-            self.level_info = result.get("level_info", [])
-
-            # Show completion message
-            if self.progress_dialog:
-                self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation complete"))
-                self.progress_dialog.lbl_detail.setText("")
-
-            # Close progress dialog
-            if self.progress_dialog:
-                self.progress_dialog.close()
-                self.progress_dialog = None
-
-            # Proceed with UI updates (only if successful)
-            # Load thumbnail data from disk (same as Rust does)
-            self.load_thumbnail_data_from_disk()
-
-            # If loading from disk failed and minimum_volume is still empty
-            if self.minimum_volume is None or (
-                hasattr(self.minimum_volume, "__len__") and len(self.minimum_volume) == 0
-            ):
-                logger.warning("Failed to load thumbnails from disk after Python generation")
-
-            # Initialize UI components
-            self.initializeComboSize()
-            self.reset_crop()
-
-            # Trigger initial display by setting combo index if items exist
-            if self.comboLevel.count() > 0:
-                self.comboLevel.setCurrentIndex(0)
-                # If comboLevelIndexChanged doesn't trigger, call it manually
-                if not self.initialized:
-                    self.comboLevelIndexChanged()
-
-                # Update 3D view after initializing combo level
-                self.update_3D_view(False)
-
-        except Exception as e:
-            # Handle unexpected errors
-            QApplication.restoreOverrideCursor()
-            logger.error(f"Unexpected error in create_thumbnail_python: {e}", exc_info=True)
-
-            if self.progress_dialog:
-                self.progress_dialog.lbl_text.setText(self.tr("Thumbnail generation failed"))
-                self.progress_dialog.lbl_detail.setText(str(e))
-                self.progress_dialog.close()
-                self.progress_dialog = None
 
     def slider2ValueChanged(self, value):
         """
@@ -1077,58 +1071,55 @@ class CTHarvesterMainWindow(QMainWindow):
         self.initialized = False
         self._reset_ui_state()
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        with wait_cursor():
+            # Use FileHandler to analyze directory
+            self.settings_hash = self.file_handler.open_directory(ddir)
+            if self.settings_hash is None:
+                QMessageBox.warning(
+                    self,
+                    self.tr("Warning"),
+                    self.tr("No valid image files found in the selected directory."),
+                )
+                logger.warning("No valid image files found")
+                return
 
-        # Use FileHandler to analyze directory
-        self.settings_hash = self.file_handler.open_directory(ddir)
-        if self.settings_hash is None:
-            QApplication.restoreOverrideCursor()
-            QMessageBox.warning(
-                self,
-                self.tr("Warning"),
-                self.tr("No valid image files found in the selected directory."),
+            logger.info(
+                f"Detected image sequence: prefix={self.settings_hash.get('prefix')}, range={self.settings_hash.get('seq_begin')}-{self.settings_hash.get('seq_end')}"
             )
-            logger.warning("No valid image files found")
-            return
 
-        logger.info(
-            f"Detected image sequence: prefix={self.settings_hash.get('prefix')}, range={self.settings_hash.get('seq_begin')}-{self.settings_hash.get('seq_end')}"
-        )
+            # Update UI with detected settings
+            self.edtNumImages.setText(
+                str(self.settings_hash["seq_end"] - self.settings_hash["seq_begin"] + 1)
+            )
+            self.edtImageDimension.setText(
+                f"{self.settings_hash['image_width']} x {self.settings_hash['image_height']}"
+            )
 
-        # Update UI with detected settings
-        self.edtNumImages.setText(
-            str(self.settings_hash["seq_end"] - self.settings_hash["seq_begin"] + 1)
-        )
-        self.edtImageDimension.setText(
-            f"{self.settings_hash['image_width']} x {self.settings_hash['image_height']}"
-        )
+            # Build image file list
+            image_file_list = self.file_handler.get_file_list(ddir, self.settings_hash)
 
-        # Build image file list
-        image_file_list = self.file_handler.get_file_list(ddir, self.settings_hash)
+            self.original_from_idx = 0
+            self.original_to_idx = len(image_file_list) - 1
 
-        self.original_from_idx = 0
-        self.original_to_idx = len(image_file_list) - 1
+            # Load first image for preview
+            self._load_first_image(ddir, image_file_list)
 
-        # Load first image for preview
-        self._load_first_image(ddir, image_file_list)
+            # Initialize level_info
+            self.level_info = []
+            self.level_info.append(
+                {
+                    "name": "Original",
+                    "width": self.settings_hash["image_width"],
+                    "height": self.settings_hash["image_height"],
+                    "seq_begin": self.settings_hash["seq_begin"],
+                    "seq_end": self.settings_hash["seq_end"],
+                }
+            )
 
-        # Initialize level_info
-        self.level_info = []
-        self.level_info.append(
-            {
-                "name": "Original",
-                "width": self.settings_hash["image_width"],
-                "height": self.settings_hash["image_height"],
-                "seq_begin": self.settings_hash["seq_begin"],
-                "seq_end": self.settings_hash["seq_end"],
-            }
-        )
+            # Check for existing thumbnail directories
+            self._load_existing_thumbnail_levels(ddir)
 
-        # Check for existing thumbnail directories
-        self._load_existing_thumbnail_levels(ddir)
-
-        QApplication.restoreOverrideCursor()
-        logger.info(f"Successfully loaded directory with {len(image_file_list)} images")
+            logger.info(f"Successfully loaded directory with {len(image_file_list)} images")
 
         # Generate thumbnails
         self.create_thumbnail()
@@ -1189,9 +1180,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 )
                 if files:
                     first_img_path = os.path.join(level_dir, files[0])
-                    # Use context manager to ensure image is properly closed
-                    with Image.open(first_img_path) as img:
-                        width, height = img.size
+                    width, height = get_image_dimensions(first_img_path)
 
                     # Calculate sequence range for this level
                     seq_begin = self.settings_hash["seq_begin"]

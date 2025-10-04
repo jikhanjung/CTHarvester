@@ -6,7 +6,7 @@ Created during Phase 1.5 UI/UX improvements.
 """
 
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Optional
 
 
 @dataclass
@@ -77,7 +77,7 @@ class ShortcutManager:
     }
 
     @classmethod
-    def get_shortcut(cls, action: str) -> Shortcut:
+    def get_shortcut(cls, action: str) -> Optional[Shortcut]:
         """
         Get shortcut for action
 

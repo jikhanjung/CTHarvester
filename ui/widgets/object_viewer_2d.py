@@ -2,6 +2,7 @@
 ObjectViewer2D - 2D image viewer with ROI selection
 
 Extracted from CTHarvester.py during Phase 4 UI refactoring.
+Refactored during Phase 4 to use ROIManager component.
 """
 
 import logging
@@ -34,6 +35,7 @@ from config.view_modes import (
     MODE_MOVE_BOX_READY,
     MODE_VIEW,
 )
+from ui.widgets.roi_manager import ROIManager
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +77,115 @@ class ObjectViewer2D(QLabel):
         self.threed_view = None
         self.isovalue = 60
         self.is_inverse = False
+
+        # Initialize ROI manager (Phase 4 refactoring)
+        self.roi_manager = ROIManager()
         self.reset_crop()
+
+    # Legacy compatibility properties (delegate to ROIManager)
+    @property
+    def crop_from_x(self):
+        return self.roi_manager.crop_from_x
+
+    @crop_from_x.setter
+    def crop_from_x(self, value):
+        self.roi_manager.crop_from_x = value
+
+    @property
+    def crop_from_y(self):
+        return self.roi_manager.crop_from_y
+
+    @crop_from_y.setter
+    def crop_from_y(self, value):
+        self.roi_manager.crop_from_y = value
+
+    @property
+    def crop_to_x(self):
+        return self.roi_manager.crop_to_x
+
+    @crop_to_x.setter
+    def crop_to_x(self, value):
+        self.roi_manager.crop_to_x = value
+
+    @property
+    def crop_to_y(self):
+        return self.roi_manager.crop_to_y
+
+    @crop_to_y.setter
+    def crop_to_y(self, value):
+        self.roi_manager.crop_to_y = value
+
+    @property
+    def temp_x1(self):
+        return self.roi_manager.temp_x1
+
+    @temp_x1.setter
+    def temp_x1(self, value):
+        self.roi_manager.temp_x1 = value
+
+    @property
+    def temp_y1(self):
+        return self.roi_manager.temp_y1
+
+    @temp_y1.setter
+    def temp_y1(self, value):
+        self.roi_manager.temp_y1 = value
+
+    @property
+    def temp_x2(self):
+        return self.roi_manager.temp_x2
+
+    @temp_x2.setter
+    def temp_x2(self, value):
+        self.roi_manager.temp_x2 = value
+
+    @property
+    def temp_y2(self):
+        return self.roi_manager.temp_y2
+
+    @temp_y2.setter
+    def temp_y2(self, value):
+        self.roi_manager.temp_y2 = value
+
+    @property
+    def edit_x1(self):
+        return self.roi_manager.edit_x1
+
+    @edit_x1.setter
+    def edit_x1(self, value):
+        self.roi_manager.edit_x1 = value
+
+    @property
+    def edit_x2(self):
+        return self.roi_manager.edit_x2
+
+    @edit_x2.setter
+    def edit_x2(self, value):
+        self.roi_manager.edit_x2 = value
+
+    @property
+    def edit_y1(self):
+        return self.roi_manager.edit_y1
+
+    @edit_y1.setter
+    def edit_y1(self, value):
+        self.roi_manager.edit_y1 = value
+
+    @property
+    def edit_y2(self):
+        return self.roi_manager.edit_y2
+
+    @edit_y2.setter
+    def edit_y2(self, value):
+        self.roi_manager.edit_y2 = value
+
+    @property
+    def canvas_box(self):
+        return self.roi_manager.canvas_box
+
+    @canvas_box.setter
+    def canvas_box(self, value):
+        self.roi_manager.canvas_box = value
 
     def get_pixmap_geometry(self):
         if self.curr_pixmap:
@@ -89,57 +199,46 @@ class ObjectViewer2D(QLabel):
         self.threed_view = threed_view
 
     def reset_crop(self):
-        self.crop_from_x = -1
-        self.crop_from_y = -1
-        self.crop_to_x = -1
-        self.crop_to_y = -1
-        self.temp_x1 = -1
-        self.temp_y1 = -1
-        self.temp_x2 = -1
-        self.temp_y2 = -1
-        self.edit_x1 = False
-        self.edit_x2 = False
-        self.edit_y1 = False
-        self.edit_y2 = False
-        self.canvas_box = None
+        """Reset ROI to empty state (delegates to ROIManager)."""
+        self.roi_manager.reset()
         # If an image is loaded, default ROI to full image
         if self.orig_pixmap is not None:
             self.set_full_roi()
 
     def set_full_roi(self):
+        """Set ROI to cover entire image (delegates to ROIManager)."""
         if self.orig_pixmap is None:
             return
-        self.crop_from_x = 0
-        self.crop_from_y = 0
-        self.crop_to_x = self.orig_pixmap.width()
-        self.crop_to_y = self.orig_pixmap.height()
-        # canvas_box will be set on next calculate_resize; ensure it's available now as well
+        self.roi_manager.set_image_size(self.orig_pixmap.width(), self.orig_pixmap.height())
+        self.roi_manager.set_full_roi()
+        # Update canvas box representation
         if self.image_canvas_ratio != 0:
-            self.canvas_box = QRect(
-                self._2canx(self.crop_from_x),
-                self._2cany(self.crop_from_y),
-                self._2canx(self.crop_to_x - self.crop_from_x),
-                self._2cany(self.crop_to_y - self.crop_from_y),
-            )
+            self._update_canvas_box()
 
     def is_roi_full_or_empty(self):
-        """Check if ROI is not set or covers the entire image."""
+        """Check if ROI is not set or covers the entire image (delegates to ROIManager)."""
         if self.orig_pixmap is None:
             return True
-        # Check if ROI is not set
+        # Ensure ROIManager has image size set
         if (
-            self.crop_from_x == -1
-            or self.crop_from_y == -1
-            or self.crop_to_x == -1
-            or self.crop_to_y == -1
+            self.roi_manager.image_width != self.orig_pixmap.width()
+            or self.roi_manager.image_height != self.orig_pixmap.height()
         ):
-            return True
-        # Check if ROI covers entire image
-        return (
-            self.crop_from_x == 0
-            and self.crop_from_y == 0
-            and self.crop_to_x == self.orig_pixmap.width()
-            and self.crop_to_y == self.orig_pixmap.height()
+            self.roi_manager.set_image_size(self.orig_pixmap.width(), self.orig_pixmap.height())
+        return self.roi_manager.is_full_or_empty()
+
+    def _update_canvas_box(self):
+        """Update canvas representation of ROI."""
+        x1, y1, x2, y2 = self.roi_manager.get_roi_bounds()
+        if x1 == -1 or self.image_canvas_ratio == 0:
+            self.roi_manager.canvas_box = None
+            return
+
+        self.roi_manager.canvas_box = QRect(
+            self._2canx(x1),
+            self._2cany(y1),
+            self._2canx(x2 - x1),
+            self._2cany(y2 - y1),
         )
 
     def _2canx(self, coord):
