@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/jikhanjung/CTHarvester/branch/main/graph/badge.svg)](https://codecov.io/gh/jikhanjung/CTHarvester)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Tests: 485 passing](https://img.shields.io/badge/tests-485%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
+[![Tests: 911 passing](https://img.shields.io/badge/tests-911%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
 
 *Read this in other languages: [English](README.md), [한국어](README.ko.md)*
 

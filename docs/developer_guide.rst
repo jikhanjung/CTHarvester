@@ -12,26 +12,52 @@ Module Structure
 CTHarvester follows a modular architecture::
 
     CTHarvester/
-    ├── core/                  # Core business logic
-    │   ├── progress_tracker.py    # Progress tracking
-    │   ├── progress_manager.py    # Progress management
-    │   ├── thumbnail_manager.py   # Thumbnail coordination
-    │   └── thumbnail_worker.py    # Worker threads
-    ├── ui/                    # User interface
-    │   ├── main_window.py         # Main application window
-    │   ├── dialogs/               # Dialog windows
-    │   └── widgets/               # Custom widgets
-    ├── utils/                 # Utility functions
-    │   ├── settings_manager.py    # YAML settings
-    │   └── common.py              # Common utilities
-    ├── config/                # Configuration
-    │   ├── constants.py           # Application constants
-    │   ├── settings.yaml          # Default settings
-    │   ├── shortcuts.py           # Keyboard shortcuts
-    │   └── tooltips.py            # Tooltip definitions
-    ├── security/              # Security modules
-    │   └── file_validator.py     # File validation
-    └── tests/                 # Test suite
+    ├── core/                      # Core business logic
+    │   ├── progress_tracker.py        # Progress tracking
+    │   ├── progress_manager.py        # Progress management
+    │   ├── thumbnail_manager.py       # Thumbnail coordination
+    │   ├── thumbnail_generator.py     # Thumbnail generation logic
+    │   ├── thumbnail_worker.py        # Worker threads
+    │   ├── sequential_processor.py    # Sequential processing (Phase 4.1)
+    │   ├── volume_processor.py        # Volume processing
+    │   └── worker_manager.py          # Worker management
+    ├── ui/                        # User interface
+    │   ├── main_window.py             # Main application window (789 lines)
+    │   ├── ctharvester_app.py         # Custom QApplication subclass
+    │   ├── handlers/                  # UI handler modules (Phase 4)
+    │   │   ├── thumbnail_creation_handler.py  # Thumbnail generation (Phase 4.2)
+    │   │   ├── directory_open_handler.py      # Directory opening (Phase 4.3)
+    │   │   ├── view_manager.py                # 3D view management (Phase 4.4)
+    │   │   ├── export_handler.py              # Export operations
+    │   │   ├── file_handler.py                # File operations
+    │   │   └── settings_handler.py            # Settings management
+    │   ├── dialogs/                   # Dialog windows
+    │   │   ├── progress_dialog.py         # Progress display
+    │   │   ├── info_dialog.py             # Information dialogs
+    │   │   └── shortcut_dialog.py         # Keyboard shortcuts
+    │   ├── widgets/                   # Custom widgets
+    │   │   ├── mcube_widget.py            # 3D marching cubes viewer
+    │   │   ├── object_viewer_2d.py        # 2D image viewer
+    │   │   └── vertical_stack_slider.py   # Range slider
+    │   └── setup/                     # UI setup modules
+    │       └── main_window_setup.py       # Window initialization
+    ├── utils/                     # Utility functions
+    │   ├── settings_manager.py        # YAML settings
+    │   ├── common.py                  # Common utilities
+    │   ├── ui_utils.py                # UI helper functions
+    │   ├── file_utils.py              # File utilities
+    │   └── image_utils.py             # Image processing utilities
+    ├── config/                    # Configuration
+    │   ├── constants.py               # Application constants
+    │   ├── settings.yaml              # Default settings
+    │   ├── shortcuts.py               # Keyboard shortcuts
+    │   └── tooltips.py                # Tooltip definitions
+    ├── security/                  # Security modules
+    │   └── file_validator.py         # File validation & path traversal prevention
+    └── tests/                     # Test suite (911 tests)
+        ├── integration/               # Integration tests
+        ├── property/                  # Property-based tests
+        └── test_*.py                  # Unit tests
 
 Design Principles
 ~~~~~~~~~~~~~~~~~
@@ -53,9 +79,21 @@ Key Components
 
 **Thumbnail Generation:**
 
+* ``ThumbnailCreationHandler``: Orchestrates Rust/Python thumbnail generation (Phase 4.2)
+* ``ThumbnailGenerator``: Core thumbnail generation logic
 * ``ThumbnailManager``: Coordinates worker threads
 * ``ThumbnailWorker``: Processes individual thumbnails
-* Support for both Rust and Python implementations
+* ``SequentialProcessor``: Python fallback sequential processing (Phase 4.1)
+* Support for both Rust (high-performance) and Python (fallback) implementations
+
+**UI Handlers (Phase 4 Refactoring):**
+
+* ``ThumbnailCreationHandler``: Manages thumbnail generation workflows
+* ``DirectoryOpenHandler``: Handles directory selection and loading
+* ``ViewManager``: Manages 3D view updates and synchronization
+* ``ExportHandler``: Manages export operations
+* ``FileHandler``: File operations and validation
+* ``SettingsHandler``: Window settings persistence
 
 **Settings Management:**
 
