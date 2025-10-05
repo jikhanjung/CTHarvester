@@ -879,8 +879,6 @@ class ThumbnailManager(QObject):
 
             self.results[idx] = img_array
             self.completed_tasks += 1
-            completed = self.completed_tasks
-            total = self.total_tasks
 
             # Track generation vs loading
             if was_generated:
@@ -888,7 +886,10 @@ class ThumbnailManager(QObject):
             else:
                 self.loaded_count += 1
 
-            # Validate progress bounds (prevent overflow/underflow)
+            # Validate progress bounds BEFORE reading (prevent race condition)
+            completed = self.completed_tasks
+            total = self.total_tasks
+
             if completed > total:
                 logger.error(f"completed ({completed}) > total ({total}), capping to total")
                 self.completed_tasks = total

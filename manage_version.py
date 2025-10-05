@@ -24,6 +24,7 @@ Commands:
     (e.g., 1.3.0-alpha.2 -> 1.3.0)
 """
 
+import logging
 import re
 import subprocess
 import sys
@@ -31,10 +32,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+# Configure logging for version management script
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
+
 try:
     import semver
 except ImportError:
-    print("Error: 'semver' library not found. Please install it with 'pip install semver'")
+    logger.error("'semver' library not found. Please install it with 'pip install semver'")
     sys.exit(1)
 
 
@@ -63,7 +68,7 @@ def update_version_file(new_version: str) -> None:
 
     try:
         version_file.write_text(new_content)
-        print(f"✅ Version updated to {new_version}")
+        logger.info(f"✅ Version updated to {new_version}")
         backup_file.unlink()
     except Exception as e:
         backup_file.rename(version_file)
@@ -106,7 +111,7 @@ def get_new_version(
 
     if command == "release":
         if not current_ver_info.prerelease:
-            print("Version is already stable.")
+            logger.info("Version is already stable.")
             return str(current_ver_info)
         return str(current_ver_info.finalize_version())
 
@@ -122,19 +127,19 @@ def create_git_tag(version: str, message: Optional[str] = None) -> None:
     try:
         result = subprocess.run(["git", "tag", "-l", tag_name], capture_output=True, text=True)
         if result.stdout.strip():
-            print(f"⚠️  Tag {tag_name} already exists")
+            logger.warning(f"⚠️  Tag {tag_name} already exists")
             return
 
         subprocess.run(["git", "tag", "-a", tag_name, "-m", message], check=True)
-        print(f"✅ Git tag created: {tag_name}")
+        logger.info(f"✅ Git tag created: {tag_name}")
 
         # Removed automatic push to remote
         # response = input("Push tag to remote? (y/N): ")
         # if response.lower() == 'y':
         #     subprocess.run(['git', 'push', 'origin', tag_name], check=True)
-        #     print(f"✅ Tag pushed to remote")
+        #     logger.info(f"✅ Tag pushed to remote")
     except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to create git tag: {e}")
+        logger.error(f"❌ Failed to create git tag: {e}")
 
 
 def update_changelog(version: str) -> None:
@@ -144,7 +149,7 @@ def update_changelog(version: str) -> None:
 
     header = f"## [{version}] - {date_str}"
     if changelog_file.exists() and header in changelog_file.read_text():
-        print(f"⚠️  Version {version} already in CHANGELOG.md")
+        logger.warning(f"⚠️  Version {version} already in CHANGELOG.md")
         return
 
     new_section = f"""
@@ -170,7 +175,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 {new_section}"""
         changelog_file.write_text(content)
-        print("✅ CHANGELOG.md created")
+        logger.info("✅ CHANGELOG.md created")
     else:
         content = changelog_file.read_text()
         insert_index = -1
@@ -185,8 +190,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             lines.insert(insert_index, new_section)
 
         changelog_file.write_text("\n".join(lines))
-        print("✅ CHANGELOG.md updated")
-    print("⚠️  Please update the changelog entries before committing")
+        logger.info("✅ CHANGELOG.md updated")
+    logger.warning("⚠️  Please update the changelog entries before committing")
 
 
 def check_git_status() -> bool:
@@ -196,12 +201,12 @@ def check_git_status() -> bool:
             ["git", "status", "--porcelain"], capture_output=True, text=True, check=True
         )
         if result.stdout.strip():
-            print("⚠️  Warning: You have uncommitted changes")
+            logger.warning("⚠️  Warning: You have uncommitted changes")
             response = input("Continue anyway? (y/N): ")
             return response.lower() == "y"
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
-        print("⚠️  Not a git repository or git not available. Skipping check.")
+        logger.warning("⚠️  Not a git repository or git not available. Skipping check.")
         return True
 
 
@@ -209,7 +214,7 @@ def main():
     """Main execution function"""
     args = sys.argv[1:]
     if not args or args[0] in ["-h", "--help"]:
-        print(__doc__)
+        logger.info(__doc__)
         sys.exit(0)
 
     command = args[0]
@@ -227,30 +232,30 @@ def main():
         "stage",
     ]
     if command not in valid_commands:
-        print(f"Error: Invalid command '{command}'")
-        print("See 'python manage_version.py --help' for usage.")
+        logger.error(f"Error: Invalid command '{command}'")
+        logger.info("See 'python manage_version.py --help' for usage.")
         sys.exit(1)
 
     try:
         if not check_git_status():
-            print("Aborted")
+            logger.info("Aborted")
             sys.exit(1)
 
         current_version_str = get_current_version()
-        print(f"Current version: {current_version_str}")
+        logger.info(f"Current version: {current_version_str}")
 
         try:
             current_ver_info = semver.VersionInfo.parse(current_version_str)
         except ValueError:
-            print(f"Error: Invalid semantic version in version.py: '{current_version_str}'")
+            logger.error(f"Error: Invalid semantic version in version.py: '{current_version_str}'")
             sys.exit(1)
 
         new_version = get_new_version(command, current_ver_info, token)
-        print(f"New version will be: {new_version}")
+        logger.info(f"New version will be: {new_version}")
 
         response = input(f"Update version to {new_version}? (y/N): ")
         if response.lower() != "y":
-            print("Aborted")
+            logger.info("Aborted")
             sys.exit(0)
 
         update_version_file(new_version)
@@ -264,22 +269,22 @@ def main():
             subprocess.run(["git", "add", "version.py", "CHANGELOG.md"], check=True)
             commit_message = f"chore: bump version to {new_version}"
             subprocess.run(["git", "commit", "-m", commit_message], check=True)
-            print(f"✅ Git commit created: {commit_message}")
+            logger.info(f"✅ Git commit created: {commit_message}")
 
             response = input("Create git tag? (y/N): ")
             if response.lower() == "y":
                 create_git_tag(new_version)
 
-        print(f"\n🎉 Version {new_version} is ready!")
-        print("\nNext steps:")
-        print("1. Manually edit CHANGELOG.md to add details for this version.")
-        print("2. Push your changes and the new tag to the remote repository.")
+        logger.info(f"\n🎉 Version {new_version} is ready!")
+        logger.info("\nNext steps:")
+        logger.info("1. Manually edit CHANGELOG.md to add details for this version.")
+        logger.info("2. Push your changes and the new tag to the remote repository.")
 
     except (KeyboardInterrupt, EOFError):
-        print("\nAborted by user")
+        logger.info("\nAborted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"❌ Error: {e}")
+        logger.error(f"❌ Error: {e}")
         sys.exit(1)
 
 

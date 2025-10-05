@@ -768,6 +768,15 @@ class CTHarvesterMainWindow(QMainWindow):
         """
         logger.info("Application closing")
         self.save_settings()
+
+        # Wait for thread pool to finish (max 5 seconds)
+        if self.threadpool.activeThreadCount() > 0:
+            logger.info(
+                f"Waiting for {self.threadpool.activeThreadCount()} active threads to finish..."
+            )
+            if not self.threadpool.waitForDone(5000):  # 5 second timeout
+                logger.warning("Thread pool did not finish within timeout, forcing close")
+
         event.accept()
 
 

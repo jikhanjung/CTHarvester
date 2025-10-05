@@ -6,6 +6,7 @@ Directory traversal 공격 방지
 import logging
 import os
 import re
+from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -83,25 +84,51 @@ class SecureFileValidator:
         Raises:
             FileSecurityError: base_dir 외부 경로일 경우
         """
-        # 절대 경로로 변환 및 정규화
-        abs_base = os.path.abspath(base_dir)
-        abs_file = os.path.abspath(file_path)
-
-        # 공통 경로 확인
+        # pathlib.resolve()를 사용하여 심볼릭 링크와 UNC 경로를 포함한 모든 경로 정규화
         try:
-            common_path = os.path.commonpath([abs_base, abs_file])
-        except ValueError:
-            # Windows에서 다른 드라이브인 경우
-            raise FileSecurityError(
-                f"Path is on different drive: {file_path} " f"(base: {base_dir})"
-            )
+            base_path = Path(base_dir).resolve(strict=False)
+            file_path_obj = Path(file_path).resolve(strict=False)
+        except (ValueError, OSError, RuntimeError) as e:
+            raise FileSecurityError(f"Invalid path format: {file_path} ({e})") from e
 
-        if common_path != abs_base:
-            raise FileSecurityError(
-                f"Path is outside base directory: {file_path} " f"(base: {base_dir})"
-            )
+        # UNC 경로 추가 검증 (Windows)
+        if os.name == "nt":
+            # \\?\ 형식의 경로 정규화
+            base_str = str(base_path)
+            file_str = str(file_path_obj)
 
-        return abs_file
+            # \\?\ 접두사 제거하여 비교
+            if base_str.startswith("\\\\?\\"):
+                base_str = base_str[4:]
+            if file_str.startswith("\\\\?\\"):
+                file_str = file_str[4:]
+
+            base_path = Path(base_str)
+            file_path_obj = Path(file_str)
+
+        # 파일 경로가 기본 디렉토리 내부인지 확인
+        try:
+            # is_relative_to()로 부모 관계 확인 (Python 3.9+)
+            if hasattr(file_path_obj, "is_relative_to"):
+                if not file_path_obj.is_relative_to(base_path):
+                    raise FileSecurityError(
+                        f"Path is outside base directory: {file_path} (base: {base_dir})"
+                    )
+            else:
+                # Python 3.8 호환성: 수동 체크
+                try:
+                    file_path_obj.relative_to(base_path)
+                except ValueError:
+                    raise FileSecurityError(
+                        f"Path is outside base directory: {file_path} (base: {base_dir})"
+                    )
+        except ValueError as e:
+            # 다른 드라이브이거나 관련 없는 경로
+            raise FileSecurityError(
+                f"Path is on different drive or outside base: {file_path} (base: {base_dir})"
+            ) from e
+
+        return str(file_path_obj)
 
     @staticmethod
     def safe_join(base_dir: str, *paths: str) -> str:

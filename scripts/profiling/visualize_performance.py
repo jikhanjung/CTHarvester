@@ -133,7 +133,7 @@ def generate_text_report(metrics_history: list) -> str:
             try:
                 dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
                 label = dt.strftime("%m-%d %H:%M")
-            except:
+            except (ValueError, AttributeError, TypeError) as e:
                 label = f"Entry {len(speeds) + i + 1}"
 
             recent_data.append((label, speed))
@@ -293,8 +293,8 @@ def generate_html_report(metrics_history: list) -> str:
             try:
                 dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
                 ts_display = dt.strftime("%Y-%m-%d %H:%M")
-            except:
-                ts_display = timestamp[:19]
+            except (ValueError, AttributeError, TypeError) as e:
+                ts_display = timestamp[:19] if len(timestamp) >= 19 else timestamp
 
             # Calculate trend from previous
             if i < -1:

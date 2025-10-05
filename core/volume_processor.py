@@ -171,6 +171,43 @@ class VolumeProcessor:
             logger.error("minimum_volume is empty array")
             return np.array([]), [0, 0, 0, 0, 0, 0]
 
+        # Validate array dimensions and bounds
+        if minimum_volume.ndim != 3:
+            logger.error(
+                f"minimum_volume must be 3D, got {minimum_volume.ndim}D shape: {minimum_volume.shape}"
+            )
+            return np.array([]), [0, 0, 0, 0, 0, 0]
+
+        vol_depth, vol_height, vol_width = minimum_volume.shape
+
+        # Validate slice indices are within volume bounds
+        if bottom_idx_small < 0 or top_idx_small > vol_depth:
+            logger.error(
+                f"Slice indices out of bounds: [{bottom_idx_small}:{top_idx_small}] "
+                f"exceeds volume depth {vol_depth}"
+            )
+            # Clamp to valid range
+            bottom_idx_small = max(0, min(bottom_idx_small, vol_depth - 1))
+            top_idx_small = max(0, min(top_idx_small, vol_depth))
+
+        # Validate spatial coordinates are within bounds
+        if (
+            from_y_small < 0
+            or to_y_small > vol_height
+            or from_x_small < 0
+            or to_x_small > vol_width
+        ):
+            logger.error(
+                f"Crop coordinates out of bounds: Y[{from_y_small}:{to_y_small}] "
+                f"X[{from_x_small}:{to_x_small}] exceeds volume dimensions "
+                f"(H:{vol_height}, W:{vol_width})"
+            )
+            # Clamp to valid range
+            from_y_small = max(0, min(from_y_small, vol_height - 1))
+            to_y_small = max(from_y_small + 1, min(to_y_small, vol_height))
+            from_x_small = max(0, min(from_x_small, vol_width - 1))
+            to_x_small = max(from_x_small + 1, min(to_x_small, vol_width))
+
         # Crop volume
         try:
             volume = minimum_volume[

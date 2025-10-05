@@ -4,6 +4,7 @@ Build script for CTHarvester
 Handles PyInstaller build and InnoSetup installer generation
 """
 
+import logging
 import os
 import platform
 import subprocess
@@ -11,6 +12,10 @@ import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
+
+# Configure logging for build script
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 # Determine project root based on script location (not cwd)
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -40,11 +45,11 @@ except ImportError:
 def update_build_year():
     """Update BUILD_YEAR in config/constants.py with current year"""
     current_year = datetime.now().year
-    print(f"Updating BUILD_YEAR to {current_year}...")
+    logger.info(f"Updating BUILD_YEAR to {current_year}...")
 
     constants_path = Path("config/constants.py")
     if not constants_path.exists():
-        print(f"[ERROR] config/constants.py not found")
+        logger.error(f"config/constants.py not found")
         return False
 
     content = constants_path.read_text(encoding="utf-8")
@@ -59,10 +64,10 @@ def update_build_year():
 
     if new_content != content:
         constants_path.write_text(new_content, encoding="utf-8")
-        print(f"[OK] BUILD_YEAR updated to {current_year} in config/constants.py")
+        logger.info(f"BUILD_YEAR updated to {current_year} in config/constants.py")
         return True
     else:
-        print(f"[WARNING] BUILD_YEAR pattern not found or already up to date")
+        logger.warning(f"BUILD_YEAR pattern not found or already up to date")
         return True
 
 
@@ -73,36 +78,38 @@ def run_pyinstaller(spec_file="CTHarvester.spec", build_type="onefile"):
         spec_file: Path to the spec file to use (relative to PROJECT_ROOT)
         build_type: Type of build ("onefile" or "onedir")
     """
-    print(f"Building CTHarvester v{VERSION} ({build_type})")
+    logger.info(f"Building CTHarvester v{VERSION} ({build_type})")
 
     # Resolve spec file path relative to PROJECT_ROOT
     spec_path = PROJECT_ROOT / spec_file
     if not spec_path.exists():
-        print(f"Error: {spec_path} not found")
+        logger.error(f"Spec file {spec_path} not found")
         return False
 
     # Run PyInstaller with absolute path to spec file
     cmd = ["pyinstaller", str(spec_path), "--clean"]
 
     try:
-        print(f"Running: {' '.join(cmd)}")
+        logger.info(f"Running: {' '.join(cmd)}")
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        print(f"PyInstaller {build_type} build completed successfully")
+        logger.info(f"PyInstaller {build_type} build completed successfully")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"PyInstaller {build_type} build failed: {e}")
-        print(f"stdout: {e.stdout}")
-        print(f"stderr: {e.stderr}")
+        logger.error(f"PyInstaller {build_type} build failed: {e}")
+        if e.stdout:
+            logger.error(f"stdout: {e.stdout}")
+        if e.stderr:
+            logger.error(f"stderr: {e.stderr}")
         return False
 
 
 def prepare_inno_setup_template():
     """Prepare InnoSetup script from template"""
-    print("Preparing InnoSetup script from template...")
+    logger.info("Preparing InnoSetup script from template...")
 
     template_path = PROJECT_ROOT / "InnoSetup" / "CTHarvester.iss.template"
     if not template_path.exists():
-        print(f"[ERROR] Template file {template_path} not found")
+        logger.error(f"Template file {template_path} not found")
         return None
 
     # Read template
@@ -130,20 +137,20 @@ def prepare_inno_setup_template():
 
     try:
         temp_iss.write_text(iss_content)
-        print(f"[OK] Temporary ISS file created: {temp_iss.name}")
+        logger.info(f" Temporary ISS file created: {temp_iss.name}")
         return str(temp_iss)
     except Exception as e:
-        print(f"[ERROR] Error creating temporary ISS file: {e}")
+        logger.error(f" Error creating temporary ISS file: {e}")
         return None
 
 
 def build_installer():
     """Build Windows installer using InnoSetup"""
     if platform.system() != "Windows":
-        print("[INFO]  Installer build only available on Windows")
+        logger.info("  Installer build only available on Windows")
         return True
 
-    print("Building Windows installer...")
+    logger.info("Building Windows installer...")
 
     # Prepare ISS from template
     temp_iss_file = prepare_inno_setup_template()
@@ -163,8 +170,8 @@ def build_installer():
             break
 
     if not iscc_path:
-        print("[WARNING]  InnoSetup not found. Skipping installer build.")
-        print("   Install from: https://jrsoftware.org/isdl.php")
+        logger.warning("InnoSetup not found. Skipping installer build.")
+        logger.info("Install from: https://jrsoftware.org/isdl.php")
         # Clean up temp file
         if Path(temp_iss_file).exists():
             Path(temp_iss_file).unlink()
@@ -176,42 +183,42 @@ def build_installer():
     cmd = [iscc_path, f"/DBuildNumber={build_number}", temp_iss_file]
 
     try:
-        print(f"Running: {' '.join(cmd)}")
+        logger.info(f"Running: {' '.join(cmd)}")
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        print("[OK] Installer built successfully")
+        logger.info("Installer built successfully")
 
         # Show output location
         installer_name = f"CTHarvester_v{VERSION}_build{build_number}_Installer.exe"
         installer_path = Path(f"InnoSetup/Output/{installer_name}")
         if installer_path.exists():
-            print(f"[PACKAGE] Installer: {installer_path}")
+            logger.info(f"Installer: {installer_path}")
 
         return True
     except subprocess.CalledProcessError as e:
-        print(f"[ERROR] Installer build failed: {e}")
+        logger.error(f"Installer build failed: {e}")
         if e.stdout:
-            print("STDOUT:", e.stdout)
+            logger.error(f"STDOUT: {e.stdout}")
         if e.stderr:
-            print("STDERR:", e.stderr)
+            logger.error(f"STDERR: {e.stderr}")
         return False
     finally:
         # Clean up temp file
         if Path(temp_iss_file).exists():
             Path(temp_iss_file).unlink()
-            print(f"[CLEANUP] Cleaned up temporary file: {Path(temp_iss_file).name}")
+            logger.debug(f"Cleaned up temporary file: {Path(temp_iss_file).name}")
 
 
 def main():
     """Main build process"""
-    print("=" * 60)
-    print(f"CTHarvester Build Script")
-    print(f"Version: {VERSION}")
-    print(f"Platform: {platform.system()}")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info(f"CTHarvester Build Script")
+    logger.info(f"Version: {VERSION}")
+    logger.info(f"Platform: {platform.system()}")
+    logger.info("=" * 60)
 
     # Update BUILD_YEAR before building
     if not update_build_year():
-        print("[ERROR] Failed to update BUILD_YEAR")
+        logger.error(" Failed to update BUILD_YEAR")
         return 1
 
     # Parse command line arguments
@@ -233,14 +240,14 @@ def main():
     # Set BUILD_NUMBER if provided as argument
     if len(args) > 0:
         os.environ["BUILD_NUMBER"] = args[0]
-        print(f"BUILD_NUMBER: {args[0]}")
+        logger.info(f"BUILD_NUMBER: {args[0]}")
     elif "BUILD_NUMBER" not in os.environ:
         os.environ["BUILD_NUMBER"] = "local"
-        print("BUILD_NUMBER: local (default)")
+        logger.info("BUILD_NUMBER: local (default)")
 
     # Determine what to build
     if build_both:
-        print("Building both onefile and onedir versions...")
+        logger.info("Building both onefile and onedir versions...")
         build_onefile = True
         build_onedir = True
 
@@ -248,9 +255,9 @@ def main():
 
     # Step 1: Build onefile executable if requested
     if build_onefile:
-        print("\n" + "=" * 40)
-        print("Building ONEFILE version...")
-        print("=" * 40)
+        logger.info("\n" + "=" * 40)
+        logger.info("Building ONEFILE version...")
+        logger.info("=" * 40)
         # Try both possible spec file names
         if Path("CTHarvester_onefile.spec").exists():
             success = run_pyinstaller("CTHarvester_onefile.spec", "onefile")
@@ -260,35 +267,35 @@ def main():
         if success and Path("dist/CTHarvester.exe").exists():
             # Rename onefile executable to distinguish it
             Path("dist/CTHarvester.exe").rename("dist/CTHarvester_onefile.exe")
-            print("Renamed: dist/CTHarvester.exe -> dist/CTHarvester_onefile.exe")
+            logger.info("Renamed: dist/CTHarvester.exe -> dist/CTHarvester_onefile.exe")
 
     # Step 2: Build onedir executable if requested
     if build_onedir and success:
-        print("\n" + "=" * 40)
-        print("Building ONEDIR version...")
-        print("=" * 40)
+        logger.info("\n" + "=" * 40)
+        logger.info("Building ONEDIR version...")
+        logger.info("=" * 40)
         success = run_pyinstaller("CTHarvester_onedir.spec", "onedir")
 
     if not success:
-        print("\n[ERROR] Build failed")
+        logger.error("Build failed")
         return 1
 
     # Step 3: Build installer (Windows only)
     if platform.system() == "Windows":
         if not build_installer():
-            print("\n[WARNING]  Installer build failed, but executable was built")
+            logger.warning("Installer build failed, but executable was built")
             return 0  # Partial success
 
-    print("\n[SUCCESS] Build completed successfully!")
-    print("\nOutput:")
+    logger.info("Build completed successfully!")
+    logger.info("Output:")
     if build_onefile:
-        print(f"  - Onefile executable: dist/CTHarvester_onefile.exe")
+        logger.info(f"  - Onefile executable: dist/CTHarvester_onefile.exe")
     if build_onedir:
-        print(f"  - Onedir executable: dist/CTHarvester/CTHarvester.exe")
+        logger.info(f"  - Onedir executable: dist/CTHarvester/CTHarvester.exe")
 
     if platform.system() == "Windows":
         build_number = os.environ.get("BUILD_NUMBER", "local")
-        print(
+        logger.info(
             f"  - Installer: InnoSetup/Output/CTHarvester_v{VERSION}_build{build_number}_Installer.exe"
         )
 

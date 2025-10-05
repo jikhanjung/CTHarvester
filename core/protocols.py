@@ -6,9 +6,10 @@ objects used in the thumbnail generation pipeline, improving type safety
 without requiring inheritance.
 """
 
-from typing import Any, Dict, List, Protocol, Union
+from typing import Any, Dict, List, Protocol, Union, runtime_checkable
 
 
+@runtime_checkable
 class ThumbnailParent(Protocol):
     """Protocol for objects that can be parents of thumbnail generation.
 
@@ -41,6 +42,7 @@ class ThumbnailParent(Protocol):
     weighted_total_work: float
 
 
+@runtime_checkable
 class ProgressDialog(Protocol):
     """Protocol for progress dialog interface.
 
