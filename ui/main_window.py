@@ -92,6 +92,13 @@ class CTHarvesterMainWindow(QMainWindow):
         self.minimum_volume = None  # Initialize to None, will be set after thumbnail generation
         self.curr_level_idx = 0
         self.prev_level_idx = 0
+
+        # Image loading debounce timer
+        self._image_load_timer = QTimer()
+        self._image_load_timer.setSingleShot(True)
+        self._image_load_timer.timeout.connect(self._perform_delayed_image_load)
+        self._pending_image_path = None
+        self._pending_image_idx = None
         self.default_directory = "."
         self.threadpool = QThreadPool()
         self.progress_dialog: Optional[ProgressDialog] = None  # Progress dialog for long operations
@@ -359,8 +366,8 @@ class CTHarvesterMainWindow(QMainWindow):
         """
         Handle timeline slider value change to display different image slice.
 
-        Loads the image corresponding to the current slider position from either
-        the original directory (level 0) or thumbnail cache (levels 1+).
+        Uses debouncing to avoid loading every intermediate image when
+        dragging the slider rapidly. Loads only after 50ms of no movement.
         """
         if not self.initialized:
             return
@@ -369,7 +376,7 @@ class CTHarvesterMainWindow(QMainWindow):
         if size_idx < 0:
             size_idx = 0
 
-        # get directory for size idx
+        # Build image path
         if size_idx == 0:
             dirname = self.edtDirname.text()
             filename = (
@@ -385,9 +392,30 @@ class CTHarvesterMainWindow(QMainWindow):
             # Match Rust naming: simple sequential numbering without prefix
             filename = f"{curr_image_idx:06}.tif"
 
-        self.image_label.set_image(os.path.join(dirname, filename))
-        self.image_label.set_curr_idx(curr_image_idx)
+        image_path = os.path.join(dirname, filename)
+
+        # Store pending load and debounce
+        self._pending_image_path = image_path
+        self._pending_image_idx = curr_image_idx
+
+        # Restart timer (cancels previous pending load)
+        self._image_load_timer.stop()
+        self._image_load_timer.start(50)  # 50ms debounce
+
+    def _perform_delayed_image_load(self):
+        """Actually perform the image load after debounce delay"""
+        if self._pending_image_path is None:
+            return
+
+        # Load image
+        self.image_label.set_image(self._pending_image_path)
+        if self._pending_image_idx is not None:
+            self.image_label.set_curr_idx(self._pending_image_idx)
         self.update_curr_slice()
+
+        # Clear pending state
+        self._pending_image_path = None
+        self._pending_image_idx = None
 
     def reset_crop(self):
         """
@@ -694,11 +722,35 @@ class CTHarvesterMainWindow(QMainWindow):
                 if not pixmap.isNull():
                     self.image_label.setPixmap(pixmap.scaledToWidth(PREVIEW_WIDTH))
                 else:
+                    error_msg = f"Failed to load preview image: {os.path.basename(actual_path)}"
                     logger.error(f"QPixmap is null for {actual_path}")
+                    self._show_preview_error_placeholder(error_msg)
+            except OSError as e:
+                error_msg = f"Failed to load preview image: {e}"
+                logger.error(f"OS error loading initial image: {e}", exc_info=True)
+                self._show_preview_error_placeholder(error_msg)
             except Exception as e:
-                logger.error(f"Error loading initial image: {e}")
+                error_msg = f"Unexpected error loading preview: {e}"
+                logger.error(f"Error loading initial image: {e}", exc_info=True)
+                self._show_preview_error_placeholder(error_msg)
         else:
+            error_msg = f"Image file not found: {os.path.basename(first_image_path)}"
             logger.error(f"Image file does not exist: {first_image_path}")
+            self._show_preview_error_placeholder(error_msg)
+
+    def _show_preview_error_placeholder(self, error_message):
+        """Show error placeholder in image preview area"""
+        from config.constants import PREVIEW_WIDTH
+
+        # Create a simple error placeholder pixmap
+        placeholder = QPixmap(PREVIEW_WIDTH, PREVIEW_WIDTH)
+        placeholder.fill(Qt.lightGray)
+
+        # Optionally show error message to user (non-blocking)
+        logger.warning(f"Preview unavailable: {error_message}")
+
+        # Set placeholder in image label
+        self.image_label.setPixmap(placeholder)
 
     def _load_existing_thumbnail_levels(self, ddir):
         """Check for existing thumbnail directories and populate level_info"""

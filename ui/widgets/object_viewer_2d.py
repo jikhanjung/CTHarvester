@@ -613,50 +613,63 @@ class ObjectViewer2D(QLabel):
     def apply_threshold_and_colorize(
         self, qt_pixmap, threshold, color=np.array([0, 255, 0], dtype=np.uint8)
     ):
+        """
+        Apply threshold and colorize image efficiently with minimal copies.
+
+        Optimized to reduce memory allocations:
+        - Use view operations instead of copies where possible
+        - Create RGB output array once
+        - Direct indexing without intermediate copies
+        """
         qt_image = qt_pixmap.toImage()
         width = qt_image.width()
         height = qt_image.height()
-        buffer = qt_image.bits()
-        buffer.setsize(qt_image.byteCount())
-        qt_image_array = np.frombuffer(buffer, dtype=np.uint8).reshape((height, width, 4))
 
-        # Extract the alpha channel (if present)
-        if qt_image_array.shape[2] == 4:
-            qt_image_array = qt_image_array[:, :, :3]  # Remove the alpha channel
+        # Get buffer as read-only view (no copy)
+        buffer = qt_image.constBits()
+        buffer.setsize(qt_image.byteCount())
+
+        # Create view of RGBA data (no copy)
+        rgba_view = np.frombuffer(buffer, dtype=np.uint8).reshape((height, width, 4))
+
+        # Create RGB output array (single allocation)
+        # This is the only necessary copy - we need RGB format for QImage
+        rgb_array = np.empty((height, width, 3), dtype=np.uint8)
+        rgb_array[:] = rgba_view[:, :, :3]  # Copy RGB channels, drop alpha
 
         color = np.array([0, 255, 0], dtype=np.uint8)
 
-        # Check the dtype of image_array
-        if qt_image_array.dtype != np.uint8:
-            raise ValueError("image_array should have dtype np.uint8")
-
-        # Check the threshold value (example threshold)
+        # Validate threshold
         threshold = self.isovalue
         if not 0 <= threshold <= 255:
             raise ValueError("Threshold should be in the range 0-255")
 
+        # Get crop area
         [x1, y1, x2, y2] = self.get_crop_area()
         if x1 == x2 == y1 == y2 == 0:
-            # whole pixmap is selected
-            x1, x2, y1, y2 = 0, qt_image_array.shape[1], 0, qt_image_array.shape[0]
+            # Whole pixmap is selected
+            x1, x2, y1, y2 = 0, width, 0, height
 
+        # Create region view (no copy)
+        region = rgb_array[y1 : y2 + 1, x1 : x2 + 1]
+
+        # Apply threshold mask and colorize in-place
         if self.is_inverse:
-            region_mask = qt_image_array[y1 : y2 + 1, x1 : x2 + 1, 0] <= threshold
+            mask = region[:, :, 0] <= threshold
         else:
-            region_mask = qt_image_array[y1 : y2 + 1, x1 : x2 + 1, 0] > threshold
+            mask = region[:, :, 0] > threshold
 
-        # Apply the threshold and colorize
-        qt_image_array[y1 : y2 + 1, x1 : x2 + 1][region_mask] = color
+        # Apply color in-place (no intermediate array)
+        region[mask] = color
 
-        # Convert the NumPy array back to a QPixmap
-        height, width, channel = qt_image_array.shape
+        # Create QImage directly from array data (minimal overhead)
         bytes_per_line = 3 * width
-        qt_image = QImage(
-            np.copy(qt_image_array.data), width, height, bytes_per_line, QImage.Format_RGB888
-        )
+        # Keep rgb_array alive by storing reference
+        qt_image = QImage(rgb_array.data, width, height, bytes_per_line, QImage.Format_RGB888)
 
-        # Convert the QImage to a QPixmap
-        modified_pixmap = QPixmap.fromImage(qt_image)
+        # Convert to QPixmap
+        # Note: QImage holds reference to rgb_array.data, so array must stay alive
+        modified_pixmap = QPixmap.fromImage(qt_image.copy())  # Copy here to own the data
         return modified_pixmap
 
     def set_image(self, file_path):

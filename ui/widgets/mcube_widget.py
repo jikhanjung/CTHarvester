@@ -119,39 +119,44 @@ class MeshGenerationThread(QThread):
             logger.debug("Running marching cubes...")
             vertices, triangles = mcubes.marching_cubes(volume, isovalue)
 
-            # Calculate face normals
+            # Calculate face normals (vectorized)
             self.progress.emit(60)
-            logger.debug("Calculating face normals...")
-            face_normals = []
-            for triangle in triangles:
-                v0 = vertices[triangle[0]]
-                v1 = vertices[triangle[1]]
-                v2 = vertices[triangle[2]]
-                edge1 = v1 - v0
-                edge2 = v2 - v0
-                normal = np.cross(edge1, edge2)
-                norm = np.linalg.norm(normal)
-                if norm == 0:
-                    normal = np.array([0, 0, 0])
-                else:
-                    normal /= np.linalg.norm(normal)
-                face_normals.append(normal)
+            logger.debug("Calculating face normals (vectorized)...")
 
-            # Calculate vertex normals
+            # Get vertices for each triangle (broadcasting)
+            v0 = vertices[triangles[:, 0]]  # Shape: (num_triangles, 3)
+            v1 = vertices[triangles[:, 1]]
+            v2 = vertices[triangles[:, 2]]
+
+            # Calculate edges
+            edge1 = v1 - v0  # Shape: (num_triangles, 3)
+            edge2 = v2 - v0
+
+            # Calculate cross products (face normals)
+            face_normals = np.cross(edge1, edge2)  # Shape: (num_triangles, 3)
+
+            # Normalize face normals (vectorized)
+            norms = np.linalg.norm(face_normals, axis=1, keepdims=True)  # Shape: (num_triangles, 1)
+            # Avoid division by zero
+            norms = np.where(norms == 0, 1, norms)
+            face_normals = face_normals / norms
+
+            # Calculate vertex normals (vectorized accumulation)
             self.progress.emit(80)
-            logger.debug("Calculating vertex normals...")
-            vertex_normals = np.zeros(vertices.shape)
+            logger.debug("Calculating vertex normals (vectorized)...")
+            vertex_normals = np.zeros(vertices.shape, dtype=np.float32)
 
-            for i, triangle in enumerate(triangles):
-                for vertex_index in triangle:
-                    vertex_normals[vertex_index] += face_normals[i]
+            # Accumulate face normals to vertices using advanced indexing
+            # This replaces the nested loop
+            np.add.at(vertex_normals, triangles[:, 0], face_normals)
+            np.add.at(vertex_normals, triangles[:, 1], face_normals)
+            np.add.at(vertex_normals, triangles[:, 2], face_normals)
 
-            # Normalize vertex normals
-            for i in range(len(vertex_normals)):
-                if np.linalg.norm(vertex_normals[i]) != 0:
-                    vertex_normals[i] /= np.linalg.norm(vertex_normals[i])
-                else:
-                    vertex_normals[i] = np.array([0.0, 0.0, 0.0])
+            # Normalize vertex normals (vectorized)
+            norms = np.linalg.norm(vertex_normals, axis=1, keepdims=True)
+            # Avoid division by zero
+            norms = np.where(norms == 0, 1, norms)
+            vertex_normals = vertex_normals / norms
 
             self.progress.emit(95)
 

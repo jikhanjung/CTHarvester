@@ -114,14 +114,20 @@ class ExportHandler:
             triangles (np.ndarray): Triangle face indices
         """
         validator = SecureFileValidator()
+        temp_file = None
 
         try:
             # Validate output path (use parent directory as base)
             import os
+            import tempfile
 
             base_dir = os.path.dirname(filename) or "."
             validated_path = validator.validate_path(filename, base_dir)
-            with open(validated_path, "w") as fh:
+
+            # Write to temporary file first (atomic write)
+            temp_fd, temp_file = tempfile.mkstemp(suffix=".obj", dir=base_dir, text=True)
+
+            with os.fdopen(temp_fd, "w") as fh:
                 # Write vertices
                 for v in vertices:
                     fh.write(f"v {v[0]} {v[1]} {v[2]}\n")
@@ -130,11 +136,32 @@ class ExportHandler:
                 for f in triangles:
                     fh.write(f"f {f[0] + 1} {f[1] + 1} {f[2] + 1}\n")
 
+            # Atomic rename
+            os.replace(temp_file, validated_path)
+            temp_file = None  # Successfully moved, don't cleanup
+
             logger.info(f"Successfully saved OBJ file: {filename}")
 
+        except OSError as e:
+            error_msg = f"Failed to save OBJ file (I/O error): {e}"
+            self._show_error(error_msg)
+            logger.error(error_msg, exc_info=True)
+        except ValueError as e:
+            error_msg = f"Failed to save OBJ file (invalid data): {e}"
+            self._show_error(error_msg)
+            logger.error(error_msg, exc_info=True)
         except Exception as e:
-            self._show_error(f"Failed to save OBJ file: {e}")
-            logger.error(f"Error saving OBJ file: {e}")
+            error_msg = f"Failed to save OBJ file (unexpected error): {e}"
+            self._show_error(error_msg)
+            logger.error(error_msg, exc_info=True)
+        finally:
+            # Cleanup temporary file if it still exists
+            if temp_file and os.path.exists(temp_file):
+                try:
+                    os.unlink(temp_file)
+                    logger.debug(f"Cleaned up temporary file: {temp_file}")
+                except OSError as e:
+                    logger.warning(f"Failed to cleanup temporary file {temp_file}: {e}")
 
     def save_cropped_image_stack(self):
         """

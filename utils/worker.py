@@ -68,7 +68,12 @@ class Worker(QRunnable):
         # Retrieve args/kwargs here; and fire processing using them
         try:
             result = self.fn(*self.args, **self.kwargs)
-        except Exception:
+        except (KeyboardInterrupt, SystemExit):
+            # Allow critical exceptions to propagate
+            raise
+        except Exception as e:  # noqa: B036
+            # Catch all exceptions but allow KeyboardInterrupt and SystemExit to propagate
+            # Worker pattern requires catching all exceptions to emit signals
             exctype, value = sys.exc_info()[:2]
             self.signals.error.emit((exctype, value, traceback.format_exc()))
         else:
