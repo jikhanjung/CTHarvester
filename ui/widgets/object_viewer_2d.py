@@ -597,7 +597,9 @@ class ObjectViewer2D(QLabel):
             y = 6
             bg_rect = QRect(x, y, tw + pad_x * 2, total_h + pad_y * 2)
             painter.fillRect(bg_rect, QColor(0, 0, 0, 140))
-            painter.setPen(QPen(QColor(255, 255, 255)))
+            from config.constants import COLOR_WHITE
+
+            painter.setPen(QPen(QColor(*COLOR_WHITE)))
             tx = x + pad_x
             ty = y + pad_y + fm.ascent()
             for i, s in enumerate(lines):
@@ -610,9 +612,7 @@ class ObjectViewer2D(QLabel):
         [x1, y1, x2, y2] = self.get_crop_area()
         painter.drawRect(x1, y1, x2 - x1, y2 - y1)
 
-    def apply_threshold_and_colorize(
-        self, qt_pixmap, threshold, color=np.array([0, 255, 0], dtype=np.uint8)
-    ):
+    def apply_threshold_and_colorize(self, qt_pixmap, threshold, color=None):
         """
         Apply threshold and colorize image efficiently with minimal copies.
 
@@ -632,17 +632,21 @@ class ObjectViewer2D(QLabel):
         # Create view of RGBA data (no copy)
         rgba_view = np.frombuffer(buffer, dtype=np.uint8).reshape((height, width, 4))
 
+        from config.constants import COLOR_GREEN, IMAGE_8BIT_MAX, IMAGE_8BIT_MIN
+
         # Create RGB output array (single allocation)
         # This is the only necessary copy - we need RGB format for QImage
         rgb_array = np.empty((height, width, 3), dtype=np.uint8)
         rgb_array[:] = rgba_view[:, :, :3]  # Copy RGB channels, drop alpha
 
-        color = np.array([0, 255, 0], dtype=np.uint8)
+        # Default color if not provided
+        if color is None:
+            color = np.array(COLOR_GREEN, dtype=np.uint8)
 
         # Validate threshold
         threshold = self.isovalue
-        if not 0 <= threshold <= 255:
-            raise ValueError("Threshold should be in the range 0-255")
+        if not IMAGE_8BIT_MIN <= threshold <= IMAGE_8BIT_MAX:
+            raise ValueError(f"Threshold should be in the range {IMAGE_8BIT_MIN}-{IMAGE_8BIT_MAX}")
 
         # Get crop area
         [x1, y1, x2, y2] = self.get_crop_area()

@@ -107,10 +107,12 @@ class MeshGenerationThread(QThread):
             volume = ndimage.zoom(self.volume, self.scale_factor, order=1)
 
             # Invert if needed
+            from config.constants import IMAGE_8BIT_MAX
+
             self.progress.emit(20)
             if self.is_inverse:
-                volume = 255 - volume
-                isovalue = 255 - self.isovalue
+                volume = IMAGE_8BIT_MAX - volume
+                isovalue = IMAGE_8BIT_MAX - self.isovalue
             else:
                 isovalue = self.isovalue
 

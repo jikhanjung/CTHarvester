@@ -106,6 +106,16 @@ SECONDS_PER_MINUTE = 60
 SECONDS_PER_HOUR = 3600
 MINUTES_PER_HOUR = 60
 
+# Image Processing
+IMAGE_8BIT_MAX = 255  # Maximum value for 8-bit images
+IMAGE_8BIT_MIN = 0  # Minimum value for 8-bit images
+IMAGE_16BIT_TO_8BIT_DIVISOR = 256  # Division factor for 16-bit to 8-bit conversion
+
+# Colors (RGB)
+COLOR_WHITE = (255, 255, 255)  # White color
+COLOR_GREEN = (0, 255, 0)  # Green color for highlighting
+COLOR_RED = (255, 0, 0)  # Red color
+
 # 3D Rendering
 DEFAULT_THRESHOLD = 128
 DEFAULT_ISO_VALUE = 127.5
