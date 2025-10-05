@@ -28,6 +28,7 @@ See Also:
 import os
 import sys
 import warnings
+from typing import Any, List, Union
 
 
 def resource_path(relative_path: str) -> str:
@@ -39,23 +40,55 @@ def resource_path(relative_path: str) -> str:
     return os.path.join(base_path, relative_path)
 
 
-def value_to_bool(value):
-    """Convert string or any value to boolean."""
+def value_to_bool(value: Any) -> bool:
+    """Convert string or any value to boolean.
+
+    Args:
+        value: Any value to convert to boolean
+
+    Returns:
+        Boolean representation of the value
+
+    Examples:
+        >>> value_to_bool("true")
+        True
+        >>> value_to_bool("false")
+        False
+        >>> value_to_bool(1)
+        True
+        >>> value_to_bool(0)
+        False
+    """
     return value.lower() == "true" if isinstance(value, str) else bool(value)
 
 
-def ensure_directories(directories):
+def ensure_directories(directories: Union[List[str], str]) -> None:
     """
     Safely create necessary directories with error handling.
 
     Args:
-        directories: List of directory paths to create
+        directories: List of directory paths to create, or single directory path
+
+    Note:
+        Uses warnings instead of logging since logger might not be initialized yet.
+        Continues on error rather than failing completely.
+
+    Examples:
+        >>> ensure_directories(["/tmp/output", "/tmp/cache"])
+        >>> ensure_directories("/tmp/single")
     """
+    # Handle single directory as well as list
+    if isinstance(directories, str):
+        directories = [directories]
+
     for directory in directories:
         try:
             if not os.path.exists(directory):
                 os.makedirs(directory, exist_ok=True)
         except (OSError, PermissionError) as e:
             # Use warnings here since logger might not be initialized yet
-            warnings.warn(f"Could not create directory {directory}: {e}", RuntimeWarning)
+            # stacklevel=2 to show caller's location instead of this line
+            warnings.warn(
+                f"Could not create directory {directory}: {e}", RuntimeWarning, stacklevel=2
+            )
             # Don't fail completely, let the application try to continue
