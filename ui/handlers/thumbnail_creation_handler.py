@@ -120,8 +120,15 @@ class ThumbnailCreationHandler:
         self.window.progress_start_time = time.time()
         self.window.rust_cancelled = False
 
-        def progress_callback(percentage):
-            """Progress callback from Rust module"""
+        def progress_callback(percentage: float) -> bool:
+            """Progress callback from Rust module.
+
+            Args:
+                percentage: Progress percentage (0-100)
+
+            Returns:
+                True to continue, False to cancel
+            """
             # Process events FIRST to handle any pending Cancel button clicks
             QApplication.processEvents()
 

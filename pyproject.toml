@@ -208,10 +208,24 @@ ignore_errors = true
 module = [
     "core.file_handler",
     "utils.image_utils",
-    "utils.settings_manager"
+    "utils.settings_manager",
+    "utils.common",
+    "utils.worker",
 ]
 disallow_untyped_defs = true    # Require annotations in these modules
 disallow_incomplete_defs = true
+
+# Phase 3 complete: All UI handlers now fully typed
+[[tool.mypy.overrides]]
+module = [
+    "ui.handlers.directory_open_handler",
+    "ui.handlers.export_handler",
+    "ui.handlers.settings_handler",
+    "ui.handlers.thumbnail_creation_handler",
+    "ui.handlers.view_manager",
+]
+disallow_untyped_defs = true    # Require all functions to have type annotations
+disallow_incomplete_defs = true  # Require complete type annotations
 
 # Pylint configuration
 [tool.pylint.main]
