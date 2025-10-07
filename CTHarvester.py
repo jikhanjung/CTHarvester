@@ -29,10 +29,11 @@ except (OSError, PermissionError) as e:
     # Use print here since logger might not be initialized yet
     print(f"Warning: Directory initialization failed: {e}")
 
-# Setup logger
+# Setup logger with rotation and session tracking
 from CTLogger import setup_logger
 
-logger = setup_logger(PROGRAM_NAME)
+logger, session_id = setup_logger(PROGRAM_NAME)
+logger.info(f"CTHarvester version {VERSION} starting")
 
 
 def main():
