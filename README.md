@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/jikhanjung/CTHarvester/branch/main/graph/badge.svg)](https://codecov.io/gh/jikhanjung/CTHarvester)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Tests: 911 passing](https://img.shields.io/badge/tests-911%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
+[![Tests: 1072 passing](https://img.shields.io/badge/tests-1072%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
 
 *Read this in other languages: [English](README.md), [한국어](README.ko.md)*
 
@@ -179,7 +179,7 @@ pytest tests/ -v -m "not slow"        # Skip slow tests
 ```
 
 #### Test Structure
-- **Unit Tests** (186 tests): Core utilities, workers, image processing, security
+- **Unit Tests**: Core utilities, workers, image processing, security, handlers
   - `test_common.py` - Utility functions (29 tests, 100% coverage)
   - `test_worker.py` - Worker threads (22 tests, 100% coverage)
   - `test_image_utils.py` - Image processing (31 tests, 100% coverage)
@@ -187,13 +187,21 @@ pytest tests/ -v -m "not slow"        # Skip slow tests
   - `test_file_utils.py` - File operations (41 tests, 94% coverage)
   - `test_security.py` - Security validation (36 tests, 90% coverage)
 
-- **Integration Tests** (9 tests): End-to-end workflows
+- **Phase 4 Handler Tests** (97 tests): UI handlers and processors
+  - `test_thumbnail_creation_handler.py` - Thumbnail generation (27 tests, 89% coverage)
+  - `test_sequential_processor.py` - Sequential processing (21 tests, 78% coverage)
+  - `test_view_manager.py` - 3D view management (27 tests, 100% coverage)
+  - `test_directory_open_handler.py` - Directory operations (22 tests, 98% coverage)
+
+- **Integration Tests**: End-to-end workflows
   - `test_integration_thumbnail.py` - Thumbnail generation pipeline
+  - `test_ui_workflows.py` - UI interaction workflows
 
 #### Coverage
-- **Overall**: ~95% for core utility modules
-- **Modules at 100%**: utils/common, utils/worker, utils/image_utils
-- **Total**: 485 tests passing, 1 skipped ✅
+- **Overall**: ~91% average coverage
+- **Modules at 100%**: utils/common, utils/worker, utils/image_utils, ui/handlers/view_manager
+- **Phase 4 Handlers**: 91.41% average coverage (4 modules)
+- **Total**: 1,072 tests passing, 5 skipped ✅
 
 ### CI/CD
 The project uses GitHub Actions for continuous integration and deployment:
