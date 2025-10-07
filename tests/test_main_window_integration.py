@@ -49,7 +49,7 @@ class TestHandlerCoordination:
         return window
 
     @patch("ui.handlers.directory_open_handler.wait_cursor")
-    @patch("ui.handlers.directory_open_handler.QMessageBox")
+    @patch("ui.errors.QMessageBox")
     @patch("ui.handlers.directory_open_handler.QFileDialog")
     def test_directory_open_triggers_thumbnail_creation(
         self, MockFileDialog, MockMessageBox, mock_wait_cursor, mock_main_window
@@ -286,7 +286,7 @@ class TestHandlerErrorPropagation:
         return window
 
     @patch("ui.handlers.directory_open_handler.wait_cursor")
-    @patch("ui.handlers.directory_open_handler.QMessageBox")
+    @patch("ui.errors.QMessageBox")
     @patch("ui.handlers.directory_open_handler.QFileDialog")
     def test_file_handler_error_prevents_thumbnail_creation(
         self, MockFileDialog, MockMessageBox, mock_wait_cursor, mock_window
@@ -301,7 +301,7 @@ class TestHandlerErrorPropagation:
         handler.open_directory()
 
         # Should show warning
-        MockMessageBox.warning.assert_called_once()
+        MockMessageBox.assert_called_once()  # Now calls show_error
         # Should NOT call create_thumbnail
         mock_window.create_thumbnail.assert_not_called()
 

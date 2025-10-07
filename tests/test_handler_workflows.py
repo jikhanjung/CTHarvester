@@ -126,7 +126,7 @@ class TestThumbnailCreationWorkflow:
         assert hasattr(handler, "create_thumbnail_rust")
         assert hasattr(handler, "create_thumbnail_python")
 
-    @patch("ui.handlers.thumbnail_creation_handler.QMessageBox")
+    @patch("ui.errors.QMessageBox")
     @patch("ui.handlers.thumbnail_creation_handler.ProgressDialog")
     @patch("core.thumbnail_manager.ThumbnailManager")
     def test_python_thumbnail_creation_workflow(
@@ -213,7 +213,7 @@ class TestThumbnailCreationWorkflow:
         # Should return False when cancelled
         assert result is False
 
-    @patch("ui.handlers.thumbnail_creation_handler.QMessageBox")
+    @patch("ui.errors.QMessageBox")
     @patch("ui.handlers.thumbnail_creation_handler.ProgressDialog")
     @patch("core.thumbnail_manager.ThumbnailManager")
     def test_thumbnail_creation_updates_state(
@@ -305,7 +305,7 @@ class TestDirectoryOpenWorkflow:
         assert mock_main_window.settings_hash["seq_end"] == 19
 
     @patch("ui.handlers.directory_open_handler.wait_cursor")
-    @patch("ui.handlers.directory_open_handler.QMessageBox")
+    @patch("ui.errors.QMessageBox")
     @patch("ui.handlers.directory_open_handler.QFileDialog")
     def test_directory_open_with_invalid_data(
         self, MockFileDialog, MockMessageBox, mock_wait_cursor, mock_main_window
@@ -323,7 +323,7 @@ class TestDirectoryOpenWorkflow:
         handler.open_directory()
 
         # Verify error handling
-        MockMessageBox.warning.assert_called_once()
+        MockMessageBox.assert_called_once()  # Now calls show_error
         # Note: _reset_ui_state IS called before trying to open, which is correct behavior
 
     @patch("ui.handlers.directory_open_handler.wait_cursor")
@@ -448,7 +448,7 @@ class TestFullWorkflowIntegration:
 
     @patch("ui.handlers.directory_open_handler.wait_cursor")
     @patch("ui.handlers.directory_open_handler.QFileDialog")
-    @patch("ui.handlers.thumbnail_creation_handler.QMessageBox")
+    @patch("ui.errors.QMessageBox")
     @patch("ui.handlers.thumbnail_creation_handler.ProgressDialog")
     @patch("core.thumbnail_manager.ThumbnailManager")
     def test_complete_directory_to_thumbnail_workflow(
@@ -547,7 +547,7 @@ class TestHandlerErrorRecovery:
     """Integration tests for error handling across handlers."""
 
     @patch("ui.handlers.directory_open_handler.wait_cursor")
-    @patch("ui.handlers.directory_open_handler.QMessageBox")
+    @patch("ui.errors.QMessageBox")
     @patch("ui.handlers.directory_open_handler.QFileDialog")
     def test_recovery_from_failed_directory_open(
         self, MockFileDialog, MockMessageBox, mock_wait_cursor, mock_main_window
@@ -562,7 +562,7 @@ class TestHandlerErrorRecovery:
         handler.open_directory()
 
         # Verify error shown
-        MockMessageBox.warning.assert_called_once()
+        MockMessageBox.assert_called_once()  # Now calls show_error
 
         # Second attempt: succeed
         MockFileDialog.getExistingDirectory.return_value = "/valid/path"

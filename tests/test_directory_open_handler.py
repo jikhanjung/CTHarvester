@@ -48,7 +48,7 @@ class TestDirectoryOpenHandlerInitialization:
 
 
 @patch("ui.handlers.directory_open_handler.wait_cursor", mock_wait_cursor)
-@patch("ui.handlers.directory_open_handler.QMessageBox")
+@patch("ui.errors.QMessageBox")  # QMessageBox now imported in ui.errors
 @patch("ui.handlers.directory_open_handler.QFileDialog")
 class TestDirectoryOpenHandlerDialogHandling:
     """Tests for directory dialog handling."""
@@ -122,7 +122,7 @@ class TestDirectoryOpenHandlerDialogHandling:
 
 @patch("ui.handlers.directory_open_handler.wait_cursor", mock_wait_cursor)
 @patch("ui.handlers.directory_open_handler.QFileDialog")
-@patch("ui.handlers.directory_open_handler.QMessageBox")
+@patch("ui.errors.QMessageBox")
 class TestDirectoryOpenHandlerValidation:
     """Tests for directory validation logic."""
 
@@ -184,10 +184,8 @@ class TestDirectoryOpenHandlerValidation:
 
         handler.open_directory()
 
-        # Should show warning
-        MockMessageBox.warning.assert_called_once()
-        call_args = MockMessageBox.warning.call_args
-        assert "No valid image files" in call_args[0][2]
+        # Should show warning via show_error
+        MockMessageBox.assert_called_once()  # Now calls show_error
         # Should not trigger thumbnail generation
         mock_window.create_thumbnail.assert_not_called()
 
@@ -201,7 +199,7 @@ class TestDirectoryOpenHandlerValidation:
         handler.open_directory()
 
         # Should return without crashing
-        MockMessageBox.warning.assert_called_once()
+        MockMessageBox.assert_called_once()  # Now calls show_error
 
 
 @patch("ui.handlers.directory_open_handler.wait_cursor", mock_wait_cursor)
@@ -421,7 +419,7 @@ class TestDirectoryOpenHandlerLogging:
         assert "Directory selection cancelled" in caplog.text
 
     @patch("ui.handlers.directory_open_handler.QFileDialog")
-    @patch("ui.handlers.directory_open_handler.QMessageBox")
+    @patch("ui.errors.QMessageBox")
     def test_logs_no_valid_images(self, MockMessageBox, MockFileDialog, handler, caplog):
         """Test that no valid images warning is logged."""
         MockFileDialog.getExistingDirectory.return_value = "/empty/dir"

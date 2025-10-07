@@ -16,8 +16,9 @@ import logging
 import os
 from typing import TYPE_CHECKING
 
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QFileDialog
 
+from ui.errors import ErrorCode, show_error
 from utils.ui_utils import wait_cursor
 
 if TYPE_CHECKING:
@@ -82,12 +83,13 @@ class DirectoryOpenHandler:
             # Use FileHandler to analyze directory
             settings_result = self.window.file_handler.open_directory(ddir)
             if settings_result is None:
-                QMessageBox.warning(
-                    self.window,
-                    self.window.tr("Warning"),
-                    self.window.tr("No valid image files found in the selected directory."),
-                )
                 logger.warning("No valid image files found")
+                # Show user-friendly error message
+                show_error(
+                    self.window,
+                    ErrorCode.NO_IMAGES_FOUND,
+                    ddir,
+                )
                 return
 
             self.window.settings_hash = settings_result

@@ -267,13 +267,13 @@ class TestThumbnailCreationHandlerRustImplementation:
         monkeypatch.setitem(sys.modules, "ct_thumbnail", mock_module)
 
         with patch("ui.handlers.thumbnail_creation_handler.ProgressDialog"):
-            with patch("ui.handlers.thumbnail_creation_handler.QMessageBox") as MockMessageBox:
+            with patch("ui.errors.QMessageBox") as MockMessageBox:
                 result = handler.create_thumbnail_rust()
 
                 # Should handle error gracefully
                 assert result is False
                 # Should show warning
-                MockMessageBox.warning.assert_called_once()
+                MockMessageBox.assert_called_once()  # Now calls show_error
 
     def test_create_thumbnail_rust_initializes_combo_boxes(self, handler, mock_rust_module, qtbot):
         """Test that combo boxes are initialized after generation."""
@@ -377,11 +377,11 @@ class TestThumbnailCreationHandlerPythonImplementation:
         }
 
         with patch("ui.handlers.thumbnail_creation_handler.ProgressDialog"):
-            with patch("ui.handlers.thumbnail_creation_handler.QMessageBox") as MockMessageBox:
+            with patch("ui.errors.QMessageBox") as MockMessageBox:
                 result = handler.create_thumbnail_python()
 
                 assert result is False
-                MockMessageBox.information.assert_called_once()
+                MockMessageBox.assert_called_once()  # Now calls show_error
 
     def test_create_thumbnail_python_handles_failure(self, handler, qtbot):
         """Test handling of generation failure."""
@@ -392,22 +392,22 @@ class TestThumbnailCreationHandlerPythonImplementation:
         }
 
         with patch("ui.handlers.thumbnail_creation_handler.ProgressDialog"):
-            with patch("ui.handlers.thumbnail_creation_handler.QMessageBox") as MockMessageBox:
+            with patch("ui.errors.QMessageBox") as MockMessageBox:
                 result = handler.create_thumbnail_python()
 
                 assert result is False
-                MockMessageBox.critical.assert_called_once()
+                MockMessageBox.assert_called_once()  # Now calls show_error
 
     def test_create_thumbnail_python_handles_none_return(self, handler, qtbot):
         """Test handling when generate_python returns None."""
         handler.window.thumbnail_generator.generate_python.return_value = None
 
         with patch("ui.handlers.thumbnail_creation_handler.ProgressDialog"):
-            with patch("ui.handlers.thumbnail_creation_handler.QMessageBox") as MockMessageBox:
+            with patch("ui.errors.QMessageBox") as MockMessageBox:
                 result = handler.create_thumbnail_python()
 
                 assert result is False
-                MockMessageBox.critical.assert_called_once()
+                MockMessageBox.assert_called_once()  # Now calls show_error
 
     def test_create_thumbnail_python_updates_state_on_success(self, handler, qtbot):
         """Test that instance state is updated on successful generation."""

@@ -17,9 +17,10 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from PyQt5.QtCore import QThread
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication
 
 from ui.dialogs.progress_dialog import ProgressDialog
+from ui.errors import ErrorCode, show_error
 from utils.ui_utils import wait_cursor
 
 if TYPE_CHECKING:
@@ -207,12 +208,13 @@ class ThumbnailCreationHandler:
                 success = False
                 if not self.window.rust_cancelled:  # Only show error if not cancelled
                     logger.error(f"Error during Rust thumbnail generation: {e}")
-                    QMessageBox.warning(
+                    # Show user-friendly error message
+                    show_error(
                         self.window,
-                        self.window.tr("Warning"),
-                        self.window.tr(
-                            f"Rust thumbnail generation failed: {e}\nFalling back to Python implementation."
-                        ),
+                        ErrorCode.RUST_MODULE_ERROR,
+                        str(e),
+                        exception=e,
+                        include_traceback=True,
                     )
 
         # Calculate total time
@@ -330,10 +332,11 @@ class ThumbnailCreationHandler:
                         self.window.progress_dialog.lbl_detail.setText("")
                         self.window.progress_dialog.close()
                         self.window.progress_dialog = None
-                    QMessageBox.critical(
+                    # Show user-friendly error
+                    show_error(
                         self.window,
-                        self.window.tr("Thumbnail Generation Failed"),
-                        self.window.tr("An unknown error occurred during thumbnail generation."),
+                        ErrorCode.PYTHON_FALLBACK_FAILED,
+                        "Unknown error - no result returned",
                     )
                     return False
 
@@ -347,10 +350,11 @@ class ThumbnailCreationHandler:
                         self.window.progress_dialog.lbl_detail.setText("")
                         self.window.progress_dialog.close()
                         self.window.progress_dialog = None
-                    QMessageBox.information(
+                    # Show info message for user cancellation
+                    show_error(
                         self.window,
-                        self.window.tr("Thumbnail Generation Cancelled"),
-                        self.window.tr("Thumbnail generation was cancelled by user."),
+                        ErrorCode.USER_CANCELLED,
+                        "Thumbnail generation",
                     )
                     return False
 
@@ -365,10 +369,11 @@ class ThumbnailCreationHandler:
                         self.window.progress_dialog.lbl_detail.setText("")
                         self.window.progress_dialog.close()
                         self.window.progress_dialog = None
-                    QMessageBox.critical(
+                    # Show user-friendly error with details
+                    show_error(
                         self.window,
-                        self.window.tr("Thumbnail Generation Failed"),
-                        self.window.tr("Thumbnail generation failed:\n\n{}").format(error_msg),
+                        ErrorCode.THUMBNAIL_GENERATION_FAILED,
+                        error_msg,
                     )
                     return False
 
