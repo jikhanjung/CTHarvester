@@ -459,6 +459,17 @@ def map_exception_to_error_code(exception: Exception, context: str = "") -> Erro
         >>>     code = map_exception_to_error_code(e, "processing image")
         >>>     show_error(self, code, path, exception=e)
     """
+    # FileHandler custom exceptions
+    exception_class_name = exception.__class__.__name__
+    if exception_class_name == "NoImagesFoundError":
+        return ErrorCode.NO_IMAGES_FOUND
+    if exception_class_name == "InvalidImageFormatError":
+        return ErrorCode.INVALID_IMAGE_FORMAT
+    if exception_class_name == "CorruptedImageError":
+        return ErrorCode.CORRUPTED_IMAGE
+    if exception_class_name == "FileSecurityError":
+        return ErrorCode.PERMISSION_DENIED
+
     # Permission errors
     if isinstance(exception, PermissionError):
         return ErrorCode.PERMISSION_DENIED
@@ -486,7 +497,7 @@ def map_exception_to_error_code(exception: Exception, context: str = "") -> Erro
         return ErrorCode.MISSING_DEPENDENCY
 
     # Image processing errors (PIL/Pillow)
-    if exception.__class__.__name__ in ["UnidentifiedImageError", "DecompressionBombError"]:
+    if exception_class_name in ["UnidentifiedImageError", "DecompressionBombError"]:
         return ErrorCode.CORRUPTED_IMAGE
 
     # Default to unknown error

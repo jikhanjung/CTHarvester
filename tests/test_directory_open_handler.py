@@ -422,11 +422,15 @@ class TestDirectoryOpenHandlerLogging:
     @patch("ui.errors.QMessageBox")
     def test_logs_no_valid_images(self, MockMessageBox, MockFileDialog, handler, caplog):
         """Test that no valid images warning is logged."""
+        from core.file_handler import NoImagesFoundError
+
         MockFileDialog.getExistingDirectory.return_value = "/empty/dir"
         handler.window.m_app = MagicMock()
         handler.window.m_app.default_directory = "/default"
         handler.window.file_handler = MagicMock()
-        handler.window.file_handler.open_directory.return_value = None
+        handler.window.file_handler.open_directory.side_effect = NoImagesFoundError(
+            "No files found"
+        )
         handler.window.edtDirname = MagicMock()
         handler.window.tr = lambda x: x
         handler.window._reset_ui_state = MagicMock()

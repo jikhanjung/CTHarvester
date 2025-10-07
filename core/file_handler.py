@@ -18,6 +18,30 @@ from utils.image_utils import get_image_dimensions
 logger = logging.getLogger(__name__)
 
 
+class FileHandlerError(Exception):
+    """Base exception for FileHandler errors"""
+
+    pass
+
+
+class NoImagesFoundError(FileHandlerError):
+    """Raised when no valid CT images found in directory"""
+
+    pass
+
+
+class InvalidImageFormatError(FileHandlerError):
+    """Raised when image format is not supported"""
+
+    pass
+
+
+class CorruptedImageError(FileHandlerError):
+    """Raised when image file is corrupted or unreadable"""
+
+    pass
+
+
 class FileHandler:
     """Manages file operations for CT image stacks
 
@@ -51,14 +75,14 @@ class FileHandler:
         """Initialize file handler"""
         self.validator = SecureFileValidator()
 
-    def open_directory(self, directory_path: str) -> Optional[Dict]:
+    def open_directory(self, directory_path: str) -> Dict:
         """Open and analyze a directory containing CT images
 
         Args:
             directory_path (str): Path to directory to analyze
 
         Returns:
-            Optional[Dict]: Settings dictionary with file information, or None if failed
+            Dict: Settings dictionary with file information
                 {
                     'prefix': str,
                     'file_type': str,
@@ -71,54 +95,37 @@ class FileHandler:
 
         Raises:
             FileSecurityError: If path validation fails
+            FileNotFoundError: If directory does not exist
+            NotADirectoryError: If path is not a directory
+            PermissionError: If directory is not accessible
+            NoImagesFoundError: If no valid CT images found
+            OSError: For other OS-level errors
         """
-        try:
-            # Validate directory path
-            validated_path = self.validator.validate_path(directory_path, directory_path)
+        # Validate directory path
+        validated_path = self.validator.validate_path(directory_path, directory_path)
 
-            if not os.path.exists(validated_path):
-                logger.error(f"Directory does not exist: {validated_path}")
-                return None
+        if not os.path.exists(validated_path):
+            logger.error(f"Directory does not exist: {validated_path}")
+            raise FileNotFoundError(f"Directory does not exist: {validated_path}")
 
-            if not os.path.isdir(validated_path):
-                logger.error(f"Path is not a directory: {validated_path}")
-                return None
+        if not os.path.isdir(validated_path):
+            logger.error(f"Path is not a directory: {validated_path}")
+            raise NotADirectoryError(f"Path is not a directory: {validated_path}")
 
-            logger.info(f"Opening directory: {validated_path}")
+        logger.info(f"Opening directory: {validated_path}")
 
-            # Analyze files in directory
-            settings_hash = self.sort_file_list_from_dir(validated_path)
+        # Analyze files in directory
+        settings_hash = self.sort_file_list_from_dir(validated_path)
 
-            if settings_hash is None:
-                logger.warning(f"No valid CT image stack found in: {validated_path}")
-                return None
+        logger.info(
+            f"Directory analysis complete: {settings_hash['prefix']}*.{settings_hash['file_type']}, "
+            f"{settings_hash['seq_end'] - settings_hash['seq_begin'] + 1} images, "
+            f"{settings_hash['image_width']}x{settings_hash['image_height']}"
+        )
 
-            logger.info(
-                f"Directory analysis complete: {settings_hash['prefix']}*.{settings_hash['file_type']}, "
-                f"{settings_hash['seq_end'] - settings_hash['seq_begin'] + 1} images, "
-                f"{settings_hash['image_width']}x{settings_hash['image_height']}"
-            )
+        return settings_hash
 
-            return settings_hash
-
-        except FileSecurityError as e:
-            logger.error(f"Security error opening directory: {e}")
-            raise
-        except PermissionError as e:
-            logger.error(f"Permission denied accessing directory: {directory_path}", exc_info=True)
-            return None
-        except OSError as e:
-            logger.error(
-                f"OS error opening directory: {directory_path}",
-                exc_info=True,
-                extra={"extra_fields": {"error_type": "os_error", "path": directory_path}},
-            )
-            return None
-        except Exception as e:
-            logger.exception(f"Unexpected error opening directory: {directory_path}")
-            return None
-
-    def sort_file_list_from_dir(self, directory_path: str) -> Optional[Dict]:
+    def sort_file_list_from_dir(self, directory_path: str) -> Dict:
         """Analyze and sort files in directory to detect CT image stack pattern
 
         Detects the most common file prefix and extension pattern, then extracts
@@ -128,7 +135,7 @@ class FileHandler:
             directory_path (str): Path to directory containing CT images
 
         Returns:
-            Optional[Dict]: Settings dictionary with detected pattern, or None if no valid stack found
+            Dict: Settings dictionary with detected pattern
                 {
                     'prefix': str - Common file prefix (e.g., 'slice_')
                     'file_type': str - File extension (e.g., 'tif')
@@ -139,6 +146,13 @@ class FileHandler:
                     'index_length': int - Number of digits in sequence (e.g., 4 for '0001')
                 }
 
+        Raises:
+            NoImagesFoundError: If no valid CT images found
+            InvalidImageFormatError: If no supported image formats found
+            CorruptedImageError: If image files are unreadable
+            PermissionError: If directory access is denied
+            OSError: For other OS-level errors
+
         Algorithm:
             1. List all files in directory
             2. Extract prefix and extension using regex: (prefix)(number).(ext)
@@ -146,157 +160,140 @@ class FileHandler:
             4. Filter files matching the pattern
             5. Extract sequence range and image metadata
         """
-        try:
-            # Step 1: Get all files in directory
-            all_files = [
-                f
-                for f in os.listdir(directory_path)
-                if os.path.isfile(os.path.join(directory_path, f))
-            ]
+        # Step 1: Get all files in directory
+        all_files = [
+            f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))
+        ]
 
-            if not all_files:
-                logger.warning(f"No files found in directory: {directory_path}")
-                return None
+        if not all_files:
+            logger.warning(f"No files found in directory: {directory_path}")
+            raise NoImagesFoundError(f"No files found in directory: {directory_path}")
 
-            logger.info(f"Found {len(all_files)} files in directory")
+        logger.info(f"Found {len(all_files)} files in directory")
 
-            # Step 2: Regular expression pattern to match: (prefix)(digits).(extension)
-            # Example: "slice_0001.tif" -> prefix="slice_", digits="0001", extension="tif"
-            pattern = r"^(.*?)(\d+)\.(\w+)$"
+        # Step 2: Regular expression pattern to match: (prefix)(digits).(extension)
+        # Example: "slice_0001.tif" -> prefix="slice_", digits="0001", extension="tif"
+        pattern = r"^(.*?)(\d+)\.(\w+)$"
 
-            ct_stack_files = []
-            matching_files = []
-            other_files = []
-            prefix_hash: Dict[str, int] = {}
-            extension_hash: Dict[str, int] = {}
+        ct_stack_files = []
+        matching_files = []
+        other_files = []
+        prefix_hash: Dict[str, int] = {}
+        extension_hash: Dict[str, int] = {}
 
-            # Step 3: Analyze all files
-            for file in all_files:
-                match = re.match(pattern, file)
-                if match:
-                    matching_files.append(file)
+        # Step 3: Analyze all files
+        for file in all_files:
+            match = re.match(pattern, file)
+            if match:
+                matching_files.append(file)
 
-                    # Count prefix occurrences
-                    prefix = match.group(1)
-                    if prefix in prefix_hash:
-                        prefix_hash[prefix] += 1
-                    else:
-                        prefix_hash[prefix] = 1
-
-                    # Count extension occurrences
-                    extension = match.group(3).lower()
-                    if extension in extension_hash:
-                        extension_hash[extension] += 1
-                    else:
-                        extension_hash[extension] = 1
+                # Count prefix occurrences
+                prefix = match.group(1)
+                if prefix in prefix_hash:
+                    prefix_hash[prefix] += 1
                 else:
-                    other_files.append(file)
+                    prefix_hash[prefix] = 1
 
-            if not matching_files:
-                logger.warning("No files matching CT stack pattern found")
-                return None
+                # Count extension occurrences
+                extension = match.group(3).lower()
+                if extension in extension_hash:
+                    extension_hash[extension] += 1
+                else:
+                    extension_hash[extension] = 1
+            else:
+                other_files.append(file)
 
-            # Step 4: Determine most common prefix
-            max_prefix_count = 0
-            max_prefix = ""
-            for prefix, count in prefix_hash.items():
-                if count > max_prefix_count:
-                    max_prefix_count = count
-                    max_prefix = prefix
-
-            logger.info(f"Most common prefix: '{max_prefix}' ({max_prefix_count} files)")
-
-            # Step 5: Determine most common extension (and validate it's supported)
-            max_extension_count = 0
-            max_extension = ""
-            for extension, count in extension_hash.items():
-                ext_with_dot = f".{extension}"
-                if (
-                    ext_with_dot.lower() in self.SUPPORTED_EXTENSIONS
-                    and count > max_extension_count
-                ):
-                    max_extension_count = count
-                    max_extension = extension
-
-            if not max_extension:
-                logger.warning("No supported image format found")
-                return None
-
-            logger.info(f"Most common extension: '{max_extension}' ({max_extension_count} files)")
-
-            # Step 6: Filter files matching the most common prefix and extension
-            for file in matching_files:
-                match = re.match(pattern, file)
-                if (
-                    match
-                    and match.group(1) == max_prefix
-                    and match.group(3).lower() == max_extension.lower()
-                ):
-                    ct_stack_files.append(file)
-
-            if not ct_stack_files:
-                logger.warning("No CT stack files matched the pattern")
-                return None
-
-            # Sort files naturally (by numeric value, not string)
-            ct_stack_files = self._natural_sort(ct_stack_files, pattern)
-
-            logger.info(f"Found {len(ct_stack_files)} files in CT stack")
-
-            # Step 7: Extract metadata from first and last files
-            first_file = ct_stack_files[0]
-            last_file = ct_stack_files[-1]
-            first_file_path = os.path.join(directory_path, first_file)
-
-            # Get image dimensions from first file
-            try:
-                width, height = get_image_dimensions(first_file_path)
-            except Exception as e:
-                # get_image_dimensions already logs errors
-                return None
-
-            # Extract sequence information
-            match1 = re.match(pattern, first_file)
-            match2 = re.match(pattern, last_file)
-
-            if not match1 or not match2:
-                logger.error("Failed to match pattern for first/last files")
-                return None
-
-            start_index = int(match1.group(2))
-            end_index = int(match2.group(2))
-            seq_length = len(match1.group(2))
-
-            # Build settings dictionary
-            settings_hash = {
-                "prefix": max_prefix,
-                "image_width": width,
-                "image_height": height,
-                "file_type": max_extension,
-                "index_length": seq_length,
-                "seq_begin": start_index,
-                "seq_end": end_index,
-            }
-
-            return settings_hash
-
-        except PermissionError as e:
-            logger.error(
-                f"Permission denied accessing directory: {directory_path}",
-                exc_info=True,
-                extra={"extra_fields": {"error_type": "permission_denied", "path": directory_path}},
+        if not matching_files:
+            logger.warning("No files matching CT stack pattern found")
+            raise NoImagesFoundError(
+                f"No files matching CT stack pattern found in: {directory_path}"
             )
-            return None
-        except OSError as e:
-            logger.error(
-                f"OS error reading directory: {directory_path}",
-                exc_info=True,
-                extra={"extra_fields": {"error_type": "os_error", "path": directory_path}},
+
+        # Step 4: Determine most common prefix
+        max_prefix_count = 0
+        max_prefix = ""
+        for prefix, count in prefix_hash.items():
+            if count > max_prefix_count:
+                max_prefix_count = count
+                max_prefix = prefix
+
+        logger.info(f"Most common prefix: '{max_prefix}' ({max_prefix_count} files)")
+
+        # Step 5: Determine most common extension (and validate it's supported)
+        max_extension_count = 0
+        max_extension = ""
+        for extension, count in extension_hash.items():
+            ext_with_dot = f".{extension}"
+            if ext_with_dot.lower() in self.SUPPORTED_EXTENSIONS and count > max_extension_count:
+                max_extension_count = count
+                max_extension = extension
+
+        if not max_extension:
+            logger.warning("No supported image format found")
+            raise InvalidImageFormatError(
+                f"No supported image formats found in: {directory_path}. "
+                f"Supported formats: {', '.join(self.SUPPORTED_EXTENSIONS)}"
             )
-            return None
+
+        logger.info(f"Most common extension: '{max_extension}' ({max_extension_count} files)")
+
+        # Step 6: Filter files matching the most common prefix and extension
+        for file in matching_files:
+            match = re.match(pattern, file)
+            if (
+                match
+                and match.group(1) == max_prefix
+                and match.group(3).lower() == max_extension.lower()
+            ):
+                ct_stack_files.append(file)
+
+        if not ct_stack_files:
+            logger.warning("No CT stack files matched the pattern")
+            raise NoImagesFoundError(f"No CT stack files matched the pattern in: {directory_path}")
+
+        # Sort files naturally (by numeric value, not string)
+        ct_stack_files = self._natural_sort(ct_stack_files, pattern)
+
+        logger.info(f"Found {len(ct_stack_files)} files in CT stack")
+
+        # Step 7: Extract metadata from first and last files
+        first_file = ct_stack_files[0]
+        last_file = ct_stack_files[-1]
+        first_file_path = os.path.join(directory_path, first_file)
+
+        # Get image dimensions from first file
+        try:
+            width, height = get_image_dimensions(first_file_path)
         except Exception as e:
-            logger.exception(f"Unexpected error sorting file list from: {directory_path}")
-            return None
+            logger.error(f"Failed to read image dimensions from {first_file_path}: {e}")
+            raise CorruptedImageError(
+                f"Failed to read image file: {first_file}. File may be corrupted."
+            ) from e
+
+        # Extract sequence information
+        match1 = re.match(pattern, first_file)
+        match2 = re.match(pattern, last_file)
+
+        if not match1 or not match2:
+            logger.error("Failed to match pattern for first/last files")
+            raise NoImagesFoundError("Failed to extract sequence information from file names")
+
+        start_index = int(match1.group(2))
+        end_index = int(match2.group(2))
+        seq_length = len(match1.group(2))
+
+        # Build settings dictionary
+        settings_hash = {
+            "prefix": max_prefix,
+            "image_width": width,
+            "image_height": height,
+            "file_type": max_extension,
+            "index_length": seq_length,
+            "seq_begin": start_index,
+            "seq_end": end_index,
+        }
+
+        return settings_hash
 
     def _natural_sort(self, file_list: List[str], pattern: str) -> List[str]:
         """Sort files naturally by numeric sequence

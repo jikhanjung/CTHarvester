@@ -13,7 +13,12 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from core.file_handler import FileHandler
+from core.file_handler import (
+    CorruptedImageError,
+    FileHandler,
+    InvalidImageFormatError,
+    NoImagesFoundError,
+)
 from utils.image_utils import ImageLoadError, safe_load_image
 
 
@@ -60,9 +65,9 @@ class TestFileHandlerErrorPaths:
         os.chmod(temp_dir, 0o000)
 
         try:
-            result = handler.open_directory(temp_dir)
-            # Should handle gracefully and return None
-            assert result is None
+            # Should raise PermissionError
+            with pytest.raises(PermissionError):
+                handler.open_directory(temp_dir)
         finally:
             # Restore permissions for cleanup
             os.chmod(temp_dir, 0o755)
@@ -113,8 +118,9 @@ class TestFileHandlerErrorPaths:
 
     def test_open_empty_directory(self, handler, temp_dir):
         """Test opening empty directory"""
-        result = handler.open_directory(temp_dir)
-        assert result is None
+        # Should raise NoImagesFoundError
+        with pytest.raises(NoImagesFoundError):
+            handler.open_directory(temp_dir)
 
     def test_open_directory_no_images(self, handler, temp_dir):
         """Test opening directory with no image files"""
@@ -122,21 +128,23 @@ class TestFileHandlerErrorPaths:
         with open(os.path.join(temp_dir, "readme.txt"), "w") as f:
             f.write("No images here")
 
-        result = handler.open_directory(temp_dir)
-        assert result is None
+        # Should raise NoImagesFoundError
+        with pytest.raises(NoImagesFoundError):
+            handler.open_directory(temp_dir)
 
     # ===== Null/Invalid Input =====
 
     def test_open_directory_none(self, handler):
         """Test opening None directory"""
-        result = handler.open_directory(None)
-        # Should handle gracefully (returns None or raises)
-        assert result is None or isinstance(result, dict)
+        # Should raise TypeError or similar
+        with pytest.raises((TypeError, ValueError, AttributeError)):
+            handler.open_directory(None)
 
     def test_open_directory_empty_string(self, handler):
         """Test opening empty string directory"""
-        result = handler.open_directory("")
-        assert result is None
+        # Empty string is current directory, should raise appropriate error
+        with pytest.raises((NoImagesFoundError, InvalidImageFormatError, FileNotFoundError)):
+            handler.open_directory("")
 
     def test_read_image_none_path(self):
         """Test reading None image path"""
@@ -151,5 +159,6 @@ class TestFileHandlerErrorPaths:
         with open(file_path, "w") as f:
             f.write("test")
 
-        result = handler.open_directory(file_path)
-        assert result is None
+        # Should raise NotADirectoryError
+        with pytest.raises(NotADirectoryError):
+            handler.open_directory(file_path)

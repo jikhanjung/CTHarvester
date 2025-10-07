@@ -18,7 +18,9 @@ from typing import TYPE_CHECKING
 
 from PyQt5.QtWidgets import QFileDialog
 
-from ui.errors import ErrorCode, show_error
+from core.file_handler import CorruptedImageError, InvalidImageFormatError, NoImagesFoundError
+from security.file_validator import FileSecurityError
+from ui.errors import ErrorCode, map_exception_to_error_code, show_error
 from utils.ui_utils import wait_cursor
 
 if TYPE_CHECKING:
@@ -79,64 +81,112 @@ class DirectoryOpenHandler:
         self.window.initialized = False
         self.window._reset_ui_state()
 
-        with wait_cursor():
-            # Use FileHandler to analyze directory
-            settings_result = self.window.file_handler.open_directory(ddir)
-            if settings_result is None:
-                logger.warning("No valid image files found")
-                # Show user-friendly error message
-                show_error(
-                    self.window,
-                    ErrorCode.NO_IMAGES_FOUND,
-                    ddir,
+        try:
+            with wait_cursor():
+                # Use FileHandler to analyze directory
+                settings_result = self.window.file_handler.open_directory(ddir)
+
+                self.window.settings_hash = settings_result
+                logger.info(
+                    f"Detected image sequence: prefix={self.window.settings_hash.get('prefix')}, "
+                    f"range={self.window.settings_hash.get('seq_begin')}-{self.window.settings_hash.get('seq_end')}"
                 )
-                return
 
-            self.window.settings_hash = settings_result
-            logger.info(
-                f"Detected image sequence: prefix={self.window.settings_hash.get('prefix')}, "
-                f"range={self.window.settings_hash.get('seq_begin')}-{self.window.settings_hash.get('seq_end')}"
-            )
-
-            # Update UI with detected settings
-            self.window.edtNumImages.setText(
-                str(
-                    self.window.settings_hash["seq_end"]
-                    - self.window.settings_hash["seq_begin"]
-                    + 1
+                # Update UI with detected settings
+                self.window.edtNumImages.setText(
+                    str(
+                        self.window.settings_hash["seq_end"]
+                        - self.window.settings_hash["seq_begin"]
+                        + 1
+                    )
                 )
+                self.window.edtImageDimension.setText(
+                    f"{self.window.settings_hash['image_width']} x {self.window.settings_hash['image_height']}"
+                )
+
+                # Build image file list
+                image_file_list = self.window.file_handler.get_file_list(
+                    ddir, self.window.settings_hash
+                )
+
+                self.window.original_from_idx = 0
+                self.window.original_to_idx = len(image_file_list) - 1
+
+                # Load first image for preview
+                self.window._load_first_image(ddir, image_file_list)
+
+                # Initialize level_info
+                self.window.level_info = []
+                self.window.level_info.append(
+                    {
+                        "name": "Original",
+                        "width": self.window.settings_hash["image_width"],
+                        "height": self.window.settings_hash["image_height"],
+                        "seq_begin": self.window.settings_hash["seq_begin"],
+                        "seq_end": self.window.settings_hash["seq_end"],
+                    }
+                )
+
+                # Check for existing thumbnail directories
+                self.window._load_existing_thumbnail_levels(ddir)
+
+                logger.info(f"Successfully loaded directory with {len(image_file_list)} images")
+
+            # Generate thumbnails
+            self.window.create_thumbnail()
+
+        except NoImagesFoundError as e:
+            logger.warning(f"No valid image files found: {e}")
+            show_error(self.window, ErrorCode.NO_IMAGES_FOUND, ddir)
+            return
+        except InvalidImageFormatError as e:
+            logger.warning(f"Invalid image format: {e}")
+            show_error(self.window, ErrorCode.INVALID_IMAGE_FORMAT, ddir)
+            return
+        except CorruptedImageError as e:
+            logger.error(f"Corrupted image file: {e}")
+            show_error(self.window, ErrorCode.CORRUPTED_IMAGE, ddir, exception=e)
+            return
+        except FileSecurityError as e:
+            logger.error(f"Security validation failed: {e}")
+            show_error(
+                self.window,
+                ErrorCode.PERMISSION_DENIED,
+                "directory access",
+                exception=e,
+                include_traceback=True,
             )
-            self.window.edtImageDimension.setText(
-                f"{self.window.settings_hash['image_width']} x {self.window.settings_hash['image_height']}"
+            return
+        except FileNotFoundError as e:
+            logger.error(f"Directory not found: {e}")
+            show_error(self.window, ErrorCode.DIRECTORY_NOT_FOUND, ddir)
+            return
+        except PermissionError as e:
+            logger.error(f"Permission denied: {e}")
+            show_error(
+                self.window,
+                ErrorCode.PERMISSION_DENIED,
+                "read directory",
+                exception=e,
             )
-
-            # Build image file list
-            image_file_list = self.window.file_handler.get_file_list(
-                ddir, self.window.settings_hash
+            return
+        except OSError as e:
+            logger.error(f"OS error opening directory: {e}", exc_info=True)
+            error_code = map_exception_to_error_code(e, "reading directory")
+            show_error(
+                self.window,
+                error_code,
+                ddir,
+                exception=e,
+                include_traceback=True,
             )
-
-            self.window.original_from_idx = 0
-            self.window.original_to_idx = len(image_file_list) - 1
-
-            # Load first image for preview
-            self.window._load_first_image(ddir, image_file_list)
-
-            # Initialize level_info
-            self.window.level_info = []
-            self.window.level_info.append(
-                {
-                    "name": "Original",
-                    "width": self.window.settings_hash["image_width"],
-                    "height": self.window.settings_hash["image_height"],
-                    "seq_begin": self.window.settings_hash["seq_begin"],
-                    "seq_end": self.window.settings_hash["seq_end"],
-                }
+            return
+        except Exception as e:
+            logger.exception(f"Unexpected error opening directory: {e}")
+            show_error(
+                self.window,
+                ErrorCode.UNKNOWN_ERROR,
+                exception=e,
+                include_traceback=True,
             )
-
-            # Check for existing thumbnail directories
-            self.window._load_existing_thumbnail_levels(ddir)
-
-            logger.info(f"Successfully loaded directory with {len(image_file_list)} images")
-
-        # Generate thumbnails
-        self.window.create_thumbnail()
+            return

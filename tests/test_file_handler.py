@@ -98,15 +98,17 @@ class TestFileHandler:
 
     def test_open_directory_nonexistent(self, handler):
         """Test opening nonexistent directory"""
-        settings = handler.open_directory("/nonexistent/path")
-        assert settings is None
+        with pytest.raises(FileNotFoundError):
+            handler.open_directory("/nonexistent/path")
 
     def test_open_directory_empty(self, handler):
         """Test opening empty directory"""
+        from core.file_handler import NoImagesFoundError
+
         temp_dir = tempfile.mkdtemp()
         try:
-            settings = handler.open_directory(temp_dir)
-            assert settings is None
+            with pytest.raises(NoImagesFoundError):
+                handler.open_directory(temp_dir)
         finally:
             os.rmdir(temp_dir)
 
@@ -133,6 +135,8 @@ class TestFileHandler:
 
     def test_sort_file_list_no_pattern(self, handler):
         """Test sorting when no valid pattern exists"""
+        from core.file_handler import NoImagesFoundError
+
         temp_dir = tempfile.mkdtemp()
         try:
             # Create files without numeric pattern
@@ -141,8 +145,8 @@ class TestFileHandler:
             with open(os.path.join(temp_dir, "file_b.tif"), "w") as f:
                 f.write("test")
 
-            settings = handler.sort_file_list_from_dir(temp_dir)
-            assert settings is None
+            with pytest.raises(NoImagesFoundError):
+                handler.sort_file_list_from_dir(temp_dir)
 
         finally:
             shutil.rmtree(temp_dir)
@@ -311,6 +315,8 @@ class TestFileHandler:
 
     def test_unsupported_extension_ignored(self, handler):
         """Test that unsupported extensions are ignored"""
+        from core.file_handler import InvalidImageFormatError
+
         temp_dir = tempfile.mkdtemp()
         try:
             # Create files with unsupported extension
@@ -318,10 +324,9 @@ class TestFileHandler:
                 with open(os.path.join(temp_dir, f"data_{i:03d}.dat"), "w") as f:
                     f.write("test data")
 
-            settings = handler.sort_file_list_from_dir(temp_dir)
-
-            # Should return None (no supported files)
-            assert settings is None
+            # Should raise InvalidImageFormatError (no supported files)
+            with pytest.raises(InvalidImageFormatError):
+                handler.sort_file_list_from_dir(temp_dir)
 
         finally:
             shutil.rmtree(temp_dir)

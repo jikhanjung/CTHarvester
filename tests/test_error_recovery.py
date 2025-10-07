@@ -16,7 +16,12 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from core.file_handler import FileHandler
+from core.file_handler import (
+    CorruptedImageError,
+    FileHandler,
+    InvalidImageFormatError,
+    NoImagesFoundError,
+)
 from core.thumbnail_generator import ThumbnailGenerator
 
 
@@ -35,12 +40,9 @@ class TestFileSystemErrors:
 
         # Mock os.listdir to raise PermissionError
         with patch("os.listdir", side_effect=PermissionError("Access denied")):
-            with caplog.at_level(logging.ERROR):
-                result = file_handler.open_directory(str(test_dir))
-
-            # Should return None and log error
-            assert result is None
-            assert "Permission denied" in caplog.text
+            # Should raise PermissionError
+            with pytest.raises(PermissionError):
+                file_handler.open_directory(str(test_dir))
 
     def test_os_error_opening_directory(self, file_handler, tmp_path, caplog):
         """Test handling of OS errors when opening directory."""
@@ -49,12 +51,9 @@ class TestFileSystemErrors:
 
         # Mock os.listdir to raise OSError
         with patch("os.listdir", side_effect=OSError("Disk error")):
-            with caplog.at_level(logging.ERROR):
-                result = file_handler.open_directory(str(test_dir))
-
-            # Should return None and log error
-            assert result is None
-            assert "OS error" in caplog.text
+            # Should raise OSError
+            with pytest.raises(OSError):
+                file_handler.open_directory(str(test_dir))
 
     def test_permission_error_sorting_files(self, file_handler, tmp_path, caplog):
         """Test handling of permission errors during file sorting."""
@@ -63,21 +62,17 @@ class TestFileSystemErrors:
 
         # Mock os.listdir to raise PermissionError
         with patch("os.listdir", side_effect=PermissionError("Access denied")):
-            with caplog.at_level(logging.ERROR):
-                result = file_handler.sort_file_list_from_dir(str(test_dir))
-
-            # Should return None and log error
-            assert result is None
-            assert "Permission denied" in caplog.text
+            # Should raise PermissionError
+            with pytest.raises(PermissionError):
+                file_handler.sort_file_list_from_dir(str(test_dir))
 
     def test_file_not_found_error(self, file_handler, tmp_path):
         """Test handling of non-existent directory."""
         nonexistent_dir = tmp_path / "does_not_exist"
 
-        result = file_handler.open_directory(str(nonexistent_dir))
-
-        # Should return None without crashing
-        assert result is None
+        # Should raise FileNotFoundError
+        with pytest.raises(FileNotFoundError):
+            file_handler.open_directory(str(nonexistent_dir))
 
     def test_os_error_counting_files(self, file_handler, tmp_path, caplog):
         """Test handling of OS errors when counting files."""
@@ -187,7 +182,7 @@ class TestCorruptImageHandling:
         test_dir.mkdir()
 
         # Create corrupt image file
-        corrupt_file = test_dir / "corrupt.tif"
+        corrupt_file = test_dir / "corrupt_001.tif"
         corrupt_file.write_bytes(b"not an image")
 
         # Mock get_image_dimensions to raise exception
@@ -195,10 +190,9 @@ class TestCorruptImageHandling:
             "core.file_handler.get_image_dimensions",
             side_effect=Exception("Cannot identify image file"),
         ):
-            result = file_handler.sort_file_list_from_dir(str(test_dir))
-
-            # Should return None when first image is corrupt
-            assert result is None
+            # Should raise CorruptedImageError when first image is corrupt
+            with pytest.raises((CorruptedImageError, NoImagesFoundError)):
+                file_handler.sort_file_list_from_dir(str(test_dir))
 
     def test_partial_corrupt_image_sequence(self, file_handler, tmp_path):
         """Test handling when some images in sequence are corrupt."""
@@ -239,12 +233,9 @@ class TestNetworkDriveErrors:
 
         # Mock os.listdir to raise OSError (connection lost)
         with patch("os.listdir", side_effect=OSError(53, "Network path not found")):
-            with caplog.at_level(logging.ERROR):
-                result = file_handler.open_directory(str(test_dir))
-
-            # Should return None and log error
-            assert result is None
-            assert "OS error" in caplog.text
+            # Should raise OSError
+            with pytest.raises(OSError):
+                file_handler.open_directory(str(test_dir))
 
     def test_intermittent_network_access(self, file_handler, tmp_path):
         """Test handling of intermittent network access."""
@@ -270,9 +261,9 @@ class TestNetworkDriveErrors:
             result1 = file_handler.open_directory(str(test_dir))
             assert result1 is not None
 
-            # Second call should fail gracefully
-            result2 = file_handler.open_directory(str(test_dir))
-            assert result2 is None
+            # Second call should fail with exception
+            with pytest.raises(OSError):
+                file_handler.open_directory(str(test_dir))
 
 
 class TestGracefulDegradation:
@@ -298,9 +289,6 @@ class TestGracefulDegradation:
     def test_empty_directory_handling(self):
         """Test handling of empty directories."""
         file_handler = FileHandler()
-        # Mock empty directory
-        with patch("os.listdir", return_value=[]):
-            result = file_handler.open_directory("/empty/dir")
-
-            # Should return None for empty directory
-            assert result is None
+        # Mock empty directory - should raise FileNotFoundError for non-existent directory
+        with pytest.raises(FileNotFoundError):
+            file_handler.open_directory("/empty/dir")
