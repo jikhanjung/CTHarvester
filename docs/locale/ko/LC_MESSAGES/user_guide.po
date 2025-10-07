@@ -1078,4 +1078,3 @@ msgid ""
 "A: No. CTHarvester processes all data locally. No internet connection "
 "required."
 msgstr "A: 아니요. CTHarvester는 모든 데이터를 로컬에서 처리합니다. 인터넷 연결이 필요하지 않습니다."
-

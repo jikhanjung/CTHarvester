@@ -45,10 +45,10 @@ jobs:
           name: CTHarvester ${{ github.event.inputs.version_tag }} (Build ${{ github.run_number }})
           body: |
             🚀 CTHarvester ${{ github.event.inputs.version_tag }} Release
-            
+
             Built from commit: ${{ github.sha }}
             Build number: ${{ github.run_number }}
-            
+
             ${{ github.event.inputs.release_notes }}
           prerelease: ${{ github.event.inputs.prerelease }}
           files: |

@@ -281,7 +281,7 @@ class TestSecureListdir:
         try:
             with open(dangerous_file, "w") as f:
                 f.write("test")
-        except (OSError, IOError):
+        except OSError:
             pass  # May fail to create, that's ok
 
         # Should still work and return valid files

@@ -788,4 +788,3 @@ msgstr "최소 재현 단계"
 #: ../../developer_guide.rst:587
 msgid "What you've tried"
 msgstr "시도한 내용"
-

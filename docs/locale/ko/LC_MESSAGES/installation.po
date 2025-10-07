@@ -371,4 +371,3 @@ msgstr "Windows: ``%APPDATA%\\\\CTHarvester`` 삭제"
 #: ../../installation.rst:235
 msgid "Linux/macOS: Delete ``~/.config/CTHarvester``"
 msgstr "Linux/macOS: ``~/.config/CTHarvester`` 삭제"
-

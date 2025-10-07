@@ -13,27 +13,27 @@ jobs:
     uses: ./.github/workflows/reusable_build.yml
     with:
       build_number: ${{ github.run_number }}
-  
+
   create-release:
     needs: call-build-workflow
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Download all artifacts
       uses: actions/download-artifact@v4
       with:
         path: release-files/
-    
+
     - name: Display structure of downloaded files
       run: ls -la release-files/*/
-    
+
     - name: Extract tag version
       id: get_tag
       run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-    
+
     - name: Check if prerelease
       id: check_prerelease
       run: |
@@ -42,7 +42,7 @@ jobs:
         else
           echo "PRERELEASE=false" >> $GITHUB_OUTPUT
         fi
-    
+
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
@@ -50,15 +50,15 @@ jobs:
         name: CTHarvester ${{ steps.get_tag.outputs.TAG_NAME }} (Build ${{ github.run_number }})
         body: |
           🚀 CTHarvester ${{ steps.get_tag.outputs.TAG_NAME }} Release
-          
+
           Built from commit: ${{ github.sha }}
           Build number: ${{ github.run_number }}
-          
+
           ## Installation
-          
+
           Download the appropriate file for your platform:
           - **Windows**: CTHarvester-Windows-Installer-*.zip (contains installer)
-          - **macOS**: CTHarvester-macOS-Installer-*.dmg 
+          - **macOS**: CTHarvester-macOS-Installer-*.dmg
           - **Linux**: CTHarvester-Linux-*.AppImage
         prerelease: ${{ steps.check_prerelease.outputs.PRERELEASE }}
         files: |

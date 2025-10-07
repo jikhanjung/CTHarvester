@@ -408,4 +408,3 @@ msgid ""
 "See the developer guide for migration instructions when upgrading between"
 " major versions."
 msgstr "메이저 버전 간 업그레이드 시 마이그레이션 지침은 개발자 가이드를 참조하세요."
-

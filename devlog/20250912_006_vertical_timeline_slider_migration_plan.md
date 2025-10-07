@@ -88,4 +88,3 @@ lo, curr, hi = self.timeline.values()
 ### 6. 다음 단계
 
 - 1) `VerticalTimeline`의 Enum/포커스/편의 메서드 보강 → 2) `CTHarvester.py`에 얇은 래퍼 추가 → 3) 호출부 치환 → 4) 기존 슬라이더 제거 및 `VerticalTimeline` 장착 → 5) 동작 검증(레벨 변경/3D 뷰/스냅/키 입력/휠).
-

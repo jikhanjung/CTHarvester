@@ -113,10 +113,10 @@ echo "Checking for required libraries..."
 copy_deps() {
     local lib=$1
     local dest=$2
-    
+
     if [ -f "$lib" ]; then
         cp -L "$lib" "$dest" 2>/dev/null || true
-        
+
         # Get dependencies
         ldd "$lib" 2>/dev/null | grep "=> /" | awk '{print $3}' | while read dep; do
             if [ -f "$dep" ] && [ ! -f "$dest/$(basename $dep)" ]; then
