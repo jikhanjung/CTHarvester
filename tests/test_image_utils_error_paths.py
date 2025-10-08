@@ -41,7 +41,7 @@ class TestImageUtilsErrorPaths:
         """Test loading a corrupted image file"""
         corrupted_path = os.path.join(temp_dir, "corrupted.tif")
         with open(corrupted_path, "wb") as f:
-            f.write(b"Not a valid image\x00\x00\xFF")
+            f.write(b"Not a valid image\x00\x00\xff")
 
         with pytest.raises(ImageLoadError):
             safe_load_image(corrupted_path)
