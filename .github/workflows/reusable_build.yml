@@ -126,6 +126,7 @@ jobs:
           name: ctharvester-windows
           path: |
             CTHarvester-Windows-*.zip
+          retention-days: 14
 
   build-macos:
     runs-on: macos-latest
@@ -208,6 +209,7 @@ jobs:
           name: ctharvester-macos
           path: |
             CTHarvester-macOS-Installer-v${{ steps.get_version.outputs.VERSION }}-build${{ inputs.build_number }}.dmg
+          retention-days: 14
 
   build-linux:
     runs-on: ubuntu-latest
@@ -294,3 +296,4 @@ jobs:
         with:
           name: ctharvester-linux
           path: CTHarvester-Linux-v${{ steps.get_version.outputs.VERSION }}-build${{ inputs.build_number }}.AppImage
+          retention-days: 14

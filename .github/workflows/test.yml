@@ -1,4 +1,7 @@
-name: Tests
+name: Quick Tests (CI)
+
+# Fast test suite for CI/CD - excludes slow performance and stress tests
+# For comprehensive testing including all slow tests, see test-full.yml
 
 on:
   push:
@@ -60,7 +63,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
-        pip install pytest-timeout hypothesis
+        pip install pytest-timeout pytest-xdist hypothesis
 
     - name: Verify pre-commit hooks
       run: |
@@ -84,10 +87,12 @@ jobs:
         # Use xvfb-run to handle virtual display automatically
         # Run only quick tests (exclude slow tests for faster CI)
         # Exclude test_basic.py (requires pymcubes)
+        # Use pytest-xdist for parallel execution (-n auto)
         xvfb-run -a -s "-screen 0 1024x768x24" \
           pytest tests/ \
             -m "not slow" \
             --ignore=tests/test_basic.py \
+            -n auto \
             --cov=. \
             --cov-report=term-missing \
             --cov-report=xml \
@@ -106,6 +111,7 @@ jobs:
           test_output.log
           coverage.xml
           htmlcov/
+        retention-days: 7
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4

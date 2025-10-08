@@ -43,23 +43,60 @@ jobs:
           echo "PRERELEASE=false" >> $GITHUB_OUTPUT
         fi
 
+    - name: Extract changelog for this version
+      id: changelog
+      run: |
+        VERSION="${{ steps.get_tag.outputs.TAG_NAME }}"
+
+        # Try to extract specific version section from CHANGELOG.md
+        if grep -q "## \[${VERSION}\]" CHANGELOG.md 2>/dev/null; then
+          # Extract between this version and next ## heading
+          NOTES=$(sed -n "/## \[${VERSION}\]/,/^## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
+        elif grep -q "## \[Unreleased\]" CHANGELOG.md 2>/dev/null; then
+          # Use Unreleased section if version-specific section not found
+          NOTES=$(sed -n "/## \[Unreleased\]/,/^## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
+        else
+          # Fallback message if no changelog found
+          NOTES="See [CHANGELOG.md](https://github.com/jikhanjung/CTHarvester/blob/main/CHANGELOG.md) for details."
+        fi
+
+        # Save to file (multiline output handling)
+        {
+          echo "CHANGELOG_CONTENT<<EOF"
+          echo "$NOTES"
+          echo "EOF"
+        } >> $GITHUB_OUTPUT
+
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.get_tag.outputs.TAG_NAME }}
-        name: CTHarvester ${{ steps.get_tag.outputs.TAG_NAME }} (Build ${{ github.run_number }})
+        name: CTHarvester ${{ steps.get_tag.outputs.TAG_NAME }}
         body: |
-          🚀 CTHarvester ${{ steps.get_tag.outputs.TAG_NAME }} Release
+          # 🚀 CTHarvester ${{ steps.get_tag.outputs.TAG_NAME }}
 
-          Built from commit: ${{ github.sha }}
-          Build number: ${{ github.run_number }}
+          ${{ steps.changelog.outputs.CHANGELOG_CONTENT }}
 
-          ## Installation
+          ---
+
+          ## 📦 Installation
 
           Download the appropriate file for your platform:
-          - **Windows**: CTHarvester-Windows-Installer-*.zip (contains installer)
-          - **macOS**: CTHarvester-macOS-Installer-*.dmg
-          - **Linux**: CTHarvester-Linux-*.AppImage
+          - **Windows**: CTHarvester-Windows-Installer-*.zip (extract and run installer)
+          - **macOS**: CTHarvester-macOS-Installer-*.dmg (mount and drag to Applications)
+          - **Linux**: CTHarvester-Linux-*.AppImage (make executable and run)
+
+          ## 📋 Build Information
+
+          - **Built from commit:** ${{ github.sha }}
+          - **Build number:** ${{ github.run_number }}
+          - **Date:** ${{ github.event.head_commit.timestamp }}
+
+          ## 📖 Documentation
+
+          - [User Guide](https://jikhanjung.github.io/CTHarvester/en/user_guide.html)
+          - [Full Changelog](https://github.com/jikhanjung/CTHarvester/blob/main/CHANGELOG.md)
+          - [Troubleshooting](https://github.com/jikhanjung/CTHarvester/blob/main/docs/user_guide/troubleshooting.rst)
         prerelease: ${{ steps.check_prerelease.outputs.PRERELEASE }}
         files: |
           release-files/ctharvester-windows/CTHarvester-Windows-*.zip

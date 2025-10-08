@@ -1,0 +1,52 @@
+name: Dependency Review
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    name: Review Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v4
+      with:
+        # Fail on critical and high severity vulnerabilities
+        fail-on-severity: high
+        # Allow licenses commonly used in Python ecosystem
+        allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, PSF-2.0, ISC, LGPL-3.0, GPL-3.0
+        # Deny known problematic licenses
+        deny-licenses: AGPL-3.0, GPL-2.0
+        # Comment on PR with results
+        comment-summary-in-pr: on-failure
+        # Create job summary
+        vulnerability-check: true
+        license-check: true
+
+    - name: Generate dependency summary
+      if: always()
+      run: |
+        echo "## 📦 Dependency Review Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Checks Performed" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Vulnerability scanning (Critical & High severity)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ License compliance verification" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ New dependency impact analysis" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Allowed Licenses" >> $GITHUB_STEP_SUMMARY
+        echo "- MIT, Apache-2.0, BSD (2/3-Clause), PSF-2.0, ISC" >> $GITHUB_STEP_SUMMARY
+        echo "- LGPL-3.0, GPL-3.0 (with review)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Policy" >> $GITHUB_STEP_SUMMARY
+        echo "- **Fail on**: Critical and High severity vulnerabilities" >> $GITHUB_STEP_SUMMARY
+        echo "- **Denied licenses**: AGPL-3.0, GPL-2.0" >> $GITHUB_STEP_SUMMARY

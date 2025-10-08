@@ -1,0 +1,152 @@
+name: Update README Test Badges
+
+on:
+  # Run after full test suite completes
+  workflow_run:
+    workflows: ["Full Test Suite"]
+    types:
+      - completed
+  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-badges:
+    name: Update Test Count in README
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: main
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          xvfb \
+          libxcb-xinerama0 \
+          libxcb-icccm4 \
+          libxcb-image0 \
+          libxcb-keysyms1 \
+          libxcb-randr0 \
+          libxcb-render-util0 \
+          libxcb-xfixes0 \
+          libxcb-shape0 \
+          libxcb-cursor0 \
+          qt5-qmake \
+          qtbase5-dev \
+          libqt5gui5 \
+          libqt5core5a \
+          libqt5widgets5 \
+          libglut-dev \
+          libglut3.12 \
+          python3-opengl
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Count all tests
+      env:
+        QT_QPA_PLATFORM: offscreen
+      run: |
+        # Collect test counts
+        xvfb-run -a -s "-screen 0 1024x768x24" \
+          pytest tests/ --collect-only -q --ignore=tests/test_basic.py > test_collection.txt
+
+        # Extract total test count
+        TOTAL_TESTS=$(grep -E "^[0-9]+ tests? collected" test_collection.txt | grep -o "^[0-9]*" || echo "0")
+
+        # Count quick tests (not slow)
+        QUICK_TESTS=$(xvfb-run -a -s "-screen 0 1024x768x24" \
+          pytest tests/ -m "not slow" --collect-only -q --ignore=tests/test_basic.py 2>/dev/null | \
+          grep -E "^[0-9]+ tests? collected" | grep -o "^[0-9]*" || echo "0")
+
+        # Calculate slow tests
+        SLOW_TESTS=$((TOTAL_TESTS - QUICK_TESTS))
+
+        echo "Total tests: $TOTAL_TESTS"
+        echo "Quick tests: $QUICK_TESTS"
+        echo "Slow tests: $SLOW_TESTS"
+
+        # Save to environment for next steps
+        echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_ENV
+        echo "QUICK_TESTS=$QUICK_TESTS" >> $GITHUB_ENV
+        echo "SLOW_TESTS=$SLOW_TESTS" >> $GITHUB_ENV
+
+    - name: Update README.md
+      run: |
+        # Update test count badge in README.md
+        sed -i "s/!\[Tests\](https:\/\/img.shields.io\/badge\/tests-[0-9]*%20passing-brightgreen)/![Tests](https:\/\/img.shields.io\/badge\/tests-${TOTAL_TESTS}%20passing-brightgreen)/" README.md
+
+        echo "Updated README.md with test count: $TOTAL_TESTS"
+
+    - name: Update README.ko.md
+      run: |
+        # Update test count badge in README.ko.md
+        sed -i "s/!\[Tests\](https:\/\/img.shields.io\/badge\/tests-[0-9]*%20passing-brightgreen)/![Tests](https:\/\/img.shields.io\/badge\/tests-${TOTAL_TESTS}%20passing-brightgreen)/" README.ko.md
+
+        echo "Updated README.ko.md with test count: $TOTAL_TESTS"
+
+    - name: Check for changes
+      id: check_changes
+      run: |
+        if git diff --quiet README.md README.ko.md; then
+          echo "changed=false" >> $GITHUB_OUTPUT
+          echo "No changes to README files"
+        else
+          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "README files have changes"
+        fi
+
+    - name: Commit and push changes
+      if: steps.check_changes.outputs.changed == 'true'
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        git add README.md README.ko.md
+
+        git commit -m "docs: Update test count badge to $TOTAL_TESTS tests
+
+        - Total tests: $TOTAL_TESTS
+        - Quick tests: $QUICK_TESTS
+        - Slow tests: $SLOW_TESTS
+
+        🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+        Co-Authored-By: Claude <noreply@anthropic.com>"
+
+        git push
+
+    - name: Generate summary
+      if: always()
+      run: |
+        echo "## 📊 README Badge Update" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Test Counts" >> $GITHUB_STEP_SUMMARY
+        echo "- **Total tests**: $TOTAL_TESTS" >> $GITHUB_STEP_SUMMARY
+        echo "- **Quick tests** (not slow): $QUICK_TESTS" >> $GITHUB_STEP_SUMMARY
+        echo "- **Slow tests** (performance/stress): $SLOW_TESTS" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ "${{ steps.check_changes.outputs.changed }}" == "true" ]; then
+          echo "### ✅ Changes Committed" >> $GITHUB_STEP_SUMMARY
+          echo "README files updated with new test count badge." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### ℹ️  No Changes" >> $GITHUB_STEP_SUMMARY
+          echo "Test count unchanged - no commit needed." >> $GITHUB_STEP_SUMMARY
+        fi
