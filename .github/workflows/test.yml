@@ -85,12 +85,12 @@ jobs:
         QT_DEBUG_PLUGINS: 0
       run: |
         # Use xvfb-run to handle virtual display automatically
-        # Run only quick tests (exclude slow tests for faster CI)
+        # Run only quick tests (exclude slow and benchmark tests)
         # Exclude test_basic.py (requires pymcubes)
         # Use pytest-xdist for parallel execution (-n auto)
         xvfb-run -a -s "-screen 0 1024x768x24" \
           pytest tests/ \
-            -m "not slow" \
+            -m "not slow and not benchmark" \
             --ignore=tests/test_basic.py \
             -n auto \
             --cov=core \

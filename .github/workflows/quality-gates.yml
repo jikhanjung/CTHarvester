@@ -113,7 +113,7 @@ jobs:
       run: |
         xvfb-run -a -s "-screen 0 1024x768x24" \
           pytest tests/ \
-            -m "not slow" \
+            -m "not slow and not benchmark" \
             -n auto \
             --cov=core \
             --cov=ui \
