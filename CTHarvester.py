@@ -14,6 +14,7 @@ from config.constants import (
 from ui.ctharvester_app import CTHarvesterApp
 from ui.main_window import CTHarvesterMainWindow
 from utils.common import ensure_directories, resource_path
+from version import __version__
 
 # Try to create directories on import, but don't fail if it doesn't work
 try:
@@ -33,7 +34,7 @@ except (OSError, PermissionError) as e:
 from CTLogger import setup_logger
 
 logger, session_id = setup_logger(PROGRAM_NAME)
-logger.info(f"CTHarvester version {VERSION} starting")
+logger.info(f"CTHarvester version {__version__} starting")
 
 
 def main():
