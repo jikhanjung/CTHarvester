@@ -4,16 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       version_tag:
-        description: 'Version tag (e.g., v0.2.0-beta.1)'
+        description: 'Version tag (e.g., v0.2.3-beta.1)'
         required: true
         type: string
-      prerelease:
-        description: 'Is this a pre-release?'
-        required: true
+      create_git_tag:
+        description: 'Create git tag automatically?'
+        required: false
         type: boolean
         default: true
-      release_notes:
-        description: 'Release notes (optional)'
+      additional_notes:
+        description: 'Additional notes (appended to CHANGELOG content)'
         required: false
         type: string
 
@@ -29,31 +29,106 @@ jobs:
   create-release:
     needs: call-build-workflow
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: release-files/
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: release-files/
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.event.inputs.version_tag }}-build.${{ github.run_number }}
-          name: CTHarvester ${{ github.event.inputs.version_tag }} (Build ${{ github.run_number }})
-          body: |
-            🚀 CTHarvester ${{ github.event.inputs.version_tag }} Release
+    - name: Display structure of downloaded files
+      run: ls -la release-files/*/
 
-            Built from commit: ${{ github.sha }}
-            Build number: ${{ github.run_number }}
+    - name: Check if prerelease
+      id: check_prerelease
+      run: |
+        VERSION="${{ github.event.inputs.version_tag }}"
+        if [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"alpha"* ]] || [[ "$VERSION" == *"rc"* ]]; then
+          echo "PRERELEASE=true" >> $GITHUB_OUTPUT
+          echo "Pre-release detected: $VERSION"
+        else
+          echo "PRERELEASE=false" >> $GITHUB_OUTPUT
+          echo "Stable release: $VERSION"
+        fi
 
-            ${{ github.event.inputs.release_notes }}
-          prerelease: ${{ github.event.inputs.prerelease }}
-          files: |
-            release-files/ctharvester-windows/CTHarvester-Windows-*.zip
-            release-files/ctharvester-macos/CTHarvester-macOS-*.dmg
-            release-files/ctharvester-linux/CTHarvester-Linux-*.AppImage
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Extract changelog for this version
+      id: changelog
+      run: |
+        VERSION="${{ github.event.inputs.version_tag }}"
+
+        # Try to extract specific version section from CHANGELOG.md
+        if grep -q "## \[${VERSION}\]" CHANGELOG.md 2>/dev/null; then
+          # Extract between this version and next ## heading
+          NOTES=$(sed -n "/## \[${VERSION}\]/,/^## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
+          echo "Found changelog section for $VERSION"
+        elif grep -q "## \[Unreleased\]" CHANGELOG.md 2>/dev/null; then
+          # Use Unreleased section if version-specific section not found
+          NOTES=$(sed -n "/## \[Unreleased\]/,/^## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
+          echo "Using [Unreleased] section from CHANGELOG.md"
+        else
+          # Fallback message if no changelog found
+          NOTES="See [CHANGELOG.md](https://github.com/jikhanjung/CTHarvester/blob/main/CHANGELOG.md) for details."
+          echo "No changelog section found, using fallback"
+        fi
+
+        # Save to file (multiline output handling)
+        {
+          echo "CHANGELOG_CONTENT<<EOF"
+          echo "$NOTES"
+          echo "EOF"
+        } >> $GITHUB_OUTPUT
+
+    - name: Create git tag
+      if: github.event.inputs.create_git_tag == 'true'
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git tag -a "${{ github.event.inputs.version_tag }}" -m "Release ${{ github.event.inputs.version_tag }}"
+        git push origin "${{ github.event.inputs.version_tag }}"
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.event.inputs.version_tag }}
+        name: CTHarvester ${{ github.event.inputs.version_tag }}
+        body: |
+          # 🚀 CTHarvester ${{ github.event.inputs.version_tag }}
+
+          ${{ steps.changelog.outputs.CHANGELOG_CONTENT }}
+
+          ${{ github.event.inputs.additional_notes && format('---
+
+          ## 📝 Additional Notes
+
+          {0}', github.event.inputs.additional_notes) || '' }}
+
+          ---
+
+          ## 📦 Installation
+
+          Download the appropriate file for your platform:
+          - **Windows**: CTHarvester-Windows-Installer-*.zip (extract and run installer)
+          - **macOS**: CTHarvester-macOS-Installer-*.dmg (mount and drag to Applications)
+          - **Linux**: CTHarvester-Linux-*.AppImage (make executable and run)
+
+          ## 📋 Build Information
+
+          - **Built from commit:** ${{ github.sha }}
+          - **Build number:** ${{ github.run_number }}
+          - **Release date:** ${{ github.event.repository.updated_at }}
+
+          ## 📖 Documentation
+
+          - [User Guide](https://jikhanjung.github.io/CTHarvester/en/user_guide.html)
+          - [Full Changelog](https://github.com/jikhanjung/CTHarvester/blob/main/CHANGELOG.md)
+          - [Troubleshooting](https://github.com/jikhanjung/CTHarvester/blob/main/docs/user_guide/troubleshooting.rst)
+        prerelease: ${{ steps.check_prerelease.outputs.PRERELEASE }}
+        files: |
+          release-files/ctharvester-windows/CTHarvester-Windows-*.zip
+          release-files/ctharvester-macos/CTHarvester-macOS-*.dmg
+          release-files/ctharvester-linux/CTHarvester-Linux-*.AppImage
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
