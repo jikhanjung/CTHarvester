@@ -113,12 +113,12 @@ jobs:
       run: |
         xvfb-run -a -s "-screen 0 1024x768x24" \
           pytest tests/ \
+            -m "not slow" \
             --cov=. \
             --cov-report=term-missing \
             --cov-report=xml \
             --cov-report=html \
-            --cov-fail-under=60 \
-            -m "not ui" \
+            --cov-fail-under=85 \
             -v
 
     - name: Upload coverage reports

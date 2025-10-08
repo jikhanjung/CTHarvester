@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.12, 3.13]
+        python-version: ['3.11', '3.12', '3.13']
 
     steps:
     - name: Checkout code
@@ -82,31 +82,20 @@ jobs:
         QT_DEBUG_PLUGINS: 0
       run: |
         # Use xvfb-run to handle virtual display automatically
-        # Capture both stdout and stderr
+        # Run only quick tests (exclude slow tests for faster CI)
         # Exclude test_basic.py (requires pymcubes)
         xvfb-run -a -s "-screen 0 1024x768x24" \
           pytest tests/ \
+            -m "not slow" \
             --ignore=tests/test_basic.py \
             --cov=. \
             --cov-report=term-missing \
             --cov-report=xml \
             --cov-report=html \
+            --cov-fail-under=85 \
             --tb=short \
             --timeout=30 \
-            -v 2>&1 | tee test_output.log || true
-
-        # Check for actual test failures in the output
-        if grep -q "FAILED\|ERROR" test_output.log && ! grep -q "passed" test_output.log; then
-          echo "Tests failed"
-          exit 1
-        elif grep -q "passed" test_output.log; then
-          echo "Tests completed successfully"
-          exit 0
-        else
-          echo "No tests found or unable to determine test status"
-          exit 0
-        fi
-      continue-on-error: true
+            -v
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
