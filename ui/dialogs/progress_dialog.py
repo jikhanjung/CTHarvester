@@ -39,6 +39,7 @@ class ProgressDialog(QDialog):
 
         self.lbl_text = QLabel(self)
         self.lbl_detail = QLabel(self)  # Additional label for ETA
+        self.lbl_remaining = QLabel(self)  # Label for remaining time (Phase 2.2.4)
         self.pb_progress = QProgressBar(self)
         self.pb_progress.setValue(0)
         self.stop_progress = False
@@ -57,6 +58,7 @@ class ProgressDialog(QDialog):
 
         self.layout.addWidget(self.lbl_text)
         self.layout.addWidget(self.lbl_detail)
+        self.layout.addWidget(self.lbl_remaining)
         self.layout.addWidget(self.pb_progress)
         self.layout.addWidget(self.btnCancel)
         self.setLayout(self.layout)
@@ -158,6 +160,10 @@ class ProgressDialog(QDialog):
         if self.total_steps > 0:
             percentage = int((self.current_step / self.total_steps) * 100)
             self.pb_progress.setValue(percentage)
+
+            # Update remaining items count (Phase 2.2.4)
+            remaining = self.total_steps - self.current_step
+            self.lbl_remaining.setText(f"Remaining: {remaining:,} / {self.total_steps:,} items")
 
             # Record step timing (skip first few for warm-up)
             if self.last_update_time and step > 3:  # Skip first 3 steps for warm-up
