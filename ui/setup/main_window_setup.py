@@ -23,6 +23,7 @@ from PyQt5.QtWidgets import (
 )
 
 from config.tooltips import TooltipManager
+from config.ui_style import UIStyle
 from ui.widgets import MCubeWidget, ObjectViewer2D
 from ui.widgets.vertical_stack_slider import VerticalTimeline
 from utils.common import resource_path
@@ -46,7 +47,9 @@ class MainWindowSetup:
             main_window (CTHarvesterMainWindow): The main window instance to set up
         """
         self.window = main_window
-        self.margin = QMargins(11, 0, 11, 0)
+        # Use consistent spacing from UIStyle
+        spacing = UIStyle.spacing.MEDIUM
+        self.margin = QMargins(spacing, 0, spacing, 0)
 
     def setup_all(self):
         """
@@ -79,6 +82,8 @@ class MainWindowSetup:
         self.window.btnOpenDir.clicked.connect(self.window.open_dir)
         self.window.btnOpenDir.setToolTip(TooltipManager.get_tooltip("open_directory"))
         self.window.btnOpenDir.setStatusTip(TooltipManager.get_status_tip("open_directory"))
+        self.window.btnOpenDir.setMinimumWidth(UIStyle.button_size.TEXT_BUTTON_MIN_WIDTH)
+        self.window.btnOpenDir.setStyleSheet(UIStyle.get_button_style("primary"))
 
         # Directory path display
         self.window.edtDirname = QLineEdit()
@@ -200,16 +205,19 @@ class MainWindowSetup:
         self.window.btnSetBottom.clicked.connect(self.window.set_bottom)
         self.window.btnSetBottom.setToolTip(TooltipManager.get_tooltip("set_bottom"))
         self.window.btnSetBottom.setStatusTip(TooltipManager.get_status_tip("set_bottom"))
+        self.window.btnSetBottom.setStyleSheet(UIStyle.get_button_style())
 
         self.window.btnSetTop = QPushButton(self.window.tr("Set Top"))
         self.window.btnSetTop.clicked.connect(self.window.set_top)
         self.window.btnSetTop.setToolTip(TooltipManager.get_tooltip("set_top"))
         self.window.btnSetTop.setStatusTip(TooltipManager.get_status_tip("set_top"))
+        self.window.btnSetTop.setStyleSheet(UIStyle.get_button_style())
 
         self.window.btnReset = QPushButton(self.window.tr("Reset"))
         self.window.btnReset.clicked.connect(self.window.reset_crop)
         self.window.btnReset.setToolTip(TooltipManager.get_tooltip("reset_crop"))
         self.window.btnReset.setStatusTip(TooltipManager.get_status_tip("reset_crop"))
+        self.window.btnReset.setStyleSheet(UIStyle.get_button_style())
 
         # Inverse checkbox
         self.window.cbxInverse = QCheckBox(self.window.tr("Inv."))
@@ -248,24 +256,28 @@ class MainWindowSetup:
         self.window.btnSave.clicked.connect(self.window.save_result)
         self.window.btnSave.setToolTip(TooltipManager.get_tooltip("save_cropped"))
         self.window.btnSave.setStatusTip(TooltipManager.get_status_tip("save_cropped"))
+        self.window.btnSave.setStyleSheet(UIStyle.get_button_style())
 
         # Export button
         self.window.btnExport = QPushButton(self.window.tr("Export 3D Model"))
         self.window.btnExport.clicked.connect(self.window.export_3d_model)
         self.window.btnExport.setToolTip(TooltipManager.get_tooltip("export_mesh"))
         self.window.btnExport.setStatusTip(TooltipManager.get_status_tip("export_mesh"))
+        self.window.btnExport.setStyleSheet(UIStyle.get_button_style())
 
-        # Preferences button
+        # Preferences button (icon button)
         self.window.btnPreferences = QPushButton(QIcon(resource_path("M2Preferences_2.png")), "")
         self.window.btnPreferences.clicked.connect(self.window.show_advanced_settings)
         self.window.btnPreferences.setToolTip(TooltipManager.get_tooltip("show_preferences"))
         self.window.btnPreferences.setStatusTip(TooltipManager.get_status_tip("show_preferences"))
+        self.window.btnPreferences.setStyleSheet(UIStyle.get_icon_button_style())
 
-        # Info button
+        # Info button (icon button)
         self.window.btnInfo = QPushButton(QIcon(resource_path("resources/icons/info.png")), "")
         self.window.btnInfo.clicked.connect(self.window.show_info)
         self.window.btnInfo.setToolTip(TooltipManager.get_tooltip("show_about"))
         self.window.btnInfo.setStatusTip(TooltipManager.get_status_tip("show_about"))
+        self.window.btnInfo.setStyleSheet(UIStyle.get_icon_button_style())
 
         # Layout
         self.window.button_layout = QHBoxLayout()
@@ -278,6 +290,7 @@ class MainWindowSetup:
         self.window.button_widget = QWidget()
         self.window.button_widget.setLayout(self.window.button_layout)
         self.window.button_layout.setContentsMargins(self.margin)
+        self.window.button_layout.setSpacing(UIStyle.spacing.SMALL)
 
     def setup_layouts(self):
         """Assemble all sub-layouts into main layout."""
