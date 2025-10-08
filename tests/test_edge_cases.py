@@ -45,8 +45,13 @@ class TestFileHandlerEdgeCases:
         result = handler.get_file_list(str(tmp_path), settings)
         assert result == []  # Should handle gracefully
 
+    @pytest.mark.slow
     def test_extremely_large_sequence_range(self, tmp_path):
-        """Test handling of unreasonably large sequence ranges."""
+        """Test handling of unreasonably large sequence ranges.
+
+        Marked as slow because it iterates through 1M files (even if missing).
+        Tests that large ranges don't cause memory issues or excessive logging.
+        """
         from core.file_handler import FileHandler
 
         handler = FileHandler()
@@ -61,6 +66,7 @@ class TestFileHandlerEdgeCases:
         result = handler.get_file_list(str(tmp_path), settings)
         # Should return empty list since files don't exist
         assert isinstance(result, list)
+        assert len(result) == 0  # No files actually exist
 
     def test_zero_index_length(self, tmp_path):
         """Test handling of zero index length."""

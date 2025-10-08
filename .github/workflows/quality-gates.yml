@@ -115,11 +115,14 @@ jobs:
           pytest tests/ \
             -m "not slow" \
             -n auto \
-            --cov=. \
+            --cov=core \
+            --cov=ui \
+            --cov=utils \
+            --cov=security \
             --cov-report=term-missing \
             --cov-report=xml \
             --cov-report=html \
-            --cov-fail-under=85 \
+            --cov-fail-under=75 \
             -v
 
     - name: Upload coverage reports

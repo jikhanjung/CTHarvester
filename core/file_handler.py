@@ -334,6 +334,9 @@ class FileHandler:
         index_length = settings_hash["index_length"]
 
         file_list = []
+        missing_files = []
+        MAX_MISSING_WARNINGS = 10  # Only log first N missing files
+
         for i in range(seq_begin, seq_end + 1):
             # Format with leading zeros based on index_length
             filename = f"{prefix}{i:0{index_length}d}.{extension}"
@@ -342,9 +345,27 @@ class FileHandler:
             if os.path.exists(filepath):
                 file_list.append(filepath)
             else:
-                logger.warning(f"Expected file not found: {filename}")
+                missing_files.append(filename)
+                # Only log first few missing files to avoid log spam
+                if len(missing_files) <= MAX_MISSING_WARNINGS:
+                    logger.warning(f"Expected file not found: {filename}")
 
-        logger.info(f"Generated file list: {len(file_list)} files")
+        # Summary log for missing files
+        if missing_files:
+            total_missing = len(missing_files)
+            total_expected = seq_end - seq_begin + 1
+            logger.info(
+                f"File list generated: {len(file_list)}/{total_expected} files found, "
+                f"{total_missing} missing"
+            )
+            if total_missing > MAX_MISSING_WARNINGS:
+                logger.warning(
+                    f"... and {total_missing - MAX_MISSING_WARNINGS} more files not found "
+                    f"(showing first {MAX_MISSING_WARNINGS} only)"
+                )
+        else:
+            logger.info(f"Generated file list: {len(file_list)} files")
+
         return file_list
 
     def validate_directory_structure(self, directory_path: str) -> bool:

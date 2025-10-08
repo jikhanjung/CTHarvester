@@ -1,0 +1,46 @@
+[run]
+source = core,ui,utils,security
+omit =
+    # Unused utility files
+    utils/log_helper.py
+    # Build and version management scripts (not application code)
+    manage_version.py
+    build.py
+    # Test files
+    tests/*
+    */tests/*
+    # Virtual environments
+    venv/*
+    */venv/*
+    .venv/*
+    */.venv/*
+
+[report]
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+
+    # Don't complain about missing debug-only code:
+    def __repr__
+    if self\.debug
+
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't complain if non-runnable code isn't run:
+    if 0:
+    if __name__ == .__main__.:
+
+    # Don't complain about abstract methods:
+    @(abc\.)?abstractmethod
+
+    # Type checking blocks
+    if TYPE_CHECKING:
+
+    # Debug/verbose logging
+    if self\.verbose:
+
+precision = 2
+show_missing = True
