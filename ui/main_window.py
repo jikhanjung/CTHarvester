@@ -145,6 +145,11 @@ class CTHarvesterMainWindow(QMainWindow):
         ui_setup = MainWindowSetup(self)
         ui_setup.setup_all()
 
+        # Setup keyboard shortcuts (Phase 2.2: UI Polish & Accessibility)
+        from ui.setup.shortcuts_setup import setup_shortcuts
+
+        setup_shortcuts(self)
+
     def rangeSliderMoved(self):
         """Handle range slider moved event (legacy - no longer used)."""
         return

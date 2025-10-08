@@ -22,6 +22,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from config.tooltips import TooltipManager
 from ui.widgets import MCubeWidget, ObjectViewer2D
 from ui.widgets.vertical_stack_slider import VerticalTimeline
 from utils.common import resource_path
@@ -76,6 +77,8 @@ class MainWindowSetup:
         # Open Directory button
         self.window.btnOpenDir = QPushButton(self.window.tr("Open Directory"))
         self.window.btnOpenDir.clicked.connect(self.window.open_dir)
+        self.window.btnOpenDir.setToolTip(TooltipManager.get_tooltip("open_directory"))
+        self.window.btnOpenDir.setStatusTip(TooltipManager.get_status_tip("open_directory"))
 
         # Directory path display
         self.window.edtDirname = QLineEdit()
@@ -167,6 +170,7 @@ class MainWindowSetup:
         self.window.threshold_slider.setSingleStep(1)
         self.window.threshold_slider.valueChanged.connect(self.window.slider2ValueChanged)
         self.window.threshold_slider.sliderReleased.connect(self.window.slider2SliderReleased)
+        self.window.threshold_slider.setToolTip(TooltipManager.get_tooltip("threshold_slider"))
 
         # External numeric readout to avoid any internal 0-99 label limit
         self.window.threshold_value_label = QLabel(str(self.window.threshold_slider.value()))
@@ -194,12 +198,18 @@ class MainWindowSetup:
         # Crop buttons
         self.window.btnSetBottom = QPushButton(self.window.tr("Set Bottom"))
         self.window.btnSetBottom.clicked.connect(self.window.set_bottom)
+        self.window.btnSetBottom.setToolTip(TooltipManager.get_tooltip("set_bottom"))
+        self.window.btnSetBottom.setStatusTip(TooltipManager.get_status_tip("set_bottom"))
 
         self.window.btnSetTop = QPushButton(self.window.tr("Set Top"))
         self.window.btnSetTop.clicked.connect(self.window.set_top)
+        self.window.btnSetTop.setToolTip(TooltipManager.get_tooltip("set_top"))
+        self.window.btnSetTop.setStatusTip(TooltipManager.get_status_tip("set_top"))
 
         self.window.btnReset = QPushButton(self.window.tr("Reset"))
         self.window.btnReset.clicked.connect(self.window.reset_crop)
+        self.window.btnReset.setToolTip(TooltipManager.get_tooltip("reset_crop"))
+        self.window.btnReset.setStatusTip(TooltipManager.get_status_tip("reset_crop"))
 
         # Inverse checkbox
         self.window.cbxInverse = QCheckBox(self.window.tr("Inv."))
@@ -236,19 +246,26 @@ class MainWindowSetup:
         # Save button
         self.window.btnSave = QPushButton(self.window.tr("Save cropped image stack"))
         self.window.btnSave.clicked.connect(self.window.save_result)
+        self.window.btnSave.setToolTip(TooltipManager.get_tooltip("save_cropped"))
+        self.window.btnSave.setStatusTip(TooltipManager.get_status_tip("save_cropped"))
 
         # Export button
         self.window.btnExport = QPushButton(self.window.tr("Export 3D Model"))
         self.window.btnExport.clicked.connect(self.window.export_3d_model)
+        self.window.btnExport.setToolTip(TooltipManager.get_tooltip("export_mesh"))
+        self.window.btnExport.setStatusTip(TooltipManager.get_status_tip("export_mesh"))
 
         # Preferences button
         self.window.btnPreferences = QPushButton(QIcon(resource_path("M2Preferences_2.png")), "")
         self.window.btnPreferences.clicked.connect(self.window.show_advanced_settings)
-        self.window.btnPreferences.setToolTip("Settings (Advanced)")
+        self.window.btnPreferences.setToolTip(TooltipManager.get_tooltip("show_preferences"))
+        self.window.btnPreferences.setStatusTip(TooltipManager.get_status_tip("show_preferences"))
 
         # Info button
         self.window.btnInfo = QPushButton(QIcon(resource_path("resources/icons/info.png")), "")
         self.window.btnInfo.clicked.connect(self.window.show_info)
+        self.window.btnInfo.setToolTip(TooltipManager.get_tooltip("show_about"))
+        self.window.btnInfo.setStatusTip(TooltipManager.get_status_tip("show_about"))
 
         # Layout
         self.window.button_layout = QHBoxLayout()
