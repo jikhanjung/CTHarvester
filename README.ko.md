@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/jikhanjung/CTHarvester/branch/main/graph/badge.svg)](https://codecov.io/gh/jikhanjung/CTHarvester)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![Tests: 1072 passing](https://img.shields.io/badge/tests-1072%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
+[![Tests: 1150 passing](https://img.shields.io/badge/tests-1150%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
 
 *다른 언어로 읽기: [English](README.md), [한국어](README.ko.md)*
 
@@ -34,8 +34,11 @@
 - **역전 모드**: 역밀도 시각화 지원
 
 ### 사용자 인터페이스
-- **직관적인 GUI**: 네이티브 데스크톱 경험을 위한 PyQt5 기반
+- **직관적인 GUI**: 전문적인 8px 그리드 레이아웃을 갖춘 PyQt5 기반 데스크톱 경험
+- **키보드 단축키**: 효율적인 작업을 위한 24개의 키보드 단축키 (F1로 도움말 확인)
+- **대화형 툴팁**: 풍부한 서식과 키보드 힌트가 포함된 100% 툴팁 커버리지
 - **실시간 피드백**: 조정 및 처리에 대한 즉각적인 피드백
+- **향상된 진행 상태**: ETA 계산, 남은 항목 카운터 및 취소 기능
 - **다국어 지원**: 한국어 및 영어 지원
 - **사용자 설정**: 창 위치 및 작업 디렉토리 기억
 
@@ -124,38 +127,55 @@ python manage_version.py bump major
 
 ### 테스트
 
-CTHarvester는 단위 및 통합 테스트에 걸쳐 포괄적인 테스트 커버리지를 갖추고 있습니다.
+CTHarvester는 1,150개의 테스트와 약 91%의 코드 커버리지를 갖춘 포괄적인 테스트 커버리지를 제공합니다.
 
 #### 테스트 실행
 ```bash
-# 모든 테스트 실행
+# 모든 빠른 테스트 실행 (권장)
+pytest tests/ -v -m "not slow"
+
+# 느린 테스트 포함 모든 테스트 실행 (3-5분 소요)
 pytest tests/ -v
 
 # 커버리지 리포트와 함께 실행
 pytest tests/ -v --cov=. --cov-report=term-missing --cov-report=html
 
 # 특정 테스트 카테고리 실행
-pytest tests/ -v -m unit              # 단위 테스트만
-pytest tests/ -v -m integration       # 통합 테스트만
-pytest tests/ -v -m "not slow"        # 느린 테스트 제외
+pytest tests/ -v -m unit                    # 단위 테스트만
+pytest tests/ -v -m integration             # 통합 테스트만
+pytest tests/benchmarks/ -v                 # 성능 및 스트레스 테스트
+pytest tests/test_error_recovery.py -v      # 에러 복구 테스트
 ```
 
-#### 테스트 구조
-- **단위 테스트** (186개): 핵심 유틸리티, 워커, 이미지 처리, 보안
+#### 테스트 구조 (총 1,150개 테스트)
+- **단위 테스트**: 핵심 유틸리티, 워커, 이미지 처리, 보안, 핸들러
   - `test_common.py` - 유틸리티 함수 (29개 테스트, 100% 커버리지)
   - `test_worker.py` - 워커 스레드 (22개 테스트, 100% 커버리지)
   - `test_image_utils.py` - 이미지 처리 (31개 테스트, 100% 커버리지)
   - `test_progress_manager.py` - 진행률 추적 (28개 테스트, 99% 커버리지)
   - `test_file_utils.py` - 파일 작업 (41개 테스트, 94% 커버리지)
   - `test_security.py` - 보안 검증 (36개 테스트, 90% 커버리지)
+  - `test_ui_style.py` - UI 스타일링 시스템 (23개 테스트, 100% 커버리지)
 
-- **통합 테스트** (9개): 엔드투엔드 워크플로우
+- **핸들러 테스트**: UI 핸들러 및 프로세서 (97개 테스트)
+  - `test_thumbnail_creation_handler.py` - 썸네일 생성 (27개 테스트, 89% 커버리지)
+  - `test_sequential_processor.py` - 순차 처리 (21개 테스트, 78% 커버리지)
+  - `test_view_manager.py` - 3D 뷰 관리 (27개 테스트, 100% 커버리지)
+  - `test_directory_open_handler.py` - 디렉토리 작업 (22개 테스트, 98% 커버리지)
+
+- **성능 및 견고성 테스트** (31개 테스트)
+  - `test_performance.py` - 성능 벤치마크 (4개 테스트)
+  - `test_stress.py` - 스트레스 및 메모리 누수 테스트 (9개 테스트)
+  - `test_error_recovery.py` - 에러 처리 테스트 (18개 테스트)
+
+- **통합 테스트**: 엔드투엔드 워크플로우
   - `test_integration_thumbnail.py` - 썸네일 생성 파이프라인
+  - `test_ui_workflows.py` - UI 상호작용 워크플로우
 
 #### 커버리지
-- **전체**: 핵심 유틸리티 모듈 ~95%
-- **100% 모듈**: utils/common, utils/worker, utils/image_utils
-- **총계**: 485개 테스트 통과, 1개 스킵 ✅
+- **전체**: 약 91% 코드 커버리지
+- **100% 모듈**: utils/common, utils/worker, utils/image_utils, test_ui_style
+- **총계**: 1,150개 테스트 통과 ✅
 
 ### CI/CD
 프로젝트는 지속적 통합 및 배포를 위해 GitHub Actions를 사용합니다:

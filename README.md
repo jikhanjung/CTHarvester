@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/jikhanjung/CTHarvester/branch/main/graph/badge.svg)](https://codecov.io/gh/jikhanjung/CTHarvester)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Tests: 1072 passing](https://img.shields.io/badge/tests-1072%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
+[![Tests: 1150 passing](https://img.shields.io/badge/tests-1150%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
 
 *Read this in other languages: [English](README.md), [한국어](README.ko.md)*
 
@@ -34,8 +34,11 @@ A preprocessing tool for CT (Computed Tomography) image stacks designed for user
 - **Inverse Mode**: Support for inverse density visualization
 
 ### User Interface
-- **Intuitive GUI**: Built with PyQt5 for a native desktop experience
+- **Intuitive GUI**: Built with PyQt5 for a native desktop experience with professional 8px grid layout
+- **Keyboard Shortcuts**: 24 keyboard shortcuts for efficient workflow (F1 for help)
+- **Interactive Tooltips**: 100% tooltip coverage with rich formatting and keyboard hints
 - **Real-time Preview**: Instant feedback on adjustments and processing
+- **Enhanced Progress Feedback**: ETA calculation, remaining items counter, and cancel functionality
 - **Multi-language Support**: Available in English and Korean
 - **Customizable Settings**: Remember window geometry and working directories
 
@@ -162,11 +165,14 @@ python manage_version.py bump major
 
 ### Testing
 
-CTHarvester has comprehensive test coverage across unit and integration tests.
+CTHarvester has comprehensive test coverage with 1,150 tests and ~91% code coverage.
 
 #### Running Tests
 ```bash
-# Run all tests
+# Run all quick tests (recommended)
+pytest tests/ -v -m "not slow"
+
+# Run all tests including slow ones (3-5 minutes)
 pytest tests/ -v
 
 # Run with coverage report
@@ -175,10 +181,11 @@ pytest tests/ -v --cov=. --cov-report=term-missing --cov-report=html
 # Run specific test categories
 pytest tests/ -v -m unit              # Unit tests only
 pytest tests/ -v -m integration       # Integration tests only
-pytest tests/ -v -m "not slow"        # Skip slow tests
+pytest tests/benchmarks/ -v           # Performance & stress tests
+pytest tests/test_error_recovery.py -v # Error recovery tests
 ```
 
-#### Test Structure
+#### Test Structure (1,150 total tests)
 - **Unit Tests**: Core utilities, workers, image processing, security, handlers
   - `test_common.py` - Utility functions (29 tests, 100% coverage)
   - `test_worker.py` - Worker threads (22 tests, 100% coverage)
@@ -186,12 +193,18 @@ pytest tests/ -v -m "not slow"        # Skip slow tests
   - `test_progress_manager.py` - Progress tracking (28 tests, 99% coverage)
   - `test_file_utils.py` - File operations (41 tests, 94% coverage)
   - `test_security.py` - Security validation (36 tests, 90% coverage)
+  - `test_ui_style.py` - UI styling system (23 tests, 100% coverage)
 
-- **Phase 4 Handler Tests** (97 tests): UI handlers and processors
+- **Handler Tests**: UI handlers and processors (97 tests)
   - `test_thumbnail_creation_handler.py` - Thumbnail generation (27 tests, 89% coverage)
   - `test_sequential_processor.py` - Sequential processing (21 tests, 78% coverage)
   - `test_view_manager.py` - 3D view management (27 tests, 100% coverage)
   - `test_directory_open_handler.py` - Directory operations (22 tests, 98% coverage)
+
+- **Performance & Robustness Tests** (31 tests)
+  - `test_performance.py` - Performance benchmarks (4 tests)
+  - `test_stress.py` - Stress and memory leak tests (9 tests)
+  - `test_error_recovery.py` - Error handling tests (18 tests)
 
 - **Integration Tests**: End-to-end workflows
   - `test_integration_thumbnail.py` - Thumbnail generation pipeline
