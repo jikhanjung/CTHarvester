@@ -234,7 +234,7 @@ CTHarvester/
 ├── build.py                # Build script for packaging
 ├── manage_version.py       # Version bump utility
 ├── requirements.txt        # Python dependencies
-├── pytest.ini              # Test configuration
+├── pyproject.toml          # Project + tool configuration (pytest, mypy, ruff)
 │
 ├── core/                   # Core modules (extracted from Phase 4 refactoring)
 │   ├── progress_manager.py    # Progress tracking and ETA calculation

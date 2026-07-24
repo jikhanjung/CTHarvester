@@ -14,7 +14,11 @@ sys.path.insert(0, os.path.abspath(".."))
 project = "CTHarvester"
 copyright = "2023-2025, Jikhan Jung"
 author = "Jikhan Jung"
-release = "0.2.3"
+
+# Single source of truth: version.py (see tests/test_version_consistency.py)
+from version import __version__ as release  # noqa: E402
+
+version = release
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

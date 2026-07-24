@@ -6,7 +6,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "CTHarvester"
-version = "0.2.3-beta.1"
+# Version is NOT hardcoded here. version.py is the single source of truth;
+# see [tool.setuptools.dynamic] below and tests/test_version_consistency.py.
+dynamic = ["version"]
 description = "CT scan image processing and visualization tool"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -51,7 +53,11 @@ dev = [
     "pytest>=7.4.0,<9.0.0",
     "pytest-cov>=4.1.0,<8.0.0",
     "pytest-qt>=4.2.0,<5.0.0",
+    "pytest-timeout>=2.2.0,<3.0.0",
+    "pytest-xdist>=3.5.0,<4.0.0",
     "hypothesis>=6.0.0,<7.0.0",
+    # Type stubs
+    "types-PyYAML>=6.0.0,<7.0.0",
     # Code Quality
     "black>=23.12.0,<26.0.0",
     "flake8>=6.1.0,<8.0.0",
@@ -81,6 +87,21 @@ Homepage = "https://github.com/jikhanjung/CTHarvester"
 Documentation = "https://jikhanjung.github.io/CTHarvester"
 Repository = "https://github.com/jikhanjung/CTHarvester"
 "Bug Tracker" = "https://github.com/jikhanjung/CTHarvester/issues"
+
+[tool.setuptools]
+# Flat layout: auto-discovery finds nothing here (too many top-level dirs), so
+# the package set is declared explicitly. Without this, `pip install -e .`
+# silently installs an empty distribution.
+py-modules = ["version", "CTLogger", "CTHarvester"]
+
+[tool.setuptools.packages.find]
+include = ["config*", "core*", "security*", "ui*", "utils*"]
+exclude = ["tests*", "scripts*", "docs*", "build*", "dist*", "devlog*", "packaging*"]
+
+[tool.setuptools.dynamic]
+# version.py is the single source of truth; declaring it in py-modules above is
+# what lets setuptools resolve this attr reference.
+version = {attr = "version.__version__"}
 
 # Black configuration
 [tool.black]
@@ -117,32 +138,61 @@ skip_gitignore = true
 skip = [".git", "__pycache__", "build", "dist", ".venv", "venv"]
 
 # pytest configuration
+#
+# This is the SINGLE source of pytest configuration. Do not add a pytest.ini /
+# tox.ini / setup.cfg [pytest] section: pytest reads only ONE config file and
+# pytest.ini takes precedence over pyproject.toml, which would silently disable
+# everything below.
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+# Keep pytest's defaults (the leading ".*" covers .git/.tox/.venv/.hypothesis)
+# and extend them; replacing them outright breaks plugin-owned dirs.
+norecursedirs = [
+    "*.egg", ".*", "_darcs", "build", "CVS", "dist", "node_modules", "venv", "{arch}",
+    "target", "__pycache__",
+]
+
+# Coverage is NOT enabled by default so local runs stay fast.
+# CI passes --cov=... --cov-fail-under=... explicitly.
 addopts = """
     -ra
     --strict-markers
-    --cov=.
-    --cov-branch
-    --cov-report=term-missing:skip-covered
-    --cov-report=html
-    --cov-report=xml
+    --strict-config
+    --tb=short
+    --color=yes
 """
+
 markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
-    "unit: marks tests as unit tests",
-    "benchmark: marks tests as performance benchmarks",
-    "property: marks tests as property-based tests"
+    "unit: Unit tests - fast, isolated, no external dependencies",
+    "integration: Integration tests - multiple components working together",
+    "ui: UI tests - requires Qt application and GUI components",
+    "qt: Qt/GUI tests - alias for ui marker (deprecated, use ui instead)",
+    "slow: Slow tests - may take >1 second to complete",
+    "property: Property-based tests using Hypothesis",
+    "benchmark: Performance benchmarks - track execution time and memory usage",
+    "smoke: Import/startup smoke tests - must pass on every OS in the matrix",
 ]
+
+# Warnings are errors so silent runtime degradation (pending deprecations,
+# unclosed resources, numpy casting changes) fails the build instead of
+# scrolling past. Add a narrowly-scoped ignore with a comment - never a blanket
+# `ignore::DeprecationWarning`.
 filterwarnings = [
     "error",
-    "ignore::UserWarning",
-    "ignore::DeprecationWarning",
+    # PyQt5 5.15 emits this on sip-based enum access under Python 3.12+.
+    "ignore:sipPyTypeDict\\(\\) is deprecated:DeprecationWarning",
+    # Third-party packages we do not control; scoped by module.
+    "ignore::DeprecationWarning:pkg_resources",
+    "ignore::DeprecationWarning:setuptools",
+    # pymcubes' compiled marching_cubes sets ndarray.shape directly
+    # (mcubes/src/_mcubes.pyx). Upstream issue, not ours; without this the
+    # NumPy 2.5 deprecation aborts mesh generation and pops a modal error
+    # dialog that hangs headless UI tests. Scoped to the exact message.
+    "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning",
 ]
 
 # Coverage configuration

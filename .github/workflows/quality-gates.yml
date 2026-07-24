@@ -103,9 +103,8 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
-        pip install pytest pytest-cov pytest-qt pytest-xdist hypothesis
+        # Locked, hash-verified dependencies (see `make lock`).
+        pip install --require-hashes -r requirements-dev.lock
 
     - name: Run tests with coverage
       env:
@@ -146,10 +145,12 @@ jobs:
           echo "📊 **Coverage**: ${COVERAGE_PCT}%" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ "$COVERAGE_PCT" -ge 60 ]; then
-            echo "✅ Coverage meets minimum threshold (60%)" >> $GITHUB_STEP_SUMMARY
+          # Must match --cov-fail-under above; a mismatch made the summary
+          # report a 60% gate while the build actually enforced 75%.
+          if [ "$COVERAGE_PCT" -ge 75 ]; then
+            echo "✅ Coverage meets minimum threshold (75%)" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Coverage below minimum threshold (60%)" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Coverage below minimum threshold (75%)" >> $GITHUB_STEP_SUMMARY
           fi
         fi
 
@@ -187,6 +188,31 @@ jobs:
         echo "- core/thumbnail_generator.py" >> $GITHUB_STEP_SUMMARY
         echo "- utils/image_utils.py" >> $GITHUB_STEP_SUMMARY
         echo "- utils/settings_manager.py" >> $GITHUB_STEP_SUMMARY
+
+  dependency-lock:
+    name: Dependency Lock Freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install uv
+      run: pip install uv
+
+    - name: Verify lockfiles match pyproject.toml
+      # Gating: a dependency change that does not update the lock means CI and
+      # release builds would install something different from what was reviewed.
+      run: make lock-check
+
+    - name: Verify the lockfile is installable with hashes
+      run: pip install --require-hashes --dry-run -r requirements.lock
 
   security-scan:
     name: Security Scan
@@ -273,7 +299,7 @@ jobs:
 
   quality-gate-summary:
     name: Quality Gate Summary
-    needs: [code-quality, test-coverage, type-checking, security-scan]
+    needs: [code-quality, test-coverage, type-checking, dependency-lock, security-scan]
     runs-on: ubuntu-latest
     if: always()
 
@@ -288,4 +314,5 @@ jobs:
         echo "- Code Quality: ${{ needs.code-quality.result }}" >> $GITHUB_STEP_SUMMARY
         echo "- Test Coverage: ${{ needs.test-coverage.result }}" >> $GITHUB_STEP_SUMMARY
         echo "- Type Checking: ${{ needs.type-checking.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Dependency Lock: ${{ needs.dependency-lock.result }}" >> $GITHUB_STEP_SUMMARY
         echo "- Security Scan: ${{ needs.security-scan.result }}" >> $GITHUB_STEP_SUMMARY

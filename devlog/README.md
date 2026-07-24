@@ -2,6 +2,10 @@
 
 Chronological index of all development sessions for CTHarvester.
 
+## Recent Sessions (July 2026)
+
+- [100](20260724_100_code_quality_guide_adoption.md) - **코드 품질 가이드 적용**: 크로스플랫폼 CI 매트릭스, smoke 테스트, pytest 설정 통합, 버전 SSOT, 예외 훅, 의존성 lockfile
+
 ## Recent Sessions (October 2025)
 
 - [099](20251008_099_cicd_improvements.md) - **CI/CD 개선 완료**: CodeQL, 의존성 검토, 테스트 병렬화, 릴리스 자동화 (7개 개선사항)
@@ -78,6 +82,7 @@ Chronological index of all development sessions for CTHarvester.
 - [001](20250806_001_empty_directory_cursor_fix.md) - 빈 디렉토리 커서 수정
 
 ### CI/CD & Infrastructure
+- [100](20260724_100_code_quality_guide_adoption.md) - 코드 품질 가이드 적용: 3-OS 테스트 매트릭스, smoke 잡, 의존성 lock, lock 최신성 게이트
 - [099](20251008_099_cicd_improvements.md) - CI/CD 개선: CodeQL, 의존성 검토, 병렬화, CHANGELOG 통합 (7개 개선사항)
 - [098](20251008_098_phase4_complete.md) - Phase 4 릴리스 준비 완료
 - [002](20250806_002_github_actions_and_version_management.md) - GitHub Actions CI/CD 설정
@@ -197,6 +202,9 @@ Chronological index of all development sessions for CTHarvester.
 - [097](20251008_097_phase3_complete.md) - **Phase 3 완료**: 성능 & 견고성 (+277 tests, 벤치마크, 스트레스, 에러 복구)
 - [098](20251008_098_phase4_complete.md) - **Phase 4 완료**: 릴리스 준비 (1,150 tests, 91% coverage, v0.2.3-beta.2)
 - [099](20251008_099_cicd_improvements.md) - CI/CD 개선: CodeQL, 의존성 검토, 병렬화, CHANGELOG 통합 (7개 개선사항)
+
+### 2026-07-24
+- [100](20260724_100_code_quality_guide_adoption.md) - **코드 품질 가이드 적용**: 크로스플랫폼 CI 매트릭스, smoke 테스트, pytest 설정 통합, 버전 SSOT, 예외 훅, 의존성 lockfile
 
 ### 2025-10-01
 

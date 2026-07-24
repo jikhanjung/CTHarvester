@@ -64,6 +64,8 @@ from core.volume_processor import VolumeProcessor
 from security.file_validator import FileSecurityError, SecureFileValidator, safe_open_image
 from ui.ctharvester_app import CTHarvesterApp
 from ui.dialogs import InfoDialog, ProgressDialog, SettingsDialog
+from ui.errors import ErrorCode
+from ui.exception_handler import guard_slot
 from ui.handlers import ExportHandler, WindowSettingsHandler
 from ui.setup import MainWindowSetup
 from ui.widgets import MCubeWidget, ObjectViewer2D
@@ -172,6 +174,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.image_label.repaint()
         self.update_3D_view(True)
 
+    @guard_slot("opening preferences")
     def show_advanced_settings(self):
         """Show advanced settings dialog (new comprehensive version - Phase 2.2)"""
         dialog = SettingsDialog(self.settings_manager, self)
@@ -184,6 +187,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 "Settings have been saved.\n\nSome changes may require restarting the application.",
             )
 
+    @guard_slot("showing application info")
     def show_info(self):
         """Show information dialog with application details and shortcuts."""
         self.info_dialog = InfoDialog(self)
@@ -321,6 +325,7 @@ class CTHarvesterMainWindow(QMainWindow):
             crop_box=crop_box,
         )
 
+    @guard_slot("exporting 3D model", ErrorCode.EXPORT_FAILED)
     def export_3d_model(self):
         """
         Export 3D model to OBJ file (delegated to ExportHandler).
@@ -329,6 +334,7 @@ class CTHarvesterMainWindow(QMainWindow):
         """
         self.export_handler.export_3d_model_to_obj()
 
+    @guard_slot("saving cropped image stack", ErrorCode.EXPORT_FAILED)
     def save_result(self):
         """
         Save cropped image stack (delegated to ExportHandler).
@@ -337,6 +343,7 @@ class CTHarvesterMainWindow(QMainWindow):
         """
         self.export_handler.save_cropped_image_stack()
 
+    @guard_slot("updating crop range")
     def rangeSliderValueChanged(self):
         """
         Handle range slider value change to update top/bottom crop boundaries.
@@ -367,6 +374,7 @@ class CTHarvesterMainWindow(QMainWindow):
         # print("range slider released")
         return
 
+    @guard_slot("updating current slice")
     def sliderValueChanged(self):
         """
         Handle timeline slider value change to display different image slice.
@@ -474,6 +482,7 @@ class CTHarvesterMainWindow(QMainWindow):
             self.comboLevel.addItem(level["name"])
             # logger.info(f"Added level: {level['name']}, size: {level['width']}x{level['height']}, seq: {level['seq_begin']}-{level['seq_end']}")
 
+    @guard_slot("changing resolution level")
     def comboLevelIndexChanged(self):
         """
         This method is called when the user selects a different level from the combo box.
@@ -553,6 +562,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
         return total_work
 
+    @guard_slot("generating thumbnails", ErrorCode.THUMBNAIL_GENERATION_FAILED)
     def create_thumbnail(self):
         """Create thumbnails using Rust or Python implementation.
 
@@ -648,6 +658,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self.mcube_widget.set_isovalue(value)
         self.image_label.calculate_resize()
 
+    @guard_slot("applying threshold")
     def slider2SliderReleased(self):
         self.update_3D_view(True)
 
@@ -694,6 +705,7 @@ class CTHarvesterMainWindow(QMainWindow):
         if hasattr(self, "level_volumes"):
             self.level_volumes = {}
 
+    @guard_slot("opening directory")
     def open_dir(self):
         """Open directory dialog to select CT image stack.
 

@@ -1,0 +1,54 @@
+# Normalize line endings for all text files.
+# Mirrors .editorconfig: LF everywhere, CRLF only for Windows batch files.
+
+# Detect text files automatically and store them with LF in the repository.
+* text=auto eol=lf
+
+# Windows-only scripts must keep CRLF in the working tree.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Explicit text types (helps when auto-detection is ambiguous).
+*.py    text diff=python
+*.pyi   text diff=python
+*.rs    text diff=rust
+*.md    text diff=markdown
+*.rst   text
+*.txt   text
+*.yml   text
+*.yaml  text
+*.json  text
+*.toml  text
+*.cfg   text
+*.ini   text
+*.html  text diff=html
+*.css   text
+*.js    text
+*.ts    text
+*.sh    text eol=lf
+*.spec  text
+*.iss   text
+*.po    text
+*.pot   text
+Makefile text
+LICENSE  text
+
+# Binary files: never convert, never diff as text.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.icns  binary
+*.pdf   binary
+*.zip   binary
+*.gz    binary
+*.mo    binary
+*.qm    binary
+*.tif   binary
+*.tiff  binary
+*.bmp   binary
+*.so    binary
+*.dll   binary
+*.dylib binary
+*.pyd   binary

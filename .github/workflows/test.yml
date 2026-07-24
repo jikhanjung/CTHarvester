@@ -2,6 +2,10 @@ name: Quick Tests (CI)
 
 # Fast test suite for CI/CD - excludes slow performance and stress tests
 # For comprehensive testing including all slow tests, see test-full.yml
+#
+# CTHarvester ships installers for Windows, macOS and Linux, so the test matrix
+# covers all three. Testing only on Linux leaves the platform most users run
+# entirely untested.
 
 on:
   push:
@@ -10,13 +14,18 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+  # Fast fail: if a module does not import or the app does not start on a
+  # platform, there is no point running the full suite there.
+  smoke:
+    name: Smoke (${{ matrix.os }} / py${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
 
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ['3.11', '3.12', '3.13']
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.11', '3.13']  # min and max supported
 
     steps:
     - name: Checkout code
@@ -26,8 +35,12 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+        cache-dependency-path: |
+          requirements*.lock
 
-    - name: Install system dependencies
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -41,118 +54,169 @@ jobs:
           libxcb-xfixes0 \
           libxcb-shape0 \
           libxcb-cursor0 \
-          qt5-qmake \
-          qtbase5-dev \
-          libqt5gui5 \
-          libqt5core5a \
-          libqt5widgets5 \
-          libglut-dev \
-          libglut3.12 \
-          python3-opengl
-
-    - name: Cache pip dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt', 'pyproject.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+          libegl1 \
+          libgl1 \
+          libglu1-mesa \
+          freeglut3-dev
 
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
-        pip install pytest-timeout pytest-xdist hypothesis
+        # Install from the lockfile so CI, contributors and release builds all
+        # get byte-identical dependencies. Regenerate with `make lock`.
+        pip install --require-hashes -r requirements-dev.lock
 
-    - name: Verify pre-commit hooks
+    - name: Run smoke tests (Linux)
+      if: runner.os == 'Linux'
+      env:
+        QT_QPA_PLATFORM: offscreen
+      run: xvfb-run -a -s "-screen 0 1024x768x24" pytest tests/test_smoke.py -m smoke --timeout=120
+
+    - name: Run smoke tests (Windows/macOS)
+      if: runner.os != 'Linux'
+      env:
+        QT_QPA_PLATFORM: offscreen
+      run: pytest tests/test_smoke.py -m smoke --timeout=120
+
+  test:
+    name: Tests (${{ matrix.os }} / py${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.11', '3.12', '3.13']
+        exclude:
+          # Full Python sweep on Linux; min/max only on Windows and macOS to
+          # keep the matrix affordable.
+          - os: windows-latest
+            python-version: '3.12'
+          - os: macos-latest
+            python-version: '3.12'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+        cache-dependency-path: |
+          requirements*.lock
+
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
       run: |
-        pip install pre-commit
-        pre-commit run --all-files || true
-      continue-on-error: true
+        sudo apt-get update
+        sudo apt-get install -y \
+          xvfb \
+          libxcb-xinerama0 \
+          libxcb-icccm4 \
+          libxcb-image0 \
+          libxcb-keysyms1 \
+          libxcb-randr0 \
+          libxcb-render-util0 \
+          libxcb-xfixes0 \
+          libxcb-shape0 \
+          libxcb-cursor0 \
+          libegl1 \
+          libgl1 \
+          libglu1-mesa \
+          freeglut3-dev \
+          python3-opengl
 
-    - name: Verify documentation builds
+    - name: Install Python dependencies
       run: |
-        pip install sphinx sphinx-rtd-theme
-        cd docs
-        make clean
-        make html
-      continue-on-error: true
+        python -m pip install --upgrade pip
+        # Install from the lockfile so CI, contributors and release builds all
+        # get byte-identical dependencies. Regenerate with `make lock`.
+        pip install --require-hashes -r requirements-dev.lock
 
-    - name: Run tests with pytest
+    - name: Run tests (Linux)
+      if: runner.os == 'Linux'
       env:
         QT_QPA_PLATFORM: offscreen
         QT_DEBUG_PLUGINS: 0
       run: |
-        # Use xvfb-run to handle virtual display automatically
-        # Run only quick tests (exclude slow and benchmark tests)
-        # Exclude test_basic.py (requires pymcubes)
-        # Use pytest-xdist for parallel execution (-n auto)
         xvfb-run -a -s "-screen 0 1024x768x24" \
           pytest tests/ \
             -m "not slow and not benchmark" \
             --ignore=tests/test_basic.py \
             -n auto \
-            --cov=core \
-            --cov=ui \
-            --cov=utils \
-            --cov=security \
+            --cov=core --cov=ui --cov=utils --cov=security \
             --cov-report=term-missing \
             --cov-report=xml \
-            --cov-report=html \
-            --cov-fail-under=75 \
-            --tb=short \
-            --timeout=30 \
-            -v
+            --timeout=60
 
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results-${{ matrix.python-version }}
-        path: |
-          test_output.log
-          coverage.xml
-          htmlcov/
-        retention-days: 7
+    - name: Run tests (Windows/macOS)
+      if: runner.os != 'Linux'
+      env:
+        QT_QPA_PLATFORM: offscreen
+        QT_DEBUG_PLUGINS: 0
+      run: pytest tests/ -m "not slow and not benchmark" --ignore=tests/test_basic.py -n auto --timeout=60
 
     - name: Upload coverage to Codecov
+      # Coverage is measured once, on the reference platform. The coverage gate
+      # itself lives in quality-gates.yml.
+      if: always() && runner.os == 'Linux' && matrix.python-version == '3.12'
       uses: codecov/codecov-action@v4
-      if: always()
       with:
         files: ./coverage.xml
         flags: unittests
-        name: codecov-${{ matrix.python-version }}
+        name: codecov-${{ matrix.os }}-${{ matrix.python-version }}
         fail_ci_if_error: false
 
-    - name: Generate test summary
-      if: always()
-      shell: bash
+  docs:
+    name: Documentation builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+
+    - name: Build docs
+      # Non-gating for now, matching previous behaviour. Flip to gating as part
+      # of the "remove || true / continue-on-error" pass.
+      continue-on-error: true
       run: |
-        echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
+        pip install sphinx sphinx-rtd-theme
+        cd docs
+        make clean
+        make html
+
+  test-summary:
+    name: Test Matrix Summary
+    needs: [smoke, test, docs]
+    # docs is advisory; smoke and test decide the verdict below.
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - name: Summarize
+      run: |
+        echo "## Test Matrix Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Job | Result |" >> $GITHUB_STEP_SUMMARY
+        echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+        echo "| Smoke (3 OS x py3.11/3.13) | ${{ needs.smoke.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tests (Linux py3.11-3.13, Win/macOS py3.11/3.13) | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Docs | ${{ needs.docs.result }} |" >> $GITHUB_STEP_SUMMARY
 
-        # Extract test counts from output
-        if [ -f test_output.log ]; then
-          PASSED=$(grep -o "[0-9]* passed" test_output.log | head -1 | grep -o "[0-9]*" || echo "0")
-          FAILED=$(grep -o "[0-9]* failed" test_output.log | head -1 | grep -o "[0-9]*" || echo "0")
-          SKIPPED=$(grep -o "[0-9]* skipped" test_output.log | head -1 | grep -o "[0-9]*" || echo "0")
-
-          if [ "$PASSED" != "0" ]; then
-            echo "✅ **Passed**: $PASSED" >> $GITHUB_STEP_SUMMARY
-          fi
-          if [ "$FAILED" != "0" ]; then
-            echo "❌ **Failed**: $FAILED" >> $GITHUB_STEP_SUMMARY
-          fi
-          if [ "$SKIPPED" != "0" ]; then
-            echo "⏭️ **Skipped**: $SKIPPED" >> $GITHUB_STEP_SUMMARY
-          fi
-
+        if [ "${{ needs.smoke.result }}" != "success" ] || [ "${{ needs.test.result }}" != "success" ]; then
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Test Categories" >> $GITHUB_STEP_SUMMARY
-          echo "- Unit Tests: Core utilities, workers, image processing" >> $GITHUB_STEP_SUMMARY
-          echo "- Integration Tests: Thumbnail generation workflows" >> $GITHUB_STEP_SUMMARY
-          echo "- Security Tests: File validation and path traversal prevention" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "⚠️ Test output log not found" >> $GITHUB_STEP_SUMMARY
+          echo "❌ One or more required jobs failed." >> $GITHUB_STEP_SUMMARY
+          exit 1
         fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ All platforms green." >> $GITHUB_STEP_SUMMARY

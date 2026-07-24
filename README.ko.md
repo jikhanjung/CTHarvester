@@ -195,7 +195,7 @@ CTHarvester/
 ├── build.py                # 패키징용 빌드 스크립트
 ├── manage_version.py       # 버전 업데이트 유틸리티
 ├── requirements.txt        # Python 의존성
-├── pytest.ini              # 테스트 설정
+├── pyproject.toml          # 프로젝트 및 도구 설정 (pytest, mypy, ruff)
 │
 ├── core/                   # 핵심 모듈 (Phase 4 리팩토링에서 추출)
 │   ├── progress_manager.py    # 진행률 추적 및 ETA 계산

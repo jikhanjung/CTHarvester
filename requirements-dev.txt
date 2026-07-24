@@ -1,9 +1,13 @@
 # CTHarvester Development Dependencies
-# Install with: pip install -r requirements-dev.txt
 #
-# NOTE: This file is maintained for backward compatibility.
-# The canonical source of dependencies is pyproject.toml
-# Preferred installation: pip install -e .[dev]
+# NOTE: This file lists version RANGES and is kept for backward compatibility.
+# It is NOT what CI installs.
+#
+#   Declaration (ranges)  -> pyproject.toml  [project.optional-dependencies].dev
+#   Resolution (pinned)   -> requirements-dev.lock  (exact versions + hashes)
+#
+# Preferred install:   make install-dev
+# Regenerate the lock: make lock
 
 -r requirements.txt
 

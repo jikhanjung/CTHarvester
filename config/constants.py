@@ -35,8 +35,11 @@ PROGRAM_AUTHOR = "Jikhan Jung"
 try:
     from version import __version__, __version_info__
 except ImportError:
-    __version__ = "0.2.3"
-    __version_info__ = (0, 2, 3)
+    # Deliberately not a plausible-looking version: a hardcoded fallback here
+    # silently drifts from version.py and then lies in the About dialog and in
+    # bug reports. An obviously-unknown value is the honest failure mode.
+    __version__ = "0.0.0+unknown"
+    __version_info__ = (0, 0, 0)
 
 PROGRAM_NAME = APP_NAME
 PROGRAM_VERSION = __version__

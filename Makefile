@@ -1,6 +1,6 @@
 # Makefile for CTHarvester development tasks
 
-.PHONY: help install install-dev clean test lint format type-check docs build run pre-commit
+.PHONY: help install install-dev clean test lint format type-check docs build run pre-commit lock lock-check
 
 # Default target
 help:
@@ -8,8 +8,10 @@ help:
 	@echo "================================="
 	@echo ""
 	@echo "Setup:"
-	@echo "  make install          Install production dependencies"
-	@echo "  make install-dev      Install development dependencies"
+	@echo "  make install          Install production dependencies (from lockfile)"
+	@echo "  make install-dev      Install development dependencies (from lockfile)"
+	@echo "  make lock             Regenerate requirements*.lock from pyproject.toml"
+	@echo "  make lock-check       Verify the lockfiles are up to date"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  make format           Format code with black and isort"
@@ -38,13 +40,46 @@ help:
 	@echo "  make clean-pyc        Clean Python cache files"
 
 # Installation
+# Installs come from the lockfiles so every machine - CI, a new contributor, a
+# release build - resolves to byte-identical packages.
 install:
-	pip install -r requirements.txt
+	pip install --require-hashes -r requirements.lock
 
 install-dev:
-	pip install -r requirements.txt
-	pip install -r requirements-dev.txt
+	pip install --require-hashes -r requirements-dev.lock
 	pre-commit install
+
+# Dependency locking
+# pyproject.toml declares version RANGES; requirements*.lock pins exact versions
+# with hashes. Regenerate after changing dependencies in pyproject.toml.
+# --universal produces a single lock valid on Linux/macOS/Windows via markers.
+UV ?= uv
+LOCK_ARGS = --universal --python-version 3.11 --generate-hashes
+
+lock:
+	$(UV) pip compile pyproject.toml $(LOCK_ARGS) -o requirements.lock
+	$(UV) pip compile pyproject.toml $(LOCK_ARGS) --extra dev -o requirements-dev.lock
+	$(UV) pip compile pyproject.toml $(LOCK_ARGS) --extra build -o requirements-build.lock
+
+# The generated header records the exact command line, which differs between
+# `-o file` and `-o -`, so compare only the requirement lines. Kept POSIX-sh
+# compatible (no process substitution) since make runs /bin/sh.
+lock-check:
+	@tmp=`mktemp -d`; status=0; \
+	$(UV) pip compile pyproject.toml $(LOCK_ARGS) -o "$$tmp/run.lock" >/dev/null 2>&1; \
+	$(UV) pip compile pyproject.toml $(LOCK_ARGS) --extra dev -o "$$tmp/dev.lock" >/dev/null 2>&1; \
+	$(UV) pip compile pyproject.toml $(LOCK_ARGS) --extra build -o "$$tmp/build.lock" >/dev/null 2>&1; \
+	for pair in "run.lock requirements.lock" "dev.lock requirements-dev.lock" "build.lock requirements-build.lock"; do \
+		set -- $$pair; \
+		grep -v '^#' "$$tmp/$$1" > "$$tmp/a"; \
+		grep -v '^#' "$$2" > "$$tmp/b"; \
+		if ! diff -q "$$tmp/a" "$$tmp/b" >/dev/null; then \
+			echo "$$2 is stale - run 'make lock'"; status=1; \
+		fi; \
+	done; \
+	rm -rf "$$tmp"; \
+	if [ $$status -eq 0 ]; then echo "Lockfiles are up to date."; fi; \
+	exit $$status
 
 # Code formatting
 format:

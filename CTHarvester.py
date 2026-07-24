@@ -12,6 +12,7 @@ from config.constants import (
     PROGRAM_NAME,
 )
 from ui.ctharvester_app import CTHarvesterApp
+from ui.exception_handler import install_global_exception_hook
 from ui.main_window import CTHarvesterMainWindow
 from utils.common import ensure_directories, resource_path
 from version import __version__
@@ -40,6 +41,11 @@ logger.info(f"CTHarvester version {__version__} starting")
 def main():
     """Main application entry point"""
     app = CTHarvesterApp(sys.argv)
+
+    # Backstop for any code path not covered by @guard_slot: without this an
+    # unhandled exception in a slot kills the window with nothing in the log.
+    install_global_exception_hook()
+
     app.setApplicationName(PROGRAM_NAME)
     app.setOrganizationName(COMPANY_NAME)
     app.setOrganizationDomain("github.com/jikhanjung")
