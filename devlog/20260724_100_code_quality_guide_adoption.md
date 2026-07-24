@@ -505,5 +505,82 @@ as a stopgap. Track via a follow-up issue.
 
 ---
 
+## Follow-up — CI consolidation to Modan2's shape (same day)
+
+After the above, the workflow set was aligned with Modan2's layout and trimmed
+from **13 workflows to 9** (the lint-tooling choice — black/isort/flake8 — was
+kept; only the Ruff-migration part of item 4 stays deferred).
+
+**Consolidated:**
+- `quality-gates.yml` **deleted**; its jobs moved to mirror Modan2's split:
+  - code-quality + type-checking → a new **`lint` job in `test.yml`**
+    (black/isort gating; flake8 real-error subset gating; full flake8 + mypy
+    advisory — mypy is advisory because `python_version=3.11` trips the numpy
+    2.5 stubs' 3.12 `type` syntax).
+  - coverage gate → folded into `test.yml`'s test job (`--cov-fail-under=75` on
+    the reference leg).
+  - bandit + pip-audit + dependency-lock → a new **`security.yml`** (weekly +
+    push/PR), matching Modan2's single security workflow.
+- `test.yml` gained `workflow_call`; `release.yml` now gates on it (`uses:
+  ./.github/workflows/test.yml`), like Modan2.
+- `build.yml` / `release.yml` / `manual-release.yml` switched from
+  `github.run_number` to a shared **commit-count build number**
+  (`git rev-list --count HEAD`), so every build path stamps a consistent number.
+
+**Removed as overkill for a solo, commit-to-main project** (analysis in
+`docs/CI_RECOMMENDATIONS_FOR_MODAN2.md`):
+- `dependency-review.yml` — fires only on PRs (never, here); CVE coverage
+  duplicates pip-audit.
+- `performance-tracking.yml` — benchmark-trend tracking is for SLA'd products;
+  run benchmarks on demand instead.
+- `update-readme-badges.yml` — cosmetic auto-commit bot; use Codecov's badge.
+- `generate-release-notes.yml.disabled` — dead file; release notes come from
+  CHANGELOG.md in `release.yml`.
+
+**Kept as valuable extras Modan2 lacks:** `codeql.yml` (cheap SAST) and
+`test-full.yml` (nightly slow/benchmark/stress suite).
+
+**Reverse direction:** `docs/CI_RECOMMENDATIONS_FOR_MODAN2.md` records what
+Modan2's CI would gain from CTHarvester (lockfiles + `--require-hashes`, CodeQL,
+ruff `S` ruleset, a version-consistency test), plus the shared packaged-artifact
+smoke-test gap.
+
+Final workflow set (9): `test.yml`, `security.yml`, `codeql.yml`, `build.yml`,
+`docs.yml`, `release.yml`, `manual-release.yml`, `reusable_build.yml`,
+`test-full.yml`.
+
+---
+
+## 💡 Lessons
+
+1. **A config file that is never read is worse than no config.** The
+   `pytest.ini` / `pyproject.toml` overlap made `filterwarnings = error` look
+   configured for months while it did nothing. `--strict-config` now guards the
+   remaining surface.
+2. **"Backward compatibility" copies drift.** `requirements*.txt`,
+   `pyproject.toml`'s version, `Cargo.toml`, `docs/conf.py` and the
+   `constants.py` fallback all claimed to follow `version.py` and three of them
+   didn't. Derivation beats duplication; where duplication is unavoidable, a test
+   should assert it.
+3. **A hardcoded fallback should look broken when it is.** `0.2.3` as an
+   `ImportError` fallback is indistinguishable from a real version in a bug
+   report; `0.0.0+unknown` is not.
+4. **Auto-discovery failing silently is a packaging bug.** `pip install -e .`
+   producing an empty distribution went unnoticed because nothing asserted the
+   package was importable *from the install*.
+5. **Cross-platform CI is cheap relative to what it catches** — and the smoke job
+   makes it cheaper by failing in ~2 minutes instead of 30 when a platform is
+   fundamentally broken.
+6. **Warnings-as-errors earns its keep — and a variadic decorator is a trap.**
+   Turning it on surfaced a real NumPy 2.5 break in a dependency; wrapping Qt
+   slots in `*args` silently broke PyQt's argument-count introspection. Both were
+   invisible until a test actually exercised them, which is the whole argument for
+   the smoke + integration coverage added here.
+7. **Match the CI to the project, not to a checklist.** CTHarvester had 13
+   workflows for a solo beta tool; four never fired or tracked nothing. Fewer,
+   gating workflows beat many advisory ones.
+
+---
+
 **Next:** item 4 (Ruff consolidation + flipping checks to gating) once the tree
 is clean, then the packaged-artifact smoke test, then an upstream PyMCubes PR.

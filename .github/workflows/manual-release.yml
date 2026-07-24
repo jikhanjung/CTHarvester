@@ -21,13 +21,28 @@ permissions:
   contents: write
 
 jobs:
+  # Same commit-count build number as build.yml / release.yml, so manually
+  # released builds carry a number consistent with CI/CD builds. Needs full
+  # history (fetch-depth: 0).
+  compute-build-number:
+    runs-on: ubuntu-latest
+    outputs:
+      build_number: ${{ steps.bn.outputs.build_number }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: bn
+        run: echo "build_number=$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
+
   call-build-workflow:
+    needs: compute-build-number
     uses: ./.github/workflows/reusable_build.yml
     with:
-      build_number: ${{ github.run_number }}
+      build_number: ${{ needs.compute-build-number.outputs.build_number }}
 
   create-release:
-    needs: call-build-workflow
+    needs: [compute-build-number, call-build-workflow]
     runs-on: ubuntu-latest
 
     steps:
@@ -117,7 +132,7 @@ jobs:
           ## 📋 Build Information
 
           - **Built from commit:** ${{ github.sha }}
-          - **Build number:** ${{ github.run_number }}
+          - **Build number:** ${{ needs.compute-build-number.outputs.build_number }}
           - **Release date:** ${{ github.event.repository.updated_at }}
 
           ## 📖 Documentation

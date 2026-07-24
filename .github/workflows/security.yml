@@ -1,0 +1,90 @@
+name: Security
+
+# Mirrors Modan2's security.yml shape: a single security workflow.
+# Combines dependency CVE scanning (pip-audit), static code security (bandit),
+# and a dependency-lock freshness gate. CodeQL SAST lives in its own workflow
+# (codeql.yml) because GitHub's action wants a dedicated job/permissions block.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Weekly (Mon 06:00 UTC) so newly-disclosed CVEs in already-pinned
+    # dependencies surface even without a commit.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pip-audit:
+    name: pip-audit (dependency CVEs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      # Audit the locked runtime dependencies (the exact versions we ship).
+      # Fails (non-zero) if any has a known vulnerability. If an unfixable
+      # advisory appears, add `--ignore-vuln <ID>` with a comment rather than
+      # dropping the gate.
+      - name: Audit runtime dependencies
+        run: pip-audit -r requirements.lock
+
+  bandit:
+    name: bandit (code security)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install bandit
+        run: pip install "bandit[toml]"
+
+      # Medium+ severity only (`-ll`); B101 (assert) is noise in this codebase.
+      # Scoped to shipped code, excluding tests.
+      - name: Run bandit
+        run: bandit -r core/ utils/ ui/ security/ config/ -ll -s B101
+
+  dependency-lock:
+    name: dependency lock freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: pip install uv
+
+      # Gating: a dependency change in pyproject.toml that forgets to re-lock
+      # means CI and release builds would install something different from what
+      # was reviewed. `make lock-check` regenerates and diffs (ignoring headers).
+      - name: Verify lockfiles match pyproject.toml
+        run: make lock-check
+
+      - name: Verify the lockfile installs with hashes
+        run: pip install --require-hashes --dry-run -r requirements.lock
