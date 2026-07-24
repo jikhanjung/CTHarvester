@@ -174,10 +174,34 @@ clean-pyc:
 	@echo "Python cache cleaned!"
 
 # Release
+# Bump version.py + roll CHANGELOG + commit + tag v<version>, then push (which
+# triggers release.yml to build all platforms and publish the GitHub release).
+# BUMP selects the part: patch (default) | minor | major | prerelease.
+# Examples:
+#   make release BUMP=patch          # 0.2.3 -> 0.2.4, tag, and push
+#   make release-local BUMP=minor    # bump + tag locally, do NOT push
+#   make release-preview BUMP=patch  # dry run, change nothing
+#   make release-set VERSION=1.0.0   # set an explicit version, tag, and push
+BUMP ?= patch
+
+release:
+	python scripts/bump_version.py $(BUMP) --push
+
+release-local:
+	python scripts/bump_version.py $(BUMP)
+
+release-preview:
+	python scripts/bump_version.py $(BUMP) --dry-run
+
+release-set:
+	python scripts/bump_version.py --set $(VERSION) --push
+
+# Draft a CHANGELOG section from conventional commits (a writing aid; the
+# curated CHANGELOG.md is what release.yml actually publishes).
 release-notes:
-	@echo "Generating release notes..."
+	@echo "Drafting release notes from commits..."
 	python scripts/generate_release_notes.py --tag $(TAG) --output release_notes.md
-	@echo "Release notes generated in release_notes.md"
+	@echo "Draft written to release_notes.md — hand-edit into CHANGELOG.md"
 
 # Development workflow shortcuts
 dev-check: format lint test

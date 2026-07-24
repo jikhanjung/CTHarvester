@@ -72,7 +72,9 @@ jobs:
     - name: Extract changelog for this version
       id: changelog
       run: |
+        # CHANGELOG headings are "## [0.2.4]" (no leading v); the input tag is v0.2.4.
         VERSION="${{ github.event.inputs.version_tag }}"
+        VERSION="${VERSION#v}"
 
         # Try to extract specific version section from CHANGELOG.md
         if grep -q "## \[${VERSION}\]" CHANGELOG.md 2>/dev/null; then

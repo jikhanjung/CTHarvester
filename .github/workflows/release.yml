@@ -9,13 +9,34 @@ on:
       - 'v*.*.*'
 
 jobs:
+  # Refuse to release a tag that doesn't match version.py (the single source of
+  # truth). Catches the "tagged v0.2.4 but forgot to bump version.py" mistake
+  # before anything is built or published. bump_version.py keeps them in sync,
+  # but a hand-pushed tag could still drift.
+  verify-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag matches version.py
+        run: |
+          FILE_VERSION="$(python -c 'import re,pathlib; print(re.search(r"__version__\s*=\s*\"([^\"]+)\"", pathlib.Path("version.py").read_text()).group(1))')"
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          echo "version.py: $FILE_VERSION"
+          echo "tag:        $TAG_VERSION"
+          if [ "$FILE_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match version.py ($FILE_VERSION). Bump version.py or fix the tag."
+            exit 1
+          fi
+
   # Gate the release on the full test workflow (Modan2 pattern).
   test:
+    needs: verify-version
     uses: ./.github/workflows/test.yml
 
   # Same commit-count build number as build.yml / manual-release.yml so every
   # build path stamps a consistent number (github.run_number is per-workflow).
   compute-build-number:
+    needs: verify-version
     runs-on: ubuntu-latest
     outputs:
       build_number: ${{ steps.bn.outputs.build_number }}
@@ -48,6 +69,17 @@ jobs:
     - name: Display structure of downloaded files
       run: ls -la release-files/*/
 
+    - name: Generate SHA256 checksums
+      # One checksums file over every shipped artifact, attached to the release
+      # so users can verify downloads (Modan2 parity).
+      run: |
+        cd release-files
+        find . -type f \( -name "*.zip" -o -name "*.dmg" -o -name "*.AppImage" \) \
+          -exec sha256sum {} \; > ../SHA256SUMS.txt
+        cd ..
+        echo "=== SHA256SUMS.txt ==="
+        cat SHA256SUMS.txt
+
     - name: Extract tag version
       id: get_tag
       run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
@@ -64,7 +96,9 @@ jobs:
     - name: Extract changelog for this version
       id: changelog
       run: |
+        # CHANGELOG headings are "## [0.2.4]" (no leading v); the tag is v0.2.4.
         VERSION="${{ steps.get_tag.outputs.TAG_NAME }}"
+        VERSION="${VERSION#v}"
 
         # Try to extract specific version section from CHANGELOG.md
         if grep -q "## \[${VERSION}\]" CHANGELOG.md 2>/dev/null; then
@@ -110,6 +144,13 @@ jobs:
           - **Build number:** ${{ needs.compute-build-number.outputs.build_number }}
           - **Date:** ${{ github.event.head_commit.timestamp }}
 
+          ## 🔒 Verifying your download
+
+          `SHA256SUMS.txt` (attached) lists the checksum of every file. Verify with:
+          ```
+          sha256sum -c SHA256SUMS.txt
+          ```
+
           ## 📖 Documentation
 
           - [User Guide](https://jikhanjung.github.io/CTHarvester/en/user_guide.html)
@@ -120,5 +161,6 @@ jobs:
           release-files/ctharvester-windows/CTHarvester-Windows-*.zip
           release-files/ctharvester-macos/CTHarvester-macOS-*.dmg
           release-files/ctharvester-linux/CTHarvester-Linux-*.AppImage
+          SHA256SUMS.txt
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

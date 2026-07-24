@@ -5,7 +5,22 @@ All notable changes to CTHarvester will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+<!--
+Add entries for the next release under [Unreleased] as you merge changes, using
+the Keep a Changelog groups: Added / Changed / Deprecated / Removed / Fixed /
+Security. `scripts/bump_version.py` renames this section to the new version at
+release time, and release.yml publishes it verbatim as the GitHub release body.
+-->
 
+## [Unreleased]
+
+### Added
+- Release automation: `scripts/bump_version.py` (+ `make release`) bumps
+  `version.py`, rolls this changelog, and tags `v<version>`; `release.yml`
+  publishes the tag's changelog section with SHA256 checksums.
+
+### Changed / Internal
+- CI/CD consolidated to nine workflows aligned with Modan2's layout.
 
 ## [0.2.3-beta.2] - 2025-10-08
 
