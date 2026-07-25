@@ -8,12 +8,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def test_import():
     """Test that the main module can be imported"""
-    try:
-        import CTHarvester
-
-        assert True
-    except ImportError:
-        assert False, "Failed to import CTHarvester module"
+    # No try/except: an ImportError fails the test on its own, with a traceback
+    # naming the module that actually failed. `assert False` in an except block
+    # is stripped by `python -O` (B011) and throws that traceback away.
+    import CTHarvester  # noqa: F401
 
 
 def test_requirements():
@@ -27,12 +25,7 @@ def test_requirements():
     ]
 
     for package in required_packages:
-        try:
-            __import__(package)
-        except ImportError:
-            assert False, f"Required package {package} is not installed"
-
-    assert True
+        __import__(package)
 
 
 def test_security_module_basic():
@@ -41,12 +34,8 @@ def test_security_module_basic():
 
     from security.file_validator import FileSecurityError, SecureFileValidator
 
-    # Valid filename should pass
-    try:
-        SecureFileValidator.validate_filename("test.tif")
-        assert True
-    except FileSecurityError:
-        assert False, "Valid filename rejected"
+    # Valid filename should pass (a raised FileSecurityError fails the test)
+    SecureFileValidator.validate_filename("test.tif")
 
     # Directory traversal should fail
     with pytest.raises(FileSecurityError):
@@ -59,62 +48,60 @@ def test_security_module_basic():
 
 def test_image_utils_basic():
     """Smoke test: Image utilities basic functionality"""
+    # The body used to be wrapped in `except ImportError: pass`, nominally to
+    # skip when PIL is missing. PIL is a hard dependency, so the branch was
+    # never a legitimate skip -- it just turned any import failure anywhere in
+    # the chain into a silent pass, which is exactly the failure mode B017 and
+    # friends exist to prevent.
+    import numpy as np
+    from PIL import Image
+
+    from utils.image_utils import (
+        average_images,
+        detect_bit_depth,
+        downsample_image,
+        load_image_as_array,
+        save_image_from_array,
+    )
+
+    # Create temporary test image
+    temp_dir = tempfile.mkdtemp()
     try:
-        import numpy as np
-        from PIL import Image
+        # Create 8-bit test image
+        img_array = np.ones((100, 100), dtype=np.uint8) * 128
+        img = Image.fromarray(img_array)
+        test_path = os.path.join(temp_dir, "test.tif")
+        img.save(test_path)
 
-        from utils.image_utils import (
-            average_images,
-            detect_bit_depth,
-            downsample_image,
-            load_image_as_array,
-            save_image_from_array,
-        )
+        # Test bit depth detection
+        depth = detect_bit_depth(test_path)
+        assert depth == 8, f"Expected bit depth 8, got {depth}"
 
-        # Create temporary test image
-        temp_dir = tempfile.mkdtemp()
-        try:
-            # Create 8-bit test image
-            img_array = np.ones((100, 100), dtype=np.uint8) * 128
-            img = Image.fromarray(img_array)
-            test_path = os.path.join(temp_dir, "test.tif")
-            img.save(test_path)
+        # Test image loading
+        loaded = load_image_as_array(test_path)
+        assert loaded.shape == (100, 100), f"Expected shape (100, 100), got {loaded.shape}"
 
-            # Test bit depth detection
-            depth = detect_bit_depth(test_path)
-            assert depth == 8, f"Expected bit depth 8, got {depth}"
+        # Test downsampling
+        downsampled = downsample_image(loaded, factor=2)
+        assert downsampled.shape == (
+            50,
+            50,
+        ), f"Expected shape (50, 50), got {downsampled.shape}"
 
-            # Test image loading
-            loaded = load_image_as_array(test_path)
-            assert loaded.shape == (100, 100), f"Expected shape (100, 100), got {loaded.shape}"
+        # Test averaging
+        arr1 = np.ones((10, 10), dtype=np.uint8) * 100
+        arr2 = np.ones((10, 10), dtype=np.uint8) * 200
+        averaged = average_images(arr1, arr2)
+        assert np.all(averaged == 150), "Image averaging failed"
 
-            # Test downsampling
-            downsampled = downsample_image(loaded, factor=2)
-            assert downsampled.shape == (
-                50,
-                50,
-            ), f"Expected shape (50, 50), got {downsampled.shape}"
+        # Test saving
+        output_path = os.path.join(temp_dir, "output.tif")
+        result = save_image_from_array(loaded, output_path)
+        assert result is True, "Image save failed"
+        assert os.path.exists(output_path), "Output file not created"
 
-            # Test averaging
-            arr1 = np.ones((10, 10), dtype=np.uint8) * 100
-            arr2 = np.ones((10, 10), dtype=np.uint8) * 200
-            averaged = average_images(arr1, arr2)
-            assert np.all(averaged == 150), "Image averaging failed"
-
-            # Test saving
-            output_path = os.path.join(temp_dir, "output.tif")
-            result = save_image_from_array(loaded, output_path)
-            assert result is True, "Image save failed"
-            assert os.path.exists(output_path), "Output file not created"
-
-        finally:
-            shutil.rmtree(temp_dir)
-
-        assert True
-
-    except ImportError:
-        # PIL not available, skip test
-        pass
+    finally:
+        shutil.rmtree(temp_dir)
 
 
 def test_progress_manager_basic():
@@ -183,5 +170,3 @@ def test_file_utils_basic():
 
     finally:
         shutil.rmtree(temp_dir)
-
-    assert True

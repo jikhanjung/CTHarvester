@@ -205,7 +205,7 @@ class TestThumbnailProgressTracker:
         # Simulate stage 1
         tracker.completed_tasks = 5
         time.sleep(0.01)
-        info1 = tracker.get_stage_info(total_tasks=100, total_levels=3)
+        tracker.get_stage_info(total_tasks=100, total_levels=3)  # advances the tracker to stage 2
 
         # Now stage 2
         tracker.completed_tasks = 10

@@ -69,8 +69,6 @@ class ProgressDialog(QDialog):
         self.current_step = 0
 
         # Advanced ETA calculation with improved stability
-        from collections import deque
-
         self.step_times = deque(maxlen=100)  # Keep last 100 step times for better averaging
         self.last_update_time = None
         self.smoothed_eta = None  # Exponentially smoothed ETA
@@ -105,10 +103,6 @@ class ProgressDialog(QDialog):
 
     def setup_unified_progress(self, total_steps, initial_estimate_seconds=None):
         """Setup for unified progress tracking with optional initial estimate"""
-        import logging
-        import time
-        from collections import deque
-
         logger = logging.getLogger("CTHarvester")
 
         self.total_steps = total_steps
@@ -119,8 +113,6 @@ class ProgressDialog(QDialog):
         self.pb_progress.setValue(0)
 
         # Reset ETA calculation state
-        from collections import deque
-
         self.step_times = deque(maxlen=100)
         self.smoothed_eta = initial_estimate_seconds  # Use provided initial estimate
         self.step_history = []
@@ -147,9 +139,6 @@ class ProgressDialog(QDialog):
 
     def update_unified_progress(self, step, detail_text=""):
         """Update unified progress with sophisticated ETA calculation"""
-        import logging
-        import time
-
         import numpy as np
 
         logger = logging.getLogger("CTHarvester")

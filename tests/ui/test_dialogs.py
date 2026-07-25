@@ -152,7 +152,6 @@ class TestInfoDialog:
         """Dialog should be positioned relative to parent"""
         # Dialog position should be calculated from parent
         # We can't test exact position without showing, but verify no crash
-        parent_pos = parent_window.pos()
         dialog_pos = dialog.pos()
 
         # Position should be reasonable (not at 0, 0)

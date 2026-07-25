@@ -182,7 +182,9 @@ class TestMemoryStability:
         mem_before = process.memory_info().rss / 1024 / 1024
 
         # Create large array (approximately 800MB)
-        large_array = np.zeros((2048, 2048, 100), dtype=np.uint16)
+        # pyflakes does not count the `del large_array` below as a use, but the
+        # binding is exactly what holds the allocation this test measures.
+        large_array = np.zeros((2048, 2048, 100), dtype=np.uint16)  # noqa: F841
         mem_allocated = process.memory_info().rss / 1024 / 1024
 
         allocated = mem_allocated - mem_before

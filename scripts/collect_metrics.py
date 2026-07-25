@@ -22,19 +22,24 @@ import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional, Sequence
 
 
-def count_lines_of_code(directory: str, extensions: List[str] = [".py"]) -> Dict[str, int]:
+def count_lines_of_code(
+    directory: str, extensions: Optional[Sequence[str]] = None
+) -> Dict[str, int]:
     """Count lines of code in directory
 
     Args:
         directory: Directory to scan
-        extensions: File extensions to include
+        extensions: File extensions to include (defaults to ``.py``)
 
     Returns:
         Dictionary with LOC metrics
     """
+    if extensions is None:
+        extensions = (".py",)
+
     metrics = {"total_lines": 0, "code_lines": 0, "comment_lines": 0, "blank_lines": 0, "files": 0}
 
     for root, _, files in os.walk(directory):
@@ -70,7 +75,7 @@ def get_test_coverage() -> Dict[str, float]:
     """
     try:
         # Run pytest with coverage
-        result = subprocess.run(
+        subprocess.run(
             ["pytest", "--cov=.", "--cov-report=json", "--tb=no", "-q"],
             capture_output=True,
             text=True,

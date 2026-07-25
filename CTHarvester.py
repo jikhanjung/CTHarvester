@@ -27,7 +27,7 @@ try:
             DB_BACKUP_DIRECTORY,
         ]
     )
-except (OSError, PermissionError) as e:
+except OSError as e:  # PermissionError is a subclass
     # Use print here since logger might not be initialized yet
     print(f"Warning: Directory initialization failed: {e}")
 

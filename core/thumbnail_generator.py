@@ -209,19 +209,22 @@ class ThumbnailGenerator:
         if use_rust:
             logger.info("Using Rust-based thumbnail generation")
             # Create progress callback from progress_dialog
-            progress_callback = None
-            cancel_check = None
+            progress_callback: Optional[Callable[[float], None]] = None
+            cancel_check: Optional[Callable[[], bool]] = None
 
             if progress_dialog:
-
-                def progress_callback(percentage: float) -> None:
+                # Defined under private names and then assigned, rather than
+                # `def progress_callback` shadowing the None above: rebinding a
+                # name with `def` inside a branch reads as a redefinition (F811)
+                # and hides a genuine one if it ever appears here.
+                def _progress_callback(percentage: float) -> None:
                     """Update progress dialog with percentage"""
                     progress_dialog.lbl_text.setText(f"Generating thumbnails: {percentage:.1f}%")
                     progress_dialog.pb_progress.setValue(int(percentage))
                     progress_dialog.update()
                     QApplication.processEvents()
 
-                def cancel_check() -> bool:
+                def _cancel_check() -> bool:
                     """Check if user cancelled via progress dialog"""
                     result: bool = (
                         progress_dialog.is_cancelled
@@ -229,6 +232,9 @@ class ThumbnailGenerator:
                         else False
                     )
                     return result
+
+                progress_callback = _progress_callback
+                cancel_check = _cancel_check
 
             # Use unified return format
             rust_success = self.generate_rust(directory, progress_callback, cancel_check)
@@ -325,28 +331,28 @@ class ThumbnailGenerator:
 
             return True
 
-        except ImportError as e:
+        except ImportError:
             logger.error(
                 "Rust module import failed during generation",
                 exc_info=True,
                 extra={"extra_fields": {"error_type": "rust_import_error"}},
             )
             return False
-        except MemoryError as e:
+        except MemoryError:
             logger.error(
                 "Out of memory during Rust thumbnail generation",
                 exc_info=True,
                 extra={"extra_fields": {"error_type": "out_of_memory", "directory": directory}},
             )
             return False
-        except OSError as e:
+        except OSError:
             logger.error(
                 f"File system error during Rust generation: {directory}",
                 exc_info=True,
                 extra={"extra_fields": {"error_type": "os_error", "directory": directory}},
             )
             return False
-        except Exception as e:
+        except Exception:
             logger.exception(f"Unexpected error during Rust thumbnail generation: {directory}")
             return False
 
@@ -946,27 +952,27 @@ class ThumbnailGenerator:
                 logger.warning("No thumbnails loaded")
                 return None, {}
 
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             logger.error(
                 f"Thumbnail file not found in: {directory}",
                 exc_info=True,
                 extra={"extra_fields": {"error_type": "file_not_found", "directory": directory}},
             )
             return None, {}
-        except PermissionError as e:
+        except PermissionError:
             logger.error(
                 f"Permission denied reading thumbnails: {directory}",
                 exc_info=True,
                 extra={"extra_fields": {"error_type": "permission_denied", "directory": directory}},
             )
             return None, {}
-        except OSError as e:
+        except OSError:
             logger.error(
                 f"OS error loading thumbnails: {directory}",
                 exc_info=True,
                 extra={"extra_fields": {"error_type": "os_error", "directory": directory}},
             )
             return None, {}
-        except Exception as e:
+        except Exception:
             logger.exception(f"Unexpected error loading thumbnail data: {directory}")
             return None, {}

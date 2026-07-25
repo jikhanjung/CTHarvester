@@ -140,8 +140,9 @@ def profile_image_processing(sample_dir: str) -> dict:
             with Image.open(img_file) as img:
                 # Convert to numpy array
                 img_array = np.array(img)
-                # Simulate downsample
-                downsampled = img_array[::2, ::2]
+                # Simulate downsample. The binding is the point -- this is a
+                # profiling harness, the assignment is the work being measured.
+                downsampled = img_array[::2, ::2]  # noqa: F841
         success = True
     except Exception as e:
         print(f"Error during profiling: {e}")

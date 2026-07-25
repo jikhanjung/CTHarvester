@@ -154,7 +154,7 @@ class TestThumbnailGenerationWorkflow:
 
         # Level 2: Process level 1 thumbnails (50x50 -> 25x25)
         level1_images = find_image_files(thumb_dir_1)
-        thumb_dir_2 = create_thumbnail_directory(self.output_dir, level=2)
+        create_thumbnail_directory(self.output_dir, level=2)
         level2_count = 0
 
         for i in range(0, len(level1_images) - 1, 2):
@@ -211,7 +211,7 @@ class TestThumbnailGenerationWorkflow:
 
         # Process with 16-bit preservation
         found_images = find_image_files(source_16bit)
-        thumb_dir = create_thumbnail_directory(self.output_dir, level=1)
+        create_thumbnail_directory(self.output_dir, level=1)
 
         for i in range(0, len(found_images) - 1, 2):
             img1_path = os.path.join(source_16bit, found_images[i])
@@ -273,7 +273,7 @@ class TestThumbnailGenerationWorkflow:
         # Try to load non-existent image
         missing_path = os.path.join(self.source_dir, "missing.tif")
 
-        with pytest.raises(Exception):
+        with pytest.raises(FileNotFoundError):
             load_image_as_array(missing_path)
 
     def test_downsampling_methods_comparison(self):
@@ -302,7 +302,7 @@ class TestThumbnailGenerationWorkflow:
         # without keeping all in memory
 
         found_images = find_image_files(self.source_dir)
-        thumb_dir = create_thumbnail_directory(self.output_dir, level=1)
+        create_thumbnail_directory(self.output_dir, level=1)
 
         # Process in small batches (simulating memory constraints)
         batch_size = 2
@@ -339,7 +339,7 @@ class TestThumbnailGenerationWorkflow:
         assert height == 100
 
         # Generate level 1
-        thumb_dir = create_thumbnail_directory(self.output_dir, level=1)
+        create_thumbnail_directory(self.output_dir, level=1)
         found = find_image_files(self.source_dir)
 
         img1 = load_image_as_array(os.path.join(self.source_dir, found[0]))

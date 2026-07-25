@@ -85,27 +85,27 @@ def load_image_as_array(image_path: str, target_dtype: Optional[np.dtype] = None
             arr = np.array(img, dtype=target_dtype)
             return arr
 
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         logger.error(f"Image file not found: {image_path}", exc_info=True)
         raise
-    except PermissionError as e:
+    except PermissionError:
         logger.error(f"Permission denied reading image: {image_path}", exc_info=True)
         raise
-    except MemoryError as e:
+    except MemoryError:
         logger.error(
             f"Out of memory loading image: {image_path}",
             exc_info=True,
             extra={"extra_fields": {"error_type": "out_of_memory", "file": image_path}},
         )
         raise
-    except OSError as e:
+    except OSError:
         logger.error(
             f"OS error loading image: {image_path}",
             exc_info=True,
             extra={"extra_fields": {"error_type": "os_error", "file": image_path}},
         )
         raise
-    except Exception as e:
+    except Exception:
         logger.exception(f"Unexpected error loading image: {image_path}")
         raise
 
@@ -213,24 +213,24 @@ def save_image_from_array(img_array: np.ndarray, output_path: str, compress: boo
 
         return True
 
-    except PermissionError as e:
+    except PermissionError:
         logger.error(f"Permission denied saving image: {output_path}", exc_info=True)
         return False
-    except OSError as e:
+    except OSError:
         logger.error(
             f"OS error saving image: {output_path}",
             exc_info=True,
             extra={"extra_fields": {"error_type": "os_error", "file": output_path}},
         )
         return False
-    except MemoryError as e:
+    except MemoryError:
         logger.error(
             f"Out of memory saving image: {output_path}",
             exc_info=True,
             extra={"extra_fields": {"error_type": "out_of_memory", "file": output_path}},
         )
         return False
-    except Exception as e:
+    except Exception:
         logger.exception(f"Unexpected error saving image: {output_path}")
         return False
 
@@ -249,20 +249,20 @@ def get_image_dimensions(image_path: str) -> Tuple[int, int]:
         with Image.open(image_path) as img:
             width, height = img.size
             return (width, height)
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         logger.error(f"Image file not found: {image_path}", exc_info=True)
         raise
-    except PermissionError as e:
+    except PermissionError:
         logger.error(f"Permission denied reading image: {image_path}", exc_info=True)
         raise
-    except OSError as e:
+    except OSError:
         logger.error(
             f"OS error reading image dimensions: {image_path}",
             exc_info=True,
             extra={"extra_fields": {"error_type": "os_error", "file": image_path}},
         )
         raise
-    except Exception as e:
+    except Exception:
         logger.exception(f"Unexpected error getting image dimensions: {image_path}")
         raise
 
@@ -324,14 +324,14 @@ def load_image_with_metadata(image_path: str) -> Tuple[np.ndarray, ImageMetadata
     except PermissionError as e:
         logger.error(f"Permission denied reading image: {image_path}", exc_info=True)
         raise PermissionError(f"Permission denied: {image_path}") from e
-    except MemoryError as e:
+    except MemoryError:
         logger.error(
             f"Out of memory loading image with metadata: {image_path}",
             exc_info=True,
             extra={"extra_fields": {"error_type": "out_of_memory", "file": image_path}},
         )
         raise
-    except OSError as e:
+    except OSError:
         logger.error(
             f"OS error loading image with metadata: {image_path}",
             exc_info=True,

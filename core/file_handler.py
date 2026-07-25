@@ -425,7 +425,9 @@ class FileHandler:
     def find_log_file(self, directory_path: str) -> Optional[str]:
         """Find CT scanner log file in directory
 
-        Looks for common log file patterns (e.g., .log, .txt with specific names)
+        Returns the first ``*.log`` file in the directory. (An unused
+        ``log_patterns`` list here once also named ``reconstruction*.txt`` and
+        ``scan*.txt``; the matching below has only ever looked at ``.log``.)
 
         Args:
             directory_path (str): Directory to search
@@ -434,9 +436,6 @@ class FileHandler:
             Optional[str]: Path to log file if found, None otherwise
         """
         try:
-            # Common log file patterns
-            log_patterns = ["*.log", "reconstruction*.txt", "scan*.txt"]
-
             files = os.listdir(directory_path)
             for file in files:
                 file_lower = file.lower()
@@ -448,7 +447,7 @@ class FileHandler:
             logger.info("No log file found in directory")
             return None
 
-        except (OSError, PermissionError) as e:
+        except OSError as e:  # PermissionError is a subclass
             logger.error(f"Error searching for log file: {e}")
             return None
 
@@ -473,6 +472,6 @@ class FileHandler:
 
             return len(files)
 
-        except (OSError, PermissionError) as e:
+        except OSError as e:  # PermissionError is a subclass
             logger.error(f"Error counting files: {e}")
             return 0

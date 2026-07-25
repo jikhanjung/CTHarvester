@@ -92,7 +92,7 @@ def test_full_process(file1_path, file2_path, output_path):
     for i in range(5):
         img_test = Image.open(file1_path)
         start = time.time()
-        arr_test = np.array(img_test, dtype=np.uint16)
+        arr_test = np.array(img_test, dtype=np.uint16)  # noqa: F841 -- this is the timed work
         elapsed = (time.time() - start) * 1000
         print(f"  Run {i+1}: {elapsed:.1f}ms")
         img_test.close()

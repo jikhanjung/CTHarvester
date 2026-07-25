@@ -123,7 +123,7 @@ class TestThumbnailCreationHandlerRustPythonSelection:
         monkeypatch.setattr("builtins.__import__", mock_import)
         handler.create_thumbnail_python = Mock(return_value=True)
 
-        result = handler.create_thumbnail()
+        handler.create_thumbnail()
 
         # Should fall back to Python after Rust import fails
         handler.create_thumbnail_python.assert_called_once()
@@ -504,6 +504,6 @@ class TestThumbnailCreationHandlerEdgeCases:
         handler.create_thumbnail_python = Mock(return_value=True)
 
         # Will try Rust first (default True), fail import, then Python
-        result = handler.create_thumbnail()
+        handler.create_thumbnail()
 
         handler.create_thumbnail_python.assert_called_once()

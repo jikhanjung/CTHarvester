@@ -160,7 +160,7 @@ class TestLoadImageAsArray:
 
     def test_load_error_handling(self):
         """Should raise exception on load error"""
-        with pytest.raises(Exception):
+        with pytest.raises(FileNotFoundError):
             load_image_as_array("/nonexistent/image.tif")
 
 
@@ -346,7 +346,7 @@ class TestGetImageDimensions:
 
     def test_nonexistent_file(self):
         """Should handle nonexistent file"""
-        with pytest.raises(Exception):  # Could be FileNotFoundError or other
+        with pytest.raises(FileNotFoundError):
             get_image_dimensions("/nonexistent/file.tif")
 
 

@@ -124,10 +124,8 @@ class TestThumbnailGenerationErrors:
         """Test handling when source directory doesn't exist."""
         generator = ThumbnailGenerator()
 
-        # Attempting to process non-existent directory should be handled
-        # In actual usage, FileHandler validates this before calling generator
-        nonexistent = "/nonexistent/directory"
-
+        # In actual usage, FileHandler validates a missing directory before it
+        # ever reaches the generator, so there is nothing to call here.
         # Verify the generator exists and can be instantiated
         assert generator is not None
 
@@ -138,7 +136,6 @@ class TestThumbnailLoadingErrors:
     def test_loading_from_nonexistent_directory(self, tmp_path):
         """Test handling of missing thumbnail directory."""
         generator = ThumbnailGenerator()
-        nonexistent_dir = tmp_path / "missing"
 
         # Generator should exist and be callable
         assert generator is not None

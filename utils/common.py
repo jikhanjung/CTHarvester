@@ -85,7 +85,7 @@ def ensure_directories(directories: Union[List[str], str]) -> None:
         try:
             if not os.path.exists(directory):
                 os.makedirs(directory, exist_ok=True)
-        except (OSError, PermissionError) as e:
+        except OSError as e:  # PermissionError is a subclass
             # Use warnings here since logger might not be initialized yet
             # stacklevel=2 to show caller's location instead of this line
             warnings.warn(

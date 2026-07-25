@@ -42,12 +42,12 @@ class TestFileHandlerErrorPaths:
                 for d in dirs:
                     try:
                         os.chmod(os.path.join(root, d), 0o755)
-                    except:
+                    except OSError:
                         pass
                 for f in files:
                     try:
                         os.chmod(os.path.join(root, f), 0o644)
-                    except:
+                    except OSError:
                         pass
             shutil.rmtree(temp_dir)
 

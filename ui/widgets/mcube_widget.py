@@ -513,13 +513,13 @@ class MCubeWidget(QGLWidget):
         self.set_volume(volume)
 
     def adjust_volume(self):
-        if self.generate_mesh_under_way == True:
+        if self.generate_mesh_under_way:
             return
 
         if self.generated_data is None:
             return
 
-        if self.adjust_volume_under_way == True:
+        if self.adjust_volume_under_way:
             return
 
         self.adjust_volume_under_way = True
@@ -654,7 +654,7 @@ class MCubeWidget(QGLWidget):
 
     def generate_mesh_timeout(self):
         # print("timout2")
-        if not self.queue.empty() and self.generate_mesh_under_way == False:
+        if not self.queue.empty() and not self.generate_mesh_under_way:
             while not self.queue.empty():
                 (volume, isovalue) = self.queue.get()
             self.volume = volume
@@ -671,7 +671,7 @@ class MCubeWidget(QGLWidget):
     def rotate_timeout(self):
         # print("timout1")
         # print("timeout, auto_rotate:", self.auto_rotate)
-        if self.auto_rotate == False:
+        if not self.auto_rotate:
             # print "no rotate"
             return
         if self.is_dragging:
@@ -752,7 +752,7 @@ class MCubeWidget(QGLWidget):
         gluPerspective(45, (width / height), 0.1, 50.0)
         glMatrixMode(GL_MODELVIEW)
 
-    def draw_box(self, box_vertices, box_edges, color=[1.0, 0.0, 0.0]):
+    def draw_box(self, box_vertices, box_edges, color=(1.0, 0.0, 0.0)):
         glColor3f(color[0], color[1], color[2])
         v = box_vertices
         glBegin(GL_LINES)
@@ -802,12 +802,12 @@ class MCubeWidget(QGLWidget):
         if self.roi_box is not None:
             if not (self.roi_box_vertices == self.bounding_box_vertices).all():
                 glLineWidth(2)
-                self.draw_box(self.roi_box_vertices, self.roi_box_edges, color=[1.0, 0.0, 0.0])
+                self.draw_box(self.roi_box_vertices, self.roi_box_edges, color=(1.0, 0.0, 0.0))
         glEnable(GL_LIGHTING)
 
         """ render 3d model """
         glColor3f(0.0, 1.0, 0.0)
-        if self.gl_list_generated == False:
+        if not self.gl_list_generated:
             self.generate_gl_list()
 
         self.render_gl_list()
@@ -822,7 +822,7 @@ class MCubeWidget(QGLWidget):
         return
 
     def render_gl_list(self):
-        if self.gl_list_generated == False:
+        if not self.gl_list_generated:
             return
         glCallList(self.gl_list)
         return

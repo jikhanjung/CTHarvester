@@ -47,9 +47,6 @@ class TestThumbnailCompleteWorkflow:
         assert "minimum_volume" in result
         assert isinstance(result["level_info"], list)
 
-        # Verify thumbnail directories were created (.thumbnail is the actual dir name)
-        thumb_dir = sample_ct_directory / ".thumbnail"
-
         # Directory might not exist if generation had issues, but result should indicate success
         # Just verify the result structure is correct
         assert len(result["level_info"]) > 0

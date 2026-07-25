@@ -47,9 +47,6 @@ class TestUIWorkflows:
             window1.settings.set("application.language", "ko")
             window1.settings.save()
 
-        # Get window geometry
-        geometry1 = window1.geometry()
-
         # Close window
         window1.close()
         qapp.processEvents()
@@ -85,8 +82,6 @@ class TestUIWorkflows:
 
     def test_window_state_after_operations(self, main_window, sample_ct_directory):
         """Test window state remains consistent after operations"""
-        initial_title = main_window.windowTitle()
-
         # Set directory programmatically
         main_window.edtDirname.setText(str(sample_ct_directory))
         QTest.qWait(100)

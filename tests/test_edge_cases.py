@@ -240,9 +240,6 @@ class TestThumbnailGeneratorEdgeCases:
 
     def test_single_image_sequence(self):
         """Test handling when seq_begin == seq_end."""
-        from core.thumbnail_generator import ThumbnailGenerator
-
-        gen = ThumbnailGenerator()
         settings = {
             "directory": "/tmp/test",
             "image_width": 512,
@@ -259,9 +256,6 @@ class TestThumbnailGeneratorEdgeCases:
 
     def test_negative_sequence_numbers(self):
         """Test handling of negative sequence numbers in settings."""
-        from core.thumbnail_generator import ThumbnailGenerator
-
-        gen = ThumbnailGenerator()
         settings = {
             "directory": "/tmp/test",
             "image_width": 512,

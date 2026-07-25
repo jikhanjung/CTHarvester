@@ -193,7 +193,7 @@ class VerticalTimeline(QtWidgets.QWidget):
     def mousePressEvent(self, ev):
         if ev.button() != QtCore.Qt.LeftButton:  # type: ignore[attr-defined]
             return
-        r, track = self.rect(), self._track_rect()
+        track = self._track_rect()
         y = ev.pos().y()
         x = ev.pos().x()
         # Determine if cursor is on the right side of the vertical line

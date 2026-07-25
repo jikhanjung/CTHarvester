@@ -372,7 +372,7 @@ class ObjectViewer2D(QLabel):
                 self.distance_check(me.x(), me.y())
                 if self.edit_x1 or self.edit_x2 or self.edit_y1 or self.edit_y2:
                     self.set_mode(MODE["EDIT_BOX_READY"])
-                elif self.inside_box == False:
+                elif not self.inside_box:
                     self.set_mode(MODE["EDIT_BOX"])
         self.object_dialog.update_status()
         self.repaint()
@@ -531,7 +531,7 @@ class ObjectViewer2D(QLabel):
             from_y = self._2cany(min(self.crop_from_y, self.crop_to_y))
             to_y = self._2cany(max(self.crop_from_y, self.crop_to_y))
 
-        if imgxy == True:
+        if imgxy:
             if from_x <= 0 and from_y <= 0 and to_x <= 0 and to_y <= 0 and self.orig_pixmap:
                 return [0, 0, self.orig_pixmap.width(), self.orig_pixmap.height()]
             else:

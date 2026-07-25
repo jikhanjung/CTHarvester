@@ -275,30 +275,12 @@ class CTHarvesterMainWindow(QMainWindow):
             logger.warning("minimum_volume not initialized in update_curr_slice")
             return
 
-        # Calculate bounding box based on current level
-        if hasattr(self, "level_info") and self.level_info:
-            smallest_level_idx = len(self.level_info) - 1
-            level_diff = smallest_level_idx - self.curr_level_idx
-            scale_factor = 2**level_diff
-        else:
-            scale_factor = 1
-
-        # Get the base dimensions from minimum_volume
-        base_shape = self.minimum_volume.shape
-
-        # Scale the dimensions according to current level
-        scaled_depth = base_shape[0] * scale_factor
-        scaled_height = base_shape[1] * scale_factor
-        scaled_width = base_shape[2] * scale_factor
-
-        bounding_box = [0, scaled_depth - 1, 0, scaled_height - 1, 0, scaled_width - 1]
-        try:
-            _, curr, _ = self.timeline.values()
-            denom = float(self.timeline.maximum()) if self.timeline.maximum() > 0 else 1.0
-            curr_slice_val = curr / denom * scaled_depth
-        except (AttributeError, ValueError, ZeroDivisionError):
-            curr_slice_val = 0
-
+        # The bounding box / slice scaling that used to live here was a leftover
+        # copy from before the Phase 4.4 handler extraction: it computed
+        # bounding_box and curr_slice_val and then discarded both. The live copy
+        # is ViewManager.update_3d_view (ui/handlers/view_manager.py), which the
+        # call below delegates to and which actually pushes the values into
+        # mcube_widget.update_boxes().
         self.update_3D_view(False)
 
     def get_cropped_volume(self):

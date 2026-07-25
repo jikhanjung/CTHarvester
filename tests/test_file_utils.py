@@ -321,7 +321,7 @@ class TestCleanOldThumbnails:
 
         try:
             os.chmod(thumb_dir, stat.S_IRUSR | stat.S_IXUSR)
-            result = clean_old_thumbnails(self.temp_dir)
+            clean_old_thumbnails(self.temp_dir)
             # Might return False if permission denied
             # Restore permissions
             os.chmod(thumb_dir, stat.S_IRWXU)

@@ -97,9 +97,7 @@ class TestGenerateMethodSelection:
         generator.generate_rust = MagicMock()
         generator.generate_python = MagicMock(return_value={"success": True, "cancelled": False})
 
-        result = generator.generate(
-            "/test/dir", mock_settings, mock_threadpool, use_rust_preference=False
-        )
+        generator.generate("/test/dir", mock_settings, mock_threadpool, use_rust_preference=False)
 
         generator.generate_rust.assert_not_called()
         generator.generate_python.assert_called_once()
@@ -111,7 +109,7 @@ class TestGenerateMethodSelection:
         generator.generate_rust = MagicMock()
         generator.generate_python = MagicMock(return_value={"success": True, "cancelled": False})
 
-        result = generator.generate(
+        generator.generate(
             "/test/dir",
             mock_settings,
             mock_threadpool,
@@ -330,7 +328,7 @@ class TestFallbackBehavior:
         generator.generate_python = MagicMock(return_value={"success": True, "cancelled": False})
 
         # User explicitly requests Python
-        result = generator.generate(
+        generator.generate(
             "/test/dir",
             {"prefix": "test_", "file_type": "tif"},
             MagicMock(),

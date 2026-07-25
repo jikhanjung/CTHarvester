@@ -91,7 +91,7 @@ def run_pyinstaller(spec_file="CTHarvester.spec", build_type="onefile"):
 
     try:
         logger.info(f"Running: {' '.join(cmd)}")
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
         logger.info(f"PyInstaller {build_type} build completed successfully")
         return True
     except subprocess.CalledProcessError as e:
@@ -184,7 +184,7 @@ def build_installer():
 
     try:
         logger.info(f"Running: {' '.join(cmd)}")
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
         logger.info("Installer built successfully")
 
         # Show output location

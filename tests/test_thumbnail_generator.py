@@ -42,6 +42,8 @@ class TestThumbnailGenerator:
             max_size=256,
         )
 
+        assert total_work > 0
+
         # Should have 1 level
         assert generator.total_levels == 1
         assert len(generator.level_sizes) == 1
@@ -56,6 +58,8 @@ class TestThumbnailGenerator:
         total_work = generator.calculate_total_thumbnail_work(
             seq_begin=0, seq_end=99, size=2048, max_size=256  # 100 images  # Large image
         )
+
+        assert total_work > 0
 
         # Should have multiple levels (2048 -> 1024 -> 512 -> 256)
         assert generator.total_levels >= 3
@@ -86,6 +90,7 @@ class TestThumbnailGenerator:
             seq_begin=0, seq_end=0, size=512, max_size=256  # Single image
         )
 
+        assert total_work > 0
         assert generator.total_levels >= 1
         # Should still create at least one level
         assert len(generator.level_sizes) >= 1

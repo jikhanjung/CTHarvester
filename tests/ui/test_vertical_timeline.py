@@ -292,7 +292,7 @@ class TestVerticalTimelineSignals:
         widget.setLower(25)
 
         # Try to set to same value
-        emitted = wait_for_signal_or_timeout(qtbot, widget.lowerChanged, timeout=100)
+        wait_for_signal_or_timeout(qtbot, widget.lowerChanged, timeout=100)
         widget.setLower(25)
 
         # Signal should not have been emitted (timeout)

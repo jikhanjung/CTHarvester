@@ -213,7 +213,7 @@ class VolumeProcessor:
             volume = minimum_volume[
                 bottom_idx_small:top_idx_small, from_y_small:to_y_small, from_x_small:to_x_small
             ]
-        except IndexError as e:
+        except IndexError:
             logger.error(
                 "Index out of bounds during volume cropping",
                 exc_info=True,
@@ -228,7 +228,7 @@ class VolumeProcessor:
                 },
             )
             return np.array([]), [0, 0, 0, 0, 0, 0]
-        except ValueError as e:
+        except ValueError:
             logger.error(
                 "Invalid value during volume cropping",
                 exc_info=True,
@@ -240,7 +240,7 @@ class VolumeProcessor:
                 },
             )
             return np.array([]), [0, 0, 0, 0, 0, 0]
-        except TypeError as e:
+        except TypeError:
             logger.error(
                 "Type error during volume cropping",
                 exc_info=True,
@@ -386,8 +386,6 @@ class VolumeProcessor:
         """
         if not level_info or curr_level_idx >= len(level_info):
             return {"depth": 0, "height": 0, "width": 0, "voxels": 0}
-
-        level = level_info[curr_level_idx]
 
         depth = top_idx - bottom_idx + 1
         height = crop_box[3] - crop_box[1]
