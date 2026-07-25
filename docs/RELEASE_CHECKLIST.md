@@ -35,7 +35,8 @@
 - [x] Developer documentation complete
   - [x] Error recovery guide (650 lines)
   - [x] Performance guide (850 lines)
-- [x] Release notes created (RELEASE_NOTES.md)
+- [x] Release notes written into `CHANGELOG.md` under `[Unreleased]`
+      (`scripts/bump_version.py` renames the section; `release.yml` publishes it)
 - [ ] API documentation generated (if applicable)
 - [ ] Screenshots updated (deferred to future release)
 
