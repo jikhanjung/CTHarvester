@@ -184,22 +184,23 @@ class TestEnsureDirectories:
         assert os.path.exists(existing_dir)
         assert os.path.exists(new_dir)
 
-    def test_invalid_path_no_crash(self, capsys):
-        """Should not crash on invalid paths"""
-        # Use an invalid path (on most systems)
-        if sys.platform == "win32":
-            invalid_path = "Z:\\invalid\\path\\that\\does\\not\\exist\\and\\cannot\\be\\created"
-        else:
-            invalid_path = "/root/invalid/path/that/requires/permissions"
+    def test_invalid_path_no_crash(self, tmp_path):
+        """Should warn instead of raising when a directory cannot be created.
 
-        # Should not raise exception, but print warning
-        ensure_directories([invalid_path])
+        A regular file is used as the parent so the failure is deterministic on
+        every platform and for every user. The previous ``/root/...`` path only
+        failed for unprivileged users, so the test passed vacuously when the
+        suite ran as root -- and failed for everyone else once
+        ``filterwarnings = error`` promoted the RuntimeWarning to an exception.
+        """
+        blocker = tmp_path / "not-a-directory"
+        blocker.write_text("", encoding="utf-8")
+        invalid_path = str(blocker / "child")
 
-        # Check that warning was printed
-        captured = capsys.readouterr()
-        assert (
-            "Warning" in captured.out or len(captured.out) == 0
-        )  # May not print if path creation succeeds
+        with pytest.warns(RuntimeWarning, match="Could not create directory"):
+            ensure_directories([invalid_path])
+
+        assert not os.path.exists(invalid_path)
 
 
 @pytest.mark.integration
