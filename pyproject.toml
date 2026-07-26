@@ -32,6 +32,19 @@ classifiers = [
 dependencies = [
     # GUI Framework
     "pyqt5>=5.15.0,<6.0.0",
+    # pyqt5-qt5 is the bundled Qt runtime, normally resolved transitively by
+    # pyqt5. It stopped shipping Windows wheels after 5.15.2 -- 5.15.19 publishes
+    # manylinux and macOS wheels only. `uv pip compile --universal` does not
+    # check wheel-tag coverage, so it pinned the single newest version for every
+    # platform and `pip install --require-hashes` then died on Windows with
+    # "No matching distribution found for pyqt5-qt5==5.15.19", taking down every
+    # Windows CI job. Naming it here with markers makes the resolver fork and
+    # emit a pin per platform. 5.15.2 is what a plain `pip install pyqt5` gets on
+    # Windows; both bounds are needed, because given only the Windows pin uv
+    # unifies on 5.15.2 everywhere -- and 5.15.2 has no macosx_11_0_arm64 wheel,
+    # which would break the Apple-silicon runners instead.
+    "pyqt5-qt5==5.15.2 ; sys_platform == 'win32'",
+    "pyqt5-qt5>=5.15.19 ; sys_platform != 'win32'",
     "pyopengl>=3.1.5,<4.0.0",
     "pyopengl-accelerate>=3.1.5,<4.0.0",
     "superqt>=0.6.0,<1.0.0",
