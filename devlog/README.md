@@ -4,6 +4,7 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Recent Sessions (July 2026)
 
+- [104](20260726_104_rust_default_and_complexity_backlog.md) - **Rust 기본값 수정 & C901 첫 리팩터링**: `use_rust_module: false`로 배포돼 Rust 모듈이 설치돼 있어도 안 쓰이던 문제 발견·수정, `process_level` 복잡도 32→9
 - [103](20260726_103_code_quality_guide_follow_through.md) - **코드 품질 가이드 후속**: `DTZ` 적용, 문서 빌드 게이팅, 3-OS 패키지 smoke 테스트 — frozen Linux 빌드가 실행조차 안 되던 PyOpenGL 번들링 결함 발견·수정, `C901` 래칫 (vulture는 오탐률 5/6으로 기각)
 - [102](20260726_102_auto_threshold_and_roi_detection.md) - **자동 threshold/ROI 감지**: 피라미드 완료 시 최소 레벨로 Otsu 임계값·ROI·슬라이스 범위를 잡아 초기값으로 적용 (+32 tests)
 - [101](20260726_101_ruff_migration_and_ci_recovery.md) - **Ruff 마이그레이션 & CI 전면 복구**: 린트 툴 5개→1개 통합, 플랫폼별 테스트 수정, 제품 버그 3건(죽은 코드/시계 해상도/프로세스 abort), 락파일·문서·인스톨러 빌드 복구 — 전 워크플로우 첫 그린
@@ -79,6 +80,7 @@ Chronological index of all development sessions for CTHarvester.
 - [003](20250911_003_single_progress_bar_for_thumbnail_generation.md) - 단일 프로그레스 바 계획
 
 ### Bug Fixes
+- [104](20260726_104_rust_default_and_complexity_backlog.md) - Rust 썸네일 모듈이 기본 설정 때문에 사용되지 않던 문제
 - [091](20251008_091_version_import_bugfix.md) - Version Import 버그 수정
 - [048](20251001_048_phase1_crop_fix_completion.md) - 크롭 Off-by-One 에러 수정
 - [018](20250930_018_thread_count_rollback.md) - 스레드 개수 롤백
