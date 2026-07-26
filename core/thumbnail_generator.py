@@ -861,6 +861,83 @@ class ThumbnailGenerator:
                 ),
             }
 
+    @staticmethod
+    def _find_thumbnail_levels(thumbnail_base: str) -> list[tuple[int, str]]:
+        """List the contiguous level directories under .thumbnail, in order.
+
+        Stops at the first gap rather than scanning the whole range: levels are
+        written consecutively, so a missing one means there are no more.
+        """
+        from config.constants import MAX_THUMBNAIL_LEVELS
+
+        level_dirs = []
+        for i in range(1, MAX_THUMBNAIL_LEVELS):
+            level_dir = os.path.join(thumbnail_base, str(i))
+            if not os.path.exists(level_dir):
+                break
+            level_dirs.append((i, level_dir))
+        return level_dirs
+
+    @staticmethod
+    def _select_thumbnail_level(
+        level_dirs: list[tuple[int, str]], max_thumbnail_size: int
+    ) -> tuple[int, str]:
+        """Pick the first level whose images fit within max_thumbnail_size.
+
+        Levels shrink as the number rises, so the first match is also the
+        highest-resolution one that fits. Falls back to the smallest level
+        available when even that is too large -- returning nothing would leave
+        the caller with no volume at all.
+        """
+        for level_num, level_dir in level_dirs:
+            files = [f for f in os.listdir(level_dir) if f.endswith(".tif")]
+            if not files:
+                continue
+
+            width, height = get_image_dimensions(os.path.join(level_dir, files[0]))
+            if max(width, height) < max_thumbnail_size:
+                logger.info(
+                    f"Found appropriate level {level_num} with size {width}x{height} "
+                    f"(< {max_thumbnail_size})"
+                )
+                return level_num, level_dir
+
+            logger.debug(
+                f"Level {level_num} size {width}x{height} is >= {max_thumbnail_size}, continuing..."
+            )
+
+        level_num, level_dir = level_dirs[-1]
+        logger.warning(
+            f"No level with size < {max_thumbnail_size} found, using highest level {level_num}"
+        )
+        return level_num, level_dir
+
+    @staticmethod
+    def _normalize_to_8bit(img_array: np.ndarray) -> np.ndarray:
+        """Scale a slice to uint8, which is what marching cubes expects.
+
+        16-bit is divided down by a fixed factor so every slice keeps the same
+        scale; any other non-uint8 dtype is stretched over its own min/max,
+        because there is no fixed range to divide by.
+        """
+        from config.constants import BIT_DEPTH_16_TO_8_DIVISOR, IMAGE_8BIT_MAX
+
+        if img_array.dtype == np.uint8:
+            return img_array
+
+        if img_array.dtype == np.uint16:
+            return (img_array / BIT_DEPTH_16_TO_8_DIVISOR).astype(np.uint8)
+
+        img_min = img_array.min()
+        img_max = img_array.max()
+        if img_max <= img_min:
+            return np.zeros_like(img_array, dtype=np.uint8)
+
+        stretched: np.ndarray = (
+            (img_array - img_min) / (img_max - img_min) * IMAGE_8BIT_MAX
+        ).astype(np.uint8)
+        return stretched
+
     def load_thumbnail_data(
         self, directory: str, max_thumbnail_size: int | None = None
     ) -> tuple[np.ndarray | None, dict[str, Any]]:
@@ -889,51 +966,13 @@ class ThumbnailGenerator:
             logger.warning("No thumbnail directory found")
             return None, {}
 
-        # Find all level directories
-        level_dirs = []
-        from config.constants import MAX_THUMBNAIL_LEVELS
-
-        for i in range(1, MAX_THUMBNAIL_LEVELS):  # Check up to max levels
-            level_dir = os.path.join(thumbnail_base, str(i))
-            if os.path.exists(level_dir):
-                level_dirs.append((i, level_dir))
-            else:
-                break
+        level_dirs = self._find_thumbnail_levels(thumbnail_base)
 
         if not level_dirs:
             logger.warning("No thumbnail levels found")
             return None, {}
 
-        # Find the appropriate level to load
-        level_num = None
-        thumbnail_dir = None
-
-        for ln, ld in level_dirs:
-            # Check the size of images in this level
-            files = [f for f in os.listdir(ld) if f.endswith(".tif")]
-            if files:
-                width, height = get_image_dimensions(os.path.join(ld, files[0]))
-                size = max(width, height)
-                if size < max_thumbnail_size:
-                    level_num = ln
-                    thumbnail_dir = ld
-                    logger.info(
-                        f"Found appropriate level {level_num} with size {width}x{height} "
-                        f"(< {max_thumbnail_size})"
-                    )
-                    break
-                else:
-                    logger.debug(
-                        f"Level {ln} size {width}x{height} is >= {max_thumbnail_size}, "
-                        f"continuing..."
-                    )
-
-        if level_num is None or thumbnail_dir is None:
-            # Fallback to highest level if none meet the criteria
-            level_num, thumbnail_dir = level_dirs[-1]
-            logger.warning(
-                f"No level with size < {max_thumbnail_size} found, using highest level {level_num}"
-            )
+        level_num, thumbnail_dir = self._select_thumbnail_level(level_dirs, max_thumbnail_size)
 
         logger.info(f"Loading thumbnails from level {level_num}: {thumbnail_dir}")
 
@@ -950,24 +989,7 @@ class ThumbnailGenerator:
                 if img_array is None:
                     continue
 
-                # Normalize to 8-bit range for marching cubes
-                from config.constants import BIT_DEPTH_16_TO_8_DIVISOR, IMAGE_8BIT_MAX
-
-                if img_array.dtype == np.uint16:  # type: ignore[union-attr]
-                    # Convert 16-bit to 8-bit
-                    img_array = (img_array / BIT_DEPTH_16_TO_8_DIVISOR).astype(np.uint8)  # type: ignore[union-attr,operator]
-                elif img_array.dtype != np.uint8:  # type: ignore[union-attr]
-                    # For other types, normalize to 0-255
-                    img_min = img_array.min()  # type: ignore[union-attr]
-                    img_max = img_array.max()  # type: ignore[union-attr]
-                    if img_max > img_min:
-                        img_array = (
-                            (img_array - img_min) / (img_max - img_min) * IMAGE_8BIT_MAX
-                        ).astype(np.uint8)
-                    else:
-                        img_array = np.zeros_like(img_array, dtype=np.uint8)
-
-                minimum_volume.append(img_array)
+                minimum_volume.append(self._normalize_to_8bit(img_array))  # type: ignore[arg-type]
 
             if len(minimum_volume) > 0:
                 minimum_volume_array = np.array(minimum_volume)

@@ -205,118 +205,131 @@ class ProgressDialog(QDialog):
         if step % PROGRESS_UPDATE_STEP_INTERVAL == 0:
             QApplication.processEvents()
 
+    @staticmethod
+    def _format_eta(eta_seconds):
+        """Render a duration as the coarsest two units that fit."""
+        eta_seconds = max(0, eta_seconds)
+        if eta_seconds < 60:
+            return f"{int(eta_seconds)}s"
+        if eta_seconds < 3600:
+            return f"{int(eta_seconds / 60)}m {int(eta_seconds % 60)}s"
+        return f"{int(eta_seconds / 3600)}h {int((eta_seconds % 3600) / 60)}m"
+
+    def _record_velocity(self):
+        """Append one velocity sample from the last two step_history entries."""
+        if len(self.step_history) < 2:
+            return
+
+        recent_time = self.step_history[-1][0] - self.step_history[-2][0]
+        recent_steps = self.step_history[-1][1] - self.step_history[-2][1]
+        if recent_time > 0 and recent_steps > 0:
+            self.velocity_history.append(recent_steps / recent_time)
+
+    def _eta_from_step_times(self, remaining_steps):
+        """Estimate from a trimmed mean of recent per-step times, or None.
+
+        Trimmed because a single slow image -- a cache miss, a stalled disk --
+        otherwise drags the whole average with it.
+        """
+        import numpy as np
+
+        if len(self.step_times) < self.min_samples_for_eta:
+            return None
+
+        sorted_times = sorted(self.step_times)
+        trim_count = max(1, len(sorted_times) // 10)  # 10% off each end
+        trimmed_times = (
+            sorted_times[trim_count:-trim_count]
+            if len(sorted_times) > 2 * trim_count
+            else sorted_times
+        )
+        avg_step_time = np.mean(trimmed_times) if trimmed_times else np.mean(sorted_times)
+        return avg_step_time * remaining_steps
+
+    def _eta_from_elapsed(self, current_time, remaining_steps):
+        """Estimate from the average rate since the start, or None.
+
+        The most stable of the three, because it cannot be moved much by any
+        single step.
+        """
+        if self.current_step <= 0:
+            return None
+
+        elapsed = current_time - self.start_time
+        return (elapsed / self.current_step) * remaining_steps
+
+    def _eta_from_velocity(self, remaining_steps):
+        """Estimate from the median recent velocity, or None.
+
+        The most responsive of the three; median rather than mean so one
+        outlying sample cannot swing it.
+        """
+        import numpy as np
+
+        if len(self.velocity_history) < 5:
+            return None
+
+        median_velocity = np.median(list(self.velocity_history))
+        if median_velocity <= 0:
+            return None
+        return remaining_steps / median_velocity
+
+    def _smooth_eta(self, current_estimate):
+        """Fold a new estimate into self.smoothed_eta, rate-limited.
+
+        A raw ETA jumps around enough to be unreadable, so each update may move
+        the displayed value by at most 20%, and even that is damped by the EMA.
+        """
+        if self.smoothed_eta is None:
+            self.smoothed_eta = current_estimate
+            return
+
+        max_change = self.smoothed_eta * 0.2
+        change = current_estimate - self.smoothed_eta
+        if abs(change) > max_change:
+            change = max_change if change > 0 else -max_change
+
+        self.smoothed_eta = self.smoothed_eta + self.ema_alpha * change
+
     def _calculate_eta(self, current_time):
-        """Calculate ETA using multiple methods with improved stability"""
+        """Calculate ETA by blending three estimates, smoothed and formatted.
+
+        Returns None when there is nothing to estimate: no work left, or no
+        method has enough data yet.
+        """
         import numpy as np
 
         remaining_steps = self.total_steps - self.current_step
         if remaining_steps <= 0:
             return None
 
-        # Don't update ETA too frequently to avoid jitter
+        # Recomputing on every step makes the number flicker; between updates
+        # the previously smoothed value is re-formatted instead.
         if current_time - self.last_eta_update < self.eta_update_interval:
-            # Return last calculated ETA formatted
+            # Truthiness, not `is not None`: a smoothed value of exactly 0.0
+            # reads as "no estimate" here. Pinned by the tests as existing
+            # behaviour rather than fixed blind.
             if self.smoothed_eta:
-                eta_seconds = max(0, self.smoothed_eta)
-                if eta_seconds < 60:
-                    return f"{int(eta_seconds)}s"
-                elif eta_seconds < 3600:
-                    return f"{int(eta_seconds / 60)}m {int(eta_seconds % 60)}s"
-                else:
-                    return f"{int(eta_seconds / 3600)}h {int((eta_seconds % 3600) / 60)}m"
+                return self._format_eta(self.smoothed_eta)
             return None
 
         self.last_eta_update = current_time
+        self._record_velocity()
 
-        # Calculate current velocity
-        if len(self.step_history) >= 2:
-            recent_time = self.step_history[-1][0] - self.step_history[-2][0]
-            recent_steps = self.step_history[-1][1] - self.step_history[-2][1]
-            if recent_time > 0 and recent_steps > 0:
-                current_velocity = recent_steps / recent_time
-                self.velocity_history.append(current_velocity)
-
-        # Method 1: Stable moving average of step times
-        if len(self.step_times) >= self.min_samples_for_eta:
-            # Use trimmed mean to remove outliers
-            sorted_times = sorted(self.step_times)
-            trim_count = max(1, len(sorted_times) // 10)  # Trim 10% from each end
-            trimmed_times = (
-                sorted_times[trim_count:-trim_count]
-                if len(sorted_times) > 2 * trim_count
-                else sorted_times
-            )
-            avg_step_time = np.mean(trimmed_times) if trimmed_times else np.mean(sorted_times)
-            eta_moving_avg = avg_step_time * remaining_steps
-        else:
-            eta_moving_avg = None
-
-        # Method 2: Overall average from start (most stable)
-        if self.current_step > 0:
-            elapsed = current_time - self.start_time
-            eta_overall = (elapsed / self.current_step) * remaining_steps
-        else:
-            eta_overall = None
-
-        # Method 3: Smoothed velocity (last 30 velocity samples)
-        if len(self.velocity_history) >= 5:
-            # Use median velocity for stability
-            median_velocity = np.median(list(self.velocity_history))
-            if median_velocity > 0:
-                eta_velocity = remaining_steps / median_velocity
-            else:
-                eta_velocity = None
-        else:
-            eta_velocity = None
-
-        # Combine estimates with weighted average
-        estimates = []
-        weights = []
-
-        if eta_overall is not None:
-            estimates.append(eta_overall)
-            weights.append(0.5)  # Most stable, highest weight
-
-        if eta_moving_avg is not None:
-            estimates.append(eta_moving_avg)
-            weights.append(0.3)  # Second most stable
-
-        if eta_velocity is not None:
-            estimates.append(eta_velocity)
-            weights.append(0.2)  # Most responsive but less stable
+        # Weights: steadiest method first, most responsive last.
+        candidates = [
+            (self._eta_from_elapsed(current_time, remaining_steps), 0.5),
+            (self._eta_from_step_times(remaining_steps), 0.3),
+            (self._eta_from_velocity(remaining_steps), 0.2),
+        ]
+        estimates = [value for value, _ in candidates if value is not None]
+        weights = [weight for value, weight in candidates if value is not None]
 
         if not estimates:
             return None
 
-        # Weighted average instead of median for smoother transitions
-        current_estimate = np.average(estimates, weights=weights[: len(estimates)])
-
-        # Apply stronger exponential smoothing
-        if self.smoothed_eta is None:
-            self.smoothed_eta = current_estimate
-        else:
-            # Limit the change rate to prevent jumps
-            max_change_rate = 0.2  # Maximum 20% change per update
-            change = current_estimate - self.smoothed_eta
-            max_change = self.smoothed_eta * max_change_rate
-
-            if abs(change) > max_change:
-                change = max_change if change > 0 else -max_change
-
-            # Apply limited change with EMA
-            self.smoothed_eta = self.smoothed_eta + self.ema_alpha * change
-
-        # Format time
-        eta_seconds = max(0, self.smoothed_eta)
-
-        if eta_seconds < 60:
-            return f"{int(eta_seconds)}s"
-        elif eta_seconds < 3600:
-            return f"{int(eta_seconds / 60)}m {int(eta_seconds % 60)}s"
-        else:
-            hours = int(eta_seconds / 3600)
-            minutes = int((eta_seconds % 3600) / 60)
-            return f"{hours}h {minutes}m"
+        self._smooth_eta(np.average(estimates, weights=weights))
+        return self._format_eta(self.smoothed_eta)
 
     def update_language(self):
         translator = QTranslator()

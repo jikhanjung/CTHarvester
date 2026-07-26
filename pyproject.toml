@@ -160,12 +160,12 @@ ignore = [
 ]
 
 [tool.ruff.lint.mccabe]
-# A ratchet, not a target. 20 is the current worst function
-# (core/thumbnail_generator.load_thumbnail_data), so the tree passes today and
-# nothing is allowed to get worse. The guide's threshold is 15; the functions
+# A ratchet, not a target. 18 is the current worst function
+# (ui/handlers/thumbnail_creation_handler.create_thumbnail_rust), so the tree
+# passes today and nothing is allowed to get worse. The guide's threshold is 15; the functions
 # still above it are listed in TODOs.md as the refactoring backlog. Lower this
 # number as they are split -- never raise it.
-max-complexity = 20
+max-complexity = 18
 
 [tool.ruff.lint.per-file-ignores]
 # Package __init__.py files exist to re-export; that is what F401 flags.
