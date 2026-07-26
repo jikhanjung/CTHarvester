@@ -181,7 +181,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    today = datetime.date.today().isoformat()
+    # astimezone() rather than date.today(): the changelog entry should carry
+    # the release date in the releaser's own timezone, stated explicitly
+    # rather than inherited from whatever the process locale happens to be.
+    today = datetime.datetime.now().astimezone().date().isoformat()
 
     current = read_current_version()
     new_version = compute_new_version(current, args)

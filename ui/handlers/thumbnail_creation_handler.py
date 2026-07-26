@@ -95,7 +95,7 @@ class ThumbnailCreationHandler:
 
         # Start timing
         self.window.thumbnail_start_time = time.time()
-        thumbnail_start_datetime = datetime.now()
+        thumbnail_start_datetime = datetime.now().astimezone()
 
         dirname = self.window.edtDirname.text()
 
@@ -221,7 +221,7 @@ class ThumbnailCreationHandler:
 
         # Calculate total time
         total_elapsed = time.time() - self.window.thumbnail_start_time
-        thumbnail_end_datetime = datetime.now()
+        thumbnail_end_datetime = datetime.now().astimezone()
 
         logger.info("=== Rust thumbnail generation completed ===")
         logger.info(f"End time: {thumbnail_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")

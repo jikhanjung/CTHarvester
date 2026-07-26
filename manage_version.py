@@ -144,7 +144,7 @@ def create_git_tag(version: str, message: str | None = None) -> None:
 def update_changelog(version: str) -> None:
     """Update or create CHANGELOG.md"""
     changelog_file = Path("CHANGELOG.md")
-    date_str = datetime.now().strftime("%Y-%m-%d")
+    date_str = datetime.now().astimezone().strftime("%Y-%m-%d")
 
     header = f"## [{version}] - {date_str}"
     if changelog_file.exists() and header in changelog_file.read_text():

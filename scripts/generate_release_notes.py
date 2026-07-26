@@ -140,7 +140,11 @@ def categorize_commits(commits: list[git.Commit]) -> dict[str, list[dict]]:
             "description": description,
             "scope": scope,
             "author": commit.author.name,
-            "date": datetime.fromtimestamp(commit.committed_date).strftime("%Y-%m-%d"),
+            # committed_datetime is already timezone-aware, carrying the
+            # committer's own offset; fromtimestamp(committed_date) threw that
+            # away and reinterpreted the instant in the local zone, which can
+            # shift the reported date by a day.
+            "date": commit.committed_datetime.strftime("%Y-%m-%d"),
             "body": body,
         }
 
@@ -300,7 +304,7 @@ def main():
     categories = categorize_commits(commits)
 
     # Format release notes
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now().astimezone().strftime("%Y-%m-%d")
     release_notes = format_release_notes(
         tag=to_tag if to_tag != "HEAD" else "Unreleased",
         date=today,

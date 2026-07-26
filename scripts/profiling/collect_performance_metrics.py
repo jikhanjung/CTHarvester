@@ -152,7 +152,7 @@ def collect_metrics(sample_dir: str) -> dict:
     print("=" * 60)
 
     metrics = {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now().astimezone().isoformat(),
         "system": collect_system_info(),
         "benchmarks": {},
     }

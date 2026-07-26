@@ -4,6 +4,32 @@ Deferred work, with enough context to pick up later. Newest first.
 
 ---
 
+## Code quality guide status
+
+Live status against `../Modan2/docs/CODE_QUALITY_GUIDE.md` (v1.0, 2026-07-23),
+Appendix A's prioritised adoption checklist. Verified 2026-07-26. The table in
+devlog 100 is the snapshot from the original audit; this one is the current
+state and should be updated as items land.
+
+| # | Item | Status | Where it stands |
+|---|---|---|---|
+| 1 | Cross-platform CI matrix + headless smoke test | ✅ | 3 OS x Python 3.11-3.13, `tests/test_smoke.py` |
+| 2 | Lint + tests gating | ⚠️ | ruff and the test matrix gate. Two `\|\| true` / `continue-on-error` remain: mypy (blocked, see below) and the docs build (unblocked — the build was fixed in 6799414 and now passes) |
+| 3 | Expand the lint ruleset incrementally | ⚠️ | `E, F, I, N, UP, B, C4, LOG, DTZ, RUF012`. `SIM` (40), `TRY` (138), `PTH` (502), `S` (2083) not yet |
+| 4 | `filterwarnings = error` | ✅ | `pyproject.toml`, narrow documented ignores only |
+| 5 | Lockfile + pip-audit + Dependabot | ✅ | 3 lockfiles with hashes, pip-audit gating, `.github/dependabot.yml` |
+| 6 | Coverage gate | ✅ | `--cov-fail-under=75` on the reference leg |
+| 7 | Static type checking, scoped | ✅ | mypy per-module strict; runs in CI (advisory, see #2) |
+| 8 | Dead-code / complexity automation | ❌ | No vulture, no radon, `C901` disabled |
+| 9 | Packaged-artifact smoke test; signed installers | ❌ | Neither. Modan2 has the smoke test (`reusable_build.yml`, `--self-test`); CTHarvester has no such entry point yet |
+| 10 | Property-based / fuzz tests | ⚠️ | `tests/property/test_image_properties.py` exists but its body is `pytest.skip("Template - to be implemented in Phase 4")` |
+
+**Working order** (cheapest first, per the guide's own ordering): ~~#3 `DTZ`~~
+(done 2026-07-26) → #2 flip the docs build to gating → #9 packaged smoke test →
+#8 dead-code automation. #10 and installer signing after those.
+
+---
+
 ## Lint hardening: restore dangerous flake8 rules + migrate to Ruff ✅ done
 
 **Status:** complete (2026-07-26)

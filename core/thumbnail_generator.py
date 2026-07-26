@@ -293,7 +293,7 @@ class ThumbnailGenerator:
 
         # Start timing
         self.thumbnail_start_time = time.time()
-        thumbnail_start_datetime = datetime.now()
+        thumbnail_start_datetime = datetime.now().astimezone()
 
         logger.info("=== Starting Rust thumbnail generation ===")
         logger.info(f"Start time: {thumbnail_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
@@ -411,7 +411,7 @@ class ThumbnailGenerator:
 
         # Start timing
         thumbnail_start_time = time.time()
-        thumbnail_start_datetime = datetime.now()
+        thumbnail_start_datetime = datetime.now().astimezone()
 
         logger.info("=== Starting Python thumbnail generation (fallback) ===")
         logger.info(f"Start time: {thumbnail_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
@@ -571,7 +571,7 @@ class ThumbnailGenerator:
 
                 # Start timing for this level
                 level_start_time = time.time()
-                level_start_datetime = datetime.now()
+                level_start_datetime = datetime.now().astimezone()
 
                 size = size / 2
                 width = int(width / 2)
@@ -657,7 +657,7 @@ class ThumbnailGenerator:
                 logger.info(f"Level {i + 1}: process_level completed in {process_time:.2f}s")
 
                 # Calculate and log time for this level
-                level_end_datetime = datetime.now()
+                level_end_datetime = datetime.now().astimezone()
                 level_elapsed = time.time() - level_start_time
                 logger.info(
                     f"Level {i + 1} end time: {level_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
@@ -713,7 +713,7 @@ class ThumbnailGenerator:
             logger.info(f"Exited thumbnail generation loop at level {i + 1}")
 
             # Calculate total time
-            thumbnail_end_datetime = datetime.now()
+            thumbnail_end_datetime = datetime.now().astimezone()
             total_elapsed = time.time() - thumbnail_start_time
 
             logger.info("=== Thumbnail generation completed ===")

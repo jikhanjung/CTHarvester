@@ -244,7 +244,7 @@ def generate_html_report(metrics_history: list) -> str:
 <body>
     <div class="container">
         <h1>= CTHarvester Performance Report</h1>
-        <p>Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+        <p>Generated: {datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S")}</p>
 
         <h2>=Ê Summary</h2>
 """

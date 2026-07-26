@@ -103,7 +103,7 @@ def profile_thumbnail_generation(sample_dir: str) -> dict:
         "success": success,
         "elapsed_time": elapsed,
         "profile_file": str(profile_file),
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now().astimezone().isoformat(),
     }
 
 
@@ -175,7 +175,7 @@ def profile_image_processing(sample_dir: str) -> dict:
         "images_processed": len(image_files),
         "avg_time_per_image": elapsed / len(image_files),
         "profile_file": str(profile_file),
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now().astimezone().isoformat(),
     }
 
 
@@ -228,7 +228,7 @@ def main():
     with open(output_file, "w") as f:
         json.dump(
             {
-                "profiling_date": datetime.now().isoformat(),
+                "profiling_date": datetime.now().astimezone().isoformat(),
                 "sample_directory": str(sample_dir),
                 "results": results,
             },

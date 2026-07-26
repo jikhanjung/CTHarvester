@@ -44,7 +44,7 @@ except ImportError:
 
 def update_build_year():
     """Update BUILD_YEAR in config/constants.py with current year"""
-    current_year = datetime.now().year
+    current_year = datetime.now().astimezone().year
     logger.info(f"Updating BUILD_YEAR to {current_year}...")
 
     constants_path = Path("config/constants.py")
