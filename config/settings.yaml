@@ -23,7 +23,11 @@ thumbnails:
 processing:
   threads: auto  # auto, or specific number (1-16)
   memory_limit_gb: 4
-  use_rust_module: false  # false to force Python fallback
+  # true uses the compiled Rust thumbnail generator, which is what the
+  # application ships with. If the module is missing or fails to import,
+  # ThumbnailCreationHandler falls back to the Python implementation on its
+  # own -- set this to false only to force that fallback for debugging.
+  use_rust_module: true
 
 rendering:
   background_color: [0.2, 0.2, 0.2]

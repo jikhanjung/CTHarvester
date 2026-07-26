@@ -25,6 +25,15 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   `version.py`, rolls this changelog, and tags `v<version>`; `release.yml`
   publishes the tag's changelog section with SHA256 checksums.
 
+### Changed
+- **The Rust thumbnail generator is now used by default.** `use_rust_module`
+  shipped as `false`, so the compiled module was skipped even when present and
+  every install ran the pure-Python path. The handler already falls back to
+  Python on its own if the import fails, so the `false` default bought nothing.
+  Existing installations keep whatever value their settings file already holds;
+  change it under Settings, or delete the settings file to pick up the new
+  default.
+
 ### Changed / Internal
 - CI/CD consolidated to nine workflows aligned with Modan2's layout.
 - Linting and formatting consolidated onto **Ruff** (pinned `0.16.0`), replacing

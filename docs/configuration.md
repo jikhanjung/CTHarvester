@@ -190,15 +190,18 @@ processing:
 
 ### `use_rust_module`
 - **Type:** Boolean
-- **Default:** `false`
-- **Description:** Use Rust-based thumbnail generation (if available)
+- **Default:** `true`
+- **Description:** Use Rust-based thumbnail generation
 - **Performance:**
-  - `true`: ~2-3x faster (if Rust module compiled)
+  - `true`: ~2-3x faster (the compiled module ships with the application)
   - `false`: Pure Python (always available)
+- **Note:** Setting this to `false` forces the Python implementation. It is not
+  needed to cope with a missing Rust module -- the application already falls
+  back on its own if the import fails.
 - **Example:**
   ```yaml
   processing:
-    use_rust_module: true  # Use Rust if available
+    use_rust_module: false  # force the Python implementation
   ```
 
 ## Rendering Settings
