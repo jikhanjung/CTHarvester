@@ -31,13 +31,13 @@ ratchet~~ (all done 2026-07-26). Remaining: the complexity backlog below,
 
 ### Complexity backlog (`C901`)
 
-`max-complexity` is pinned at **32**, the current worst function, so nothing can
+`max-complexity` is pinned at **28**, the current worst function, so nothing can
 get worse. The guide's threshold is 15. Lower the number in
 `[tool.ruff.lint.mccabe]` as each of these is split — never raise it:
 
 | Function | Complexity |
 |---|---|
-| `core/thumbnail_manager.py::process_level` | 32 |
+| ~~`core/thumbnail_manager.py::process_level`~~ | ~~32~~ → **9** (done 2026-07-26) |
 | `core/thumbnail_generator.py::generate_python` | 28 |
 | `core/thumbnail_generator.py::load_thumbnail_data` | 20 |
 | `ui/dialogs/progress_dialog.py::_calculate_eta` | 20 |

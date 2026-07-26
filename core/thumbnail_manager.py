@@ -429,6 +429,196 @@ class ThumbnailManager(QObject):
         self.global_step_counter = processor.global_step_counter
         self.images_per_second = processor.images_per_second
 
+    def _resolve_level_weight(self, level: int) -> None:
+        """Set self.level_weight from the parent's level work distribution.
+
+        Falls back to 1.0 whenever the distribution is absent or in the older
+        list-of-ints form. Levels are 0-indexed here but stored 1-indexed.
+        """
+        self.level_weight = 1.0
+
+        level_work_dist = None
+        if self.thumbnail_parent is not None:
+            level_work_dist = self.thumbnail_parent.level_work_distribution
+        elif hasattr(self.progress_manager, "level_work_distribution"):
+            # parent=None when called from ThumbnailGenerator
+            level_work_dist = self.progress_manager.level_work_distribution  # type: ignore[assignment]
+
+        if not level_work_dist or not isinstance(level_work_dist, list):
+            return
+        if len(level_work_dist) <= level:
+            return
+
+        if not isinstance(level_work_dist[level], dict):
+            logger.warning(
+                f"Level {level + 1}: level_work_distribution is int list, using default weight"
+            )
+            return
+
+        # Dict format: {'level': 1, 'images': 757, 'weight': 0.25}
+        for level_info in level_work_dist:
+            if level_info["level"] == level + 1:
+                self.level_weight = level_info["weight"]
+                logger.info(f"Level {level + 1}: Using weight factor {self.level_weight:.4f}")
+                return
+
+    def _submit_workers(
+        self,
+        num_tasks,
+        seq_begin,
+        seq_end,
+        from_dir,
+        to_dir,
+        settings_hash,
+        size,
+        max_thumbnail_size,
+        level,
+    ) -> int:
+        """Create one worker per image pair and hand them to the thread pool.
+
+        Sets self.is_cancelled and stops early if the user cancels mid-submission.
+
+        Returns:
+            int: How many workers were actually submitted.
+        """
+        import time
+
+        workers_submitted = 0
+        submit_start = time.time()
+        logger.info(f"Starting to submit {num_tasks} workers to thread pool")
+
+        for idx in range(num_tasks):
+            if self.progress_dialog and self.progress_dialog.is_cancelled:
+                self.is_cancelled = True
+                break
+
+            seq = seq_begin + (idx * 2)
+            if seq > seq_end:
+                logger.warning(f"Skipping idx={idx}, seq={seq} exceeds seq_end={seq_end}")
+                continue
+
+            # For the last task the worker handles a missing second image itself.
+            worker = ThumbnailWorker(
+                idx,
+                seq,
+                seq_begin,
+                from_dir,
+                to_dir,
+                settings_hash,
+                size,
+                max_thumbnail_size,
+                self.progress_dialog,
+                level,
+                seq_end,
+            )
+            if idx == 0 or idx % 100 == 0:
+                logger.debug(
+                    f"Creating worker {idx}: seq={seq}, files={worker.filename1}, {worker.filename2}"
+                )
+
+            # QueuedConnection so the slots run on this thread, not the worker's.
+            worker.signals.progress.connect(self.on_worker_progress, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+            worker.signals.result.connect(self.on_worker_result, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+            worker.signals.error.connect(self.on_worker_error, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+            worker.signals.finished.connect(self.on_worker_finished, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
+
+            self.threadpool.start(worker)
+            workers_submitted += 1
+
+            # Keep the UI alive; more often at the start so the first frames paint.
+            if workers_submitted % 10 == 0 or workers_submitted <= 5:
+                QApplication.processEvents()
+
+        submit_time = time.time() - submit_start
+        logger.info(
+            f"Submitted {workers_submitted} workers to threadpool in {submit_time * 1000:.1f}ms"
+        )
+        logger.info(
+            f"Final threadpool status: active={self.threadpool.activeThreadCount()}, "
+            f"max={self.threadpool.maxThreadCount()}"
+        )
+        return workers_submitted
+
+    def _wait_for_completion(self, level: int) -> float:
+        """Pump the event loop until every task finishes or the user cancels.
+
+        Also watches for a stalled queue and says so in the log, since the usual
+        cause is disk I/O rather than anything this code can fix.
+
+        Returns:
+            float: The time.time() the wait started, for the caller's statistics.
+        """
+        import time
+
+        start_wait = time.time()
+        last_progress_log = start_wait
+        last_detailed_log = start_wait
+        stalled_count = 0
+        last_completed_count = self.completed_tasks
+
+        logger.info(
+            f"Starting main wait loop. Completed: {self.completed_tasks}, Total: {self.total_tasks}"
+        )
+
+        while self.completed_tasks < self.total_tasks and not (
+            self.progress_dialog and self.progress_dialog.is_cancelled
+        ):
+            QApplication.processEvents()
+            current_time = time.time()
+
+            if current_time - last_progress_log > 5:
+                active_threads = self.threadpool.activeThreadCount()
+                elapsed = current_time - start_wait
+                progress_pct = (
+                    (self.completed_tasks / self.total_tasks * 100) if self.total_tasks > 0 else 0
+                )
+                logger.debug(
+                    f"Level {level + 1}: {self.completed_tasks}/{self.total_tasks} "
+                    f"({progress_pct:.1f}%) completed, {active_threads} active threads, "
+                    f"elapsed: {elapsed:.1f}s"
+                )
+                last_progress_log = current_time
+
+                if self.completed_tasks == last_completed_count:
+                    stalled_count += 1
+                    # 12 quiet five-second checks = a minute with nothing finishing
+                    if stalled_count >= 12 and current_time - last_detailed_log > 30:
+                        logger.warning(
+                            f"Level {level + 1}: no progress for 60s, "
+                            f"{active_threads} threads still active "
+                            f"({self.completed_tasks}/{self.total_tasks} after {elapsed:.1f}s). "
+                            f"Check disk I/O performance and free space."
+                        )
+                        last_detailed_log = current_time
+                else:
+                    stalled_count = 0
+                    last_completed_count = self.completed_tasks
+
+            QThread.msleep(10)
+
+        if self.progress_dialog and self.progress_dialog.is_cancelled:
+            self.is_cancelled = True
+            logger.info(f"ThumbnailManager.process_level: Level {level + 1} cancelled by user")
+            self._drain_after_cancel()
+
+        return start_wait
+
+    def _drain_after_cancel(self) -> None:
+        """Give running workers a moment to notice the cancellation and stop.
+
+        QThreadPool cannot cancel an in-flight QRunnable, but the workers check
+        the flag themselves and exit; this only bounds how long we wait for them.
+        """
+        max_wait_time = 2000  # ms
+        wait_time = 0
+        while self.completed_tasks < self.total_tasks and wait_time < max_wait_time:
+            QApplication.processEvents()
+            QThread.msleep(50)
+            wait_time += 50
+
+        if self.completed_tasks < self.total_tasks:
+            logger.warning("Some thumbnail workers may still be running after cancellation")
+
     def process_level(
         self,
         level,
@@ -505,37 +695,7 @@ class ThumbnailManager(QObject):
         self.level = level
         self.global_step_counter = global_step_offset
 
-        # Get weight factor for this level from level_work_distribution
-        # Check both parent and progress_manager for level_work_distribution
-        self.level_weight = 1.0  # Default
-        level_work_dist = None
-
-        if self.thumbnail_parent is not None:
-            level_work_dist = self.thumbnail_parent.level_work_distribution
-        elif hasattr(self.progress_manager, "level_work_distribution"):
-            # Try to reconstruct from progress_manager's level_work_distribution
-            # This is for when parent=None (called from ThumbnailGenerator)
-            level_work_dist = self.progress_manager.level_work_distribution  # type: ignore[assignment]
-
-        if level_work_dist:
-            # level_work_dist could be list of dicts or list of ints
-            if isinstance(level_work_dist, list) and len(level_work_dist) > level:
-                if isinstance(level_work_dist[level], dict):
-                    # Dict format: {'level': 1, 'images': 757, 'weight': 0.25}
-                    for level_info in level_work_dist:
-                        if (
-                            level_info["level"] == level + 1
-                        ):  # level is 0-indexed, but stored as 1-indexed
-                            self.level_weight = level_info["weight"]
-                            logger.info(
-                                f"Level {level + 1}: Using weight factor {self.level_weight:.4f}"
-                            )
-                            break
-                else:
-                    # For now, use default weight if we only have int list
-                    logger.warning(
-                        f"Level {level + 1}: level_work_distribution is int list, using default weight"
-                    )
+        self._resolve_level_weight(level)
         self.results.clear()
         self.is_cancelled = False
 
@@ -595,154 +755,19 @@ class ThumbnailManager(QObject):
                     f"Still {self.threadpool.activeThreadCount()} active threads after 30s wait"
                 )
 
-        # Create and submit workers
-        workers_submitted = 0
-        submit_start = time.time()
-        logger.info(f"Starting to submit {num_tasks} workers to thread pool")
-
-        for idx in range(num_tasks):
-            if self.progress_dialog and self.progress_dialog.is_cancelled:
-                self.is_cancelled = True
-                break
-
-            seq = seq_begin + (idx * 2)
-
-            # Skip if seq would exceed available images
-            if seq > seq_end:
-                logger.warning(f"Skipping idx={idx}, seq={seq} exceeds seq_end={seq_end}")
-                continue
-
-            # For the last task, check if we have both images
-            # If seq+1 > seq_end, the worker will handle it as a single image
-
-            # Create worker with level information and seq_end
-            worker = ThumbnailWorker(
-                idx,
-                seq,
-                seq_begin,
-                from_dir,
-                to_dir,
-                settings_hash,
-                size,
-                max_thumbnail_size,
-                self.progress_dialog,
-                level,
-                seq_end,
-            )
-            if idx == 0 or idx % 100 == 0:
-                logger.debug(
-                    f"Creating worker {idx}: seq={seq}, files={worker.filename1}, {worker.filename2}"
-                )
-
-            # Connect signals with Qt.QueuedConnection to ensure thread safety
-            worker.signals.progress.connect(self.on_worker_progress, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
-            worker.signals.result.connect(self.on_worker_result, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
-            worker.signals.error.connect(self.on_worker_error, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
-            worker.signals.finished.connect(self.on_worker_finished, Qt.QueuedConnection)  # type: ignore[call-arg,attr-defined]
-
-            # Submit to thread pool
-            if idx == 0:
-                logger.info("Submitting first worker to threadpool")
-                logger.info(
-                    f"Threadpool status before: active={self.threadpool.activeThreadCount()}, max={self.threadpool.maxThreadCount()}"
-                )
-
-            self.threadpool.start(worker)
-            workers_submitted += 1
-
-            if idx == 0:
-                logger.info(
-                    f"First worker submitted. Threadpool status after: active={self.threadpool.activeThreadCount()}"
-                )
-
-            # Process events periodically to keep UI responsive
-            if workers_submitted % 10 == 0 or workers_submitted <= 5:
-                QApplication.processEvents()
-                # logger.info(f"Submitted {workers_submitted}/{num_tasks} workers, active threads: {self.threadpool.activeThreadCount()}")
-
-        submit_time = time.time() - submit_start
-        logger.info(
-            f"Submitted {workers_submitted} workers to threadpool in {submit_time * 1000:.1f}ms"
+        self._submit_workers(
+            num_tasks,
+            seq_begin,
+            seq_end,
+            from_dir,
+            to_dir,
+            settings_hash,
+            size,
+            max_thumbnail_size,
+            level,
         )
-        logger.info(
-            f"Final threadpool status: active={self.threadpool.activeThreadCount()}, max={self.threadpool.maxThreadCount()}"
-        )
-        logger.info("Waiting for workers to start processing...")
 
-        # Wait for all workers to complete or cancellation
-        import time
-
-        start_wait = time.time()
-        last_progress_log = time.time()
-        last_detailed_log = time.time()
-        stalled_count = 0
-        last_completed_count = self.completed_tasks
-
-        first_log = True
-        while self.completed_tasks < self.total_tasks and not (
-            self.progress_dialog and self.progress_dialog.is_cancelled
-        ):
-            if first_log:
-                logger.info(
-                    f"Starting main wait loop. Completed: {self.completed_tasks}, Total: {self.total_tasks}"
-                )
-                first_log = False
-            QApplication.processEvents()
-
-            current_time = time.time()
-
-            # Log progress periodically
-            if current_time - last_progress_log > 5:  # Every 5 seconds
-                active_threads = self.threadpool.activeThreadCount()
-                elapsed = current_time - start_wait
-                progress_pct = (
-                    (self.completed_tasks / self.total_tasks * 100) if self.total_tasks > 0 else 0
-                )
-
-                logger.debug(
-                    f"Level {level + 1}: {self.completed_tasks}/{self.total_tasks} ({progress_pct:.1f}%) completed, "
-                    f"{active_threads} active threads, elapsed: {elapsed:.1f}s"
-                )
-                last_progress_log = current_time
-
-                # Check if progress is stalled
-                if self.completed_tasks == last_completed_count:
-                    stalled_count += 1
-                    if stalled_count >= 12:  # No progress for 60 seconds
-                        logger.warning(
-                            f"Level {level + 1}: No progress for 60 seconds. {active_threads} threads still active"
-                        )
-                        # Log more details every 30 seconds when stalled
-                        if current_time - last_detailed_log > 30:
-                            logger.info(
-                                f"Level {level + 1} status: {self.completed_tasks}/{self.total_tasks} tasks completed after {elapsed:.1f}s"
-                            )
-                            logger.info(
-                                "Consider checking disk I/O performance or available storage space"
-                            )
-                            last_detailed_log = current_time
-                else:
-                    stalled_count = 0
-                    last_completed_count = self.completed_tasks
-
-            QThread.msleep(10)  # Reduced delay for better responsiveness
-
-        if self.progress_dialog and self.progress_dialog.is_cancelled:
-            self.is_cancelled = True
-            logger.info(f"ThumbnailManager.process_level: Level {level + 1} cancelled by user")
-
-            # Wait a short time for any running workers to complete their current task
-            # Note: QThreadPool doesn't have a way to forcibly cancel individual QRunnable tasks
-            # but workers will check cancellation status and exit gracefully
-            max_wait_time = 2000  # 2 seconds
-            wait_time = 0
-            while self.completed_tasks < self.total_tasks and wait_time < max_wait_time:
-                QApplication.processEvents()
-                QThread.msleep(50)
-                wait_time += 50
-
-            if self.completed_tasks < self.total_tasks:
-                logger.warning("Some thumbnail workers may still be running after cancellation")
+        start_wait = self._wait_for_completion(level)
 
         # Collect results in order
         img_arrays = []
