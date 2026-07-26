@@ -49,7 +49,12 @@ jobs:
       - name: Download and Install Inno Setup
         shell: pwsh
         run: |
-          $inno_url = "https://files.jrsoftware.org/is/6/innosetup-6.2.2.exe"
+          # jrsoftware.org only keeps the latest 6.x under /is/6/, so the pinned
+          # innosetup-6.2.2.exe this used to fetch started returning 404 and took
+          # every Windows installer build down with it. GitHub release assets are
+          # permanent, so pin the installer there instead. Same source and same
+          # version as Modan2, which hit this first.
+          $inno_url = "https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe"
           $inno_installer = "innosetup-installer.exe"
           Invoke-WebRequest -Uri $inno_url -OutFile $inno_installer
           Start-Process -FilePath $inno_installer -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
