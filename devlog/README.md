@@ -4,6 +4,7 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Recent Sessions (July 2026)
 
+- [101](20260726_101_ruff_migration_and_ci_recovery.md) - **Ruff 마이그레이션 & CI 전면 복구**: 린트 툴 5개→1개 통합, 플랫폼별 테스트 수정, 제품 버그 3건(죽은 코드/시계 해상도/프로세스 abort), 락파일·문서·인스톨러 빌드 복구 — 전 워크플로우 첫 그린
 - [100](20260724_100_code_quality_guide_adoption.md) - **코드 품질 가이드 적용**: 크로스플랫폼 CI 매트릭스, smoke 테스트, pytest 설정 통합, 버전 SSOT, 예외 훅, 의존성 lockfile
 
 ## Recent Sessions (October 2025)
@@ -82,6 +83,7 @@ Chronological index of all development sessions for CTHarvester.
 - [001](20250806_001_empty_directory_cursor_fix.md) - 빈 디렉토리 커서 수정
 
 ### CI/CD & Infrastructure
+- [101](20260726_101_ruff_migration_and_ci_recovery.md) - Ruff 통합 + CI 전면 복구: 플랫폼별 락파일 포크, Inno Setup URL, 문서 빌드, `lock-check` 상시 실패 수정
 - [100](20260724_100_code_quality_guide_adoption.md) - 코드 품질 가이드 적용: 3-OS 테스트 매트릭스, smoke 잡, 의존성 lock, lock 최신성 게이트
 - [099](20251008_099_cicd_improvements.md) - CI/CD 개선: CodeQL, 의존성 검토, 병렬화, CHANGELOG 통합 (7개 개선사항)
 - [098](20251008_098_phase4_complete.md) - Phase 4 릴리스 준비 완료
