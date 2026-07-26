@@ -214,6 +214,34 @@ class ObjectViewer2D(QLabel):
         if self.image_canvas_ratio != 0:
             self._update_canvas_box()
 
+    def set_roi_from_fractions(self, x1, y1, x2, y2):
+        """Set ROI from fractions of the image size.
+
+        Fractions rather than pixels because the caller (auto-setup) derives the
+        region from the smallest pyramid level, while this widget is showing
+        whichever level is currently selected.
+
+        Args:
+            x1, y1, x2, y2: Bounds as fractions of image width/height, in [0, 1].
+
+        Returns:
+            bool: False if no image is loaded yet, so nothing could be applied.
+        """
+        if self.orig_pixmap is None:
+            return False
+
+        width = self.orig_pixmap.width()
+        height = self.orig_pixmap.height()
+        self.roi_manager.set_image_size(width, height)
+        self.roi_manager.set_roi_bounds(
+            round(x1 * width), round(y1 * height), round(x2 * width), round(y2 * height)
+        )
+
+        if self.image_canvas_ratio != 0:
+            self._update_canvas_box()
+        self.update()
+        return True
+
     def is_roi_full_or_empty(self):
         """Check if ROI is not set or covers the entire image (delegates to ROIManager)."""
         if self.orig_pixmap is None:

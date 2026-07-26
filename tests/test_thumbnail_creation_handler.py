@@ -8,6 +8,7 @@ import sys
 import time
 from unittest.mock import MagicMock, Mock, patch
 
+import numpy as np
 import pytest
 
 from ui.handlers.thumbnail_creation_handler import ThumbnailCreationHandler
@@ -507,3 +508,96 @@ class TestThumbnailCreationHandlerEdgeCases:
         handler.create_thumbnail()
 
         handler.create_thumbnail_python.assert_called_once()
+
+
+class TestThumbnailCreationHandlerAutoSetup:
+    """Tests for _apply_auto_setup(), which seeds threshold/ROI/slice range."""
+
+    @pytest.fixture
+    def window(self):
+        """Mock window with the widgets _apply_auto_setup touches."""
+        window = MagicMock()
+        window.timeline.minimum.return_value = 0
+        window.timeline.maximum.return_value = 99
+        window.image_label.set_roi_from_fractions.return_value = True
+        window.tr.side_effect = lambda text: text
+        return window
+
+    @pytest.fixture
+    def handler(self, window):
+        return ThumbnailCreationHandler(window)
+
+    @staticmethod
+    def _scan():
+        """A volume with a clear bright block, so detection succeeds."""
+        volume = np.full((40, 80, 80), 20, dtype=np.uint8)
+        volume[10:30, 20:60, 20:60] = 220
+        return volume
+
+    def test_applies_threshold_roi_and_slice_range(self, handler, window):
+        window.minimum_volume = self._scan()
+
+        handler._apply_auto_setup()
+
+        window.threshold_slider.setValue.assert_called_once()
+        threshold = window.threshold_slider.setValue.call_args[0][0]
+        assert 20 < threshold < 220
+
+        window.image_label.set_roi_from_fractions.assert_called_once()
+        window.timeline.setLower.assert_called_once()
+        window.timeline.setUpper.assert_called_once()
+
+    def test_slice_range_is_mapped_onto_the_timeline_bounds(self, handler, window):
+        """The detection runs on the smallest level; the timeline indexes the level in view."""
+        window.minimum_volume = self._scan()
+        window.timeline.minimum.return_value = 0
+        window.timeline.maximum.return_value = 399
+
+        handler._apply_auto_setup()
+
+        lower = window.timeline.setLower.call_args[0][0]
+        upper = window.timeline.setUpper.call_args[0][0]
+        # Bright block spans z 10-30 of 40, so roughly a quarter to three quarters
+        # of a 400-slice timeline, plus the 5% margin.
+        assert 60 <= lower <= 110
+        assert 290 <= upper <= 340
+        assert 0 <= lower < upper <= 399
+
+    def test_reports_what_it_did_in_the_status_bar(self, handler, window):
+        window.minimum_volume = self._scan()
+
+        handler._apply_auto_setup()
+
+        # Written after update_status(), which would otherwise overwrite it.
+        window.update_status.assert_called_once()
+        message = window.edtStatus.setText.call_args[0][0]
+        assert "Auto-detected" in message
+        assert "threshold" in message
+
+    def test_leaves_defaults_alone_when_detection_declines(self, handler, window):
+        """A uniform volume has nothing to propose."""
+        window.minimum_volume = np.full((20, 40, 40), 128, dtype=np.uint8)
+
+        handler._apply_auto_setup()
+
+        window.threshold_slider.setValue.assert_not_called()
+        window.timeline.setLower.assert_not_called()
+        window.image_label.set_roi_from_fractions.assert_not_called()
+
+    def test_tolerates_a_missing_volume(self, handler, window):
+        """The failure paths set minimum_volume to a plain list."""
+        window.minimum_volume = []
+
+        handler._apply_auto_setup()
+
+        window.threshold_slider.setValue.assert_not_called()
+
+    def test_still_sets_threshold_when_the_roi_cannot_be_applied(self, handler, window):
+        """No image loaded yet in the viewer; the threshold is still useful."""
+        window.minimum_volume = self._scan()
+        window.image_label.set_roi_from_fractions.return_value = False
+
+        handler._apply_auto_setup()
+
+        window.threshold_slider.setValue.assert_called_once()
+        assert "ROI" not in window.edtStatus.setText.call_args[0][0]

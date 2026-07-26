@@ -16,9 +16,11 @@ import time
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+import numpy as np
 from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QApplication
 
+from core.auto_setup import detect_initial_settings
 from ui.dialogs.progress_dialog import ProgressDialog
 from ui.errors import ErrorCode, show_error
 from utils.ui_utils import wait_cursor
@@ -272,7 +274,61 @@ class ThumbnailCreationHandler:
             if not self.window.initialized:
                 self.window.comboLevelIndexChanged()
 
+        # After the level is displayed, so the ROI can be applied in its coordinates
+        if success:
+            self._apply_auto_setup()
+
         return success
+
+    def _apply_auto_setup(self) -> None:
+        """Seed the threshold, ROI and slice range from the generated pyramid.
+
+        The smallest level is already in memory at this point, so proposing
+        sensible starting values costs one pass over a few hundred KB. Anything
+        unexpected -- no volume, a scan that does not separate cleanly, a widget
+        without an image yet -- leaves the existing defaults untouched.
+
+        Must run after the level combo has been populated and selected: the ROI
+        is applied in the current level's pixel coordinates, which need the
+        displayed image to exist.
+        """
+        volume = getattr(self.window, "minimum_volume", None)
+        if not isinstance(volume, np.ndarray):
+            logger.debug("Auto-setup skipped: minimum_volume is not an array")
+            return
+
+        result = detect_initial_settings(volume)
+        if result is None:
+            return  # detect_initial_settings logs the reason
+
+        # The slider's valueChanged signal propagates the isovalue to both the
+        # 2D viewer and the mesh widget, so this is the whole threshold story.
+        self.window.threshold_slider.setValue(result.threshold)
+
+        roi_applied = self.window.image_label.set_roi_from_fractions(*result.roi)
+
+        # The timeline indexes slices of the level in view, not of the volume the
+        # detection ran on, so the range is mapped through its own bounds.
+        first, last = self.window.timeline.minimum(), self.window.timeline.maximum()
+        span = last - first
+        lower = first + round(result.z_range[0] * span)
+        upper = first + round(result.z_range[1] * span)
+        self.window.timeline.setLower(max(first, min(lower, last)))
+        self.window.timeline.setUpper(max(first, min(upper, last)))
+
+        # update_status() rewrites edtStatus with the crop summary, so the
+        # explanation goes in afterwards. It survives until the user touches
+        # anything, which is exactly as long as it is useful.
+        self.window.update_status()
+        if roi_applied:
+            summary = self.window.tr(
+                "Auto-detected: threshold {}, ROI {}% of frame, slices {}-{}"
+            ).format(result.threshold, round(result.roi_coverage() * 100), lower, upper)
+        else:
+            summary = self.window.tr("Auto-detected: threshold {}, slices {}-{}").format(
+                result.threshold, lower, upper
+            )
+        self.window.edtStatus.setText(summary)
 
     def create_thumbnail_python(self) -> bool:
         """Create thumbnails using Python implementation (fallback).
@@ -417,6 +473,12 @@ class ThumbnailCreationHandler:
                     if not self.window.initialized:
                         self.window.comboLevelIndexChanged()
 
+                # After the level is displayed, so the ROI can be applied in its
+                # coordinates, and before the 3D view is built so it renders at
+                # the detected threshold rather than the default.
+                self._apply_auto_setup()
+
+                if self.window.comboLevel.count() > 0:
                     # Update 3D view after initializing combo level
                     self.window.update_3D_view(False)
 

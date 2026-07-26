@@ -4,6 +4,7 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Recent Sessions (July 2026)
 
+- [102](20260726_102_auto_threshold_and_roi_detection.md) - **자동 threshold/ROI 감지**: 피라미드 완료 시 최소 레벨로 Otsu 임계값·ROI·슬라이스 범위를 잡아 초기값으로 적용 (+32 tests)
 - [101](20260726_101_ruff_migration_and_ci_recovery.md) - **Ruff 마이그레이션 & CI 전면 복구**: 린트 툴 5개→1개 통합, 플랫폼별 테스트 수정, 제품 버그 3건(죽은 코드/시계 해상도/프로세스 abort), 락파일·문서·인스톨러 빌드 복구 — 전 워크플로우 첫 그린
 - [100](20260724_100_code_quality_guide_adoption.md) - **코드 품질 가이드 적용**: 크로스플랫폼 CI 매트릭스, smoke 테스트, pytest 설정 통합, 버전 SSOT, 예외 훅, 의존성 lockfile
 
@@ -63,6 +64,7 @@ Chronological index of all development sessions for CTHarvester.
 - [030](20250930_030_recommended_improvements_completed.md) - 권장 개선사항 완료
 
 ### Thumbnail Generation
+- [102](20260726_102_auto_threshold_and_roi_detection.md) - 피라미드 완료 후 자동 threshold/ROI/슬라이스 범위 감지 (Otsu)
 - [052](20251001_052_python_thumbnail_progress_fix.md) - Python 썸네일 진행률 수정
 - [051](20251001_051_phase2_python_thumbnail_completion.md) - Python 썸네일 통합 완료
 - [049](20251001_049_phase2_dependency_analysis.md) - Python 썸네일 의존성 분석

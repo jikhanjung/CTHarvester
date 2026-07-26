@@ -15,6 +15,12 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
 ## [Unreleased]
 
 ### Added
+- **Automatic initial setup after thumbnail generation.** The smallest pyramid
+  level is analysed to detect an intensity threshold (Otsu's method), a region of
+  interest, and the slice range containing the specimen; all three are applied as
+  starting values and reported in the status line. Reset restores the full frame
+  as before. When the scan does not separate cleanly the existing defaults are
+  left untouched rather than a poor guess being applied.
 - Release automation: `scripts/bump_version.py` (+ `make release`) bumps
   `version.py`, rolls this changelog, and tags `v<version>`; `release.yml`
   publishes the tag's changelog section with SHA256 checksums.
