@@ -3,3 +3,9 @@ sphinx>=7.0.0
 sphinx_rtd_theme>=1.3.0
 sphinx-intl>=2.0.0
 # Note: Language switcher implemented in _templates/layout.html
+
+# Not a Sphinx dependency, and not removable: conf.py imports the version from
+# version.py (the single source of truth), and version.py parses it with semver
+# at import time. Without this the docs build dies with ModuleNotFoundError
+# before Sphinx reads a single page. Keep the range in sync with pyproject.toml.
+semver>=3.0.0,<4.0.0
