@@ -343,7 +343,9 @@ class ThumbnailManager(QObject):
             self.progress_manager.set_speed(self.images_per_second)
 
         # Only initialize if not already started (for shared progress manager)
-        if not self.progress_manager.total and not self.progress_manager.start_time:
+        # `is None`, not falsiness: start_time is a perf_counter() reading whose
+        # zero point is arbitrary, so a small value is a legitimate start time.
+        if not self.progress_manager.total and self.progress_manager.start_time is None:
             total_to_use = (
                 self.progress_manager.weighted_total_work
                 if self.progress_manager.weighted_total_work

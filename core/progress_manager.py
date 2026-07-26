@@ -36,7 +36,11 @@ class ProgressManager(QObject):
         """Initialize progress tracking"""
         self.total = total
         self.current = 0
-        self.start_time = time.time()
+        # perf_counter, not time(): monotonic, so an NTP step cannot make
+        # elapsed go backwards, and high-resolution everywhere. time() advances
+        # in ~15.6ms steps on Windows, which made elapsed read exactly 0.0 for
+        # any work that finished inside one tick.
+        self.start_time = time.perf_counter()
         self.is_sampling = False
 
     def update(self, value: int | None = None, delta: int = 1) -> None:
@@ -69,22 +73,29 @@ class ProgressManager(QObject):
         if self.is_sampling:
             return "Estimating..."
 
-        if not self.start_time:
+        if self.start_time is None:
             return ""
 
-        elapsed = time.time() - self.start_time
+        # "Completing..." is decided by the work counters alone. It used to sit
+        # below the `elapsed <= 0` guard, so a call landing in the same clock
+        # tick as start() returned "" for finished work -- routine on Windows,
+        # where time.time() advanced in ~15.6ms steps.
+        if self.weighted_total_work and self.weighted_total_work > 0:
+            weighted_progress = self.current
+            remaining_weighted_work = self.weighted_total_work - weighted_progress
+            if remaining_weighted_work <= 0:
+                return "Completing..."
+        else:
+            remaining = self.total - self.current
+            if remaining <= 0:
+                return "Completing..."
+
+        elapsed = time.perf_counter() - self.start_time
         if elapsed <= 0:
             return ""
 
         # If we have weighted work distribution, the current value is already weighted
         if self.weighted_total_work and self.weighted_total_work > 0:
-            # self.current is already the weighted progress (global_step_counter with level_weight)
-            weighted_progress = self.current
-            remaining_weighted_work = self.weighted_total_work - weighted_progress
-
-            if remaining_weighted_work <= 0:
-                return "Completing..."
-
             # Calculate weighted speed
             weighted_speed = weighted_progress / elapsed
 
@@ -94,10 +105,6 @@ class ProgressManager(QObject):
                 return ""
         else:
             # Fallback to simple calculation
-            remaining = self.total - self.current
-            if remaining <= 0:
-                return "Completing..."
-
             if self.current > 0:
                 actual_speed = self.current / elapsed
                 remaining_time = remaining / actual_speed

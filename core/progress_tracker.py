@@ -108,8 +108,9 @@ class SimpleProgressTracker:
         smoothing_window: Size of moving average window for speed calculation.
         min_samples_for_eta: Minimum speed samples needed before calculating ETA.
         completed_items: Number of items completed so far.
-        start_time: Unix timestamp when tracking started.
-        last_update_time: Unix timestamp of last update.
+        start_time: perf_counter() reading when tracking started (not a wall
+            clock timestamp; only differences are meaningful).
+        last_update_time: perf_counter() reading of the last update.
         speed_samples: List of recent speed samples for moving average.
 
     Example:
@@ -147,7 +148,12 @@ class SimpleProgressTracker:
         self.min_samples_for_eta = min_samples_for_eta
 
         self.completed_items = 0
-        self.start_time = time.time()
+        # perf_counter, not time(): monotonic and high-resolution. With
+        # time(), `elapsed` below reads exactly 0.0 whenever an update lands
+        # in the same clock tick as the start -- routine on Windows, where
+        # time() advances in ~15.6ms steps -- and the speed sample is then
+        # dropped entirely, so speed and ETA never materialise for fast work.
+        self.start_time = time.perf_counter()
         self.last_update_time = self.start_time
 
         # Speed tracking (for moving average)
@@ -172,7 +178,7 @@ class SimpleProgressTracker:
         self.completed_items += increment
 
         # Current time
-        now = time.time()
+        now = time.perf_counter()
         elapsed = now - self.start_time
 
         # Calculate speed (items/sec)
@@ -222,7 +228,7 @@ class SimpleProgressTracker:
         for a new operation without creating a new instance.
         """
         self.completed_items = 0
-        self.start_time = time.time()
+        self.start_time = time.perf_counter()
         self.last_update_time = self.start_time
         self.speed_samples = []
 
@@ -237,7 +243,7 @@ class SimpleProgressTracker:
             Unlike update(), this method does not modify state or invoke callbacks.
             It's useful for querying current status without affecting progress tracking.
         """
-        elapsed = time.time() - self.start_time
+        elapsed = time.perf_counter() - self.start_time
         percentage = (self.completed_items / self.total_items) * 100
 
         if self.speed_samples:

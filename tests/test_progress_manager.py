@@ -190,6 +190,33 @@ class TestProgressManagerETA:
         """Create ProgressManager instance"""
         self.manager = ProgressManager()
 
+    def test_completing_does_not_depend_on_elapsed_time(self):
+        """ "Completing..." must not need the clock to have ticked.
+
+        Regression test. calculate_eta() used to bail out with "" whenever
+        elapsed was 0, above the checks for finished work. time.time() advances
+        in ~15.6ms steps on Windows, so any run that completed inside one tick
+        reported an empty ETA instead of "Completing..." -- which is exactly how
+        this failed on the Windows CI legs and nowhere else.
+
+        The zero-elapsed case is forced here rather than raced for: pin
+        start_time to the current reading so no time can pass at all.
+        """
+        self.manager.start(total=10)
+        self.manager.current = 10
+        self.manager.start_time = time.perf_counter()
+
+        assert self.manager.calculate_eta() == "Completing..."
+
+    def test_completing_with_weighted_work_does_not_depend_on_elapsed(self):
+        """Same guarantee on the weighted-work path."""
+        self.manager.start(total=10)
+        self.manager.weighted_total_work = 5.0
+        self.manager.current = 5
+        self.manager.start_time = time.perf_counter()
+
+        assert self.manager.calculate_eta() == "Completing..."
+
     def test_eta_with_weighted_work(self):
         """Should calculate ETA with weighted work distribution"""
         self.manager.start(total=100)

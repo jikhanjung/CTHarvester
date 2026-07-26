@@ -473,19 +473,23 @@ class TestProgressTrackerIntegration:
 
         tracker = SimpleProgressTracker(total_items=20, callback=collect_speed, smoothing_window=5)
 
-        # Variable speed processing
+        # Variable speed processing. The slow half sleeps 20x longer than the
+        # fast half, not 10x: a 1ms sleep is below the scheduler granularity of
+        # a loaded CI runner, so the halves measured almost the same and the
+        # "faster" one came out slower (34.3 vs 44.5 on macOS).
         for i in range(20):
             if i < 10:
-                time.sleep(0.01)  # Slower
+                time.sleep(0.02)  # Slower
             else:
                 time.sleep(0.001)  # Faster
             tracker.update()
 
-        # Speed should increase in second half
+        # Speed should increase in the second half. Note speed is cumulative
+        # (completed / elapsed since start), so the rise is gradual and the
+        # smoothing window damps it further -- hence the generous margin.
         avg_first_half = sum(speeds[:10]) / 10
         avg_second_half = sum(speeds[10:]) / 10
 
-        # Second half should be faster (though smoothing will dampen the difference)
         assert avg_second_half >= avg_first_half * 0.8  # Allow for smoothing effect
 
     def test_reset_and_reuse(self):

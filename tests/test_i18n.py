@@ -195,9 +195,12 @@ class TestTranslationManager:
             result = translation_manager.load_language("ko")
 
             assert result is False
-            # The manager must have probed the conventional .qm location
-            checked = [str(call) for call in mock_exists.call_args_list]
-            assert any(expected_path in c for c in checked), checked
+            # The manager must have probed the conventional .qm location.
+            # Compare the recorded arguments, not str(call): the repr of a call
+            # escapes backslashes, so on Windows a substring match against a
+            # real path with single separators never hits.
+            checked = [c.args[0] for c in mock_exists.call_args_list if c.args]
+            assert expected_path in checked, checked
             # The path should have been checked via os.path.exists
             called_path = mock_exists.call_args[0][0]
             assert "CTHarvester_ko.qm" in called_path

@@ -215,13 +215,20 @@ class TestCreateThumbnailDirectory:
         assert result1 == result2
         assert os.path.exists(result2)
 
-    def test_create_directory_oserror(self):
-        """Should raise OSError on permission denied"""
+    def test_create_directory_oserror(self, tmp_path):
+        """Should raise OSError when the directory cannot be created"""
         import pytest
 
-        # Try to create in a path that doesn't allow write
+        # A regular file as the parent: makedirs then fails with
+        # NotADirectoryError (an OSError) for every user on every platform.
+        # The previous "/root/nopermission" was a POSIX assumption -- on Windows
+        # it maps to a perfectly creatable path and nothing was raised, which is
+        # how this failed on the Windows CI legs with "DID NOT RAISE".
+        blocker = tmp_path / "not-a-directory"
+        blocker.write_text("", encoding="utf-8")
+
         with pytest.raises(OSError):
-            create_thumbnail_directory("/root/nopermission", level=1)
+            create_thumbnail_directory(str(blocker / "child"), level=1)
 
 
 @pytest.mark.unit

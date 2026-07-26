@@ -447,7 +447,14 @@ def safe_load_image(
     Created during Phase 2 of quality improvement plan (devlog 072).
     """
     try:
-        with Image.open(file_path) as img:
+        with Image.open(file_path) as opened:
+            # `opened` stays bound to the ImageFile the context manager will
+            # close; `img` is what the conversions below rebind. Keeping them
+            # separate is also what makes this type-check: convert() returns a
+            # plain Image, not an ImageFile, and Pillow 12 ships stubs strict
+            # enough to say so.
+            img: Image.Image = opened
+
             # Handle palette mode
             if handle_palette and img.mode == "P":
                 img = img.convert("L")
