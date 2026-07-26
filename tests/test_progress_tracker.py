@@ -464,8 +464,23 @@ class TestProgressTrackerIntegration:
             # ETA should generally decrease (allowing some fluctuation)
             assert etas_with_values[-1] < etas_with_values[0]
 
-    def test_speed_averaging(self):
-        """Test speed averaging over multiple updates"""
+    def test_speed_averaging(self, monkeypatch):
+        """Speed rises when the work speeds up.
+
+        The clock is injected rather than driven with time.sleep(). Sleeping was
+        never measuring the tracker: on a loaded CI runner a 1ms sleep overshoots
+        by an order of magnitude, so the "faster" half genuinely ran slower and
+        the test failed on macOS at 15.5 vs 20.4. Widening the sleep ratio only
+        made it flaky instead of failing. A controlled clock tests the smoothing
+        logic itself and gives the same answer on every machine.
+        """
+        now = 1000.0
+
+        def fake_perf_counter():
+            return now
+
+        monkeypatch.setattr(time, "perf_counter", fake_perf_counter)
+
         speeds = []
 
         def collect_speed(info: ProgressInfo):
@@ -473,24 +488,16 @@ class TestProgressTrackerIntegration:
 
         tracker = SimpleProgressTracker(total_items=20, callback=collect_speed, smoothing_window=5)
 
-        # Variable speed processing. The slow half sleeps 20x longer than the
-        # fast half, not 10x: a 1ms sleep is below the scheduler granularity of
-        # a loaded CI runner, so the halves measured almost the same and the
-        # "faster" one came out slower (34.3 vs 44.5 on macOS).
         for i in range(20):
-            if i < 10:
-                time.sleep(0.02)  # Slower
-            else:
-                time.sleep(0.001)  # Faster
+            now += 0.02 if i < 10 else 0.001  # second half is 20x faster
             tracker.update()
 
-        # Speed should increase in the second half. Note speed is cumulative
-        # (completed / elapsed since start), so the rise is gradual and the
-        # smoothing window damps it further -- hence the generous margin.
+        # Speed is cumulative (completed / elapsed since start), so the rise is
+        # gradual and the smoothing window damps it further.
         avg_first_half = sum(speeds[:10]) / 10
         avg_second_half = sum(speeds[10:]) / 10
 
-        assert avg_second_half >= avg_first_half * 0.8  # Allow for smoothing effect
+        assert avg_second_half > avg_first_half
 
     def test_reset_and_reuse(self):
         """Test resetting and reusing tracker"""
