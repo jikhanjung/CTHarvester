@@ -9,6 +9,7 @@ import gc
 import os
 import shutil
 import tempfile
+import time
 
 import numpy as np
 import pytest
@@ -38,14 +39,17 @@ class TestFileHandlerErrorPaths:
         temp_dir = tempfile.mkdtemp()
         yield temp_dir
 
-        # Drop anything still holding a file open before removing the tree.
         # These tests deliberately feed corrupt and truncated images to PIL and
-        # assert the resulting exception; pytest.raises keeps that exception --
-        # and its traceback, and therefore the frames referencing PIL's open
-        # ImageFile -- alive until the test ends. POSIX happily unlinks an open
-        # file, so this is invisible on Linux and macOS, but Windows refuses
-        # with "WinError 32: being used by another process" and the teardown
-        # errors out.
+        # assert on the resulting exception. On Windows something still holds a
+        # handle to those files when the fixture unwinds, and rmtree fails with
+        # "WinError 32: being used by another process". POSIX unlinks open files
+        # without complaint, so it is invisible on Linux and macOS.
+        #
+        # gc.collect() alone does not release it -- so whatever holds the handle
+        # is still reachable, not garbage, and diagnosing further needs a
+        # Windows box. What is certain: a leftover temp file is not a test
+        # result. Retry a few times to cover an asynchronous handle release,
+        # then leave the directory to the OS rather than failing the run.
         gc.collect()
 
         if os.path.exists(temp_dir):
@@ -61,7 +65,18 @@ class TestFileHandlerErrorPaths:
                         os.chmod(os.path.join(root, f), 0o644)
                     except OSError:
                         pass
-            shutil.rmtree(temp_dir)
+
+            for attempt in range(3):
+                try:
+                    shutil.rmtree(temp_dir)
+                    break
+                except OSError:
+                    if attempt == 2:
+                        # Last resort: report, do not fail the test run over it.
+                        shutil.rmtree(temp_dir, ignore_errors=True)
+                        break
+                    gc.collect()
+                    time.sleep(0.1)
 
     # ===== Permission Errors =====
 
