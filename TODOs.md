@@ -20,13 +20,31 @@ state and should be updated as items land.
 | 5 | Lockfile + pip-audit + Dependabot | ✅ | 3 lockfiles with hashes, pip-audit gating, `.github/dependabot.yml` |
 | 6 | Coverage gate | ✅ | `--cov-fail-under=75` on the reference leg |
 | 7 | Static type checking, scoped | ✅ | mypy per-module strict; runs in CI (advisory, see #2) |
-| 8 | Dead-code / complexity automation | ❌ | No vulture, no radon, `C901` disabled |
+| 8 | Dead-code / complexity automation | ⚠️ | `C901` enabled as a ratchet at 32 (2026-07-26). vulture evaluated and rejected — 5 of its 6 findings were false positives (re-exports, `__exit__` params, Qt callback signatures); Modan2 does not use it either. The refactoring backlog is below |
 | 9 | Packaged-artifact smoke test; signed installers | ⚠️ | Smoke test done (2026-07-26): `--self-test` entry point, run against the frozen build on all 3 OSes in `reusable_build.yml`. Installer signing/notarization still open |
 | 10 | Property-based / fuzz tests | ⚠️ | `tests/property/test_image_properties.py` exists but its body is `pytest.skip("Template - to be implemented in Phase 4")` |
 
 **Working order** (cheapest first, per the guide's own ordering): ~~#3 `DTZ`~~,
-~~#2 docs build gating~~ and ~~#9 packaged smoke test~~ (all done 2026-07-26) →
-#8 dead-code automation. #10, mypy gating and installer signing after those.
+~~#2 docs build gating~~, ~~#9 packaged smoke test~~ and ~~#8 complexity
+ratchet~~ (all done 2026-07-26). Remaining: the complexity backlog below,
+#10 property tests, mypy gating, installer signing.
+
+### Complexity backlog (`C901`)
+
+`max-complexity` is pinned at **32**, the current worst function, so nothing can
+get worse. The guide's threshold is 15. Lower the number in
+`[tool.ruff.lint.mccabe]` as each of these is split — never raise it:
+
+| Function | Complexity |
+|---|---|
+| `core/thumbnail_manager.py::process_level` | 32 |
+| `core/thumbnail_generator.py::generate_python` | 28 |
+| `core/thumbnail_generator.py::load_thumbnail_data` | 20 |
+| `ui/dialogs/progress_dialog.py::_calculate_eta` | 20 |
+| `ui/handlers/thumbnail_creation_handler.py::create_thumbnail_rust` | 18 |
+| `build.py::main` | 17 |
+| `core/file_handler.py::sort_file_list_from_dir` | 17 |
+| `core/sequential_processor.py::process_level` | 16 |
 
 ---
 

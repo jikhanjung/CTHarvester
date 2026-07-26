@@ -37,19 +37,24 @@ import re
 logger = logging.getLogger(__name__)
 
 
-def find_image_files(
-    directory: str, extensions: tuple[str, ...] | None = None, recursive: bool = False
-) -> list[str]:
+def find_image_files(directory: str, extensions: tuple[str, ...] | None = None) -> list[str]:
     """
-    Find image files in directory
+    Find image files in a directory (non-recursively)
 
     Args:
         directory: Search directory
         extensions: Allowed extensions (None for default)
-        recursive: Include subdirectories
 
     Returns:
         List of filenames (sorted)
+
+    Note:
+        There used to be a ``recursive`` parameter here, documented as "include
+        subdirectories" and never implemented -- both code paths below list one
+        directory. Passing ``recursive=True`` silently returned the same
+        non-recursive result. Removed rather than implemented: no caller wanted
+        it, and a TypeError is a better answer than a quietly wrong one. A CT
+        image stack is a flat directory by construction.
     """
     from config.constants import SUPPORTED_IMAGE_EXTENSIONS
 

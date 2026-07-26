@@ -149,7 +149,7 @@ extend-exclude = [
 # LOG  flake8-logging
 # DTZ  flake8-datetimez (naive datetime)
 # RUF012 mutable class default
-select = ["E", "F", "I", "N", "UP", "B", "C4", "LOG", "DTZ", "RUF012"]
+select = ["E", "F", "I", "N", "UP", "B", "C4", "LOG", "DTZ", "C901", "RUF012"]
 ignore = [
     # The formatter owns line length. Left on as a warning it just duplicates
     # what `ruff format` already decided, including for strings it cannot split.
@@ -158,6 +158,14 @@ ignore = [
     # import cycles or to keep Qt out of the module import path.
     "E402",
 ]
+
+[tool.ruff.lint.mccabe]
+# A ratchet, not a target. 32 is the current worst function
+# (core/thumbnail_manager.process_level), so the tree passes today and nothing
+# is allowed to get worse. The guide's threshold is 15; eight functions are
+# above it and are listed in TODOs.md as the refactoring backlog. Lower this
+# number as they are split -- never raise it.
+max-complexity = 32
 
 [tool.ruff.lint.per-file-ignores]
 # Package __init__.py files exist to re-export; that is what F401 flags.
