@@ -225,11 +225,19 @@ class TestExportHandler:
         mock_cursor.assert_not_called()
         mock_restore.assert_not_called()
 
+    @patch("utils.ui_utils.QApplication")  # Patch at wait_cursor import location
     @patch("ui.handlers.export_handler.QFileDialog.getExistingDirectory")
     @patch("ui.handlers.export_handler.ProgressDialog")
     @patch("ui.handlers.export_handler.QApplication")
     def test_save_image_stack_no_crop(
-        self, mock_app, mock_progress_cls, mock_dialog, handler, temp_image_stack, tmp_path
+        self,
+        mock_app,
+        mock_progress_cls,
+        mock_dialog,
+        mock_ui_utils_app,
+        handler,
+        temp_image_stack,
+        tmp_path,
     ):
         """Test saving images without cropping"""
         # Setup

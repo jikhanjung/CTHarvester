@@ -5,6 +5,7 @@ Tests error handling scenarios including permissions, corrupted files,
 and edge cases.
 """
 
+import gc
 import os
 import shutil
 import tempfile
@@ -36,6 +37,17 @@ class TestFileHandlerErrorPaths:
         """Create a temporary directory"""
         temp_dir = tempfile.mkdtemp()
         yield temp_dir
+
+        # Drop anything still holding a file open before removing the tree.
+        # These tests deliberately feed corrupt and truncated images to PIL and
+        # assert the resulting exception; pytest.raises keeps that exception --
+        # and its traceback, and therefore the frames referencing PIL's open
+        # ImageFile -- alive until the test ends. POSIX happily unlinks an open
+        # file, so this is invisible on Linux and macOS, but Windows refuses
+        # with "WinError 32: being used by another process" and the teardown
+        # errors out.
+        gc.collect()
+
         if os.path.exists(temp_dir):
             # Restore permissions before cleanup
             for root, dirs, files in os.walk(temp_dir):

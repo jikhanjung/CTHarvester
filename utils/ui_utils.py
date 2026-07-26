@@ -45,6 +45,16 @@ def wait_cursor():
         The cursor will be restored in the finally block, guaranteeing
         cleanup even if the code block raises an exception.
     """
+    if QApplication.instance() is None:
+        # No QApplication: nothing has a cursor to override. Qt does not raise
+        # here, it calls qFatal and aborts the process, which under pytest-xdist
+        # takes the whole worker down and reports as "node down" rather than as
+        # a test failure. A cursor hint is cosmetic; never let it kill the
+        # process.
+        logger.debug("No QApplication instance; skipping wait cursor override")
+        yield
+        return
+
     QApplication.setOverrideCursor(Qt.WaitCursor)  # type: ignore[attr-defined]
     try:
         yield
@@ -72,6 +82,12 @@ def override_cursor(cursor=Qt.WaitCursor):  # type: ignore[attr-defined]
     Yields:
         None
     """
+    if QApplication.instance() is None:
+        # See wait_cursor: without a QApplication this aborts the process.
+        logger.debug("No QApplication instance; skipping cursor override")
+        yield
+        return
+
     QApplication.setOverrideCursor(cursor)
     try:
         yield
