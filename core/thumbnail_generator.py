@@ -360,6 +360,186 @@ class ThumbnailGenerator:
             logger.exception(f"Unexpected error during Rust thumbnail generation: {directory}")
             return False
 
+    @staticmethod
+    def _log_environment(directory: str, threadpool: QThreadPool) -> None:
+        """Log CPU, memory, disk and drive-type context for this run.
+
+        Purely diagnostic: every failure here is swallowed, because a missing
+        psutil or an unreadable drive letter must not stop thumbnailing.
+        """
+        import platform
+
+        try:
+            import psutil
+
+            has_psutil = True
+        except ImportError:
+            has_psutil = False
+            logger.warning("psutil not installed - cannot get detailed system info")
+
+        try:
+            logger.info(f"System: {platform.system()} {platform.release()}")
+            logger.info(f"CPU cores: {os.cpu_count()}")
+
+            if has_psutil:
+                mem = psutil.virtual_memory()
+                disk = psutil.disk_usage(directory)
+                logger.info(
+                    f"Memory: {mem.total / 1024**3:.1f}GB total, "
+                    f"{mem.available / 1024**3:.1f}GB available ({mem.percent:.1f}% used)"
+                )
+                logger.info(
+                    f"Disk: {disk.total / 1024**3:.1f}GB total, "
+                    f"{disk.free / 1024**3:.1f}GB free ({disk.percent:.1f}% used)"
+                )
+
+            logger.info(
+                f"Thread pool: max={threadpool.maxThreadCount()}, "
+                f"active={threadpool.activeThreadCount()}"
+            )
+        except (AttributeError, ImportError) as e:
+            logger.warning(f"Could not get system info: {e}")
+
+        try:
+            drive = os.path.splitdrive(directory)[0]
+            if drive and drive.startswith("\\\\"):
+                logger.warning(
+                    f"Working on network drive: {drive} - this may cause slow performance"
+                )
+            elif drive:
+                logger.info(f"Working on local drive: {drive}")
+        except (OSError, AttributeError) as e:
+            logger.debug(f"Could not determine drive type: {e}")
+
+    @staticmethod
+    def _resolve_sample_size(settings: dict[str, Any] | None, total_work: float) -> int:
+        """Decide how many images to time before estimating the rest.
+
+        Uses the configured value when there is one, clamped to a sane range;
+        otherwise scales with the total work so a small stack is not spent
+        entirely on measuring.
+        """
+        user_sample_size = None
+        if settings and isinstance(settings, dict):
+            user_sample_size = settings.get("sample_size")
+
+        if user_sample_size is not None:
+            from config.constants import MAX_SAMPLE_SIZE, MIN_SAMPLE_SIZE
+
+            base_sample = max(MIN_SAMPLE_SIZE, min(MAX_SAMPLE_SIZE, int(user_sample_size)))
+            logger.info(f"Using user-configured sample_size: {base_sample}")
+            return base_sample
+
+        from config.constants import (
+            ADAPTIVE_SAMPLE_RATIO,
+            DEFAULT_ADAPTIVE_SAMPLE_MAX,
+            DEFAULT_ADAPTIVE_SAMPLE_MIN,
+        )
+
+        base_sample = max(
+            DEFAULT_ADAPTIVE_SAMPLE_MIN,
+            min(DEFAULT_ADAPTIVE_SAMPLE_MAX, int(total_work * ADAPTIVE_SAMPLE_RATIO)),
+        )
+        logger.info(f"Auto-calculated sample_size: {base_sample} (2% of {total_work} work)")
+        return base_sample
+
+    @staticmethod
+    def _prepare_level_dirs(
+        directory: str, level: int, seq_begin: int, seq_end: int
+    ) -> tuple[str, str, int, int]:
+        """Work out where this level reads from and writes to, and how many images.
+
+        Level 0 reads the original directory and trusts the caller's sequence
+        range. Later levels read the previous level's output and count what is
+        actually on disk, because a level can produce fewer files than predicted
+        when the source count was odd.
+
+        Returns:
+            (from_dir, to_dir, total_count, seq_end) -- seq_end is returned
+            because counting the real files can correct it.
+        """
+        if level == 0:
+            from_dir = directory
+            logger.debug(f"Level {level + 1}: Reading from original directory: {from_dir}")
+            total_count = seq_end - seq_begin + 1
+        else:
+            from_dir = os.path.join(directory, ".thumbnail/" + str(level))
+            logger.debug(f"Level {level + 1}: Reading from thumbnail directory: {from_dir}")
+
+            if os.path.exists(from_dir):
+                actual_files = [f for f in os.listdir(from_dir) if f.endswith(".tif")]
+                total_count = len(actual_files)
+                seq_end = seq_begin + total_count - 1
+                logger.info(
+                    f"Level {level + 1}: Found {total_count} actual files in previous level"
+                )
+            else:
+                total_count = seq_end - seq_begin + 1
+                logger.warning(
+                    f"Level {level + 1}: Previous level directory not found, "
+                    f"using calculated count: {total_count}"
+                )
+
+        to_dir = os.path.join(directory, ".thumbnail/" + str(level + 1))
+        if not os.path.exists(to_dir):
+            os.makedirs(to_dir)
+            logger.debug(f"Created directory {to_dir}")
+        else:
+            logger.debug(f"Directory already exists: {to_dir}")
+
+        return from_dir, to_dir, total_count, seq_end
+
+    @staticmethod
+    def _cancelled_result(
+        minimum_volume: "np.ndarray | list[np.ndarray]",
+        level_info: list[dict[str, Any]],
+        started_at: float,
+    ) -> dict[str, Any]:
+        """Build the result dict for a run the user cancelled.
+
+        Whatever levels completed before the cancellation are still returned --
+        they are on disk either way, and the caller can display them.
+        """
+        return {
+            "minimum_volume": np.array(minimum_volume) if len(minimum_volume) else np.array([]),
+            "level_info": level_info,
+            "success": False,
+            "cancelled": True,
+            "elapsed_time": time.time() - started_at,
+        }
+
+    @staticmethod
+    def _load_smallest_level(directory: str, level: int) -> np.ndarray:
+        """Read the smallest pyramid level back off disk as one 3D array.
+
+        Loaded from disk rather than kept from the loop so the Python and Rust
+        paths return the same thing; the Rust module writes files and nothing
+        else. An empty array is returned when the directory is missing or holds
+        nothing readable, which callers already treat as "no volume".
+        """
+        smallest_dir = os.path.join(directory, f".thumbnail/{level}")
+
+        if not os.path.exists(smallest_dir):
+            logger.warning(f"Smallest level directory not found: {smallest_dir}")
+            return np.array([])
+
+        logger.info(f"Loading minimum_volume from {smallest_dir}")
+        tif_files = sorted([f for f in os.listdir(smallest_dir) if f.endswith(".tif")])
+
+        slices: list[np.ndarray] = []
+        for tif_file in tif_files:
+            img_array = safe_load_image(os.path.join(smallest_dir, tif_file))
+            if img_array is not None:
+                slices.append(img_array)  # type: ignore[arg-type]
+
+        if not slices:
+            logger.warning("No images loaded for minimum_volume")
+            return np.array([])
+
+        volume = np.array(slices)
+        logger.info(f"Loaded minimum_volume: shape {volume.shape}")
+        return volume
+
     def generate_python(
         self,
         directory: str,
@@ -399,16 +579,6 @@ class ThumbnailGenerator:
             - ThumbnailManager connects signals to progress_dialog
             - No callbacks needed - Qt signals handle everything
         """
-        import platform
-
-        try:
-            import psutil
-
-            has_psutil = True
-        except ImportError:
-            has_psutil = False
-            logger.warning("psutil not installed - cannot get detailed system info")
-
         # Start timing
         thumbnail_start_time = time.time()
         thumbnail_start_datetime = datetime.now().astimezone()
@@ -430,42 +600,7 @@ class ThumbnailGenerator:
             logger.info(f"Thread configuration: maxThreadCount={threadpool.maxThreadCount()}")
             logger.info(f"Image dimensions: width={width}, height={height}, size={size}")
 
-            # System information logging
-            try:
-                cpu_count = os.cpu_count()
-                logger.info(f"System: {platform.system()} {platform.release()}")
-                logger.info(f"CPU cores: {cpu_count}")
-
-                if has_psutil:
-                    mem = psutil.virtual_memory()
-                    disk = psutil.disk_usage(directory)
-                    logger.info(
-                        f"Memory: {mem.total / 1024**3:.1f}GB total, "
-                        f"{mem.available / 1024**3:.1f}GB available ({mem.percent:.1f}% used)"
-                    )
-                    logger.info(
-                        f"Disk: {disk.total / 1024**3:.1f}GB total, "
-                        f"{disk.free / 1024**3:.1f}GB free ({disk.percent:.1f}% used)"
-                    )
-
-                logger.info(
-                    f"Thread pool: max={threadpool.maxThreadCount()}, "
-                    f"active={threadpool.activeThreadCount()}"
-                )
-            except (AttributeError, ImportError) as e:
-                logger.warning(f"Could not get system info: {e}")
-
-            # Check if directory is on network drive
-            try:
-                drive = os.path.splitdrive(directory)[0]
-                if drive and drive.startswith("\\\\"):
-                    logger.warning(
-                        f"Working on network drive: {drive} - this may cause slow performance"
-                    )
-                elif drive:
-                    logger.info(f"Working on local drive: {drive}")
-            except (OSError, AttributeError) as e:
-                logger.debug(f"Could not determine drive type: {e}")
+            self._log_environment(directory, threadpool)
 
             logger.info(f"Processing sequence: {seq_begin} to {seq_end}, directory: {directory}")
 
@@ -489,34 +624,7 @@ class ThumbnailGenerator:
             )
             logger.info(f"Weighted total work: {weighted_total_work:.1f}")
 
-            # Initialize variables for multi-stage sampling
-            # Read sample_size from settings, with fallback calculation if not configured
-            user_sample_size = None
-            if settings and isinstance(settings, dict):
-                # Try to get sample_size from settings dict
-                user_sample_size = settings.get("sample_size")
-
-            if user_sample_size is not None:
-                # User has configured sample_size in settings
-                from config.constants import MAX_SAMPLE_SIZE, MIN_SAMPLE_SIZE
-
-                base_sample = max(
-                    MIN_SAMPLE_SIZE, min(MAX_SAMPLE_SIZE, int(user_sample_size))
-                )  # Clamp to reasonable range
-                logger.info(f"Using user-configured sample_size: {base_sample}")
-            else:
-                # Fallback: auto-calculate based on total work
-                from config.constants import (
-                    ADAPTIVE_SAMPLE_RATIO,
-                    DEFAULT_ADAPTIVE_SAMPLE_MAX,
-                    DEFAULT_ADAPTIVE_SAMPLE_MIN,
-                )
-
-                base_sample = max(
-                    DEFAULT_ADAPTIVE_SAMPLE_MIN,
-                    min(DEFAULT_ADAPTIVE_SAMPLE_MAX, int(total_work * ADAPTIVE_SAMPLE_RATIO)),
-                )
-                logger.info(f"Auto-calculated sample_size: {base_sample} (2% of {total_work} work)")
+            base_sample = self._resolve_sample_size(settings, total_work)
 
             sample_size = base_sample
             total_sample = base_sample * 3
@@ -559,15 +667,7 @@ class ThumbnailGenerator:
                 # Check for cancellation
                 if progress_dialog and progress_dialog.is_cancelled:
                     logger.info("Thumbnail generation cancelled by user before level start")
-                    return {
-                        "minimum_volume": (
-                            np.array(minimum_volume) if minimum_volume else np.array([])
-                        ),
-                        "level_info": level_info,
-                        "success": False,
-                        "cancelled": True,
-                        "elapsed_time": time.time() - thumbnail_start_time,
-                    }
+                    return self._cancelled_result(minimum_volume, level_info, thumbnail_start_time)
 
                 # Start timing for this level
                 level_start_time = time.time()
@@ -583,39 +683,9 @@ class ThumbnailGenerator:
                     logger.info(f"Stopping at level {i + 1}: size {size} is too small to continue")
                     break
 
-                # Determine source directory
-                if i == 0:
-                    from_dir = directory
-                    logger.debug(f"Level {i + 1}: Reading from original directory: {from_dir}")
-                    total_count = seq_end - seq_begin + 1
-                else:
-                    from_dir = os.path.join(directory, ".thumbnail/" + str(i))
-                    logger.debug(f"Level {i + 1}: Reading from thumbnail directory: {from_dir}")
-
-                    # Count actual files for levels > 0
-                    if os.path.exists(from_dir):
-                        actual_files = [f for f in os.listdir(from_dir) if f.endswith(".tif")]
-                        total_count = len(actual_files)
-                        seq_end = seq_begin + total_count - 1
-                        logger.info(
-                            f"Level {i + 1}: Found {total_count} actual files in previous level"
-                        )
-                    else:
-                        total_count = seq_end - seq_begin + 1
-                        logger.warning(
-                            f"Level {i + 1}: Previous level directory not found, "
-                            f"using calculated count: {total_count}"
-                        )
-
-                # Create output directory
-                to_dir = os.path.join(directory, ".thumbnail/" + str(i + 1))
-                if not os.path.exists(to_dir):
-                    mkdir_start = time.time()
-                    os.makedirs(to_dir)
-                    mkdir_time = (time.time() - mkdir_start) * 1000
-                    logger.debug(f"Created directory {to_dir} in {mkdir_time:.1f}ms")
-                else:
-                    logger.debug(f"Directory already exists: {to_dir}")
+                from_dir, to_dir, total_count, seq_end = self._prepare_level_dirs(
+                    directory, i, seq_begin, seq_end
+                )
 
                 logger.info(f"--- Level {i + 1} ---")
                 logger.info(
@@ -670,15 +740,7 @@ class ThumbnailGenerator:
                 # Check for cancellation
                 if was_cancelled or (progress_dialog and progress_dialog.is_cancelled):
                     logger.info("Thumbnail generation cancelled by user")
-                    return {
-                        "minimum_volume": (
-                            np.array(minimum_volume) if minimum_volume else np.array([])
-                        ),
-                        "level_info": level_info,
-                        "success": False,
-                        "cancelled": True,
-                        "elapsed_time": time.time() - thumbnail_start_time,
-                    }
+                    return self._cancelled_result(minimum_volume, level_info, thumbnail_start_time)
 
                 # Update for next level
                 current_count = seq_end - seq_begin + 1
@@ -727,30 +789,7 @@ class ThumbnailGenerator:
                 images_per_second = total_work / total_elapsed
                 logger.info(f"Average processing speed: {images_per_second:.1f} images/second")
 
-            # Load minimum_volume from disk (smallest level)
-            # This ensures consistency with Rust implementation
-            smallest_level = i
-            smallest_dir = os.path.join(directory, f".thumbnail/{smallest_level}")
-
-            if os.path.exists(smallest_dir):
-                logger.info(f"Loading minimum_volume from {smallest_dir}")
-                tif_files = sorted([f for f in os.listdir(smallest_dir) if f.endswith(".tif")])
-
-                minimum_volume_list: list[np.ndarray] = []
-                for tif_file in tif_files:
-                    img_array = safe_load_image(os.path.join(smallest_dir, tif_file))
-                    if img_array is not None:
-                        minimum_volume_list.append(img_array)  # type: ignore[arg-type]
-
-                if minimum_volume_list:
-                    minimum_volume = np.array(minimum_volume_list)
-                    logger.info(f"Loaded minimum_volume: shape {minimum_volume.shape}")
-                else:
-                    logger.warning("No images loaded for minimum_volume")
-                    minimum_volume = np.array([])
-            else:
-                logger.warning(f"Smallest level directory not found: {smallest_dir}")
-                minimum_volume = np.array([])
+            minimum_volume = self._load_smallest_level(directory, i)
 
             # Final progress update
             if progress_dialog:

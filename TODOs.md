@@ -31,20 +31,20 @@ ratchet~~ (all done 2026-07-26). Remaining: the complexity backlog below,
 
 ### Complexity backlog (`C901`)
 
-`max-complexity` is pinned at **28**, the current worst function, so nothing can
+`max-complexity` is pinned at **20**, the current worst function, so nothing can
 get worse. The guide's threshold is 15. Lower the number in
 `[tool.ruff.lint.mccabe]` as each of these is split — never raise it:
 
-| Function | Complexity |
-|---|---|
-| ~~`core/thumbnail_manager.py::process_level`~~ | ~~32~~ → **9** (done 2026-07-26) |
-| `core/thumbnail_generator.py::generate_python` | 28 |
-| `core/thumbnail_generator.py::load_thumbnail_data` | 20 |
-| `ui/dialogs/progress_dialog.py::_calculate_eta` | 20 |
-| `ui/handlers/thumbnail_creation_handler.py::create_thumbnail_rust` | 18 |
-| `build.py::main` | 17 |
-| `core/file_handler.py::sort_file_list_from_dir` | 17 |
-| `core/sequential_processor.py::process_level` | 16 |
+| Function | Complexity | Test coverage of its module |
+|---|---|---|
+| ~~`core/thumbnail_manager.py::process_level`~~ | ~~32~~ → **9** (done 2026-07-26) | 68% |
+| ~~`core/thumbnail_generator.py::generate_python`~~ | ~~28~~ → **13** (done 2026-07-26) | 75% |
+| `core/thumbnail_generator.py::load_thumbnail_data` | 20 | 75% |
+| `ui/dialogs/progress_dialog.py::_calculate_eta` | 20 | **0% — write characterization tests first** |
+| `ui/handlers/thumbnail_creation_handler.py::create_thumbnail_rust` | 18 | 97% |
+| `build.py::main` | 17 | — |
+| `core/file_handler.py::sort_file_list_from_dir` | 17 | 90% |
+| `core/sequential_processor.py::process_level` | 16 | 81% |
 
 ---
 
