@@ -11,6 +11,7 @@ CTHarvester is a PyQt5-based application for processing and visualizing CT (Comp
 
    installation
    user_guide
+   configuration
    advanced_features
    troubleshooting
    faq

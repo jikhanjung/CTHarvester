@@ -593,11 +593,25 @@ Tools
 ~~~~~
 
 * **pytest**: Testing framework
-* **black**: Code formatter
-* **flake8**: Linter
+* **ruff**: Linter and formatter (replaced black, isort, flake8, pyupgrade and pylint)
 * **mypy**: Type checker
+* **bandit**: Security linter
 * **coverage.py**: Coverage reporting
 * **PyInstaller**: Executable builder
+
+In-repo notes
+~~~~~~~~~~~~~
+
+Longer-form developer references live as Markdown in the repository rather than
+in this manual, because they are for people working on CTHarvester rather than
+using it. They are not part of this site -- see ``docs/README.md`` for the
+convention.
+
+* `ARCHITECTURE.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/ARCHITECTURE.md>`_ -- module layout and data flow
+* `CODE_QUALITY.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/CODE_QUALITY.md>`_ -- ruff, mypy, bandit, pre-commit
+* `developer_guide/error_recovery.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/developer_guide/error_recovery.md>`_ -- error handling patterns
+* `developer_guide/performance.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/developer_guide/performance.md>`_ -- profiling and optimisation
+* `RELEASE_PROCESS.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/RELEASE_PROCESS.md>`_ -- cutting a release
 
 Community
 ~~~~~~~~~
