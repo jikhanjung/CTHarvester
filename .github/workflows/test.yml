@@ -235,11 +235,12 @@ jobs:
         cache: 'pip'
 
     - name: Build docs
-      # Non-gating for now, matching previous behaviour. Flip to gating as part
-      # of the "remove || true / continue-on-error" pass.
-      continue-on-error: true
+      # Gating. Installs docs/requirements.txt rather than naming packages here:
+      # conf.py imports version.py, which needs semver, and this step listing
+      # its own subset is how the docs build came to fail for weeks while
+      # continue-on-error reported it green.
       run: |
-        pip install sphinx sphinx-rtd-theme
+        pip install -r docs/requirements.txt
         cd docs
         make clean
         make html
@@ -247,7 +248,7 @@ jobs:
   test-summary:
     name: Test Matrix Summary
     needs: [lint, smoke, test, docs]
-    # docs is advisory; lint, smoke and test decide the verdict below.
+    # All four are required; the verdict below checks each of them.
     runs-on: ubuntu-latest
     if: always()
 
@@ -263,7 +264,7 @@ jobs:
         echo "| Tests (Linux py3.11-3.13, Win/macOS py3.11/3.13) | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Docs | ${{ needs.docs.result }} |" >> $GITHUB_STEP_SUMMARY
 
-        if [ "${{ needs.lint.result }}" != "success" ] || [ "${{ needs.smoke.result }}" != "success" ] || [ "${{ needs.test.result }}" != "success" ]; then
+        if [ "${{ needs.lint.result }}" != "success" ] || [ "${{ needs.smoke.result }}" != "success" ] || [ "${{ needs.test.result }}" != "success" ] || [ "${{ needs.docs.result }}" != "success" ]; then
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "❌ One or more required jobs failed." >> $GITHUB_STEP_SUMMARY
           exit 1
