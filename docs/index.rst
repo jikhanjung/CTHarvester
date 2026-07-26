@@ -22,11 +22,11 @@ Features
 
 * **Multi-level Thumbnail Generation**: Automatically generate thumbnail pyramids for fast navigation
 * **3D Visualization**: Real-time 3D mesh generation using Marching Cubes algorithm
-* **High Performance**: Rust-based thumbnail generation with Python fallback (10-50x speedup)
+* **High Performance**: Rust-based thumbnail generation with Python fallback (3-10x speedup)
 * **User-Friendly**: Modern UI with 24 keyboard shortcuts, 100% tooltip coverage, and professional 8px grid layout
 * **Flexible Settings**: YAML-based configuration with import/export functionality
 * **Multi-language Support**: English and Korean (한국어) interface
-* **Robust Testing**: 1,150 tests with ~91% code coverage
+* **Robust Testing**: 1,295 tests with ~79% code coverage
 * **Enhanced Progress Tracking**: ETA calculation, remaining items counter, and cancel functionality
 
 Quick Start

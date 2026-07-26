@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/jikhanjung/CTHarvester/branch/main/graph/badge.svg)](https://codecov.io/gh/jikhanjung/CTHarvester)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Tests: 1150 passing](https://img.shields.io/badge/tests-1150%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
+[![Tests: 1295 passing](https://img.shields.io/badge/tests-1295%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
 
 *Read this in other languages: [English](README.md), [한국어](README.ko.md)*
 
@@ -165,7 +165,7 @@ python manage_version.py bump major
 
 ### Testing
 
-CTHarvester has comprehensive test coverage with 1,150 tests and ~91% code coverage.
+CTHarvester has comprehensive test coverage with 1,295 tests and ~79% code coverage.
 
 #### Running Tests
 ```bash
@@ -185,7 +185,7 @@ pytest tests/benchmarks/ -v           # Performance & stress tests
 pytest tests/test_error_recovery.py -v # Error recovery tests
 ```
 
-#### Test Structure (1,150 total tests)
+#### Test Structure (1,295 total tests)
 - **Unit Tests**: Core utilities, workers, image processing, security, handlers
   - `test_common.py` - Utility functions (29 tests, 100% coverage)
   - `test_worker.py` - Worker threads (22 tests, 100% coverage)
@@ -211,7 +211,7 @@ pytest tests/test_error_recovery.py -v # Error recovery tests
   - `test_ui_workflows.py` - UI interaction workflows
 
 #### Coverage
-- **Overall**: ~91% average coverage
+- **Overall**: ~79% average coverage
 - **Modules at 100%**: utils/common, utils/worker, utils/image_utils, ui/handlers/view_manager
 - **Phase 4 Handlers**: 91.41% average coverage (4 modules)
 - **Total**: 1,072 tests passing, 5 skipped ✅

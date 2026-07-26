@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/jikhanjung/CTHarvester/branch/main/graph/badge.svg)](https://codecov.io/gh/jikhanjung/CTHarvester)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![Tests: 1150 passing](https://img.shields.io/badge/tests-1150%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
+[![Tests: 1295 passing](https://img.shields.io/badge/tests-1295%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
 
 *다른 언어로 읽기: [English](README.md), [한국어](README.ko.md)*
 
@@ -127,7 +127,7 @@ python manage_version.py bump major
 
 ### 테스트
 
-CTHarvester는 1,150개의 테스트와 약 91%의 코드 커버리지를 갖춘 포괄적인 테스트 커버리지를 제공합니다.
+CTHarvester는 1,295개의 테스트와 약 79%의 코드 커버리지를 갖춘 포괄적인 테스트 커버리지를 제공합니다.
 
 #### 테스트 실행
 ```bash
@@ -147,7 +147,7 @@ pytest tests/benchmarks/ -v                 # 성능 및 스트레스 테스트
 pytest tests/test_error_recovery.py -v      # 에러 복구 테스트
 ```
 
-#### 테스트 구조 (총 1,150개 테스트)
+#### 테스트 구조 (총 1,295개 테스트)
 - **단위 테스트**: 핵심 유틸리티, 워커, 이미지 처리, 보안, 핸들러
   - `test_common.py` - 유틸리티 함수 (29개 테스트, 100% 커버리지)
   - `test_worker.py` - 워커 스레드 (22개 테스트, 100% 커버리지)
@@ -173,9 +173,9 @@ pytest tests/test_error_recovery.py -v      # 에러 복구 테스트
   - `test_ui_workflows.py` - UI 상호작용 워크플로우
 
 #### 커버리지
-- **전체**: 약 91% 코드 커버리지
+- **전체**: 약 79% 코드 커버리지
 - **100% 모듈**: utils/common, utils/worker, utils/image_utils, test_ui_style
-- **총계**: 1,150개 테스트 통과 ✅
+- **총계**: 1,295개 테스트 통과 ✅
 
 ### CI/CD
 프로젝트는 지속적 통합 및 배포를 위해 GitHub Actions를 사용합니다:

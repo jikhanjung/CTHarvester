@@ -349,7 +349,7 @@ Slow Thumbnail Generation
 * **Without Rust (Python):** 1-2 seconds per image (acceptable)
 * **Abnormally slow:** 8-10+ seconds per image (problem!)
 
-**Solution 1: Enable Rust module (10-50x speedup)**
+**Solution 1: Check the Rust module is enabled (3-10x speedup)**
 
 See "Rust Module Issues" section above for installation instructions.
 

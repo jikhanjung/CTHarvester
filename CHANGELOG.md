@@ -46,6 +46,15 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   arguments, blind `pytest.raises(Exception)` and redundant exception tuples.
 
 ### Fixed
+- **Documentation described features that do not exist.** The "Keyboard Power
+  User Shortcuts" and "Hidden Features" sections of the advanced features guide
+  listed nine shortcuts, three double-click actions, two middle-click actions,
+  three context menus and drag-and-drop, none of which are implemented; two of
+  the shortcuts it did list were bound to something else (`Ctrl+0` is fit-to-
+  window, not reset-threshold). Corrected against `config/shortcuts.py`.
+- Test count and coverage figures in the READMEs and docs were stale (1,150
+  tests / ~91%; actual 1,295 / ~79%), and the Rust speedup was quoted as
+  "10-50x" in nine places against the project's own measurements of 3-10x.
 - **The packaged Linux build could not start.** PyOpenGL selects its backend by
   dotted-name import at runtime, which PyInstaller's static analysis cannot see,
   so no backend was bundled and the frozen executable died during import. Found

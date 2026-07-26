@@ -13,7 +13,9 @@ Performance Optimization
 Rust Module for High-Speed Processing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Rust thumbnail generation module provides 10-50x speedup over Python.
+The Rust thumbnail generation module is roughly 3-10x faster than the Python
+implementation, depending on image size and disk speed. On a real dataset the
+same stack took 9-10 minutes in Python and 2-3 minutes in Rust.
 
 **Installation:**
 
@@ -1196,14 +1198,15 @@ Tips and Tricks
 Keyboard Power User Shortcuts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Beyond basic shortcuts, these advanced combinations increase efficiency:
+Beyond the basics, these are the combinations that save the most time. The full
+list of 24 shortcuts is in the User Guide, and ``F1`` shows it in the
+application.
 
 **Quick navigation:**
 
-* ``Ctrl+Home``: Jump to first slice
-* ``Ctrl+End``: Jump to last slice
-* ``Ctrl+Left/Right``: Jump 10 slices
-* ``Shift+Left/Right``: Jump 100 slices (if dataset large enough)
+* ``Home`` / ``End``: Jump to the first / last slice
+* ``Ctrl+Left`` / ``Ctrl+Right``: Jump 10 slices backward / forward
+* ``Left`` / ``Right``: Step one slice
 
 **Rapid ROI setting:**
 
@@ -1214,43 +1217,17 @@ Beyond basic shortcuts, these advanced combinations increase efficiency:
    3. Navigate to approximate top → Press T
    4. Fine-tune → Press T again
 
-**Threshold shortcuts:**
+**Threshold:**
 
-* ``Up/Down arrows``: Adjust threshold (fine control)
-* ``Shift+Up/Down``: Adjust threshold (coarse steps)
-* ``Ctrl+0``: Reset threshold to default (128)
+* ``Up`` / ``Down``: Adjust the threshold
+* ``Ctrl+R``: Reset the crop region
 
 **View management:**
 
-* ``F3``: Toggle 3D view
-* ``F11``: Fullscreen mode
-* ``Ctrl+W``: Toggle wireframe in 3D view
-* ``Ctrl+B``: Toggle bounding box visibility
+* ``F3``: Toggle the 3D view
+* ``Ctrl+0``: Fit the image to the window
+* ``Ctrl++`` / ``Ctrl+-``: Zoom in / out
 
-Hidden Features
-~~~~~~~~~~~~~~~
-
-**Double-click behaviors:**
-
-* Double-click thumbnail: Jump to that slice
-* Double-click 3D view: Reset camera
-* Double-click status bar: Copy current slice info to clipboard
-
-**Middle-click actions:**
-
-* Middle-click slider: Jump to that position
-* Middle-click 3D view: Toggle orthographic/perspective
-
-**Right-click context menus:**
-
-* Right-click file list: Show file in Explorer/Finder
-* Right-click thumbnail: Regenerate individual thumbnail
-* Right-click 3D view: Export current view as image
-
-**Drag-and-drop:**
-
-* Drag folder onto window: Open that directory
-* Drag image onto window: Jump to that slice (if in current set)
 
 Workflow Optimization
 ~~~~~~~~~~~~~~~~~~~~~

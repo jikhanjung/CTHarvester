@@ -54,7 +54,7 @@ CTHarvester follows a modular architecture::
     │   └── tooltips.py                # Tooltip definitions
     ├── security/                  # Security modules
     │   └── file_validator.py         # File validation & path traversal prevention
-    └── tests/                     # Test suite (1,150 tests)
+    └── tests/                     # Test suite (1,295 tests)
         ├── integration/               # Integration tests
         ├── property/                  # Property-based tests
         └── test_*.py                  # Unit tests

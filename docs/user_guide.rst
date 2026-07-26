@@ -44,6 +44,7 @@ The application will:
 * Scan the directory for image sequences
 * Generate multi-level thumbnails for fast navigation
 * Display a progress bar during thumbnail generation
+* Propose an initial threshold and region of interest (see below)
 
 .. note::
    First-time loading may take several minutes depending on:
@@ -52,6 +53,33 @@ The application will:
    * Image resolution
    * Disk speed
    * CPU performance
+
+Automatic Initial Setup
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Once the thumbnails are ready, CTHarvester examines the smallest pyramid level
+and sets three things for you, so you start near a usable view instead of at
+the defaults:
+
+* **Threshold** — an intensity level separating the specimen from air,
+  found with Otsu's method
+* **Region of interest** — the crop box around the specimen, with a small
+  margin so nothing is clipped
+* **Slice range** — the timeline bounds narrowed to the slices that actually
+  contain the specimen
+
+The status bar reports what was chosen, for example::
+
+   Auto-detected: threshold 87, ROI 62% of frame, slices 14-233
+
+These are starting points, not decisions. Adjust any of them as usual, or press
+``Ctrl+R`` to reset the crop region to the full frame.
+
+.. note::
+   When a scan does not separate cleanly — a uniform volume, unstructured
+   noise, or a specimen filling the whole frame — nothing is proposed and the
+   normal defaults are left in place. Detection is skipped rather than guessed
+   at, so an empty status line here is expected behaviour, not a failure.
 
 Navigating Images
 ~~~~~~~~~~~~~~~~~
@@ -228,7 +256,7 @@ Processing Settings
 
 **Use high-performance Rust module:**
 
-* Checked: Use Rust (10-50x faster)
+* Checked: Use Rust (3-10x faster) - the default
 * Unchecked: Use Python fallback
 
 Rendering Settings
@@ -346,7 +374,7 @@ Common Issues
 
 **Slow thumbnail generation**
 
-* Use Rust module if available (10-50x faster)
+* Use Rust module if available (3-10x faster)
 * Reduce max thumbnail size
 * Check disk speed (SSD recommended)
 * Close other applications
@@ -393,7 +421,7 @@ Performance Optimization
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Use SSD for best thumbnail generation speed
-* Enable Rust module for 10-50x faster thumbnails
+* Keep the Rust module enabled for 3-10x faster thumbnails
 * Start with lower thumbnail resolution for initial exploration
 * Generate full-resolution thumbnails only when needed
 * Close unnecessary applications during processing

@@ -139,7 +139,7 @@ Do I need to install Rust?
 **Optional but highly recommended.**
 
 * **Without Rust:** Thumbnail generation uses Python (slower, 1-2 seconds per image)
-* **With Rust:** 10-50x faster thumbnail generation (0.1-0.5 seconds per image)
+* **With Rust:** 3-10x faster thumbnail generation
 
 **Installation:**
 
@@ -341,7 +341,7 @@ Can I process larger datasets faster?
 
 **Yes! Optimization tips:**
 
-1. **Enable Rust module** (10-50x speedup)
+1. **Keep the Rust module enabled** (3-10x speedup; it is on by default)
 2. **Use SSD** instead of HDD
 3. **Increase worker threads** (Settings → Processing)
 
@@ -938,7 +938,7 @@ How does the Rust module work?
 
 **Why Rust?**
 
-* 10-50x faster than Python for image processing
+* 3-10x faster than Python for image processing
 * Better memory management
 * Parallel processing without GIL limitations
 * Still memory-safe (no crashes)

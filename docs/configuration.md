@@ -193,7 +193,7 @@ processing:
 - **Default:** `true`
 - **Description:** Use Rust-based thumbnail generation
 - **Performance:**
-  - `true`: ~2-3x faster (the compiled module ships with the application)
+  - `true`: 3-10x faster (the compiled module ships with the application)
   - `false`: Pure Python (always available)
 - **Note:** Setting this to `false` forces the Python implementation. It is not
   needed to cope with a missing Rust module -- the application already falls

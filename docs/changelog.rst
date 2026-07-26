@@ -6,6 +6,12 @@ All notable changes to CTHarvester will be documented in this file.
 The format is based on `Keep a Changelog <https://keepachangelog.com/>`_,
 and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 
+.. note::
+   Entries below are kept as published. The 0.2.3-beta.2 entry enumerates
+   keyboard shortcuts that were planned but shipped with different bindings --
+   see :doc:`user_guide` for the list that matches the application, or press
+   ``F1`` in CTHarvester.
+
 [Unreleased]
 ------------
 
