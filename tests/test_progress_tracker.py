@@ -282,9 +282,14 @@ class TestSimpleProgressTracker:
 
         # Should have ETA
         assert info.eta_seconds is not None
-        # Remaining items: 90, speed should be ~100-1000 items/sec
-        # ETA should be < 1 second
-        assert 0 < info.eta_seconds < 2
+        assert info.eta_seconds > 0
+
+        # 10 of 100 items are done, so 90 remain and the ETA should be about 9x
+        # the elapsed time -- a relationship that holds whatever speed the
+        # machine ran at. The previous `< 2` was an absolute ceiling, which
+        # asserts the CI runner is not busy rather than anything about the
+        # calculation, and it duly failed on macOS at 4.83s.
+        assert info.eta_seconds == pytest.approx(9 * info.elapsed_seconds, rel=0.5)
 
     def test_moving_average_smoothing(self):
         """Test moving average window for speed smoothing"""
@@ -356,8 +361,12 @@ class TestSimpleProgressTracker:
         tracker.update()
 
         info = callback.call_args[0][0]
+        # The lower bound is the real assertion: elapsed tracks wall clock since
+        # start. The upper bound is deliberately loose -- it is here to catch a
+        # wrong unit or a stale timestamp, not to measure scheduler latency. The
+        # previous `< 0.2` failed on macOS at 0.2105, purely from sleep overshoot.
         assert info.elapsed_seconds >= 0.1
-        assert info.elapsed_seconds < 0.2  # Allow some margin
+        assert info.elapsed_seconds < 5
 
     def test_completion_scenario(self):
         """Test complete workflow from start to finish"""

@@ -80,9 +80,15 @@ class TestLongRunningOperations:
         first_half_avg = sum(memory_measurements[: iterations // 2]) / (iterations // 2)
         second_half_avg = sum(memory_measurements[iterations // 2 :]) / (iterations // 2 + 1)
 
-        # Second half should not use significantly more memory than first half
-        # This would indicate a memory leak
-        assert second_half_avg < first_half_avg * 1.5, (
+        # Second half should not use significantly more memory than first half.
+        #
+        # The absolute slack matters as much as the ratio: with a purely
+        # multiplicative bound, a run where RSS never moves gives
+        # `0.0 < 0.0 * 1.5`, which is False -- the test failed precisely when
+        # the result was perfect. That is what happens on macOS CI and under
+        # WSL2, where the allocator does not hand pages back between cycles.
+        LEAK_SLACK_MB = 5.0
+        assert second_half_avg < first_half_avg * 1.5 + LEAK_SLACK_MB, (
             f"Memory leak detected: {first_half_avg:.1f}MB -> {second_half_avg:.1f}MB"
         )
 
@@ -128,16 +134,29 @@ class TestMemoryStability:
     """Test memory stability and cleanup"""
 
     def test_memory_cleanup_after_operation(self, tmp_path):
-        """Test that memory is freed after operations"""
+        """Loaded image arrays are released once the last reference is dropped.
+
+        This used to assert that RSS fell back toward the baseline after
+        gc.collect(). It does not, reliably, anywhere: returning freed pages to
+        the operating system is an allocator decision, and neither glibc nor the
+        macOS allocator promises it. The assertion read 0% freed on the macOS
+        runners and under WSL2 -- a statement about malloc, not about
+        CTHarvester.
+
+        What the test actually means to catch is a leak in our own code: a
+        reference cycle or a stray container keeping decoded arrays alive after
+        the caller is done with them. Weak references test exactly that, and
+        deterministically, on every platform.
+        """
+        import weakref
+
         import psutil
 
         process = psutil.Process()
 
-        # Baseline memory
         gc.collect()
         mem_baseline = process.memory_info().rss / 1024 / 1024
 
-        # Create and process some data
         test_dir = tmp_path / "memory_test"
         test_dir.mkdir()
 
@@ -149,27 +168,34 @@ class TestMemoryStability:
             img.save(img_path)
             images.append(img_path)
 
-        # Load all images
         loaded = []
         for img_path in images:
-            img = Image.open(img_path)
-            loaded.append(np.array(img))
+            with Image.open(img_path) as img:
+                loaded.append(np.array(img))
+
+        # One weak reference per decoded array. They must all die once `loaded`
+        # is the only thing holding them and it goes away.
+        refs = [weakref.ref(arr) for arr in loaded]
+        assert all(r() is not None for r in refs), "arrays died while still referenced"
 
         mem_loaded = process.memory_info().rss / 1024 / 1024
 
-        # Clear and garbage collect
         loaded.clear()
         del loaded
         gc.collect()
 
+        alive = [i for i, r in enumerate(refs) if r() is not None]
+        assert not alive, (
+            f"{len(alive)} of {len(refs)} arrays still reachable after the last "
+            f"reference was dropped (indices {alive[:5]}...) - something is "
+            f"holding them"
+        )
+
+        # RSS is reported for diagnostics only, never asserted on. See docstring.
         mem_after_cleanup = process.memory_info().rss / 1024 / 1024
-
-        # Memory should be mostly freed
-        # Allow some overhead but should be much closer to baseline than loaded
-        freed_percentage = (mem_loaded - mem_after_cleanup) / (mem_loaded - mem_baseline)
-
-        assert freed_percentage > 0.5, (
-            f"Insufficient memory freed: {freed_percentage * 100:.1f}% (expected >50%)"
+        print(
+            f"\nRSS baseline={mem_baseline:.1f}MB loaded={mem_loaded:.1f}MB "
+            f"after cleanup={mem_after_cleanup:.1f}MB"
         )
 
     def test_large_array_cleanup(self):

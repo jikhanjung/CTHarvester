@@ -139,7 +139,11 @@ class TestValidatePath:
         """Should accept path inside base directory"""
         result = SecureFileValidator.validate_path(self.test_file, self.temp_dir)
         assert os.path.isabs(result)
-        assert result.startswith(os.path.abspath(self.temp_dir))
+        # realpath, not abspath: validate_path normalises through
+        # Path.resolve(), which follows symlinks. On macOS tempfile hands
+        # back /var/folders/... and /var is a symlink to /private/var, so
+        # abspath compares the unresolved prefix and never matches.
+        assert result.startswith(os.path.realpath(self.temp_dir))
 
     def test_reject_path_outside_basedir(self):
         """Should reject path outside base directory"""
@@ -194,7 +198,11 @@ class TestSafeJoin:
     def test_join_safe_paths(self):
         """Should safely join valid path components"""
         result = SecureFileValidator.safe_join(self.temp_dir, "subdir", "file.txt")
-        assert result.startswith(os.path.abspath(self.temp_dir))
+        # realpath, not abspath: validate_path normalises through
+        # Path.resolve(), which follows symlinks. On macOS tempfile hands
+        # back /var/folders/... and /var is a symlink to /private/var, so
+        # abspath compares the unresolved prefix and never matches.
+        assert result.startswith(os.path.realpath(self.temp_dir))
         assert "subdir" in result
         assert "file.txt" in result
 
@@ -206,7 +214,11 @@ class TestSafeJoin:
     def test_single_component(self):
         """Should handle single path component"""
         result = SecureFileValidator.safe_join(self.temp_dir, "file.txt")
-        assert result.startswith(os.path.abspath(self.temp_dir))
+        # realpath, not abspath: validate_path normalises through
+        # Path.resolve(), which follows symlinks. On macOS tempfile hands
+        # back /var/folders/... and /var is a symlink to /private/var, so
+        # abspath compares the unresolved prefix and never matches.
+        assert result.startswith(os.path.realpath(self.temp_dir))
         assert "file.txt" in result
 
 
