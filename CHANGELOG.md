@@ -37,6 +37,13 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   arguments, blind `pytest.raises(Exception)` and redundant exception tuples.
 
 ### Fixed
+- **The packaged Linux build could not start.** PyOpenGL selects its backend by
+  dotted-name import at runtime, which PyInstaller's static analysis cannot see,
+  so no backend was bundled and the frozen executable died during import. Found
+  by the new packaged-artifact smoke test, which now runs the frozen build
+  headless on Windows, macOS and Linux after every build.
+- `find_image_files()` accepted a `recursive` argument that was documented but
+  never implemented; passing it returned a non-recursive result. Removed.
 - `MainWindow.update_curr_slice` recomputed a bounding box and slice position and
   discarded both — a leftover copy of logic that moved to `ViewManager` during the
   Phase 4.4 handler extraction.
