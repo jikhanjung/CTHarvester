@@ -40,7 +40,17 @@ logger.info(f"CTHarvester version {__version__} starting")
 
 def main():
     """Main application entry point"""
-    app = CTHarvesterApp(sys.argv)
+    # --self-test boots the app headless and exits 0, so a packaged build can be
+    # launched in CI and proved to start. Everything below -- every heavy import,
+    # the Qt/OpenGL stack, the bundled resources, the main window -- runs exactly
+    # as it does for a user, which is the whole point: it catches the "works from
+    # source, broken when frozen" failures (a PyInstaller data file that was
+    # never added, a native library that did not get bundled) that tests run
+    # against the source tree cannot reach.
+    self_test = "--self-test" in sys.argv
+    qt_argv = [arg for arg in sys.argv if arg != "--self-test"]
+
+    app = CTHarvesterApp(qt_argv)
 
     # Backstop for any code path not covered by @guard_slot: without this an
     # unhandled exception in a slot kills the window with nothing in the log.
@@ -60,6 +70,21 @@ def main():
     # Create and show main window
     window = CTHarvesterMainWindow()
     window.show()
+
+    if self_test:
+        # The startup path above has already done the work worth checking. Let
+        # the event loop turn over briefly so deferred initialisation runs, then
+        # quit. Top-levels are closed first so a stray modal's nested loop
+        # cannot outlive quit() and hang the runner.
+        from PyQt5.QtCore import QTimer
+
+        def _self_test_exit():
+            logger.info("Self-test: main window reached; exiting cleanly")
+            for widget in app.topLevelWidgets():
+                widget.close()
+            app.quit()
+
+        QTimer.singleShot(2000, _self_test_exit)
 
     sys.exit(app.exec_())
 

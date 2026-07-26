@@ -12,7 +12,21 @@ a = Analysis(
         ('resources/icons/*.png', 'resources/icons'),
         ('resources/translations/*.qm', 'resources/translations'),
     ],
-    hiddenimports=['superqt', 'PIL', 'PIL.Image', 'scipy', 'scipy.ndimage', 'mcubes', 'numpy', 'OpenGL', 'OpenGL.GL', 'OpenGL.GLUT', 'OpenGL.GLU'],
+    hiddenimports=[
+        'superqt', 'PIL', 'PIL.Image', 'scipy', 'scipy.ndimage', 'mcubes', 'numpy',
+        'OpenGL', 'OpenGL.GL', 'OpenGL.GLUT', 'OpenGL.GLU',
+        # PyOpenGL picks its backend at runtime through OpenGL.plugins, importing
+        # the module by dotted name. PyInstaller's static analysis cannot see
+        # that, so none of the backends were bundled and the frozen build died
+        # during import with "TypeError: 'NoneType' object is not callable" from
+        # OpenGL/platform/__init__.py's _load(). All backends are listed rather
+        # than the current platform's, because one spec builds all three OSes.
+        'OpenGL.platform.glx',      # linux, posix, x11
+        'OpenGL.platform.egl',      # wayland, xwayland
+        'OpenGL.platform.osmesa',   # software rendering
+        'OpenGL.platform.win32',    # nt
+        'OpenGL.platform.darwin',   # macOS
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

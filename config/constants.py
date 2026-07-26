@@ -45,7 +45,7 @@ PROGRAM_NAME = APP_NAME
 PROGRAM_VERSION = __version__
 
 # Build-time year for copyright
-BUILD_YEAR = 2025
+BUILD_YEAR = 2026
 PROGRAM_COPYRIGHT = f"© 2023-{BUILD_YEAR} Jikhan Jung"
 
 # Directory setup

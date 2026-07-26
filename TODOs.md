@@ -21,11 +21,11 @@ state and should be updated as items land.
 | 6 | Coverage gate | ✅ | `--cov-fail-under=75` on the reference leg |
 | 7 | Static type checking, scoped | ✅ | mypy per-module strict; runs in CI (advisory, see #2) |
 | 8 | Dead-code / complexity automation | ❌ | No vulture, no radon, `C901` disabled |
-| 9 | Packaged-artifact smoke test; signed installers | ❌ | Neither. Modan2 has the smoke test (`reusable_build.yml`, `--self-test`); CTHarvester has no such entry point yet |
+| 9 | Packaged-artifact smoke test; signed installers | ⚠️ | Smoke test done (2026-07-26): `--self-test` entry point, run against the frozen build on all 3 OSes in `reusable_build.yml`. Installer signing/notarization still open |
 | 10 | Property-based / fuzz tests | ⚠️ | `tests/property/test_image_properties.py` exists but its body is `pytest.skip("Template - to be implemented in Phase 4")` |
 
-**Working order** (cheapest first, per the guide's own ordering): ~~#3 `DTZ`~~
-and ~~#2 docs build gating~~ (both done 2026-07-26) → #9 packaged smoke test →
+**Working order** (cheapest first, per the guide's own ordering): ~~#3 `DTZ`~~,
+~~#2 docs build gating~~ and ~~#9 packaged smoke test~~ (all done 2026-07-26) →
 #8 dead-code automation. #10, mypy gating and installer signing after those.
 
 ---

@@ -16,6 +16,7 @@ Run on every OS x Python combination in the CI matrix:
 import importlib
 import os
 import pkgutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -124,3 +125,32 @@ def test_bundled_resources_exist():
     ]
     missing = [rel for rel in required if not os.path.exists(resource_path(rel))]
     assert not missing, f"Missing bundled resources: {missing}"
+
+
+@pytest.mark.smoke
+def test_self_test_flag_boots_and_exits_cleanly():
+    """`CTHarvester.py --self-test` must start the app and exit 0.
+
+    The packaged-build smoke test in .github/workflows/reusable_build.yml runs
+    the frozen executable with this flag on all three platforms and gates the
+    release on its exit code. Removing or renaming the flag would turn that gate
+    into a permanent failure, so it is pinned here at the source level too.
+
+    Run as a subprocess rather than by calling main(): the flag is parsed from
+    sys.argv and the app calls sys.exit(), neither of which survives an in-process
+    call.
+    """
+    env = dict(os.environ, QT_QPA_PLATFORM="offscreen")
+    result = subprocess.run(
+        [sys.executable, str(PROJECT_ROOT / "CTHarvester.py"), "--self-test"],
+        cwd=PROJECT_ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+
+    assert result.returncode == 0, (
+        f"--self-test exited {result.returncode}\nstdout:\n{result.stdout}\n"
+        f"stderr:\n{result.stderr}"
+    )

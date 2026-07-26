@@ -95,6 +95,28 @@ jobs:
             echo "InnoSetup/Output does not exist"
           }
 
+      # Launch the frozen onedir build headless and assert it boots to a main
+      # window then exits 0 (CTHarvester.py --self-test). The exe is
+      # self-contained -- it uses its bundled Python and libraries, not the build
+      # venv -- so this catches the "works from source, broken when frozen" class
+      # that source-tree tests cannot reach: a spec file missing an --add-data
+      # entry, or a native library that never got bundled.
+      - name: Smoke-test frozen build (Windows)
+        shell: pwsh
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          $exe = "dist/CTHarvester/CTHarvester.exe"
+          if (-not (Test-Path $exe)) {
+            echo "ERROR: $exe not found"
+            if (Test-Path "dist") { Get-ChildItem -Path "dist" -Recurse -Name }
+            exit 1
+          }
+          # Start-Process -Wait so a windowed (--noconsole) app is actually awaited.
+          $p = Start-Process -FilePath $exe -ArgumentList "--self-test" -Wait -PassThru -NoNewWindow
+          if ($p.ExitCode -ne 0) { echo "Smoke test FAILED: exit $($p.ExitCode)"; exit 1 }
+          echo "Smoke test passed"
+
       - name: Zip Windows Installer or Portable Build
         shell: pwsh
         if: success()
@@ -186,6 +208,24 @@ jobs:
           python build.py --onedir
         env:
           BUILD_NUMBER: ${{ inputs.build_number }}
+
+      # Launch the frozen onedir build headless and assert it boots to a main
+      # window then exits 0 (CTHarvester.py --self-test). The exe is
+      # self-contained -- it uses its bundled Python and libraries, not the build
+      # venv -- so this catches the "works from source, broken when frozen" class
+      # that source-tree tests cannot reach: a spec file missing an --add-data
+      # entry, or a native library that never got bundled.
+      # macOS has no `timeout`; the in-app --self-test watchdog is what bounds it.
+      - name: Smoke-test frozen build (macOS)
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          exe="dist/CTHarvester/CTHarvester"
+          if [ ! -x "$exe" ]; then
+            echo "ERROR: $exe not found"; ls -la dist/ dist/CTHarvester 2>/dev/null || true; exit 1
+          fi
+          "$exe" --self-test
+          echo "Smoke test passed"
 
       - name: Create macOS app bundle
         run: |
@@ -290,6 +330,30 @@ jobs:
           python build.py --onedir
         env:
           BUILD_NUMBER: ${{ inputs.build_number }}
+
+      # Launch the frozen onedir build headless and assert it boots to a main
+      # window then exits 0 (CTHarvester.py --self-test). The exe is
+      # self-contained -- it uses its bundled Python and libraries, not the build
+      # venv -- so this catches the "works from source, broken when frozen" class
+      # that source-tree tests cannot reach: a spec file missing an --add-data
+      # entry, or a native library that never got bundled.
+      # Xvfb even under the offscreen Qt platform: the 3D widget calls into GLUT
+      # at construction, which segfaults with no display at all. Same reason
+      # test.yml wraps pytest in xvfb-run.
+      - name: Smoke-test frozen build (Linux)
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          sudo apt-get install -y xvfb
+          Xvfb :99 -screen 0 1024x768x24 >/tmp/xvfb.log 2>&1 &
+          export DISPLAY=:99
+          sleep 2
+          exe="dist/CTHarvester/CTHarvester"
+          if [ ! -x "$exe" ]; then
+            echo "ERROR: $exe not found"; ls -la dist/ dist/CTHarvester 2>/dev/null || true; exit 1
+          fi
+          timeout 120 "$exe" --self-test
+          echo "Smoke test passed"
 
       - name: Create Linux AppImage
         run: |
