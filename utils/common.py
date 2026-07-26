@@ -28,7 +28,7 @@ See Also:
 import os
 import sys
 import warnings
-from typing import Any, List, Union
+from typing import Any
 
 
 def resource_path(relative_path: str) -> str:
@@ -62,7 +62,7 @@ def value_to_bool(value: Any) -> bool:
     return value.lower() == "true" if isinstance(value, str) else bool(value)
 
 
-def ensure_directories(directories: Union[List[str], str]) -> None:
+def ensure_directories(directories: list[str] | str) -> None:
     """
     Safely create necessary directories with error handling.
 

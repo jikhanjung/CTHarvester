@@ -11,7 +11,7 @@ Sequential processing is 3-5x slower than Rust multithreaded processing (9-10 mi
 import logging
 import os
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 from PIL import Image
@@ -51,9 +51,9 @@ class SequentialProcessor:
 
     def __init__(
         self,
-        progress_dialog: Optional[ProgressDialog],
+        progress_dialog: ProgressDialog | None,
         progress_manager: ProgressManager,
-        thumbnail_parent: Optional[ThumbnailParent],
+        thumbnail_parent: ThumbnailParent | None,
     ):
         """Initialize the sequential processor.
 
@@ -67,7 +67,7 @@ class SequentialProcessor:
         self.thumbnail_parent = thumbnail_parent
 
         # Result storage
-        self.results: Dict[int, np.ndarray] = {}
+        self.results: dict[int, np.ndarray] = {}
 
         # Progress tracking
         self.completed_tasks = 0
@@ -82,7 +82,7 @@ class SequentialProcessor:
         # Performance sampling
         self.is_sampling = False
         self.sample_size = 10
-        self.sample_start_time: Optional[float] = None
+        self.sample_start_time: float | None = None
         self.images_per_second = 0.0
 
     def process_level(
@@ -92,7 +92,7 @@ class SequentialProcessor:
         to_dir: str,
         seq_begin: int,
         seq_end: int,
-        settings_hash: Dict[str, Any],
+        settings_hash: dict[str, Any],
         size: int,
         max_thumbnail_size: int,
         num_tasks: int,
@@ -233,18 +233,18 @@ class SequentialProcessor:
         logger.info(
             f"Sequential processing complete: {self.completed_tasks} tasks in {seq_total_time:.1f}s"
         )
-        logger.info(f"Average: {seq_total_time/num_tasks*1000:.1f}ms per task")
+        logger.info(f"Average: {seq_total_time / num_tasks * 1000:.1f}ms per task")
         logger.info(f"Generated: {self.generated_count}, Loaded: {self.loaded_count}")
 
     def _generate_thumbnail(
         self,
         file1_path: str,
-        file2_path: Optional[str],
+        file2_path: str | None,
         output_path: str,
         idx: int,
         size: int,
         max_thumbnail_size: int,
-    ) -> Optional[np.ndarray]:
+    ) -> np.ndarray | None:
         """Generate a thumbnail from one or two source images.
 
         Args:

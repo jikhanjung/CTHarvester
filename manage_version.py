@@ -30,7 +30,6 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 # Configure logging for version management script
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -76,7 +75,7 @@ def update_version_file(new_version: str) -> None:
 
 
 def get_new_version(
-    command: str, current_ver_info: semver.VersionInfo, token: Optional[str] = None
+    command: str, current_ver_info: semver.VersionInfo, token: str | None = None
 ) -> str:
     """Get the new version based on the command."""
     if command in ["major", "minor", "patch"]:
@@ -118,7 +117,7 @@ def get_new_version(
     raise ValueError(f"Invalid command: {command}")
 
 
-def create_git_tag(version: str, message: Optional[str] = None) -> None:
+def create_git_tag(version: str, message: str | None = None) -> None:
     """Create and optionally push git tag"""
     tag_name = f"v{version}"
     if message is None:

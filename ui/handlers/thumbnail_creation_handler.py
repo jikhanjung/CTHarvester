@@ -149,11 +149,11 @@ class ThumbnailCreationHandler:
             elapsed = time.time() - self.window.progress_start_time
             if percentage > 0 and percentage < 100:
                 eta = elapsed * (100 - percentage) / percentage
-                eta_str = f"{int(eta)}s" if eta < 60 else f"{int(eta/60)}m {int(eta % 60)}s"
+                eta_str = f"{int(eta)}s" if eta < 60 else f"{int(eta / 60)}m {int(eta % 60)}s"
                 elapsed_str = (
                     f"{int(elapsed)}s"
                     if elapsed < 60
-                    else f"{int(elapsed/60)}m {int(elapsed % 60)}s"
+                    else f"{int(elapsed / 60)}m {int(elapsed % 60)}s"
                 )
 
                 # Update detail text
@@ -223,7 +223,9 @@ class ThumbnailCreationHandler:
 
         logger.info("=== Rust thumbnail generation completed ===")
         logger.info(f"End time: {thumbnail_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
-        logger.info(f"Total duration: {total_elapsed:.2f} seconds ({total_elapsed/60:.2f} minutes)")
+        logger.info(
+            f"Total duration: {total_elapsed:.2f} seconds ({total_elapsed / 60:.2f} minutes)"
+        )
 
         if success and not self.window.rust_cancelled:
             # Load the generated thumbnails
@@ -290,7 +292,7 @@ class ThumbnailCreationHandler:
         )
         seq_begin = self.window.settings_hash["seq_begin"]
         seq_end = self.window.settings_hash["seq_end"]
-        MAX_THUMBNAIL_SIZE = 512
+        MAX_THUMBNAIL_SIZE = 512  # noqa: N806 -- local constant
 
         # Calculate total work (result unused but triggers internal calculation)
         self.window.thumbnail_generator.calculate_total_thumbnail_work(

@@ -6,9 +6,7 @@ This document describes the code quality tools and practices used in CTHarvester
 
 CTHarvester uses multiple automated tools to maintain code quality:
 
-- **Black**: Code formatter for consistent style
-- **isort**: Import statement organizer
-- **Flake8**: Linter for code quality and style
+- **Ruff**: Linter *and* formatter — replaces Black, isort, Flake8, pyupgrade and pylint
 - **mypy**: Static type checker
 - **Bandit**: Security linter
 - **pre-commit**: Automated hook system
@@ -40,14 +38,13 @@ pre-commit run --all-files
 Run specific tools:
 
 ```bash
-# Format code with Black
-black .
+# Format code (and sort imports, via the I rules)
+ruff format .
+ruff check --fix .
 
-# Sort imports with isort
-isort .
-
-# Run linter
-flake8 .
+# Lint — exactly what CI gates on
+ruff check .
+ruff format --check .
 
 # Type check with mypy
 mypy core/ utils/
@@ -58,61 +55,49 @@ bandit -r . -ll
 
 ## Tool Configuration
 
-### Black (Code Formatter)
+### Ruff (Linter + Formatter)
 
-**Configuration**: `pyproject.toml` → `[tool.black]`
+**Configuration**: `pyproject.toml` → `[tool.ruff]`
+
+Ruff replaced Black, isort, Flake8, pyupgrade and pylint. One tool, one config,
+one version to keep in sync.
 
 **Settings**:
 - Line length: 100 characters
-- Target Python versions: 3.8-3.12
-- Auto-formats on commit via pre-commit
+- Target version: `py311` (matches `requires-python`)
+- Rule groups: `E`, `F` (the flake8 core), `I` (isort), `N` (pep8-naming),
+  `UP` (pyupgrade), `B` (bugbear), `C4` (comprehensions), `LOG`, `RUF012`
+- Markdown is excluded from the formatter: ruff formats Python inside fences,
+  which rewrites documentation examples nobody reviewed.
+
+**Version pinning**: the exact version appears in three places and they must
+match — `pyproject.toml` (dev extra, which feeds `requirements-dev.lock`),
+`.pre-commit-config.yaml` (`rev`), and the `lint` job in
+`.github/workflows/test.yml` (which installs from the lockfile). A newer ruff
+formats code the pinned one accepted, so an accidental bump turns unrelated PRs
+red. Bump all three together.
 
 **Usage**:
 ```bash
-black .                    # Format all files
-black --check .            # Check without modifying
-black --diff .             # Show diff without modifying
+ruff format .              # Format all files
+ruff format --check .      # Check without modifying
+ruff format --diff .       # Show diff without modifying
+ruff check .               # Lint
+ruff check --fix .         # Lint and apply safe fixes
+ruff check --statistics .  # Counts per rule
 ```
 
-### isort (Import Organizer)
+**Deliberate exemptions** (`[tool.ruff.lint.per-file-ignores]`):
+- `__init__.py` — `F401`, these files exist to re-export.
+- `ui/**`, `CTHarvester.py` — `N802`/`N803`/`N815`. Qt dictates the spelling of
+  every method it calls back into (`paintGL`, `mousePressEvent`); renaming them
+  does not make the code more PEP 8, it makes it not work.
+- `tests/**`, `scripts/**` — naming and import rules relaxed for test helpers
+  and one-off analysis scripts.
 
-**Configuration**: `pyproject.toml` → `[tool.isort]`
-
-**Settings**:
-- Profile: black (compatible with Black)
-- Line length: 100 characters
-- Multi-line output: 3 (vertical hanging indent)
-
-**Usage**:
-```bash
-isort .                    # Sort all imports
-isort --check .            # Check without modifying
-isort --diff .             # Show diff without modifying
-```
-
-### Flake8 (Linter)
-
-**Configuration**: `.flake8`
-
-**Settings**:
-- Max line length: 100 characters
-- Max cyclomatic complexity: 15
-- Docstring convention: Google style
-- Ignored errors: E203, W503, E501 (Black conflicts)
-
-**Usage**:
-```bash
-flake8 .                   # Lint all files
-flake8 core/               # Lint specific directory
-flake8 --statistics .      # Show error statistics
-```
-
-**Common Error Codes**:
-- `E###`: PEP 8 style errors
-- `W###`: PEP 8 style warnings
-- `F###`: PyFlakes errors (imports, undefined names)
-- `C###`: McCabe complexity
-- `D###`: Docstring errors
+**Still off, tracked in `TODOs.md`**: `C901` (complexity — refactor-sized),
+plus the `DTZ`, `S`, `PTH`, `TRY` and `SIM` groups, which are worth adding one
+at a time rather than in one large sweep.
 
 ### mypy (Type Checker)
 
@@ -174,20 +159,19 @@ bandit -r . -f json -o bandit-report.json  # JSON report
 **Configuration**: `.pre-commit-config.yaml`
 
 **Hooks** (in order):
-1. **black**: Format code
-2. **isort**: Sort imports
-3. **flake8**: Lint code
-4. **pyupgrade**: Upgrade syntax (Python 3.8+)
-5. **trailing-whitespace**: Remove trailing spaces
-6. **end-of-file-fixer**: Ensure files end with newline
-7. **check-yaml**: Validate YAML syntax
-8. **check-added-large-files**: Prevent large files (>1MB)
-9. **check-merge-conflict**: Detect merge conflicts
-10. **check-toml**: Validate TOML syntax
-11. **debug-statements**: Catch debug statements
-12. **mixed-line-ending**: Fix line endings (LF)
-13. **mypy**: Type check core modules
-14. **bandit**: Security scan
+1. **ruff-check**: Lint and apply safe fixes (includes import sorting and the
+   syntax upgrades pyupgrade used to do)
+2. **ruff-format**: Format code
+3. **trailing-whitespace**: Remove trailing spaces
+4. **end-of-file-fixer**: Ensure files end with newline
+5. **check-yaml**: Validate YAML syntax
+6. **check-added-large-files**: Prevent large files (>1MB)
+7. **check-merge-conflict**: Detect merge conflicts
+8. **check-toml**: Validate TOML syntax
+9. **debug-statements**: Catch debug statements
+10. **mixed-line-ending**: Fix line endings (LF)
+11. **mypy**: Type check core modules
+12. **bandit**: Security scan
 
 **Usage**:
 ```bash
@@ -198,7 +182,7 @@ pre-commit install
 pre-commit run --all-files
 
 # Run specific hook
-pre-commit run black --all-files
+pre-commit run ruff-format --all-files
 
 # Update hook versions
 pre-commit autoupdate
@@ -304,15 +288,15 @@ Pre-commit hooks run automatically on:
 
 ### Hook Failures
 
-**Black/isort modified files**:
-- Files are auto-formatted
+**ruff-format / ruff-check modified files**:
+- Files are auto-formatted and safely auto-fixed
 - Re-add them: `git add .`
 - Commit again
 
-**Flake8 errors**:
+**ruff-check errors that are not auto-fixable**:
 - Fix the reported issues
-- Common: unused imports, undefined names, line length
-- Ignore specific line: `# noqa: E501`
+- Common: undefined names, unused locals, mutable class defaults
+- Ignore a specific line: `# noqa: <CODE>` — always with a reason, never bulk
 
 **mypy errors**:
 - Add type hints or fix type mismatches
@@ -374,9 +358,7 @@ When to skip rules:
 
 ## Resources
 
-- [Black Documentation](https://black.readthedocs.io/)
-- [isort Documentation](https://pycqa.github.io/isort/)
-- [Flake8 Documentation](https://flake8.pycqa.org/)
+- [Ruff Documentation](https://docs.astral.sh/ruff/)
 - [mypy Documentation](https://mypy.readthedocs.io/)
 - [Bandit Documentation](https://bandit.readthedocs.io/)
 - [pre-commit Documentation](https://pre-commit.com/)

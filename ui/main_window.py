@@ -6,74 +6,38 @@ Extracted from CTHarvester.py during Phase 4c refactoring.
 
 import logging
 import os
-import re
 import sys
-from copy import deepcopy
-from typing import Optional
 
-import numpy as np
-from PIL import Image
 from PyQt5.QtCore import (
-    QMargins,
-    QObject,
-    QPoint,
     QRect,
     Qt,
-    QThread,
     QThreadPool,
     QTimer,
     QTranslator,
 )
-from PyQt5.QtGui import QCursor, QIcon, QPixmap
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import (
-    QAbstractItemView,
     QApplication,
-    QCheckBox,
-    QComboBox,
-    QDialog,
-    QFileDialog,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QListWidget,
     QMainWindow,
     QMessageBox,
-    QProgressBar,
-    QPushButton,
-    QRadioButton,
-    QSizePolicy,
-    QSlider,
-    QVBoxLayout,
-    QWidget,
 )
 
 from config.constants import (
-    COMPANY_NAME,
     PROGRAM_NAME,
     PROGRAM_VERSION,
-    SUPPORTED_IMAGE_EXTENSIONS,
-    THUMBNAIL_DIR_NAME,
 )
 from core.file_handler import FileHandler
-from core.progress_manager import ProgressManager
 from core.thumbnail_generator import ThumbnailGenerator
-from core.thumbnail_manager import ThumbnailManager
 from core.volume_processor import VolumeProcessor
-from security.file_validator import FileSecurityError, SecureFileValidator, safe_open_image
 from ui.ctharvester_app import CTHarvesterApp
 from ui.dialogs import InfoDialog, ProgressDialog, SettingsDialog
 from ui.errors import ErrorCode
 from ui.exception_handler import guard_slot
 from ui.handlers import ExportHandler, WindowSettingsHandler
 from ui.setup import MainWindowSetup
-from ui.widgets import MCubeWidget, ObjectViewer2D
-from ui.widgets.vertical_stack_slider import VerticalTimeline
-from utils.common import resource_path, value_to_bool
+from utils.common import resource_path
 from utils.image_utils import get_image_dimensions
 from utils.settings_manager import SettingsManager
-from utils.ui_utils import wait_cursor
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +45,7 @@ logger = logging.getLogger(__name__)
 class CTHarvesterMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.m_app: Optional[CTHarvesterApp] = QApplication.instance()  # type: ignore[assignment]
+        self.m_app: CTHarvesterApp | None = QApplication.instance()  # type: ignore[assignment]
 
         # Window configuration
         self.setWindowIcon(QIcon(resource_path("resources/icons/CTHarvester_48_2.png")))
@@ -103,7 +67,7 @@ class CTHarvesterMainWindow(QMainWindow):
         self._pending_image_idx = None
         self.default_directory = "."
         self.threadpool = QThreadPool()
-        self.progress_dialog: Optional[ProgressDialog] = None  # Progress dialog for long operations
+        self.progress_dialog: ProgressDialog | None = None  # Progress dialog for long operations
         self.initialized: bool = False  # Track initialization state
         logger.info(
             f"Initialized ThreadPool with maxThreadCount={self.threadpool.maxThreadCount()}"

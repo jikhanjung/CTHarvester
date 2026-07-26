@@ -25,7 +25,7 @@ os.chdir(PROJECT_ROOT)
 
 # Import version from centralized version file
 try:
-    from version import __version__ as VERSION
+    from version import __version__ as VERSION  # noqa: N812 -- module-level constant
 except ImportError:
     # Fallback: extract from version.py file
     import re
@@ -49,7 +49,7 @@ def update_build_year():
 
     constants_path = Path("config/constants.py")
     if not constants_path.exists():
-        logger.error(f"config/constants.py not found")
+        logger.error("config/constants.py not found")
         return False
 
     content = constants_path.read_text(encoding="utf-8")
@@ -67,7 +67,7 @@ def update_build_year():
         logger.info(f"BUILD_YEAR updated to {current_year} in config/constants.py")
         return True
     else:
-        logger.warning(f"BUILD_YEAR pattern not found or already up to date")
+        logger.warning("BUILD_YEAR pattern not found or already up to date")
         return True
 
 
@@ -211,7 +211,7 @@ def build_installer():
 def main():
     """Main build process"""
     logger.info("=" * 60)
-    logger.info(f"CTHarvester Build Script")
+    logger.info("CTHarvester Build Script")
     logger.info(f"Version: {VERSION}")
     logger.info(f"Platform: {platform.system()}")
     logger.info("=" * 60)
@@ -289,9 +289,9 @@ def main():
     logger.info("Build completed successfully!")
     logger.info("Output:")
     if build_onefile:
-        logger.info(f"  - Onefile executable: dist/CTHarvester_onefile.exe")
+        logger.info("  - Onefile executable: dist/CTHarvester_onefile.exe")
     if build_onedir:
-        logger.info(f"  - Onedir executable: dist/CTHarvester/CTHarvester.exe")
+        logger.info("  - Onedir executable: dist/CTHarvester/CTHarvester.exe")
 
     if platform.system() == "Windows":
         build_number = os.environ.get("BUILD_NUMBER", "local")

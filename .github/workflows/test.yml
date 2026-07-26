@@ -18,12 +18,10 @@ jobs:
   # ---------------------------------------------------------------------------
   # Lint / format / type — runs once (not per-OS). Consolidated here from the
   # former quality-gates.yml to mirror Modan2's single-file layout.
-  # Gating: black, isort, flake8 real-error subset. Advisory: full flake8, mypy
-  # (the Ruff migration and gating-hardening are deferred — item 4). Only the
-  # workflow structure is aligned with Modan2, not the tool choice.
+  # Gating: ruff check, ruff format --check. Advisory: mypy (see below).
   # ---------------------------------------------------------------------------
   lint:
-    name: Lint (black, isort, flake8, mypy)
+    name: Lint (ruff, mypy)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -42,24 +40,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install --require-hashes -r requirements-dev.lock
 
-      - name: black --check
-        run: black --check --diff .
+      # Gating. The ruff version comes from requirements-dev.lock, which pins it
+      # exactly; .pre-commit-config.yaml pins the same version so a contributor's
+      # hooks and CI never disagree about formatting.
+      - name: ruff check
+        run: ruff check --output-format=github .
 
-      - name: isort --check
-        run: isort --check-only --diff .
+      - name: ruff format --check
+        run: ruff format --check --diff .
 
-      # Gating on real errors only (syntax, undefined names). The full flake8
-      # ruleset is advisory until the tree is swept (see deferred item 4).
-      - name: flake8 (errors)
-        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-
-      - name: flake8 (full, non-gating)
-        run: flake8 . --count --statistics || true
-
-      # Advisory (not gating): mypy config pins python_version=3.11, which the
-      # numpy 2.5 stubs reject (they use 3.12 `type` syntax). Flipping mypy to
-      # gating is part of the deferred lint-hardening pass (bump python_version
-      # or scope-exclude numpy first). Kept in CI for signal.
+      # Advisory (not gating): the mypy config pins python_version=3.11, which
+      # the numpy 2.5 stubs reject (they use 3.12 `type` syntax). Flipping this
+      # to gating needs the stub issue resolved first — bump python_version or
+      # scope-exclude numpy. Tracked in TODOs.md. Kept in CI for signal.
       - name: mypy (typed modules, advisory)
         run: mypy --config-file pyproject.toml core/ utils/ || true
 
@@ -265,7 +258,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| Job | Result |" >> $GITHUB_STEP_SUMMARY
         echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-        echo "| Lint (black/isort/flake8/mypy) | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Lint (ruff/mypy) | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Smoke (3 OS x py3.11/3.13) | ${{ needs.smoke.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Tests (Linux py3.11-3.13, Win/macOS py3.11/3.13) | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Docs | ${{ needs.docs.result }} |" >> $GITHUB_STEP_SUMMARY

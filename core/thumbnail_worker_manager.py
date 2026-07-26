@@ -26,7 +26,7 @@ Typical usage:
 
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from PyQt5.QtCore import QMutex, QMutexLocker, QObject, Qt, QThread, QThreadPool, pyqtSlot
 from PyQt5.QtWidgets import QApplication
@@ -72,7 +72,7 @@ class ThumbnailWorkerManager(QObject):
         self,
         threadpool: QThreadPool,
         progress_tracker: ThumbnailProgressTracker,
-        progress_dialog: Optional[ProgressDialog],
+        progress_dialog: ProgressDialog | None,
         level_weight: float = 1.0,
     ):
         """Initialize worker manager.
@@ -90,7 +90,7 @@ class ThumbnailWorkerManager(QObject):
         self.level_weight = level_weight
 
         # Result collection
-        self.results: Dict[int, Any] = {}
+        self.results: dict[int, Any] = {}
         self.lock = QMutex()
 
         # State tracking
@@ -211,7 +211,7 @@ class ThumbnailWorkerManager(QObject):
 
         return False
 
-    def get_ordered_results(self, total_tasks: int) -> List[Any]:
+    def get_ordered_results(self, total_tasks: int) -> list[Any]:
         """Collect results in sequential order.
 
         Args:

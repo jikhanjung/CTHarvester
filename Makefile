@@ -14,8 +14,8 @@ help:
 	@echo "  make lock-check       Verify the lockfiles are up to date"
 	@echo ""
 	@echo "Code Quality:"
-	@echo "  make format           Format code with black and isort"
-	@echo "  make lint             Run flake8 linter"
+	@echo "  make format           Format code with ruff"
+	@echo "  make lint             Run ruff (lint + format check)"
 	@echo "  make type-check       Run mypy type checker"
 	@echo "  make pre-commit       Run all pre-commit hooks"
 	@echo ""
@@ -64,8 +64,21 @@ lock:
 # The generated header records the exact command line, which differs between
 # `-o file` and `-o -`, so compare only the requirement lines. Kept POSIX-sh
 # compatible (no process substitution) since make runs /bin/sh.
+#
+# The committed lockfile is COPIED to the temp path before recompiling into it.
+# `uv pip compile` prefers versions already pinned in its output file, so
+# compiling into an empty temp file resolves every dependency to the newest
+# release while `make lock` (writing over the committed file) keeps the existing
+# pins. Without the copy the two disagree the moment anything upstream ships a
+# release, and this gate reports "stale" forever regardless of pyproject.toml.
+# Seeding from the committed file asks the question the gate is actually for:
+# does re-locking *this* pyproject.toml change anything? Upgrading dependencies
+# is Dependabot's job, not this check's.
 lock-check:
 	@tmp=`mktemp -d`; status=0; \
+	for pair in "run.lock requirements.lock" "dev.lock requirements-dev.lock" "build.lock requirements-build.lock"; do \
+		set -- $$pair; cp "$$2" "$$tmp/$$1"; \
+	done; \
 	$(UV) pip compile pyproject.toml $(LOCK_ARGS) -o "$$tmp/run.lock" >/dev/null 2>&1; \
 	$(UV) pip compile pyproject.toml $(LOCK_ARGS) --extra dev -o "$$tmp/dev.lock" >/dev/null 2>&1; \
 	$(UV) pip compile pyproject.toml $(LOCK_ARGS) --extra build -o "$$tmp/build.lock" >/dev/null 2>&1; \
@@ -81,18 +94,20 @@ lock-check:
 	if [ $$status -eq 0 ]; then echo "Lockfiles are up to date."; fi; \
 	exit $$status
 
-# Code formatting
+# Code formatting (ruff format + import sorting via the I rules)
 format:
-	@echo "Running black..."
-	black --line-length 100 .
-	@echo "Running isort..."
-	isort --profile black --line-length 100 .
+	@echo "Running ruff format..."
+	ruff format .
+	@echo "Running ruff check --fix (import sorting and other safe fixes)..."
+	ruff check --fix .
 	@echo "Formatting complete!"
 
-# Linting
+# Linting - same checks CI gates on
 lint:
-	@echo "Running flake8..."
-	flake8 . --count --statistics
+	@echo "Running ruff check..."
+	ruff check .
+	@echo "Running ruff format --check..."
+	ruff format --check .
 	@echo "Linting complete!"
 
 # Type checking

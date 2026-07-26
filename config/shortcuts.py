@@ -6,7 +6,7 @@ Created during Phase 1.5 UI/UX improvements.
 """
 
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import ClassVar
 
 
 @dataclass
@@ -21,7 +21,7 @@ class Shortcut:
 class ShortcutManager:
     """Centralized keyboard shortcut manager"""
 
-    SHORTCUTS: Dict[str, Shortcut] = {
+    SHORTCUTS: ClassVar[dict[str, Shortcut]] = {
         # File operations
         "open_directory": Shortcut(
             key="Ctrl+O", description="Open directory", action="open_directory"
@@ -77,7 +77,7 @@ class ShortcutManager:
     }
 
     @classmethod
-    def get_shortcut(cls, action: str) -> Optional[Shortcut]:
+    def get_shortcut(cls, action: str) -> Shortcut | None:
         """
         Get shortcut for action
 
@@ -90,7 +90,7 @@ class ShortcutManager:
         return cls.SHORTCUTS.get(action)
 
     @classmethod
-    def get_all_shortcuts(cls) -> Dict[str, Shortcut]:
+    def get_all_shortcuts(cls) -> dict[str, Shortcut]:
         """
         Get all shortcuts
 
@@ -100,7 +100,7 @@ class ShortcutManager:
         return cls.SHORTCUTS.copy()
 
     @classmethod
-    def get_shortcuts_by_category(cls) -> Dict[str, list]:
+    def get_shortcuts_by_category(cls) -> dict[str, list]:
         """
         Get shortcuts organized by category
 

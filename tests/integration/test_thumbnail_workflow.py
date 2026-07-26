@@ -82,9 +82,9 @@ def test_thumbnail_generation_complete_workflow(main_window, sample_ct_directory
     level2_dir = thumbnail_dir / "2"
     if level2_dir.exists():
         level2_files = list(level2_dir.glob("*.tif"))
-        assert (
-            2 <= len(level2_files) <= 3
-        ), f"Level 2 should have 2-3 thumbnails, got {len(level2_files)}"
+        assert 2 <= len(level2_files) <= 3, (
+            f"Level 2 should have 2-3 thumbnails, got {len(level2_files)}"
+        )
 
 
 @pytest.mark.integration
@@ -165,9 +165,9 @@ def test_thumbnail_generation_with_different_formats(main_window, tmp_path, qtbo
     thumbnail_dir = test_dir / ".thumbnail" / "1"
     assert thumbnail_dir.exists()
     thumbnail_files = list(thumbnail_dir.glob("*.tif"))
-    assert (
-        len(thumbnail_files) == 3
-    ), f"Should have 3 thumbnails from 6 BMP images, got {len(thumbnail_files)}"
+    assert len(thumbnail_files) == 3, (
+        f"Should have 3 thumbnails from 6 BMP images, got {len(thumbnail_files)}"
+    )
 
 
 @pytest.mark.integration

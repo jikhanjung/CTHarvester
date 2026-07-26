@@ -58,7 +58,7 @@ class TestLongRunningOperations:
         iterations = 5
         memory_measurements = []
 
-        for i in range(iterations):
+        for _i in range(iterations):
             gc.collect()
             mem_before = process.memory_info().rss / 1024 / 1024
 
@@ -82,9 +82,9 @@ class TestLongRunningOperations:
 
         # Second half should not use significantly more memory than first half
         # This would indicate a memory leak
-        assert (
-            second_half_avg < first_half_avg * 1.5
-        ), f"Memory leak detected: {first_half_avg:.1f}MB -> {second_half_avg:.1f}MB"
+        assert second_half_avg < first_half_avg * 1.5, (
+            f"Memory leak detected: {first_half_avg:.1f}MB -> {second_half_avg:.1f}MB"
+        )
 
     @pytest.mark.slow
     def test_continuous_processing(self, temp_test_images):
@@ -168,9 +168,9 @@ class TestMemoryStability:
         # Allow some overhead but should be much closer to baseline than loaded
         freed_percentage = (mem_loaded - mem_after_cleanup) / (mem_loaded - mem_baseline)
 
-        assert (
-            freed_percentage > 0.5
-        ), f"Insufficient memory freed: {freed_percentage*100:.1f}% (expected >50%)"
+        assert freed_percentage > 0.5, (
+            f"Insufficient memory freed: {freed_percentage * 100:.1f}% (expected >50%)"
+        )
 
     def test_large_array_cleanup(self):
         """Test cleanup of large numpy arrays"""
@@ -200,9 +200,9 @@ class TestMemoryStability:
             # Should have freed most of the memory
             freed = mem_allocated - mem_after
 
-            assert (
-                freed > allocated * 0.5
-            ), f"Large array not properly freed: {freed:.1f}/{allocated:.1f}MB"
+            assert freed > allocated * 0.5, (
+                f"Large array not properly freed: {freed:.1f}/{allocated:.1f}MB"
+            )
         else:
             # Memory not tracked by RSS or OS optimized allocation
             # Just verify deletion doesn't crash
@@ -295,7 +295,7 @@ class TestConcurrentOperations:
             img_array = np.random.randint(0, 256, (256, 256), dtype=np.uint8)
             Image.fromarray(img_array).save(test_dir / f"test_{i:04d}.png")
 
-        images = sorted(list(test_dir.glob("*.png")))
+        images = sorted(test_dir.glob("*.png"))
 
         # Process in multiple batches
         batch_size = 10
@@ -325,11 +325,11 @@ class TestConcurrentOperations:
         mem_start = process.memory_info().rss / 1024 / 1024
 
         # Rapidly create and delete
-        for iteration in range(10):
+        for _iteration in range(10):
             objects = []
 
             # Create
-            for i in range(20):
+            for _i in range(20):
                 obj = np.random.randint(0, 256, (256, 256), dtype=np.uint8)
                 objects.append(obj)
 

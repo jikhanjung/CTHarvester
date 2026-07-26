@@ -31,7 +31,7 @@ import inspect
 import logging
 import sys
 import traceback
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from PyQt5.QtWidgets import QApplication
 
@@ -61,7 +61,7 @@ def restore_all_override_cursors() -> None:
 
 def guard_slot(
     context: str,
-    error_code: Optional[ErrorCode] = None,
+    error_code: ErrorCode | None = None,
     reraise: bool = False,
 ) -> Callable:
     """Wrap a Qt slot so an exception is reported instead of killing the app.

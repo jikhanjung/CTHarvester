@@ -104,8 +104,9 @@ class TestTranslationManager:
         mock_load.return_value = True
 
         # Mock removeTranslator to track calls
-        with patch.object(qapp, "removeTranslator") as mock_remove, patch.object(
-            qapp, "installTranslator"
+        with (
+            patch.object(qapp, "removeTranslator") as mock_remove,
+            patch.object(qapp, "installTranslator"),
         ):
             translation_manager.load_language("ko")
             mock_remove.assert_called_once_with(translation_manager.translator)

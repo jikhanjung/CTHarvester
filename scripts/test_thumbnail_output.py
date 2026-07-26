@@ -40,7 +40,7 @@ def check_thumbnail_dimensions(base_dir):
         print(f"\n--- Level {level} ---")
 
         # Get first few thumbnails
-        thumb_files = sorted(list(level_dir.glob("*.tif")))[:5]
+        thumb_files = sorted(level_dir.glob("*.tif"))[:5]
 
         if not thumb_files:
             print("No thumbnails found")

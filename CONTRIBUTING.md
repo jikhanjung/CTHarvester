@@ -55,7 +55,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
    # Or install separately
    pip install -e .
-   pip install pytest pytest-cov pytest-qt black flake8 mypy pre-commit
+   pip install pytest pytest-cov pytest-qt ruff mypy pre-commit
    ```
 
 3. **Install pre-commit hooks**:
@@ -63,7 +63,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
    pre-commit install
    ```
 
-   This automatically runs code quality checks (black, isort, flake8, mypy) before each commit.
+   This automatically runs code quality checks (ruff, mypy, bandit) before each commit.
 
 4. **Verify setup**:
    ```bash
@@ -106,12 +106,13 @@ Branch naming conventions:
 Before committing, ensure all checks pass:
 
 ```bash
-# Format code
-black .
-isort .
+# Format code and apply safe fixes (includes import sorting)
+ruff format .
+ruff check --fix .
 
-# Run linter
-flake8 . --max-line-length=100
+# Run linter (what CI gates on)
+ruff check .
+ruff format --check .
 
 # Run type checker on core modules
 mypy core/ utils/ --ignore-missing-imports
@@ -174,8 +175,8 @@ We follow PEP 8 with these modifications:
 
 - **Line length**: 100 characters (not 79)
 - **Quotes**: Double quotes for strings
-- **Imports**: Organized by `isort`
-- **Formatting**: Enforced by `black`
+- **Imports**: Sorted by `ruff` (the `I` rules)
+- **Formatting**: Enforced by `ruff format`
 
 ### Type Hints
 

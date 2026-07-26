@@ -29,7 +29,7 @@ Typical usage:
 
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 from utils.time_estimator import TimeEstimator
 
@@ -78,8 +78,8 @@ class ThumbnailProgressTracker:
         self,
         sample_size: int,
         level_weight: float = 1.0,
-        time_estimator: Optional[TimeEstimator] = None,
-        initial_speed: Optional[float] = None,
+        time_estimator: TimeEstimator | None = None,
+        initial_speed: float | None = None,
     ):
         """Initialize progress tracker.
 
@@ -95,8 +95,8 @@ class ThumbnailProgressTracker:
 
         # Sampling state
         self.is_sampling = False
-        self.sample_start_time: Optional[float] = None
-        self.images_per_second: Optional[float] = initial_speed
+        self.sample_start_time: float | None = None
+        self.images_per_second: float | None = initial_speed
 
         # Progress tracking
         self.completed_tasks = 0
@@ -104,9 +104,9 @@ class ThumbnailProgressTracker:
         self.loaded_count = 0
 
         # Multi-stage sampling data
-        self.stage1_estimate: Optional[float] = None
-        self.stage1_speed: Optional[float] = None
-        self.stage2_estimate: Optional[float] = None
+        self.stage1_estimate: float | None = None
+        self.stage1_speed: float | None = None
+        self.stage2_estimate: float | None = None
 
         # Current processing level
         self.current_level = 0
@@ -135,13 +135,13 @@ class ThumbnailProgressTracker:
             self.is_sampling = True
             self.sample_start_time = time.time()
             logger.info(
-                f"Level {level+1}: Starting performance sampling "
+                f"Level {level + 1}: Starting performance sampling "
                 f"(first {self.sample_size * 3} images in 3 stages)"
             )
         else:
             self.is_sampling = False
             logger.info(
-                f"Level {level+1}: No sampling "
+                f"Level {level + 1}: No sampling "
                 f"(level={level}, need 0; sample_size={self.sample_size}, need >0)"
             )
 
@@ -186,7 +186,7 @@ class ThumbnailProgressTracker:
             self.sample_size * 3,  # Stage 3
         ]
 
-    def get_current_stage(self) -> Optional[int]:
+    def get_current_stage(self) -> int | None:
         """Get the current sampling stage number.
 
         Returns:
@@ -204,7 +204,7 @@ class ThumbnailProgressTracker:
 
         return None
 
-    def get_stage_info(self, total_tasks: int, total_levels: int = 1) -> Dict[str, Any]:
+    def get_stage_info(self, total_tasks: int, total_levels: int = 1) -> dict[str, Any]:
         """Get detailed information for current sampling stage.
 
         Args:
@@ -347,7 +347,7 @@ class ThumbnailProgressTracker:
         self.is_sampling = False
         logger.info("Multi-stage sampling completed")
 
-    def get_performance_data(self) -> Dict[str, Any]:
+    def get_performance_data(self) -> dict[str, Any]:
         """Get performance data to pass to parent or next level.
 
         Returns:
@@ -377,7 +377,7 @@ class ThumbnailProgressTracker:
             "loaded_count": self.loaded_count,
         }
 
-    def _estimate_storage_type(self, speed: Optional[float]) -> str:
+    def _estimate_storage_type(self, speed: float | None) -> str:
         """Estimate storage type based on processing speed.
 
         Args:
@@ -407,7 +407,7 @@ class ThumbnailProgressTracker:
         if seconds < 60:
             return f"{int(seconds)}s"
         elif seconds < 3600:
-            return f"{int(seconds/60)}m {int(seconds%60)}s"
+            return f"{int(seconds / 60)}m {int(seconds % 60)}s"
         else:
             hours = int(seconds / 3600)
             minutes = int((seconds % 3600) / 60)

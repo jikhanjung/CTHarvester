@@ -46,13 +46,13 @@ def test_pil_performance(image_dir, num_tests=10):
 
             load_times.append(load_time)
 
-            print(f"{i+1}. {os.path.basename(filepath)}")
+            print(f"{i + 1}. {os.path.basename(filepath)}")
             print(f"   Size: {file_size:.1f} MB")
             print(f"   Mode: {img.mode}, Dimensions: {img.size}")
             print(f"   Load time: {load_time:.1f} ms")
 
             if load_time > 1000:
-                print(f"   ⚠️  SLOW! Over 1 second")
+                print("   ⚠️  SLOW! Over 1 second")
 
             img.close()
 

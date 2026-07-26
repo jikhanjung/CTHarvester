@@ -1,9 +1,3 @@
-from os import listdir
-from os.path import isfile, join
-
-import numpy
-from PIL import Image, ImageChops, ImageDraw
-
 surface_type_list = ["flat", "tilted", "irregular"]
 
 
@@ -34,7 +28,7 @@ for idx, surface_type in enumerate(surface_type_list):
             prefix, seq = specimen_name.split(".")
             specimen_id = f"{genus_name[0]}{surface_type[0]}-{int(seq):03d}"
         else:
-            specimen_id = f"{genus_name[0]}{surface_type[0]}-{int(0):03d}"
+            specimen_id = f"{genus_name[0]}{surface_type[0]}-{0:03d}"
             # continue
         # print(x,y,z)
         if specimen_id != prev_specimen_id:

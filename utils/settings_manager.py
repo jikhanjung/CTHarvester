@@ -41,7 +41,7 @@ import logging
 import os
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import yaml
 
@@ -78,7 +78,7 @@ class SettingsManager:
 
     DEFAULT_CONFIG_FILE = "settings.yaml"
 
-    def __init__(self, config_dir: Optional[str] = None):
+    def __init__(self, config_dir: str | None = None):
         """Initialize the settings manager.
 
         Creates the configuration directory if it doesn't exist and loads settings
@@ -108,11 +108,11 @@ class SettingsManager:
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
         # Load settings
-        self.settings: Dict[str, Any] = {}
+        self.settings: dict[str, Any] = {}
         self.default_settings = self._load_default_settings()
         self.load()
 
-    def _load_default_settings(self) -> Dict:
+    def _load_default_settings(self) -> dict:
         """Load default settings from config/settings.yaml"""
         # Look for default settings in config directory
         default_file = Path(__file__).parent.parent / "config" / "settings.yaml"
@@ -129,7 +129,7 @@ class SettingsManager:
         logger.warning("Default settings file not found, using empty defaults")
         return self._get_hardcoded_defaults()
 
-    def _get_hardcoded_defaults(self) -> Dict:
+    def _get_hardcoded_defaults(self) -> dict:
         """Hardcoded default settings as fallback"""
         return {
             "application": {"language": "auto", "theme": "light", "auto_save_settings": True},
@@ -273,7 +273,7 @@ class SettingsManager:
             logger.error(f"Failed to import settings: {e}")
             raise
 
-    def _validate_settings(self, settings: Dict) -> bool:
+    def _validate_settings(self, settings: dict) -> bool:
         """
         Validate settings structure
 
@@ -293,7 +293,7 @@ class SettingsManager:
 
         return True
 
-    def get_all(self) -> Dict:
+    def get_all(self) -> dict:
         """
         Get all settings
 

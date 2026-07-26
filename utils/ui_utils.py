@@ -7,8 +7,8 @@ Created during Phase 1 of quality improvement plan (devlog 072).
 """
 
 import logging
+from collections.abc import Callable
 from contextlib import contextmanager
-from typing import Callable, Optional
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
@@ -79,7 +79,7 @@ def override_cursor(cursor=Qt.WaitCursor):  # type: ignore[attr-defined]
         QApplication.restoreOverrideCursor()
 
 
-def safe_disconnect(signal, slot: Optional[Callable] = None):
+def safe_disconnect(signal, slot: Callable | None = None):
     """Safely disconnect a signal from a slot.
 
     Handles the case where the signal might not be connected,

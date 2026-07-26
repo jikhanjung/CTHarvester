@@ -24,7 +24,6 @@ Typical usage:
 """
 
 import logging
-from typing import Optional, Tuple
 
 from PyQt5.QtCore import QRect
 
@@ -93,7 +92,7 @@ class ROIManager:
         self.edit_y2 = False
 
         # Canvas representation
-        self.canvas_box: Optional[QRect] = None
+        self.canvas_box: QRect | None = None
 
         # Image dimensions
         self.image_width = 0
@@ -173,7 +172,7 @@ class ROIManager:
             and self.crop_to_y == self.image_height
         )
 
-    def get_roi_bounds(self) -> Tuple[int, int, int, int]:
+    def get_roi_bounds(self) -> tuple[int, int, int, int]:
         """Get ROI bounds in image coordinates.
 
         Returns:
@@ -266,7 +265,7 @@ class ROIManager:
         """
         return self.temp_x1 != -1 and self.temp_y1 != -1
 
-    def get_temp_bounds(self) -> Tuple[int, int, int, int]:
+    def get_temp_bounds(self) -> tuple[int, int, int, int]:
         """Get temporary ROI bounds during creation.
 
         Returns:
@@ -310,7 +309,7 @@ class ROIManager:
 
         self.canvas_box = QRect(x1_canvas, y1_canvas, width_canvas, height_canvas)
 
-    def get_roi_dimensions(self) -> Tuple[int, int]:
+    def get_roi_dimensions(self) -> tuple[int, int]:
         """Get ROI width and height.
 
         Returns:

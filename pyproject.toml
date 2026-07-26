@@ -58,16 +58,17 @@ dev = [
     "hypothesis>=6.0.0,<7.0.0",
     # Type stubs
     "types-PyYAML>=6.0.0,<7.0.0",
-    # Code Quality
-    "black>=23.12.0,<26.0.0",
-    "flake8>=6.1.0,<8.0.0",
-    "pylint>=3.0.0,<4.0.0",
+    # Code Quality -- ruff replaces black + isort + flake8 + pyupgrade + pylint.
+    # Pinned to an exact version, not a range: a newer ruff formats code the
+    # previous one accepted, so an unpinned bump reformats the tree from under
+    # an unrelated PR. Bump deliberately, together with .pre-commit-config.yaml
+    # and the `lint` job in .github/workflows/test.yml.
+    "ruff==0.16.0",
     # Type Checking
     "mypy>=1.7.0,<2.0.0",
     # Profiling
     "memory-profiler>=0.61.0,<1.0.0",
     # Utilities
-    "isort>=5.12.0",
     "pre-commit>=3.3.3",
 ]
 docs = [
@@ -103,39 +104,63 @@ exclude = ["tests*", "scripts*", "docs*", "build*", "dist*", "devlog*", "packagi
 # what lets setuptools resolve this attr reference.
 version = {attr = "version.__version__"}
 
-# Black configuration
-[tool.black]
+# Ruff: formatter + linter, replacing black, isort, flake8, pyupgrade and pylint.
+#
+# Pin the version in lockstep with .pre-commit-config.yaml and the `lint` job in
+# .github/workflows/test.yml. A newer ruff can reformat code the pinned one left
+# alone, which turns every unrelated PR red.
+[tool.ruff]
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
+target-version = "py311"  # matches requires-python
+extend-exclude = [
+    "target",       # Rust build output
+    "InnoSetup",
+    "htmlcov",
+    "performance_data",
+    # ruff formats Python inside Markdown fences. Docs are prose, not code that
+    # has to compile, and letting the formatter rewrite examples in CONTRIBUTING
+    # and the devlog produces noisy diffs no one reviewed. This is the exact
+    # trap TODOs.md warns about from Modan2.
+    "*.md",
+]
 
-# isort configuration
-[tool.isort]
-profile = "black"
-line_length = 100
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
-skip_gitignore = true
-skip = [".git", "__pycache__", "build", "dist", ".venv", "venv"]
+[tool.ruff.lint]
+# E/F  pycodestyle + pyflakes (the flake8 core)
+# I    isort
+# N    pep8-naming
+# UP   pyupgrade
+# B    flake8-bugbear
+# C4   flake8-comprehensions
+# LOG  flake8-logging
+# RUF012 mutable class default
+select = ["E", "F", "I", "N", "UP", "B", "C4", "LOG", "RUF012"]
+ignore = [
+    # The formatter owns line length. Left on as a warning it just duplicates
+    # what `ruff format` already decided, including for strings it cannot split.
+    "E501",
+    # Deliberate late imports: several modules import inside functions to avoid
+    # import cycles or to keep Qt out of the module import path.
+    "E402",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Package __init__.py files exist to re-export; that is what F401 flags.
+"__init__.py" = ["F401"]
+# Qt dictates the spelling of everything it calls back into: paintGL,
+# mousePressEvent, initializeGL, and the camelCase arguments that go with them.
+# Renaming them does not make the code more PEP 8, it makes it not work.
+"ui/**" = ["N802", "N803", "N815"]
+"CTHarvester.py" = ["N802", "N803"]
+# Tests re-import inside test bodies to exercise import-time behaviour, and
+# fixture/helper names mirror the Qt API they wrap.
+"tests/**" = ["F401", "N802", "N803", "N806"]
+# Profiling and one-off analysis scripts, not shipped code. test_integration.py
+# hand-mocks Qt widgets, so its method names have to match the Qt API it stands
+# in for, and it imports to probe availability.
+"scripts/**" = ["N806", "N802", "F401"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "core", "security", "ui", "utils", "version"]
 
 # pytest configuration
 #
@@ -277,27 +302,6 @@ module = [
 disallow_untyped_defs = true    # Require all functions to have type annotations
 disallow_incomplete_defs = true  # Require complete type annotations
 
-# Pylint configuration
-[tool.pylint.main]
-ignore = ["CVS", ".git", "__pycache__", "build", "dist"]
-jobs = 0  # Use all cores
-
-[tool.pylint.messages_control]
-disable = [
-    "C0103",  # invalid-name
-    "C0114",  # missing-module-docstring
-    "C0115",  # missing-class-docstring
-    "C0116",  # missing-function-docstring
-    "R0903",  # too-few-public-methods
-    "R0913",  # too-many-arguments
-]
-
-[tool.pylint.format]
-max-line-length = 100
-
-[tool.pylint.design]
-max-args = 7
-max-attributes = 10
 # Hypothesis (property-based testing) configuration
 [tool.hypothesis]
 max_examples = 100

@@ -11,9 +11,8 @@ Created: 2025-10-07
 import logging
 import traceback
 from enum import Enum
-from typing import Optional
 
-from PyQt5.QtWidgets import QMessageBox, QTextEdit, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QMessageBox, QWidget
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +73,7 @@ class ErrorMessage:
         title: str,
         message: str,
         details: str = "",
-        suggestions: Optional[list[str]] = None,
+        suggestions: list[str] | None = None,
         severity: ErrorSeverity = ErrorSeverity.ERROR,
     ):
         """Initialize error message.
@@ -301,7 +300,7 @@ ERROR_MESSAGES = {
 
 
 def get_error_message(
-    error_code: ErrorCode, *args, exception: Optional[Exception] = None, **kwargs
+    error_code: ErrorCode, *args, exception: Exception | None = None, **kwargs
 ) -> ErrorMessage:
     """Get user-friendly error message for an error code.
 
@@ -386,7 +385,7 @@ def show_error(
     parent: QWidget,
     error_code: ErrorCode,
     *args,
-    exception: Optional[Exception] = None,
+    exception: Exception | None = None,
     include_traceback: bool = False,
     **kwargs,
 ) -> int:

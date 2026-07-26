@@ -7,7 +7,6 @@ import os
 import platform
 import subprocess
 from pathlib import Path
-from typing import Optional
 
 
 def get_log_directory() -> Path:
@@ -25,7 +24,7 @@ def get_log_directory() -> Path:
     return log_dir
 
 
-def get_log_file_path() -> Optional[Path]:
+def get_log_file_path() -> Path | None:
     """Get the path to the main log file.
 
     Returns:
@@ -63,7 +62,7 @@ def open_log_directory():
         else:  # Linux and other Unix-like
             subprocess.run(["xdg-open", str(log_dir)], check=True)
     except Exception as e:
-        raise RuntimeError(f"Failed to open log directory: {e}")
+        raise RuntimeError(f"Failed to open log directory: {e}") from e
 
 
 def get_recent_log_lines(num_lines: int = 100) -> list[str]:

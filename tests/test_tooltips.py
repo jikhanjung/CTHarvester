@@ -24,9 +24,9 @@ class TestTooltipManager:
         """Test that each tooltip has correct structure"""
         for action, info in TooltipManager.TOOLTIPS.items():
             assert isinstance(info, dict), f"Action {action} should have dict value"
-            assert (
-                "tooltip" in info or "status" in info
-            ), f"Action {action} should have tooltip or status"
+            assert "tooltip" in info or "status" in info, (
+                f"Action {action} should have tooltip or status"
+            )
 
     def test_get_tooltip_existing_action(self):
         """Test getting tooltip for existing action"""
@@ -172,9 +172,9 @@ class TestTooltipManager:
             has_tooltip = "tooltip" in info and info["tooltip"]
             has_status = "status" in info and info["status"]
 
-            assert (
-                has_tooltip or has_status
-            ), f"Action {action} should have at least tooltip or status"
+            assert has_tooltip or has_status, (
+                f"Action {action} should have at least tooltip or status"
+            )
 
     def test_tooltip_consistency(self):
         """Test that tooltip and status tip are related for same action"""

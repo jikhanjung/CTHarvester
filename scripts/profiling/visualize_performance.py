@@ -96,7 +96,7 @@ def generate_text_report(metrics_history: list) -> str:
     times = []
     memories = []
 
-    for timestamp, metrics in metrics_history:
+    for _timestamp, metrics in metrics_history:
         thumb = metrics.get("benchmarks", {}).get("thumbnail_generation", {})
         if thumb.get("success"):
             speeds.append(thumb.get("images_per_second", 0))
@@ -107,9 +107,9 @@ def generate_text_report(metrics_history: list) -> str:
     if speeds:
         report.append(f"=Ê Summary ({len(speeds)} measurements)")
         report.append("")
-        report.append(f"Thumbnail Generation Speed (images/sec):")
+        report.append("Thumbnail Generation Speed (images/sec):")
         report.append(f"  Current: {speeds[-1]:.2f}")
-        report.append(f"  Average: {sum(speeds)/len(speeds):.2f}")
+        report.append(f"  Average: {sum(speeds) / len(speeds):.2f}")
         report.append(f"  Min:     {min(speeds):.2f}")
         report.append(f"  Max:     {max(speeds):.2f}")
         report.append("")
@@ -147,9 +147,9 @@ def generate_text_report(metrics_history: list) -> str:
 
     # Memory usage (if available)
     if memories:
-        report.append(f"=¾ Memory Usage (MB):")
+        report.append("=¾ Memory Usage (MB):")
         report.append(f"  Current: {memories[-1]:.2f}")
-        report.append(f"  Average: {sum(memories)/len(memories):.2f}")
+        report.append(f"  Average: {sum(memories) / len(memories):.2f}")
         report.append(f"  Min:     {min(memories):.2f}")
         report.append(f"  Max:     {max(memories):.2f}")
         report.append("")
@@ -244,7 +244,7 @@ def generate_html_report(metrics_history: list) -> str:
 <body>
     <div class="container">
         <h1>= CTHarvester Performance Report</h1>
-        <p>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+        <p>Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
 
         <h2>=Ê Summary</h2>
 """
@@ -254,7 +254,7 @@ def generate_html_report(metrics_history: list) -> str:
         <div class="metric-card">
             <h3>Thumbnail Generation Performance</h3>
             <p>Current Speed: <span class="metric-value">{speeds[-1]:.2f}</span> images/sec</p>
-            <p>Average Speed: <span class="metric-value">{sum(speeds)/len(speeds):.2f}</span> images/sec</p>
+            <p>Average Speed: <span class="metric-value">{sum(speeds) / len(speeds):.2f}</span> images/sec</p>
             <p>Best: {max(speeds):.2f} images/sec | Worst: {min(speeds):.2f} images/sec</p>
             <p>Total Measurements: {len(speeds)}</p>
         </div>
@@ -321,7 +321,7 @@ def generate_html_report(metrics_history: list) -> str:
     else:
         html += "<p>No performance data available.</p>"
 
-    html += f"""
+    html += """
         <div class="footer">
             <p>Performance tracking powered by Phase 3 profiling tools</p>
             <p>CTHarvester - CT Scan Processing and Visualization</p>
@@ -377,7 +377,7 @@ def main():
 
     if not metrics_history:
         print("   No metrics files found")
-        print(f"   Run: python scripts/profiling/collect_performance_metrics.py")
+        print("   Run: python scripts/profiling/collect_performance_metrics.py")
         return 1
 
     print(f"Found {len(metrics_history)} metrics files")

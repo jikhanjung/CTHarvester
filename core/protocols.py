@@ -6,7 +6,7 @@ objects used in the thumbnail generation pipeline, improving type safety
 without requiring inheritance.
 """
 
-from typing import Any, Dict, List, Protocol, Union, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -38,7 +38,7 @@ class ThumbnailParent(Protocol):
     # Drive and level configuration
     current_drive: str
     total_levels: int
-    level_work_distribution: List[Dict[str, Union[int, float]]]
+    level_work_distribution: list[dict[str, int | float]]
     weighted_total_work: float
 
 

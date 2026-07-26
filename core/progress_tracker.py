@@ -19,8 +19,8 @@ Typical usage example:
 
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class ProgressInfo:
     current: int
     total: int
     percentage: float
-    eta_seconds: Optional[float]
+    eta_seconds: float | None
     elapsed_seconds: float
     speed: float  # items per second
 
@@ -124,7 +124,7 @@ class SimpleProgressTracker:
     def __init__(
         self,
         total_items: int,
-        callback: Optional[Callable[[ProgressInfo], None]] = None,
+        callback: Callable[[ProgressInfo], None] | None = None,
         smoothing_window: int = 10,
         min_samples_for_eta: int = 5,
     ):
@@ -151,7 +151,7 @@ class SimpleProgressTracker:
         self.last_update_time = self.start_time
 
         # Speed tracking (for moving average)
-        self.speed_samples: List[float] = []
+        self.speed_samples: list[float] = []
 
     def update(self, increment: int = 1):
         """Update progress by specified number of items.

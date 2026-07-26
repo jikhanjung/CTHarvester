@@ -6,7 +6,6 @@ Extracted from CTHarvester.py during Phase 4c refactoring.
 
 import logging
 import time
-from typing import Dict, Optional
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -25,13 +24,13 @@ class ProgressManager(QObject):
         super().__init__()
         self.current: int = 0
         self.total: int = 0
-        self.start_time: Optional[float] = None
+        self.start_time: float | None = None
         self.is_sampling: bool = False
-        self.speed: Optional[float] = None  # units per second
-        self.level_work_distribution: Optional[Dict[int, Dict[str, int]]] = (
+        self.speed: float | None = None  # units per second
+        self.level_work_distribution: dict[int, dict[str, int]] | None = (
             None  # Store level work info
         )
-        self.weighted_total_work: Optional[float] = None  # Store weighted total
+        self.weighted_total_work: float | None = None  # Store weighted total
 
     def start(self, total: int) -> None:
         """Initialize progress tracking"""
@@ -40,7 +39,7 @@ class ProgressManager(QObject):
         self.start_time = time.time()
         self.is_sampling = False
 
-    def update(self, value: Optional[int] = None, delta: int = 1) -> None:
+    def update(self, value: int | None = None, delta: int = 1) -> None:
         """Update progress by delta or to specific value"""
         if value is not None:
             self.current = value
@@ -111,17 +110,17 @@ class ProgressManager(QObject):
         if remaining_time < SECONDS_PER_MINUTE:
             return f"ETA: {int(remaining_time)}s"
         elif remaining_time < SECONDS_PER_HOUR:
-            return f"ETA: {int(remaining_time/SECONDS_PER_MINUTE)}m {int(remaining_time%SECONDS_PER_MINUTE)}s"
+            return f"ETA: {int(remaining_time / SECONDS_PER_MINUTE)}m {int(remaining_time % SECONDS_PER_MINUTE)}s"
         else:
-            return f"ETA: {int(remaining_time/SECONDS_PER_HOUR)}h {int((remaining_time%SECONDS_PER_HOUR)/SECONDS_PER_MINUTE)}m"
+            return f"ETA: {int(remaining_time / SECONDS_PER_HOUR)}h {int((remaining_time % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE)}m"
 
     def get_detail_text(
         self,
-        level: Optional[int] = None,
-        completed: Optional[int] = None,
-        total: Optional[int] = None,
+        level: int | None = None,
+        completed: int | None = None,
+        total: int | None = None,
     ) -> str:
         """Get detail text for current state"""
         if level is not None and completed is not None and total is not None:
-            return f"Level {level+1}: {completed}/{total}"
+            return f"Level {level + 1}: {completed}/{total}"
         return ""

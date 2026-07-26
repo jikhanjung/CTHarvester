@@ -8,11 +8,11 @@ Provides both Rust-based (high performance) and Python-based (fallback) thumbnai
 import logging
 import os
 import time
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
-from PIL import Image
 from PyQt5.QtCore import QThreadPool
 from PyQt5.QtWidgets import QApplication
 
@@ -87,7 +87,11 @@ class ThumbnailGenerator:
             bool: True if Rust module available, False otherwise
         """
         try:
-            from ct_thumbnail import build_thumbnails
+            # Deliberately an import, not importlib.util.find_spec: ct_thumbnail
+            # is a compiled Rust extension, and find_spec would report it present
+            # for a wheel that then fails to load (ABI mismatch, missing shared
+            # library). Only an actual import proves it is usable.
+            from ct_thumbnail import build_thumbnails  # noqa: F401
 
             logger.info("Rust thumbnail module is available")
             return True
@@ -184,11 +188,11 @@ class ThumbnailGenerator:
     def generate(
         self,
         directory: str,
-        settings: Dict[str, Any],
+        settings: dict[str, Any],
         threadpool: Any,  # QThreadPool
         use_rust_preference: bool = True,
-        progress_dialog: Optional[Any] = None,  # ProgressDialog
-    ) -> Optional[Dict[str, Any]]:
+        progress_dialog: Any | None = None,  # ProgressDialog
+    ) -> dict[str, Any] | None:
         """Generate thumbnails using best available method
 
         Args:
@@ -209,8 +213,8 @@ class ThumbnailGenerator:
         if use_rust:
             logger.info("Using Rust-based thumbnail generation")
             # Create progress callback from progress_dialog
-            progress_callback: Optional[Callable[[float], None]] = None
-            cancel_check: Optional[Callable[[], bool]] = None
+            progress_callback: Callable[[float], None] | None = None
+            cancel_check: Callable[[], bool] | None = None
 
             if progress_dialog:
                 # Defined under private names and then assigned, rather than
@@ -268,8 +272,8 @@ class ThumbnailGenerator:
     def generate_rust(
         self,
         directory: str,
-        progress_callback: Optional[Callable[[float], None]] = None,
-        cancel_check: Optional[Callable[[], bool]] = None,
+        progress_callback: Callable[[float], None] | None = None,
+        cancel_check: Callable[[], bool] | None = None,
     ) -> bool:
         """Generate thumbnails using Rust module
 
@@ -291,7 +295,7 @@ class ThumbnailGenerator:
         self.thumbnail_start_time = time.time()
         thumbnail_start_datetime = datetime.now()
 
-        logger.info(f"=== Starting Rust thumbnail generation ===")
+        logger.info("=== Starting Rust thumbnail generation ===")
         logger.info(f"Start time: {thumbnail_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
         logger.info(f"Directory: {directory}")
 
@@ -359,10 +363,10 @@ class ThumbnailGenerator:
     def generate_python(
         self,
         directory: str,
-        settings: Dict[str, Any],
+        settings: dict[str, Any],
         threadpool: QThreadPool,
-        progress_dialog: Optional[ProgressDialog] = None,
-    ) -> Optional[Dict[str, Any]]:
+        progress_dialog: ProgressDialog | None = None,
+    ) -> dict[str, Any] | None:
         """Generate thumbnails using Python implementation (fallback)
 
         This method implements the full Python-based thumbnail generation logic,
@@ -409,7 +413,7 @@ class ThumbnailGenerator:
         thumbnail_start_time = time.time()
         thumbnail_start_datetime = datetime.now()
 
-        logger.info(f"=== Starting Python thumbnail generation (fallback) ===")
+        logger.info("=== Starting Python thumbnail generation (fallback) ===")
         logger.info(f"Start time: {thumbnail_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
         logger.info(f"Directory: {directory}")
 
@@ -436,12 +440,12 @@ class ThumbnailGenerator:
                     mem = psutil.virtual_memory()
                     disk = psutil.disk_usage(directory)
                     logger.info(
-                        f"Memory: {mem.total/1024**3:.1f}GB total, "
-                        f"{mem.available/1024**3:.1f}GB available ({mem.percent:.1f}% used)"
+                        f"Memory: {mem.total / 1024**3:.1f}GB total, "
+                        f"{mem.available / 1024**3:.1f}GB available ({mem.percent:.1f}% used)"
                     )
                     logger.info(
-                        f"Disk: {disk.total/1024**3:.1f}GB total, "
-                        f"{disk.free/1024**3:.1f}GB free ({disk.percent:.1f}% used)"
+                        f"Disk: {disk.total / 1024**3:.1f}GB total, "
+                        f"{disk.free / 1024**3:.1f}GB free ({disk.percent:.1f}% used)"
                     )
 
                 logger.info(
@@ -466,7 +470,6 @@ class ThumbnailGenerator:
             logger.info(f"Processing sequence: {seq_begin} to {seq_end}, directory: {directory}")
 
             # Import dependencies for thumbnail generation
-            from PyQt5.QtWidgets import QApplication
 
             from core.progress_manager import ProgressManager
             from core.thumbnail_manager import ThumbnailManager
@@ -577,17 +580,17 @@ class ThumbnailGenerator:
                 current_level_size = size
 
                 if size < 2:
-                    logger.info(f"Stopping at level {i+1}: size {size} is too small to continue")
+                    logger.info(f"Stopping at level {i + 1}: size {size} is too small to continue")
                     break
 
                 # Determine source directory
                 if i == 0:
                     from_dir = directory
-                    logger.debug(f"Level {i+1}: Reading from original directory: {from_dir}")
+                    logger.debug(f"Level {i + 1}: Reading from original directory: {from_dir}")
                     total_count = seq_end - seq_begin + 1
                 else:
                     from_dir = os.path.join(directory, ".thumbnail/" + str(i))
-                    logger.debug(f"Level {i+1}: Reading from thumbnail directory: {from_dir}")
+                    logger.debug(f"Level {i + 1}: Reading from thumbnail directory: {from_dir}")
 
                     # Count actual files for levels > 0
                     if os.path.exists(from_dir):
@@ -595,12 +598,12 @@ class ThumbnailGenerator:
                         total_count = len(actual_files)
                         seq_end = seq_begin + total_count - 1
                         logger.info(
-                            f"Level {i+1}: Found {total_count} actual files in previous level"
+                            f"Level {i + 1}: Found {total_count} actual files in previous level"
                         )
                     else:
                         total_count = seq_end - seq_begin + 1
                         logger.warning(
-                            f"Level {i+1}: Previous level directory not found, "
+                            f"Level {i + 1}: Previous level directory not found, "
                             f"using calculated count: {total_count}"
                         )
 
@@ -614,17 +617,17 @@ class ThumbnailGenerator:
                 else:
                     logger.debug(f"Directory already exists: {to_dir}")
 
-                logger.info(f"--- Level {i+1} ---")
+                logger.info(f"--- Level {i + 1} ---")
                 logger.info(
-                    f"Level {i+1} start time: {level_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
+                    f"Level {i + 1} start time: {level_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
                 )
                 logger.info(
-                    f"Level {i+1}: Processing {total_count} images (size: {int(size)}x{int(size)})"
+                    f"Level {i + 1}: Processing {total_count} images (size: {int(size)}x{int(size)})"
                 )
 
                 # Initialize ThumbnailManager for this level
                 # Pass progress_dialog directly - ThumbnailManager will connect signals
-                logger.info(f"Creating ThumbnailManager for level {i+1}")
+                logger.info(f"Creating ThumbnailManager for level {i + 1}")
                 thumbnail_manager = ThumbnailManager(
                     None,  # main_window (not needed for core logic)
                     progress_dialog,  # Pass progress dialog directly
@@ -651,15 +654,15 @@ class ThumbnailGenerator:
                     global_step_counter,
                 )
                 process_time = time.time() - process_start
-                logger.info(f"Level {i+1}: process_level completed in {process_time:.2f}s")
+                logger.info(f"Level {i + 1}: process_level completed in {process_time:.2f}s")
 
                 # Calculate and log time for this level
                 level_end_datetime = datetime.now()
                 level_elapsed = time.time() - level_start_time
                 logger.info(
-                    f"Level {i+1} end time: {level_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
+                    f"Level {i + 1} end time: {level_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
                 )
-                logger.info(f"Level {i+1}: Completed in {level_elapsed:.2f} seconds")
+                logger.info(f"Level {i + 1}: Completed in {level_elapsed:.2f} seconds")
 
                 # Update global step counter
                 global_step_counter = thumbnail_manager.global_step_counter
@@ -682,7 +685,7 @@ class ThumbnailGenerator:
                 next_count = (current_count // 2) + (current_count % 2)
                 seq_end = seq_begin + next_count - 1
                 logger.info(
-                    f"Level {i+1}: {current_count} images -> {next_count} thumbnails generated"
+                    f"Level {i + 1}: {current_count} images -> {next_count} thumbnails generated"
                 )
                 logger.info(f"Next level will process range: {seq_begin}-{seq_end}")
 
@@ -707,16 +710,16 @@ class ThumbnailGenerator:
                     logger.info(f"Reached target thumbnail size at level {i}")
                     break
 
-            logger.info(f"Exited thumbnail generation loop at level {i+1}")
+            logger.info(f"Exited thumbnail generation loop at level {i + 1}")
 
             # Calculate total time
             thumbnail_end_datetime = datetime.now()
             total_elapsed = time.time() - thumbnail_start_time
 
-            logger.info(f"=== Thumbnail generation completed ===")
+            logger.info("=== Thumbnail generation completed ===")
             logger.info(f"End time: {thumbnail_end_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
             logger.info(
-                f"Total duration: {total_elapsed:.2f} seconds ({total_elapsed/60:.2f} minutes)"
+                f"Total duration: {total_elapsed:.2f} seconds ({total_elapsed / 60:.2f} minutes)"
             )
             logger.info(f"Total levels processed: {i + 1}")
 
@@ -820,8 +823,8 @@ class ThumbnailGenerator:
             }
 
     def load_thumbnail_data(
-        self, directory: str, max_thumbnail_size: Optional[int] = None
-    ) -> Tuple[Optional[np.ndarray], Dict[str, Any]]:
+        self, directory: str, max_thumbnail_size: int | None = None
+    ) -> tuple[np.ndarray | None, dict[str, Any]]:
         """Load generated thumbnail data from disk
 
         Finds and loads the appropriate level of thumbnails for 3D visualization.
@@ -890,8 +893,7 @@ class ThumbnailGenerator:
             # Fallback to highest level if none meet the criteria
             level_num, thumbnail_dir = level_dirs[-1]
             logger.warning(
-                f"No level with size < {max_thumbnail_size} found, "
-                f"using highest level {level_num}"
+                f"No level with size < {max_thumbnail_size} found, using highest level {level_num}"
             )
 
         logger.info(f"Loading thumbnails from level {level_num}: {thumbnail_dir}")

@@ -19,15 +19,11 @@ import ast
 import json
 import os
 import subprocess
-import sys
-from collections import defaultdict
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence
 
 
-def count_lines_of_code(
-    directory: str, extensions: Optional[Sequence[str]] = None
-) -> Dict[str, int]:
+def count_lines_of_code(directory: str, extensions: Sequence[str] | None = None) -> dict[str, int]:
     """Count lines of code in directory
 
     Args:
@@ -67,7 +63,7 @@ def count_lines_of_code(
     return metrics
 
 
-def get_test_coverage() -> Dict[str, float]:
+def get_test_coverage() -> dict[str, float]:
     """Get test coverage from pytest-cov
 
     Returns:
@@ -97,7 +93,7 @@ def get_test_coverage() -> Dict[str, float]:
     return {"line_coverage": 0, "lines_covered": 0, "lines_missing": 0}
 
 
-def count_functions_with_docstrings(directory: str) -> Dict[str, int]:
+def count_functions_with_docstrings(directory: str) -> dict[str, int]:
     """Count functions with and without docstrings
 
     Args:
@@ -155,7 +151,7 @@ def count_functions_with_docstrings(directory: str) -> Dict[str, int]:
     return metrics
 
 
-def count_type_hints(directory: str) -> Dict[str, int]:
+def count_type_hints(directory: str) -> dict[str, int]:
     """Count type hints usage
 
     Args:
@@ -210,7 +206,7 @@ def count_type_hints(directory: str) -> Dict[str, int]:
     return metrics
 
 
-def collect_all_metrics(directories: List[str]) -> Dict:
+def collect_all_metrics(directories: list[str]) -> dict:
     """Collect all metrics for given directories
 
     Args:
@@ -246,7 +242,7 @@ def collect_all_metrics(directories: List[str]) -> Dict:
     return all_metrics
 
 
-def print_metrics(metrics: Dict):
+def print_metrics(metrics: dict):
     """Print metrics in human-readable format
 
     Args:

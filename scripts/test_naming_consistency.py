@@ -5,7 +5,6 @@ Test script to verify that Python and Rust modules generate thumbnails with the 
 
 import os
 import sys
-from pathlib import Path
 
 
 def check_thumbnail_naming(thumbnail_dir):
@@ -23,7 +22,7 @@ def check_thumbnail_naming(thumbnail_dir):
     print(f"\nFound {len(files)} files in {thumbnail_dir}")
     print("Sample filenames:")
     for i, f in enumerate(files[:5]):  # Show first 5 files
-        print(f"  {i+1}. {f}")
+        print(f"  {i + 1}. {f}")
 
     # Check naming pattern
     uses_rust_pattern = all(f.replace(".tif", "").isdigit() for f in files)

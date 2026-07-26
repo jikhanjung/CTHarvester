@@ -8,13 +8,13 @@ Usage:
     python generate_release_notes.py --tag v1.0.0 --output release_notes.md
     python generate_release_notes.py --from v0.9.0 --to v1.0.0
 """
+
 import argparse
 import re
 import sys
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 try:
     import git
@@ -43,7 +43,7 @@ COMMIT_TYPES = {
 BREAKING_MARKERS = ["BREAKING CHANGE", "BREAKING-CHANGE", "!"]
 
 
-def parse_commit_message(message: str) -> Tuple[str, str, str, bool]:
+def parse_commit_message(message: str) -> tuple[str, str, str, bool]:
     """Parse conventional commit message.
 
     Args:
@@ -71,7 +71,7 @@ def parse_commit_message(message: str) -> Tuple[str, str, str, bool]:
 
 def get_commits_between_tags(
     repo: git.Repo, from_tag: str, to_tag: str = "HEAD"
-) -> List[git.Commit]:
+) -> list[git.Commit]:
     """Get commits between two tags.
 
     Args:
@@ -115,7 +115,7 @@ def find_previous_tag(repo: git.Repo, current_tag: str) -> str:
     return None
 
 
-def categorize_commits(commits: List[git.Commit]) -> Dict[str, List[Dict]]:
+def categorize_commits(commits: list[git.Commit]) -> dict[str, list[dict]]:
     """Categorize commits by type.
 
     Args:
@@ -163,7 +163,7 @@ def categorize_commits(commits: List[git.Commit]) -> Dict[str, List[Dict]]:
 
 
 def format_release_notes(
-    tag: str, date: str, categories: Dict[str, List[Dict]], repo_url: str = None
+    tag: str, date: str, categories: dict[str, list[dict]], repo_url: str = None
 ) -> str:
     """Format release notes in markdown.
 
@@ -178,9 +178,9 @@ def format_release_notes(
     """
     lines = [
         f"# Release {tag}",
-        f"",
+        "",
         f"**Release Date:** {date}",
-        f"",
+        "",
     ]
 
     # Priority order for categories
@@ -207,7 +207,7 @@ def format_release_notes(
     return "\n".join(lines)
 
 
-def _format_category(category: str, commits: List[Dict], repo_url: str = None) -> List[str]:
+def _format_category(category: str, commits: list[dict], repo_url: str = None) -> list[str]:
     """Format a single category of commits.
 
     Args:
@@ -223,7 +223,7 @@ def _format_category(category: str, commits: List[Dict], repo_url: str = None) -
 
     lines = [
         f"## {category}",
-        f"",
+        "",
     ]
 
     for commit in commits:

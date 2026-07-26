@@ -54,11 +54,10 @@ from OpenGL.GL import (
     glViewport,
 )
 from OpenGL.GLU import gluLookAt, gluPerspective
-from PIL import Image
 from PyQt5.QtCore import Qt, QThread, QThreadPool, QTimer, pyqtSignal
 from PyQt5.QtGui import QCursor, QPixmap
 from PyQt5.QtOpenGL import QGLWidget
-from PyQt5.QtWidgets import QApplication, QCheckBox, QLabel
+from PyQt5.QtWidgets import QCheckBox, QLabel
 from scipy import ndimage
 
 from config.view_modes import (

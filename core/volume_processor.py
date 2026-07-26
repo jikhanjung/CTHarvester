@@ -6,7 +6,6 @@ Provides volume cropping, scaling, and ROI management for CT data.
 """
 
 import logging
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -61,12 +60,12 @@ class VolumeProcessor:
     def get_cropped_volume(
         self,
         minimum_volume: np.ndarray,
-        level_info: List[Dict[str, int]],
+        level_info: list[dict[str, int]],
         curr_level_idx: int,
         top_idx: int,
         bottom_idx: int,
-        crop_box: List[int],
-    ) -> Tuple[np.ndarray, List[int]]:
+        crop_box: list[int],
+    ) -> tuple[np.ndarray, list[int]]:
         """Get cropped volume based on current ROI selection
 
         This method takes the minimum (lowest resolution) volume and crops it
@@ -268,8 +267,8 @@ class VolumeProcessor:
         return volume, scaled_roi
 
     def scale_coordinates_between_levels(
-        self, coords: List[float], from_level: int, to_level: int
-    ) -> List[float]:
+        self, coords: list[float], from_level: int, to_level: int
+    ) -> list[float]:
         """Scale coordinates from one LoD level to another
 
         Args:
@@ -291,7 +290,7 @@ class VolumeProcessor:
 
         return [c * scale_factor for c in coords]
 
-    def normalize_coordinates(self, coords: List[int], dimensions: List[int]) -> List[float]:
+    def normalize_coordinates(self, coords: list[int], dimensions: list[int]) -> list[float]:
         """Normalize coordinates to [0, 1] range
 
         Args:
@@ -304,9 +303,9 @@ class VolumeProcessor:
         if len(coords) != len(dimensions):
             raise ValueError("Coordinates and dimensions must have same length")
 
-        return [c / float(d) if d > 0 else 0.0 for c, d in zip(coords, dimensions)]
+        return [c / float(d) if d > 0 else 0.0 for c, d in zip(coords, dimensions, strict=True)]
 
-    def denormalize_coordinates(self, norm_coords: List[float], dimensions: List[int]) -> List[int]:
+    def denormalize_coordinates(self, norm_coords: list[float], dimensions: list[int]) -> list[int]:
         """Convert normalized coordinates back to pixel coordinates
 
         Args:
@@ -319,9 +318,9 @@ class VolumeProcessor:
         if len(norm_coords) != len(dimensions):
             raise ValueError("Coordinates and dimensions must have same length")
 
-        return [int(nc * d) for nc, d in zip(norm_coords, dimensions)]
+        return [int(nc * d) for nc, d in zip(norm_coords, dimensions, strict=True)]
 
-    def clamp_indices(self, bottom_idx: int, top_idx: int, max_count: int) -> Tuple[int, int]:
+    def clamp_indices(self, bottom_idx: int, top_idx: int, max_count: int) -> tuple[int, int]:
         """Clamp and validate slice indices
 
         Ensures indices are within valid range and bottom < top.
@@ -344,7 +343,7 @@ class VolumeProcessor:
 
         return bottom_idx, top_idx
 
-    def clamp_crop_box(self, crop_box: List[int], width: int, height: int) -> List[int]:
+    def clamp_crop_box(self, crop_box: list[int], width: int, height: int) -> list[int]:
         """Clamp crop box to image boundaries
 
         Args:
@@ -366,12 +365,12 @@ class VolumeProcessor:
 
     def calculate_cropped_dimensions(
         self,
-        level_info: List[Dict[str, int]],
+        level_info: list[dict[str, int]],
         curr_level_idx: int,
         top_idx: int,
         bottom_idx: int,
-        crop_box: List[int],
-    ) -> Dict[str, int]:
+        crop_box: list[int],
+    ) -> dict[str, int]:
         """Calculate dimensions of cropped volume at current level
 
         Args:
@@ -421,7 +420,7 @@ class VolumeProcessor:
 
         return True
 
-    def get_volume_statistics(self, volume: np.ndarray) -> Dict[str, object]:
+    def get_volume_statistics(self, volume: np.ndarray) -> dict[str, object]:
         """Calculate volume statistics
 
         Args:

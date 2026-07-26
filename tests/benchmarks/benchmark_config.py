@@ -6,7 +6,6 @@ Created during Phase 3 (Performance & Robustness).
 """
 
 from dataclasses import dataclass
-from typing import Tuple
 
 
 @dataclass
@@ -16,7 +15,7 @@ class BenchmarkScenario:
     name: str
     description: str
     image_count: int
-    image_size: Tuple[int, int]  # (width, height)
+    image_size: tuple[int, int]  # (width, height)
     bit_depth: int  # 8 or 16
     expected_memory_mb: float  # Expected peak memory usage
     expected_time_seconds: float  # Expected processing time

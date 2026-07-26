@@ -4,7 +4,7 @@ Image Processing Utility Functions
 
 import logging
 import os
-from typing import Dict, Optional, Tuple, TypedDict, Union
+from typing import TypedDict
 
 import numpy as np
 from PIL import Image
@@ -62,7 +62,7 @@ def detect_bit_depth(image_path: str) -> int:
         raise ValueError(f"Cannot detect bit depth: {e}") from e
 
 
-def load_image_as_array(image_path: str, target_dtype: Optional[np.dtype] = None) -> np.ndarray:
+def load_image_as_array(image_path: str, target_dtype: np.dtype | None = None) -> np.ndarray:
     """
     Load image as numpy array (memory efficient)
 
@@ -235,7 +235,7 @@ def save_image_from_array(img_array: np.ndarray, output_path: str, compress: boo
         return False
 
 
-def get_image_dimensions(image_path: str) -> Tuple[int, int]:
+def get_image_dimensions(image_path: str) -> tuple[int, int]:
     """
     Get image dimensions without full load
 
@@ -267,7 +267,7 @@ def get_image_dimensions(image_path: str) -> Tuple[int, int]:
         raise
 
 
-def load_image_with_metadata(image_path: str) -> Tuple[np.ndarray, ImageMetadata]:
+def load_image_with_metadata(image_path: str) -> tuple[np.ndarray, ImageMetadata]:
     """Load image and extract metadata in one operation
 
     This consolidated function combines image loading with metadata extraction
@@ -395,10 +395,10 @@ class ImageLoadError(Exception):
 
 def safe_load_image(
     file_path: str,
-    convert_mode: Optional[str] = None,
+    convert_mode: str | None = None,
     as_array: bool = True,
     handle_palette: bool = True,
-) -> Optional[Union[np.ndarray, Image.Image]]:  # type: ignore[return]
+) -> np.ndarray | Image.Image | None:  # type: ignore[return]
     """Load image with standardized error handling.
 
     This function provides a centralized way to load images with consistent

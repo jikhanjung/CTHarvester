@@ -11,7 +11,7 @@ Updated during Phase 1.4 with i18n support.
 import errno
 import logging
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import ClassVar
 
 from PyQt5.QtCore import QCoreApplication
 
@@ -29,15 +29,15 @@ class UserError:
 
     title: str
     message: str
-    solutions: List[str]
-    technical_details: Optional[str] = None
+    solutions: list[str]
+    technical_details: str | None = None
 
 
 class ErrorMessageBuilder:
     """Error message builder with templates for common errors"""
 
     # Error type templates
-    ERROR_TEMPLATES = {
+    ERROR_TEMPLATES: ClassVar[dict] = {
         "file_not_found": UserError(
             title="Cannot find file",
             message="The file '{filename}' could not be found.",

@@ -28,7 +28,8 @@ See Also:
 
 import sys
 import traceback
-from typing import Any, Callable, Optional, Tuple, Type
+from collections.abc import Callable
+from typing import Any
 
 from PyQt5.QtCore import QObject, QRunnable, pyqtSignal, pyqtSlot
 
@@ -107,7 +108,7 @@ class Worker(QRunnable):
 
         # Store constructor arguments (re-used for processing)
         self.fn: Callable[..., Any] = fn
-        self.args: Tuple[Any, ...] = args
+        self.args: tuple[Any, ...] = args
         self.kwargs: dict[str, Any] = kwargs
         self.signals: WorkerSignals = WorkerSignals()
 
@@ -140,8 +141,8 @@ class Worker(QRunnable):
         except Exception:  # noqa: B036
             # Catch all exceptions but allow KeyboardInterrupt and SystemExit to propagate
             # Worker pattern requires catching all exceptions to emit signals
-            exctype: Optional[Type[BaseException]]
-            value: Optional[BaseException]
+            exctype: type[BaseException] | None
+            value: BaseException | None
             exctype, value = sys.exc_info()[:2]
             self.signals.error.emit((exctype, value, traceback.format_exc()))
         else:

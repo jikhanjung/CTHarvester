@@ -24,7 +24,7 @@ Typical usage example:
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from PyQt5.QtCore import QMutex, QMutexLocker, QObject, Qt, QThread, QThreadPool, pyqtSlot
 from PyQt5.QtWidgets import QApplication
@@ -75,10 +75,10 @@ class ThumbnailManager(QObject):
 
     def __init__(
         self,
-        parent: Optional[ThumbnailParent],
-        progress_dialog: Optional[ProgressDialog],
+        parent: ThumbnailParent | None,
+        progress_dialog: ProgressDialog | None,
         threadpool: QThreadPool,
-        shared_progress_manager: Optional[ProgressManager] = None,
+        shared_progress_manager: ProgressManager | None = None,
     ):
         """Initialize the thumbnail manager.
 
@@ -192,12 +192,12 @@ class ThumbnailManager(QObject):
         self.worker_manager.global_step_counter = value
 
     @property
-    def results(self) -> Dict[int, Any]:
+    def results(self) -> dict[int, Any]:
         """Results dictionary (delegates to worker_manager)."""
         return self.worker_manager.results
 
     @results.setter
-    def results(self, value: Dict[int, Any]):
+    def results(self, value: dict[int, Any]):
         """Set results dictionary."""
         self.worker_manager.results = value
 
@@ -242,22 +242,22 @@ class ThumbnailManager(QObject):
         self.progress_tracker.is_sampling = value
 
     @property
-    def sample_start_time(self) -> Optional[float]:
+    def sample_start_time(self) -> float | None:
         """Sample start timestamp (delegates to progress_tracker)."""
         return self.progress_tracker.sample_start_time
 
     @sample_start_time.setter
-    def sample_start_time(self, value: Optional[float]):
+    def sample_start_time(self, value: float | None):
         """Set sample start time."""
         self.progress_tracker.sample_start_time = value
 
     @property
-    def images_per_second(self) -> Optional[float]:
+    def images_per_second(self) -> float | None:
         """Processing speed (delegates to progress_tracker)."""
         return self.progress_tracker.images_per_second
 
     @images_per_second.setter
-    def images_per_second(self, value: Optional[float]):
+    def images_per_second(self, value: float | None):
         """Set processing speed."""
         self.progress_tracker.images_per_second = value
 
@@ -494,7 +494,7 @@ class ThumbnailManager(QObject):
         logger = logging.getLogger("CTHarvester")
 
         level_start_time = time.time()
-        logger.info(f"\n=== Starting Level {level+1} Processing ===")
+        logger.info(f"\n=== Starting Level {level + 1} Processing ===")
         logger.info(f"From: {from_dir}")
         logger.info(f"To: {to_dir}")
         logger.info(f"Size: {size}x{size}")
@@ -526,13 +526,13 @@ class ThumbnailManager(QObject):
                         ):  # level is 0-indexed, but stored as 1-indexed
                             self.level_weight = level_info["weight"]
                             logger.info(
-                                f"Level {level+1}: Using weight factor {self.level_weight:.4f}"
+                                f"Level {level + 1}: Using weight factor {self.level_weight:.4f}"
                             )
                             break
                 else:
                     # For now, use default weight if we only have int list
                     logger.warning(
-                        f"Level {level+1}: level_work_distribution is int list, using default weight"
+                        f"Level {level + 1}: level_work_distribution is int list, using default weight"
                     )
         self.results.clear()
         self.is_cancelled = False
@@ -553,7 +553,7 @@ class ThumbnailManager(QObject):
             # Tell ProgressManager we're sampling so it shows "Estimating..."
             self.progress_manager.set_sampling(True)
             logger.info(
-                f"Level {level+1}: Starting with performance sampling (first {self.sample_size} images)"
+                f"Level {level + 1}: Starting with performance sampling (first {self.sample_size} images)"
             )
         else:
             self.is_sampling = False
@@ -564,7 +564,7 @@ class ThumbnailManager(QObject):
             )
 
         logger.info(
-            f"ThumbnailManager.process_level: Starting Level {level+1}, tasks={num_tasks}, offset={global_step_offset}"
+            f"ThumbnailManager.process_level: Starting Level {level + 1}, tasks={num_tasks}, offset={global_step_offset}"
         )
         logger.debug(
             f"ThreadPool: maxThreadCount={self.threadpool.maxThreadCount()}, activeThreadCount={self.threadpool.activeThreadCount()}"
@@ -640,7 +640,7 @@ class ThumbnailManager(QObject):
 
             # Submit to thread pool
             if idx == 0:
-                logger.info(f"Submitting first worker to threadpool")
+                logger.info("Submitting first worker to threadpool")
                 logger.info(
                     f"Threadpool status before: active={self.threadpool.activeThreadCount()}, max={self.threadpool.maxThreadCount()}"
                 )
@@ -660,12 +660,12 @@ class ThumbnailManager(QObject):
 
         submit_time = time.time() - submit_start
         logger.info(
-            f"Submitted {workers_submitted} workers to threadpool in {submit_time*1000:.1f}ms"
+            f"Submitted {workers_submitted} workers to threadpool in {submit_time * 1000:.1f}ms"
         )
         logger.info(
             f"Final threadpool status: active={self.threadpool.activeThreadCount()}, max={self.threadpool.maxThreadCount()}"
         )
-        logger.info(f"Waiting for workers to start processing...")
+        logger.info("Waiting for workers to start processing...")
 
         # Wait for all workers to complete or cancellation
         import time
@@ -698,7 +698,7 @@ class ThumbnailManager(QObject):
                 )
 
                 logger.debug(
-                    f"Level {level+1}: {self.completed_tasks}/{self.total_tasks} ({progress_pct:.1f}%) completed, "
+                    f"Level {level + 1}: {self.completed_tasks}/{self.total_tasks} ({progress_pct:.1f}%) completed, "
                     f"{active_threads} active threads, elapsed: {elapsed:.1f}s"
                 )
                 last_progress_log = current_time
@@ -708,15 +708,15 @@ class ThumbnailManager(QObject):
                     stalled_count += 1
                     if stalled_count >= 12:  # No progress for 60 seconds
                         logger.warning(
-                            f"Level {level+1}: No progress for 60 seconds. {active_threads} threads still active"
+                            f"Level {level + 1}: No progress for 60 seconds. {active_threads} threads still active"
                         )
                         # Log more details every 30 seconds when stalled
                         if current_time - last_detailed_log > 30:
                             logger.info(
-                                f"Level {level+1} status: {self.completed_tasks}/{self.total_tasks} tasks completed after {elapsed:.1f}s"
+                                f"Level {level + 1} status: {self.completed_tasks}/{self.total_tasks} tasks completed after {elapsed:.1f}s"
                             )
                             logger.info(
-                                f"Consider checking disk I/O performance or available storage space"
+                                "Consider checking disk I/O performance or available storage space"
                             )
                             last_detailed_log = current_time
                 else:
@@ -727,7 +727,7 @@ class ThumbnailManager(QObject):
 
         if self.progress_dialog and self.progress_dialog.is_cancelled:
             self.is_cancelled = True
-            logger.info(f"ThumbnailManager.process_level: Level {level+1} cancelled by user")
+            logger.info(f"ThumbnailManager.process_level: Level {level + 1} cancelled by user")
 
             # Wait a short time for any running workers to complete their current task
             # Note: QThreadPool doesn't have a way to forcibly cancel individual QRunnable tasks
@@ -740,7 +740,7 @@ class ThumbnailManager(QObject):
                 wait_time += 50
 
             if self.completed_tasks < self.total_tasks:
-                logger.warning(f"Some thumbnail workers may still be running after cancellation")
+                logger.warning("Some thumbnail workers may still be running after cancellation")
 
         # Collect results in order
         img_arrays = []
@@ -758,7 +758,7 @@ class ThumbnailManager(QObject):
                 self.generated_count / self.total_tasks * 100 if self.total_tasks > 0 else 0
             )
 
-            logger.info(f"\n=== Level {level+1} Complete ===")
+            logger.info(f"\n=== Level {level + 1} Complete ===")
             logger.info(f"Tasks completed: {self.completed_tasks}/{self.total_tasks}")
             logger.info(
                 f"Generated: {self.generated_count}, Loaded: {self.loaded_count} ({generation_ratio:.1f}% generated)"
@@ -806,7 +806,7 @@ class ThumbnailManager(QObject):
 
         # Update progress bar
         if self.progress_dialog:
-            self.progress_dialog.lbl_text.setText(f"Generating thumbnails")
+            self.progress_dialog.lbl_text.setText("Generating thumbnails")
 
         # Use centralized ETA and progress update
         # This will call progress_manager.update() which emits progress_updated signal
@@ -818,7 +818,7 @@ class ThumbnailManager(QObject):
             QApplication.processEvents()
 
         logger.debug(
-            f"ThumbnailManager.on_worker_progress: Level {self.level+1}, idx={idx}, step={current_step}"
+            f"ThumbnailManager.on_worker_progress: Level {self.level + 1}, idx={idx}, step={current_step}"
         )
 
     @pyqtSlot(object)
@@ -1036,7 +1036,9 @@ class ThumbnailManager(QObject):
                 storage_type = (
                     "SSD"
                     if self.images_per_second > 10
-                    else "HDD" if self.images_per_second > 2 else "Network/Slow"
+                    else "HDD"
+                    if self.images_per_second > 2
+                    else "Network/Slow"
                 )
                 drive_label = (
                     f"{self.thumbnail_parent.current_drive}"
@@ -1050,10 +1052,10 @@ class ThumbnailManager(QObject):
                 if total_estimate < 60:
                     formatted_estimate = f"{int(total_estimate)}s"
                 elif total_estimate < 3600:
-                    formatted_estimate = f"{int(total_estimate/60)}m {int(total_estimate%60)}s"
+                    formatted_estimate = f"{int(total_estimate / 60)}m {int(total_estimate % 60)}s"
                 else:
                     formatted_estimate = (
-                        f"{int(total_estimate/3600)}h {int((total_estimate%3600)/60)}m"
+                        f"{int(total_estimate / 3600)}h {int((total_estimate % 3600) / 60)}m"
                     )
                 logger.info(f"=== FINAL ESTIMATED TOTAL TIME: {formatted_estimate} ===")
 
@@ -1070,14 +1072,14 @@ class ThumbnailManager(QObject):
                     self.thumbnail_parent.measured_images_per_second = self.images_per_second  # type: ignore[assignment]
 
                 self.is_sampling = False
-                logger.info(f"Multi-stage sampling completed")
+                logger.info("Multi-stage sampling completed")
 
             # Always update ETA and progress display
             self.update_eta_and_progress()
 
         # Just log the result, don't update UI (already done in on_worker_progress)
         logger.debug(
-            f"ThumbnailManager.on_worker_result: Level {self.level+1}, completed={completed}/{total}, has_image={img_array is not None}"
+            f"ThumbnailManager.on_worker_result: Level {self.level + 1}, completed={completed}/{total}, has_image={img_array is not None}"
         )
 
     @pyqtSlot(tuple)

@@ -8,7 +8,7 @@ import logging
 import time
 from collections import deque
 
-from PyQt5.QtCore import QPoint, QRect, Qt, QTranslator
+from PyQt5.QtCore import QPoint, QRect, QTranslator
 from PyQt5.QtWidgets import (
     QApplication,
     QDialog,
@@ -125,10 +125,10 @@ class ProgressDialog(QDialog):
                 eta_text = f"{int(initial_estimate_seconds)}s"
             elif initial_estimate_seconds < 3600:
                 eta_text = (
-                    f"{int(initial_estimate_seconds/60)}m {int(initial_estimate_seconds%60)}s"
+                    f"{int(initial_estimate_seconds / 60)}m {int(initial_estimate_seconds % 60)}s"
                 )
             else:
-                eta_text = f"{int(initial_estimate_seconds/3600)}h {int((initial_estimate_seconds%3600)/60)}m"
+                eta_text = f"{int(initial_estimate_seconds / 3600)}h {int((initial_estimate_seconds % 3600) / 60)}m"
             self.lbl_detail.setText(f"ETA: {eta_text}")
             logger.info(f"ProgressDialog initial ETA: {eta_text} ({initial_estimate_seconds:.1f}s)")
         else:
@@ -221,9 +221,9 @@ class ProgressDialog(QDialog):
                 if eta_seconds < 60:
                     return f"{int(eta_seconds)}s"
                 elif eta_seconds < 3600:
-                    return f"{int(eta_seconds/60)}m {int(eta_seconds%60)}s"
+                    return f"{int(eta_seconds / 60)}m {int(eta_seconds % 60)}s"
                 else:
-                    return f"{int(eta_seconds/3600)}h {int((eta_seconds%3600)/60)}m"
+                    return f"{int(eta_seconds / 3600)}h {int((eta_seconds % 3600) / 60)}m"
             return None
 
         self.last_eta_update = current_time
@@ -239,7 +239,7 @@ class ProgressDialog(QDialog):
         # Method 1: Stable moving average of step times
         if len(self.step_times) >= self.min_samples_for_eta:
             # Use trimmed mean to remove outliers
-            sorted_times = sorted(list(self.step_times))
+            sorted_times = sorted(self.step_times)
             trim_count = max(1, len(sorted_times) // 10)  # Trim 10% from each end
             trimmed_times = (
                 sorted_times[trim_count:-trim_count]
@@ -312,7 +312,7 @@ class ProgressDialog(QDialog):
         if eta_seconds < 60:
             return f"{int(eta_seconds)}s"
         elif eta_seconds < 3600:
-            return f"{int(eta_seconds/60)}m {int(eta_seconds%60)}s"
+            return f"{int(eta_seconds / 60)}m {int(eta_seconds % 60)}s"
         else:
             hours = int(eta_seconds / 3600)
             minutes = int((eta_seconds % 3600) / 60)
@@ -436,7 +436,7 @@ class ModernProgressDialog(QDialog):
         if info.speed > 1:
             self.speed_label.setText(f"Speed: {info.speed:.1f} items/s")
         elif info.speed > 0:
-            self.speed_label.setText(f"Speed: {1/info.speed:.1f} s/item")
+            self.speed_label.setText(f"Speed: {1 / info.speed:.1f} s/item")
         else:
             self.speed_label.setText("Speed: -")
 

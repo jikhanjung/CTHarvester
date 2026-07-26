@@ -7,7 +7,7 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Optional
+from typing import ClassVar
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +22,10 @@ class SecureFileValidator:
     """파일 경로 검증 클래스"""
 
     # 허용된 파일 확장자
-    ALLOWED_EXTENSIONS = {".bmp", ".jpg", ".jpeg", ".png", ".tif", ".tiff"}
+    ALLOWED_EXTENSIONS: ClassVar[set[str]] = {".bmp", ".jpg", ".jpeg", ".png", ".tif", ".tiff"}
 
     # 금지된 문자/패턴
-    FORBIDDEN_PATTERNS = [
+    FORBIDDEN_PATTERNS: ClassVar[list[str]] = [
         r"\.\.",  # 상위 디렉토리 참조
         r"^/",  # 절대 경로
         r"^\\",  # Windows 절대 경로
@@ -118,10 +118,10 @@ class SecureFileValidator:
                 # Python 3.8 호환성: 수동 체크
                 try:
                     file_path_obj.relative_to(base_path)
-                except ValueError:
+                except ValueError as exc:
                     raise FileSecurityError(
                         f"Path is outside base directory: {file_path} (base: {base_dir})"
-                    )
+                    ) from exc
         except ValueError as e:
             # 다른 드라이브이거나 관련 없는 경로
             raise FileSecurityError(
@@ -157,7 +157,7 @@ class SecureFileValidator:
         return SecureFileValidator.validate_path(joined, base_dir)
 
     @staticmethod
-    def secure_listdir(directory: str, extensions: Optional[set] = None) -> list:
+    def secure_listdir(directory: str, extensions: set | None = None) -> list:
         """
         안전한 디렉토리 목록 조회
 

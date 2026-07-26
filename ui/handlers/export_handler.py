@@ -25,7 +25,7 @@ See Also:
 
 import logging
 import os
-from typing import TYPE_CHECKING, Dict, Tuple
+from typing import TYPE_CHECKING
 
 import mcubes
 import numpy as np
@@ -69,7 +69,7 @@ class ExportHandler:
         Args:
             main_window: The CTHarvester main window instance
         """
-        self.window: "CTHarvesterMainWindow" = main_window
+        self.window: CTHarvesterMainWindow = main_window
 
     def export_3d_model_to_obj(self) -> None:
         """Export 3D model to OBJ file format using marching cubes.
@@ -124,7 +124,7 @@ class ExportHandler:
 
         return obj_filename
 
-    def _generate_mesh(self) -> Tuple[np.ndarray, np.ndarray]:
+    def _generate_mesh(self) -> tuple[np.ndarray, np.ndarray]:
         """Generate 3D mesh using marching cubes algorithm.
 
         Extracts the cropped volume and isovalue from the UI, runs the
@@ -288,7 +288,7 @@ class ExportHandler:
 
         return target_dirname
 
-    def _get_crop_info(self) -> Dict[str, int]:
+    def _get_crop_info(self) -> dict[str, int]:
         """Collect crop and range information from UI widgets.
 
         Returns:
@@ -329,7 +329,7 @@ class ExportHandler:
     def _save_images_with_progress(
         self,
         target_dir: str,
-        crop_info: Dict[str, int],
+        crop_info: dict[str, int],
         progress_dialog: ProgressDialog,
         total_count: int,
     ) -> None:
@@ -417,7 +417,7 @@ class ExportHandler:
         return validator.safe_join(source_dir, filename)
 
     def _process_and_save_image(
-        self, source_path: str, target_dir: str, filename: str, crop_info: Dict[str, int]
+        self, source_path: str, target_dir: str, filename: str, crop_info: dict[str, int]
     ) -> None:
         """Open image, apply crop if needed, and save to target directory.
 

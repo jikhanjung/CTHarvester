@@ -7,7 +7,6 @@ Created during Phase 2.2 settings management improvements.
 
 import logging
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -16,7 +15,6 @@ from PyQt5.QtWidgets import (
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
-    QLabel,
     QMessageBox,
     QPushButton,
     QSpinBox,

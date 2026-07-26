@@ -7,7 +7,7 @@ Created during Phase 2 of quality improvement plan (devlog 072).
 """
 
 import logging
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, ClassVar
 
 logger = logging.getLogger(__name__)
 
@@ -28,14 +28,14 @@ class TimeEstimator:
     """
 
     # Default stage sample sizes for thumbnail generation
-    DEFAULT_STAGE_SAMPLES = {1: 5, 2: 10, 3: 20}
+    DEFAULT_STAGE_SAMPLES: ClassVar[dict[int, int]] = {1: 5, 2: 10, 3: 20}
 
     # Level reduction factor for LoD (Level of Detail) pyramids
     LEVEL_REDUCTION_FACTOR = 0.25
 
     def __init__(
         self,
-        stage_samples: Optional[Dict[int, int]] = None,
+        stage_samples: dict[int, int] | None = None,
         level_reduction_factor: float = 0.25,
     ):
         """Initialize TimeEstimator.
@@ -49,7 +49,7 @@ class TimeEstimator:
         self.stage_samples = stage_samples or self.DEFAULT_STAGE_SAMPLES.copy()
         self.level_reduction_factor = level_reduction_factor
 
-    def calculate_eta(self, elapsed: float, completed: int, total: int) -> Tuple[float, float]:
+    def calculate_eta(self, elapsed: float, completed: int, total: int) -> tuple[float, float]:
         """Calculate ETA and time per item based on current progress.
 
         Args:
@@ -110,7 +110,7 @@ class TimeEstimator:
             else:
                 return f"{hours}h"
 
-    def estimate_multi_level_work(self, base_time: float, num_levels: int = 3) -> Dict[int, float]:
+    def estimate_multi_level_work(self, base_time: float, num_levels: int = 3) -> dict[int, float]:
         """Estimate time for multiple LoD (Level of Detail) levels.
 
         Each successive level is estimated to take level_reduction_factor
@@ -162,7 +162,7 @@ class TimeEstimator:
         sample_size: int,
         total_items: int,
         num_levels: int = 3,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Format a complete stage estimate with all levels.
 
         This is a convenience method that combines ETA calculation,
@@ -220,7 +220,7 @@ class TimeEstimator:
         stage: int,
         completed: int,
         total: int,
-        estimate_info: Dict[str, Any],
+        estimate_info: dict[str, Any],
     ) -> str:
         """Format a progress message for display.
 

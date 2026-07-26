@@ -95,7 +95,7 @@ def profile_thumbnail_generation(sample_dir: str) -> dict:
 
     print(f"\n✅ Profiling complete in {elapsed:.2f}s")
     print(f"📊 Profile saved to: {profile_file}")
-    print(f"\nTop 20 functions by cumulative time:")
+    print("\nTop 20 functions by cumulative time:")
     print(stats_output)
 
     return {
@@ -166,7 +166,7 @@ def profile_image_processing(sample_dir: str) -> dict:
 
     print(f"\n✅ Profiled {len(image_files)} images in {elapsed:.2f}s")
     print(f"📊 Profile saved to: {profile_file}")
-    print(f"⚡ Average time per image: {elapsed/len(image_files):.3f}s")
+    print(f"⚡ Average time per image: {elapsed / len(image_files):.3f}s")
 
     return {
         "operation": "image_processing",
@@ -237,7 +237,7 @@ def main():
         )
 
     print("\n" + "=" * 60)
-    print(f"✅ All profiling complete!")
+    print("✅ All profiling complete!")
     print(f"📄 Results saved to: {output_file}")
     print("=" * 60)
 

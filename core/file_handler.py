@@ -8,9 +8,7 @@ Provides file listing, sorting, and metadata extraction for CT image stacks.
 import logging
 import os
 import re
-from typing import Dict, List, Optional
-
-from PIL import Image
+from typing import ClassVar
 
 from security.file_validator import FileSecurityError, SecureFileValidator
 from utils.image_utils import get_image_dimensions
@@ -69,13 +67,13 @@ class FileHandler:
     """
 
     # Supported image extensions
-    SUPPORTED_EXTENSIONS = {".tif", ".tiff", ".bmp", ".jpg", ".jpeg", ".png"}
+    SUPPORTED_EXTENSIONS: ClassVar[set[str]] = {".tif", ".tiff", ".bmp", ".jpg", ".jpeg", ".png"}
 
     def __init__(self) -> None:
         """Initialize file handler"""
         self.validator = SecureFileValidator()
 
-    def open_directory(self, directory_path: str) -> Dict:
+    def open_directory(self, directory_path: str) -> dict:
         """Open and analyze a directory containing CT images
 
         Args:
@@ -125,7 +123,7 @@ class FileHandler:
 
         return settings_hash
 
-    def sort_file_list_from_dir(self, directory_path: str) -> Dict:
+    def sort_file_list_from_dir(self, directory_path: str) -> dict:
         """Analyze and sort files in directory to detect CT image stack pattern
 
         Detects the most common file prefix and extension pattern, then extracts
@@ -178,8 +176,8 @@ class FileHandler:
         ct_stack_files = []
         matching_files = []
         other_files = []
-        prefix_hash: Dict[str, int] = {}
-        extension_hash: Dict[str, int] = {}
+        prefix_hash: dict[str, int] = {}
+        extension_hash: dict[str, int] = {}
 
         # Step 3: Analyze all files
         for file in all_files:
@@ -295,7 +293,7 @@ class FileHandler:
 
         return settings_hash
 
-    def _natural_sort(self, file_list: List[str], pattern: str) -> List[str]:
+    def _natural_sort(self, file_list: list[str], pattern: str) -> list[str]:
         """Sort files naturally by numeric sequence
 
         Example: ['file1.tif', 'file10.tif', 'file2.tif']
@@ -317,7 +315,7 @@ class FileHandler:
 
         return sorted(file_list, key=extract_number)
 
-    def get_file_list(self, directory_path: str, settings_hash: Dict) -> List[str]:
+    def get_file_list(self, directory_path: str, settings_hash: dict) -> list[str]:
         """Get sorted list of CT image file paths based on detected pattern
 
         Args:
@@ -335,7 +333,7 @@ class FileHandler:
 
         file_list = []
         missing_files = []
-        MAX_MISSING_WARNINGS = 10  # Only log first N missing files
+        MAX_MISSING_WARNINGS = 10  # noqa: N806 -- local constant  # Only log first N missing files
 
         for i in range(seq_begin, seq_end + 1):
             # Format with leading zeros based on index_length
@@ -422,7 +420,7 @@ class FileHandler:
             logger.error(f"Directory validation error: {e}")
             return False
 
-    def find_log_file(self, directory_path: str) -> Optional[str]:
+    def find_log_file(self, directory_path: str) -> str | None:
         """Find CT scanner log file in directory
 
         Returns the first ``*.log`` file in the directory. (An unused
@@ -451,7 +449,7 @@ class FileHandler:
             logger.error(f"Error searching for log file: {e}")
             return None
 
-    def count_files_in_directory(self, directory_path: str, extension: Optional[str] = None) -> int:
+    def count_files_in_directory(self, directory_path: str, extension: str | None = None) -> int:
         """Count files in directory, optionally filtered by extension
 
         Args:

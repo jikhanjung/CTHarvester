@@ -21,6 +21,25 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
 
 ### Changed / Internal
 - CI/CD consolidated to nine workflows aligned with Modan2's layout.
+- Linting and formatting consolidated onto **Ruff** (pinned `0.16.0`), replacing
+  black, isort, flake8, pyupgrade and pylint. `ruff check` and
+  `ruff format --check` now gate CI. Type annotations across the codebase were
+  modernized to PEP 585/604 syntax (`Dict[str, X]` → `dict[str, X]`,
+  `Optional[X]` → `X | None`) as part of the sweep.
+- Previously-disabled lint rules that catch real defects are enabled and clean:
+  undefined names, redefinitions, unused locals, bare excepts, mutable default
+  arguments, blind `pytest.raises(Exception)` and redundant exception tuples.
+
+### Fixed
+- `MainWindow.update_curr_slice` recomputed a bounding box and slice position and
+  discarded both — a leftover copy of logic that moved to `ViewManager` during the
+  Phase 4.4 handler extraction.
+- Two tests passed only by accident: one asserted nothing unless run as root, the
+  other left `config.constants` on its import-failure fallback for the rest of the
+  session, breaking a later test depending on collection order.
+- `make lock-check` (the gating `dependency-lock` CI job) reported the lockfiles
+  stale whenever any dependency published a release, regardless of whether
+  `pyproject.toml` had changed.
 
 ## [0.2.3-beta.2] - 2025-10-08
 

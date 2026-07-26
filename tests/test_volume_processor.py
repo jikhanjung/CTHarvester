@@ -379,7 +379,7 @@ class TestVolumeProcessorEdgeCases:
         scaled = processor.scale_coordinates_between_levels(coords, 0, 10)
 
         # Should scale down by 2^10 = 1024
-        assert all(s < c for s, c in zip(scaled, coords))
+        assert all(s < c for s, c in zip(scaled, coords, strict=True))
 
     def test_negative_coordinates(self, processor):
         """Test with negative coordinates (should clamp to 0)"""
@@ -401,7 +401,7 @@ class TestVolumeProcessorEdgeCases:
         restored = processor.denormalize_coordinates(normalized, dimensions)
 
         # Should maintain integer precision after roundtrip
-        assert all(int(r) == int(c) for r, c in zip(restored, coords))
+        assert all(int(r) == int(c) for r, c in zip(restored, coords, strict=True))
 
     def test_maximum_dimension_crop(self, processor):
         """Test cropping at maximum dimensions"""

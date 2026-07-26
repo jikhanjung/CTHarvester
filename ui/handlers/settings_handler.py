@@ -24,7 +24,7 @@ See Also:
 """
 
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from PyQt5.QtCore import QRect
 from PyQt5.QtWidgets import QApplication
@@ -72,9 +72,9 @@ class WindowSettingsHandler:
             main_window: The CTHarvester main window instance
             settings_manager: YAML settings manager for persistent storage
         """
-        self.window: "CTHarvesterMainWindow" = main_window
-        self.settings: "SettingsManager" = settings_manager
-        self.app: Optional[CTHarvesterApp] = QApplication.instance()  # type: ignore[assignment]
+        self.window: CTHarvesterMainWindow = main_window
+        self.settings: SettingsManager = settings_manager
+        self.app: CTHarvesterApp | None = QApplication.instance()  # type: ignore[assignment]
 
     def read_all_settings(self) -> None:
         """Read all settings from YAML storage and apply to application.

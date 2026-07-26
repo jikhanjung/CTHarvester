@@ -7,6 +7,7 @@ Created during Phase 1.4 UI/UX improvements.
 
 import logging
 import os
+from typing import ClassVar
 
 from PyQt5.QtCore import QCoreApplication, QLocale, QTranslator
 
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 class TranslationManager:
     """Translation manager for multi-language support"""
 
-    SUPPORTED_LANGUAGES = {
+    SUPPORTED_LANGUAGES: ClassVar[dict[str, str]] = {
         "en": "English",
         "ko": "한국어",
     }

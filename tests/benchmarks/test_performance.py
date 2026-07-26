@@ -79,14 +79,14 @@ class TestPerformanceBenchmarks:
         expected_mem = PerformanceThresholds.get_expected_memory(scenario)
 
         # Allow 2x overhead for processing
-        assert (
-            elapsed < expected_time * 2
-        ), f"Too slow: {elapsed:.2f}s vs expected {expected_time:.2f}s"
+        assert elapsed < expected_time * 2, (
+            f"Too slow: {elapsed:.2f}s vs expected {expected_time:.2f}s"
+        )
 
         # Allow 3x overhead for memory
-        assert (
-            mem_used < expected_mem * 3
-        ), f"Too much memory: {mem_used:.2f}MB vs expected {expected_mem:.2f}MB"
+        assert mem_used < expected_mem * 3, (
+            f"Too much memory: {mem_used:.2f}MB vs expected {expected_mem:.2f}MB"
+        )
 
         # Clean up
         loaded_images.clear()
@@ -122,14 +122,14 @@ class TestPerformanceBenchmarks:
         expected_mem = PerformanceThresholds.get_expected_memory(scenario)
 
         # Medium dataset allows 2x time overhead
-        assert (
-            elapsed < expected_time * 2
-        ), f"Too slow: {elapsed:.2f}s vs expected {expected_time:.2f}s"
+        assert elapsed < expected_time * 2, (
+            f"Too slow: {elapsed:.2f}s vs expected {expected_time:.2f}s"
+        )
 
         # Memory should be reasonable with batching
-        assert (
-            mem_used < expected_mem
-        ), f"Too much memory: {mem_used:.2f}MB vs expected {expected_mem:.2f}MB"
+        assert mem_used < expected_mem, (
+            f"Too much memory: {mem_used:.2f}MB vs expected {expected_mem:.2f}MB"
+        )
 
         gc.collect()
 
@@ -164,14 +164,14 @@ class TestPerformanceBenchmarks:
         expected_mem = PerformanceThresholds.get_expected_memory(scenario)
 
         # Large dataset allows 2.5x time overhead
-        assert (
-            elapsed < expected_time * 2.5
-        ), f"Too slow: {elapsed:.2f}s vs expected {expected_time:.2f}s"
+        assert elapsed < expected_time * 2.5, (
+            f"Too slow: {elapsed:.2f}s vs expected {expected_time:.2f}s"
+        )
 
         # Memory with batching should be manageable
-        assert (
-            mem_used < expected_mem * 1.5
-        ), f"Too much memory: {mem_used:.2f}MB vs expected {expected_mem:.2f}MB"
+        assert mem_used < expected_mem * 1.5, (
+            f"Too much memory: {mem_used:.2f}MB vs expected {expected_mem:.2f}MB"
+        )
 
         gc.collect()
 
@@ -202,7 +202,7 @@ class TestThumbnailPerformance:
         avg_time = elapsed / iterations
 
         # Should be faster than 200ms per image (Python fallback threshold)
-        assert avg_time < 0.2, f"Image processing too slow: {avg_time*1000:.1f}ms per image"
+        assert avg_time < 0.2, f"Image processing too slow: {avg_time * 1000:.1f}ms per image"
 
 
 if __name__ == "__main__":

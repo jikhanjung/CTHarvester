@@ -4,47 +4,64 @@ Deferred work, with enough context to pick up later. Newest first.
 
 ---
 
-## Lint hardening: restore dangerous flake8 rules + migrate to Ruff
+## Lint hardening: restore dangerous flake8 rules + migrate to Ruff ✅ done
 
-**Status:** part 1 done (2026-07-26); part 2 still open
+**Status:** complete (2026-07-26)
 **Context:** item 4 of the code-quality-guide adoption
-(`devlog/20260724_100_code_quality_guide_adoption.md`). Deliberately skipped at
-the time — the CI structure was aligned with Modan2 but the lint *tooling* was
-left as-is.
+(`devlog/20260724_100_code_quality_guide_adoption.md`), deferred at the time.
 
-### 1. Restore dangerous flake8 rules ✅ done
+### 1. Restore dangerous flake8 rules ✅
 
-Re-enabled in `.pre-commit-config.yaml` and now clean tree-wide: `F821`, `F811`,
-`F841`, `E722`, `E712`, `B001`, `B006`, `B008`, `B011`, `B014`, `B017`, `F403`,
-`F405`. Two `# noqa: F841` remain, both in profiling code where the binding *is*
-the work being measured.
+Re-enabled and cleaned tree-wide before the migration: `F821`, `F811`, `F841`,
+`E722`, `E712`, `B001`, `B006`, `B008`, `B011`, `B014`, `B017`, `F403`, `F405`.
 
-Still ignored on purpose, and worth revisiting with Ruff rather than one at a
-time:
+### 2. Migrate black + isort + flake8 + pyupgrade + pylint → Ruff ✅
 
-- `C901` (11 functions over complexity 15) — refactor-sized, not a lint fix.
-- `F541` (32 f-strings with no placeholders), `E228` (10), `B007` (10 unused
-  loop variables) — cosmetic; `ruff format`/`ruff --fix` handles these in bulk.
+Ruff pinned to `0.16.0` in three places that must stay in lockstep:
+`pyproject.toml` dev extra (which feeds `requirements-dev.lock`),
+`.pre-commit-config.yaml` `rev`, and — transitively, via the lockfile — the
+`lint` job in `.github/workflows/test.yml`.
 
-### 2. Migrate black + isort + flake8 + pylint → Ruff
+Rule set: `E, F, I, N, UP, B, C4, LOG, RUF012`, config in
+`[tool.ruff]`. `.flake8` deleted; `[tool.black]`, `[tool.isort]` and
+`[tool.pylint.*]` removed from `pyproject.toml`. `ruff check` and
+`ruff format --check` are **gating** in CI.
 
-Consolidate four tools into one, matching Modan2 (`ruff` + `ruff format`).
+Markdown is excluded from the formatter — ruff formats Python inside fences and
+would rewrite documentation examples. This is the trap Modan2 hit.
 
-- Replace in `.pre-commit-config.yaml`, `pyproject.toml`, `requirements-dev`
-  (and the lockfiles — re-run `make lock`), and the `lint` job in
-  `.github/workflows/test.yml`.
-- Pin the ruff version in CI and pre-commit to the same rev (Modan2 learned this
-  the hard way — a newer ruff reformatted markdown code blocks).
-- Start from Modan2's `select` (`E, F, I, N, UP, B, C4, LOG, RUF012`) and add
-  the guide's high-value groups incrementally: `DTZ` (naive datetime — CTHarvester
-  has ~7 `datetime.now()` sites), `S` (bandit — replaces the standalone bandit
-  job in `security.yml`), `PTH`, `TRY`, `SIM`.
-- Expect a large first-pass reformat + a batch of findings to triage.
+---
 
-**Once done:** flip the `lint` job's flake8/mypy steps from advisory to gating
-(remove the `|| true`), and resolve the mypy-vs-numpy-2.5 stub issue
-(`python_version=3.11` rejects the stubs' 3.12 `type` syntax — either bump
-`python_version` or scope-exclude numpy).
+## Remaining lint work (deliberately not done in the migration)
+
+- **`C901` (complexity)** — 11 functions over the threshold. Refactor-sized, not
+  a lint fix. Enable the rule once they are split.
+- **Additional rule groups**, worth adding one at a time so each triage stays
+  reviewable. Counts measured on 2026-07-26 with ruff 0.16.0:
+  - `DTZ` (17) — naive `datetime.now()`. Smallest and highest value; do this next.
+  - `SIM` (40), `TRY` (138), `PTH` (502) — large, mostly mechanical.
+  - `S` (2083) — bandit's rules. The number is inflated by `assert` in tests
+    (`S101`), which needs a per-file-ignore before the count means anything.
+    Only worth it if it lets the standalone bandit job in `security.yml` go away;
+    until then bandit already covers this ground.
+- **mypy is still advisory** in the `lint` job. The blocker is unchanged: the
+  config pins `python_version = "3.11"`, which the numpy 2.5 stubs reject (they
+  use 3.12 `type` syntax). Bump `python_version` or scope-exclude numpy, then
+  drop the `|| true`. Note this does not reproduce locally on numpy 2.3 — the
+  lockfile pins 2.5.1 for Python 3.12.
+
+---
+
+## Fixed along the way: `make lock-check` reported "stale" forever
+
+`uv pip compile` prefers versions already pinned in its output file. `make lock`
+writes over the committed lockfile (keeping its pins); `lock-check` compiled into
+an empty temp file (resolving everything to the newest release). The two
+therefore disagreed the moment any transitive dependency shipped a version,
+which made the gating `dependency-lock` job in `security.yml` fail regardless of
+whether `pyproject.toml` had actually changed. `lock-check` now seeds the temp
+files from the committed lockfiles first. Verified both ways: passes in sync,
+still fails when a dependency is added to `pyproject.toml` without re-locking.
 
 ---
 

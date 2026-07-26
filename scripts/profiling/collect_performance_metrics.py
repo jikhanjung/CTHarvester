@@ -262,7 +262,7 @@ def main():
 
             if "thumbnail_generation" in comparison:
                 thumb_comp = comparison["thumbnail_generation"]
-                print(f"\nThumbnail Generation:")
+                print("\nThumbnail Generation:")
                 print(f"  Current: {thumb_comp['current_images_per_second']:.2f} img/s")
                 print(f"  Baseline: {thumb_comp['baseline_images_per_second']:.2f} img/s")
                 print(f"  Change: {thumb_comp['change_percent']:+.1f}%")
@@ -270,12 +270,12 @@ def main():
                 if thumb_comp["regression"]:
                     print(f"     REGRESSION DETECTED (>{-20:.0f}% slower)")
                 elif thumb_comp["change_percent"] > 5:
-                    print(f"   IMPROVEMENT")
+                    print("   IMPROVEMENT")
                 else:
-                    print(f"  ¡  No significant change")
+                    print("  ¡  No significant change")
         else:
             print(f"   Baseline file not found: {baseline_file}")
-            print(f"   Create baseline with: --save-baseline")
+            print("   Create baseline with: --save-baseline")
 
     print("=" * 60)
 

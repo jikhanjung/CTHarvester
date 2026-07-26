@@ -9,10 +9,9 @@ import logging
 import os
 
 import numpy as np
-from PyQt5.QtCore import QPoint, QRect, Qt
+from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import (
     QColor,
-    QCursor,
     QFont,
     QFontMetrics,
     QImage,
@@ -22,7 +21,7 @@ from PyQt5.QtGui import (
     QPixmap,
     QResizeEvent,
 )
-from PyQt5.QtWidgets import QApplication, QLabel
+from PyQt5.QtWidgets import QLabel
 
 from config.view_modes import (
     DISTANCE_THRESHOLD,

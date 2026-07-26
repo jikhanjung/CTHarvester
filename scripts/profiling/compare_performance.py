@@ -95,7 +95,7 @@ def print_comparison(comparison: dict, threshold: float):
 
     # Speed comparison
     speed = comparison["speed"]
-    print(f"\n=È Throughput (images/sec):")
+    print("\n=È Throughput (images/sec):")
     print(f"  Current:  {speed['current']:.2f} img/s")
     print(f"  Baseline: {speed['baseline']:.2f} img/s")
     print(f"  Change:   {speed['change_percent']:+.1f}%", end="")
@@ -109,7 +109,7 @@ def print_comparison(comparison: dict, threshold: float):
 
     # Time comparison
     time = comparison["time"]
-    print(f"\nñ  Execution Time (seconds):")
+    print("\nñ  Execution Time (seconds):")
     print(f"  Current:  {time['current']:.2f}s")
     print(f"  Baseline: {time['baseline']:.2f}s")
     print(f"  Change:   {time['change_percent']:+.1f}%", end="")
@@ -124,7 +124,7 @@ def print_comparison(comparison: dict, threshold: float):
     # Memory comparison (if available)
     if "memory" in comparison:
         mem = comparison["memory"]
-        print(f"\n=¾ Memory Usage (MB):")
+        print("\n=¾ Memory Usage (MB):")
         print(f"  Current:  {mem['current']:.2f} MB")
         print(f"  Baseline: {mem['baseline']:.2f} MB")
         print(f"  Change:   {mem['change_percent']:+.1f}%", end="")

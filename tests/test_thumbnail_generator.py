@@ -56,7 +56,10 @@ class TestThumbnailGenerator:
         """Test work calculation for multiple LoD levels"""
         # Large images, multiple levels needed
         total_work = generator.calculate_total_thumbnail_work(
-            seq_begin=0, seq_end=99, size=2048, max_size=256  # 100 images  # Large image
+            seq_begin=0,
+            seq_end=99,
+            size=2048,
+            max_size=256,  # 100 images  # Large image
         )
 
         assert total_work > 0
@@ -87,7 +90,10 @@ class TestThumbnailGenerator:
     def test_calculate_total_thumbnail_work_zero_images(self, generator):
         """Test work calculation with zero images (edge case)"""
         total_work = generator.calculate_total_thumbnail_work(
-            seq_begin=0, seq_end=0, size=512, max_size=256  # Single image
+            seq_begin=0,
+            seq_end=0,
+            size=512,
+            max_size=256,  # Single image
         )
 
         assert total_work > 0

@@ -274,7 +274,7 @@ class TestSimpleProgressTracker:
         tracker = SimpleProgressTracker(total_items=100, callback=callback, min_samples_for_eta=1)
 
         # Simulate work
-        for i in range(10):
+        for _i in range(10):
             time.sleep(0.01)
             tracker.update()
 
@@ -365,7 +365,7 @@ class TestSimpleProgressTracker:
         tracker = SimpleProgressTracker(total_items=10, callback=callback, min_samples_for_eta=2)
 
         # Simulate processing 10 items
-        for i in range(10):
+        for _i in range(10):
             time.sleep(0.01)
             tracker.update()
 
@@ -441,7 +441,7 @@ class TestProgressTrackerIntegration:
         )
 
         # Simulate processing
-        for i in range(50):
+        for _i in range(50):
             time.sleep(0.005)  # Simulate work
             tracker.update()
 
@@ -485,7 +485,7 @@ class TestProgressTrackerIntegration:
         tracker = SimpleProgressTracker(total_items=10, callback=callback)
 
         # First run
-        for i in range(10):
+        for _i in range(10):
             tracker.update()
 
         assert callback.call_count == 10
@@ -495,7 +495,7 @@ class TestProgressTrackerIntegration:
         callback.reset_mock()
 
         # Second run
-        for i in range(10):
+        for _i in range(10):
             tracker.update()
 
         assert callback.call_count == 10

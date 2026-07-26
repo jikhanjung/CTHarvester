@@ -5,7 +5,7 @@ Centralized tooltip and status tip definitions.
 Created during Phase 1.6 UI/UX improvements.
 """
 
-from typing import Dict
+from typing import ClassVar
 
 
 class TooltipManager:
@@ -16,7 +16,7 @@ class TooltipManager:
     """
 
     # Tooltip format: HTML for rich formatting
-    TOOLTIPS: Dict[str, Dict[str, str]] = {
+    TOOLTIPS: ClassVar[dict[str, dict[str, str]]] = {
         # File operations
         "open_directory": {
             "tooltip": (
@@ -63,11 +63,11 @@ class TooltipManager:
         },
         # View controls
         "zoom_in": {
-            "tooltip": ("<b>Zoom In</b><br>" "Increase zoom level.<br>" "<i>Shortcut: Ctrl++</i>"),
+            "tooltip": ("<b>Zoom In</b><br>Increase zoom level.<br><i>Shortcut: Ctrl++</i>"),
             "status": "Zoom in",
         },
         "zoom_out": {
-            "tooltip": ("<b>Zoom Out</b><br>" "Decrease zoom level.<br>" "<i>Shortcut: Ctrl+-</i>"),
+            "tooltip": ("<b>Zoom Out</b><br>Decrease zoom level.<br><i>Shortcut: Ctrl+-</i>"),
             "status": "Zoom out",
         },
         "zoom_fit": {

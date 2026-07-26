@@ -29,8 +29,9 @@ Typical usage:
 import functools
 import logging
 import time
+from collections.abc import Callable
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +62,8 @@ class PerformanceTimer:
         """
         self.operation_name = operation_name
         self.log_level = log_level
-        self.start_time: Optional[float] = None
-        self.end_time: Optional[float] = None
+        self.start_time: float | None = None
+        self.end_time: float | None = None
 
     def start(self) -> None:
         """Start the timer."""
@@ -111,7 +112,7 @@ class PerformanceTimer:
 
 
 def log_performance(
-    operation_name: Optional[str] = None,
+    operation_name: str | None = None,
     log_level: int = logging.INFO,
     log_args: bool = False,
 ) -> Callable:
@@ -145,7 +146,7 @@ def log_performance(
             start = time.perf_counter()
 
             # Build extra fields
-            extra_fields: Dict[str, Any] = {
+            extra_fields: dict[str, Any] = {
                 "operation": name,
                 "function": func.__name__,
                 "module": func.__module__,
@@ -207,7 +208,7 @@ def log_performance_context(operation_name: str, **context_data):
     """
     start = time.perf_counter()
 
-    extra_fields: Dict[str, Any] = {"operation": operation_name}
+    extra_fields: dict[str, Any] = {"operation": operation_name}
     extra_fields.update(context_data)
 
     try:

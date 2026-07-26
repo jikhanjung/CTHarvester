@@ -33,14 +33,13 @@ See Also:
 import logging
 import os
 import re
-from typing import List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
 
 def find_image_files(
-    directory: str, extensions: Optional[Tuple[str, ...]] = None, recursive: bool = False
-) -> List[str]:
+    directory: str, extensions: tuple[str, ...] | None = None, recursive: bool = False
+) -> list[str]:
     """
     Find image files in directory
 
@@ -60,7 +59,7 @@ def find_image_files(
     try:
         # Use secure file validator if available
         try:
-            from security.file_validator import FileSecurityError, SecureFileValidator
+            from security.file_validator import SecureFileValidator
 
             file_list = SecureFileValidator.secure_listdir(directory, extensions=set(extensions))
             return sorted(file_list)
@@ -77,7 +76,7 @@ def find_image_files(
         return []
 
 
-def parse_filename(filename: str, pattern: Optional[str] = None) -> Optional[Tuple[str, int, str]]:
+def parse_filename(filename: str, pattern: str | None = None) -> tuple[str, int, str] | None:
     """
     Parse filename (prefix, number, extension)
 
@@ -200,7 +199,7 @@ def get_directory_size(directory: str) -> int:
     """
     total_size = 0
     try:
-        for dirpath, dirnames, filenames in os.walk(directory):
+        for dirpath, _dirnames, filenames in os.walk(directory):
             for filename in filenames:
                 filepath = os.path.join(dirpath, filename)
                 if os.path.exists(filepath):

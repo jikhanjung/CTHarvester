@@ -12,7 +12,6 @@ Features:
 import logging
 import os
 import uuid
-from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
 
@@ -132,7 +131,7 @@ def setup_logger(name, log_dir=None, level=logging.INFO, console_level=None, ses
     logger.addHandler(console_handler)
 
     # Log startup information
-    logger.info(f"=== CTHarvester Session Started ===")
+    logger.info("=== CTHarvester Session Started ===")
     logger.info(f"Session ID: {session_id}")
     logger.info(f"Log directory: {log_dir}")
     logger.info(f"Log level: {logging.getLevelName(level)}")

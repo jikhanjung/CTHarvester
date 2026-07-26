@@ -100,7 +100,7 @@ def roll_changelog(new_version: str, today: str) -> None:
 
     unreleased_re = re.compile(r"^## \[Unreleased\].*$", re.MULTILINE)
     if unreleased_re.search(text):
-        fresh = "## [Unreleased]\n\n" f"## [{new_version}] - {today}"
+        fresh = f"## [Unreleased]\n\n## [{new_version}] - {today}"
         new_text = unreleased_re.sub(fresh, text, count=1)
         CHANGELOG_FILE.write_text(new_text, encoding="utf-8")
         return

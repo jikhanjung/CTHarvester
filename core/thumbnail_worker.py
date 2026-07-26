@@ -9,7 +9,6 @@ import os
 import sys
 import time
 import traceback
-from typing import Optional, Tuple
 
 import numpy as np
 from PIL import Image, ImageChops
@@ -75,7 +74,7 @@ class ThumbnailWorker(QRunnable):
         max_thumbnail_size: int,
         progress_dialog,
         level: int = 0,
-        seq_end: Optional[int] = None,
+        seq_end: int | None = None,
     ):
         """
         Initialize thumbnail worker
@@ -142,7 +141,7 @@ class ThumbnailWorker(QRunnable):
         # Output: Always simple sequential numbering
         self.filename3 = os.path.join(self.to_dir, f"{self.idx:06}.tif")
 
-    def _load_image(self, filepath: str) -> Tuple[Optional[Image.Image], bool]:
+    def _load_image(self, filepath: str) -> tuple[Image.Image | None, bool]:
         """
         Load a single image file
 
@@ -304,7 +303,7 @@ class ThumbnailWorker(QRunnable):
 
         if self.idx < 5:
             logger.info(
-                f"ThumbnailWorker.run: Starting Level {self.level+1} worker "
+                f"ThumbnailWorker.run: Starting Level {self.level + 1} worker "
                 f"for idx={self.idx}, seq={self.seq}"
             )
             logger.info(f"  Files: {self.filename1}, {self.filename2}")
@@ -313,7 +312,7 @@ class ThumbnailWorker(QRunnable):
             logger.info(f"  Output: {self.filename3}")
         else:
             logger.debug(
-                f"ThumbnailWorker.run: Starting Level {self.level+1} worker "
+                f"ThumbnailWorker.run: Starting Level {self.level + 1} worker "
                 f"for idx={self.idx}, seq={self.seq}"
             )
 
@@ -366,7 +365,7 @@ class ThumbnailWorker(QRunnable):
             logger.debug(f"Finished worker for idx={self.idx}")
             self.signals.finished.emit()
 
-    def _generate_thumbnail(self) -> Optional[np.ndarray]:
+    def _generate_thumbnail(self) -> np.ndarray | None:
         """
         Generate a new thumbnail from source images
 

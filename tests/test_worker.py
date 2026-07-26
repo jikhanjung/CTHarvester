@@ -92,7 +92,7 @@ class TestWorkerSignals:
         signals.error.emit(error_info)
 
         assert len(errors) == 1
-        assert errors[0][0] == ValueError
+        assert errors[0][0] is ValueError
         assert isinstance(errors[0][1], ValueError)
 
 
@@ -196,7 +196,7 @@ class TestWorker:
 
         # Should emit error
         assert len(errors) == 1
-        assert errors[0][0] == ValueError
+        assert errors[0][0] is ValueError
         assert "Test error" in str(errors[0][1])
         assert isinstance(errors[0][2], str)  # Traceback string
 
@@ -292,13 +292,13 @@ class TestWorker:
         errors1 = []
         worker1.signals.error.connect(errors1.append)
         worker1.run()
-        assert errors1[0][0] == TypeError
+        assert errors1[0][0] is TypeError
 
         worker2 = Worker(zero_div_func)
         errors2 = []
         worker2.signals.error.connect(errors2.append)
         worker2.run()
-        assert errors2[0][0] == ZeroDivisionError
+        assert errors2[0][0] is ZeroDivisionError
 
     def test_run_with_traceback(self):
         """Should include traceback in error"""
@@ -381,4 +381,4 @@ class TestWorker:
         worker.run()
 
         assert len(errors) == 1
-        assert errors[0][0] == ValueError
+        assert errors[0][0] is ValueError
