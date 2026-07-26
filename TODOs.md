@@ -20,7 +20,7 @@ state and should be updated as items land.
 | 5 | Lockfile + pip-audit + Dependabot | ✅ | 3 lockfiles with hashes, pip-audit gating, `.github/dependabot.yml` |
 | 6 | Coverage gate | ✅ | `--cov-fail-under=75` on the reference leg |
 | 7 | Static type checking, scoped | ✅ | mypy per-module strict; runs in CI (advisory, see #2) |
-| 8 | Dead-code / complexity automation | ⚠️ | `C901` enabled as a ratchet at 32 (2026-07-26). vulture evaluated and rejected — 5 of its 6 findings were false positives (re-exports, `__exit__` params, Qt callback signatures); Modan2 does not use it either. The refactoring backlog is below |
+| 8 | Dead-code / complexity automation | ✅ | `C901` enforced at the guide's threshold of 15 (2026-07-26); the backlog of eight functions is cleared. vulture evaluated and rejected — 5 of its 6 findings were false positives; Modan2 does not use it either. |
 | 9 | Packaged-artifact smoke test; signed installers | ⚠️ | Smoke test done (2026-07-26): `--self-test` entry point, run against the frozen build on all 3 OSes in `reusable_build.yml`. Installer signing/notarization still open |
 | 10 | Property-based / fuzz tests | ⚠️ | `tests/property/test_image_properties.py` exists but its body is `pytest.skip("Template - to be implemented in Phase 4")` |
 
@@ -29,70 +29,29 @@ state and should be updated as items land.
 ratchet~~ (all done 2026-07-26). Remaining: the complexity backlog below,
 #10 property tests, mypy gating, installer signing.
 
-### Complexity backlog (`C901`)
+### Complexity backlog (`C901`) ✅ cleared 2026-07-26
 
-`max-complexity` is pinned at **18**, the current worst function, so nothing can
-get worse. The guide's threshold is 15. Lower the number in
-`[tool.ruff.lint.mccabe]` as each of these is split — never raise it:
+`max-complexity` is at **15**, the guide's threshold. It began as a ratchet at
+32 — the then-worst function — and came down as each of eight functions was
+split. Nothing is above the limit now.
 
-| Function | Complexity | Test coverage of its module |
+| Function | Before | After |
 |---|---|---|
-| ~~`core/thumbnail_manager.py::process_level`~~ | ~~32~~ → **9** (done 2026-07-26) | 68% |
-| ~~`core/thumbnail_generator.py::generate_python`~~ | ~~28~~ → **13** (done 2026-07-26) | 75% |
-| ~~`core/thumbnail_generator.py::load_thumbnail_data`~~ | ~~20~~ → **11** (done 2026-07-26) | 75% |
-| ~~`ui/dialogs/progress_dialog.py::_calculate_eta`~~ | ~~20~~ → **5** (done 2026-07-26) | 0% → **fully covered** by 26 characterization tests written first |
-| `ui/handlers/thumbnail_creation_handler.py::create_thumbnail_rust` | 18 | 97% |
-| `build.py::main` | 17 | — |
-| `core/file_handler.py::sort_file_list_from_dir` | 17 | 90% |
-| `core/sequential_processor.py::process_level` | 16 | 81% |
+| `core/thumbnail_manager.py::process_level` | 32 | 9 |
+| `core/thumbnail_generator.py::generate_python` | 28 | 13 |
+| `core/thumbnail_generator.py::load_thumbnail_data` | 20 | 11 |
+| `ui/dialogs/progress_dialog.py::_calculate_eta` | 20 | 5 |
+| `ui/handlers/thumbnail_creation_handler.py::create_thumbnail_rust` | 18 | 12 |
+| `build.py::main` | 17 | 10 |
+| `core/file_handler.py::sort_file_list_from_dir` | 17 | 12 |
+| `core/sequential_processor.py::process_level` | 16 | 11 |
 
----
+`_calculate_eta` had no test coverage at all, so 26 characterization tests were
+written before it was touched; they still pass unmodified. Its body went from
+0% covered to fully covered.
 
-## Lint hardening: restore dangerous flake8 rules + migrate to Ruff ✅ done
-
-**Status:** complete (2026-07-26)
-**Context:** item 4 of the code-quality-guide adoption
-(`devlog/20260724_100_code_quality_guide_adoption.md`), deferred at the time.
-
-### 1. Restore dangerous flake8 rules ✅
-
-Re-enabled and cleaned tree-wide before the migration: `F821`, `F811`, `F841`,
-`E722`, `E712`, `B001`, `B006`, `B008`, `B011`, `B014`, `B017`, `F403`, `F405`.
-
-### 2. Migrate black + isort + flake8 + pyupgrade + pylint → Ruff ✅
-
-Ruff pinned to `0.16.0` in three places that must stay in lockstep:
-`pyproject.toml` dev extra (which feeds `requirements-dev.lock`),
-`.pre-commit-config.yaml` `rev`, and — transitively, via the lockfile — the
-`lint` job in `.github/workflows/test.yml`.
-
-Rule set: `E, F, I, N, UP, B, C4, LOG, RUF012`, config in
-`[tool.ruff]`. `.flake8` deleted; `[tool.black]`, `[tool.isort]` and
-`[tool.pylint.*]` removed from `pyproject.toml`. `ruff check` and
-`ruff format --check` are **gating** in CI.
-
-Markdown is excluded from the formatter — ruff formats Python inside fences and
-would rewrite documentation examples. This is the trap Modan2 hit.
-
----
-
-## Remaining lint work (deliberately not done in the migration)
-
-- **`C901` (complexity)** — 11 functions over the threshold. Refactor-sized, not
-  a lint fix. Enable the rule once they are split.
-- **Additional rule groups**, worth adding one at a time so each triage stays
-  reviewable. Counts measured on 2026-07-26 with ruff 0.16.0:
-  - `DTZ` (17) — naive `datetime.now()`. Smallest and highest value; do this next.
-  - `SIM` (40), `TRY` (138), `PTH` (502) — large, mostly mechanical.
-  - `S` (2083) — bandit's rules. The number is inflated by `assert` in tests
-    (`S101`), which needs a per-file-ignore before the count means anything.
-    Only worth it if it lets the standalone bandit job in `security.yml` go away;
-    until then bandit already covers this ground.
-- **mypy is still advisory** in the `lint` job. The blocker is unchanged: the
-  config pins `python_version = "3.11"`, which the numpy 2.5 stubs reject (they
-  use 3.12 `type` syntax). Bump `python_version` or scope-exclude numpy, then
-  drop the `|| true`. Note this does not reproduce locally on numpy 2.3 — the
-  lockfile pins 2.5.1 for Python 3.12.
+Keep treating the number as a ratchet: lower it when the tree allows, never
+raise it.
 
 ---
 

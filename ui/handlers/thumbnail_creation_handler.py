@@ -85,6 +85,73 @@ class ThumbnailCreationHandler:
         else:
             return self.create_thumbnail_python()
 
+    def _open_rust_progress_dialog(self) -> None:
+        """Put up the modal progress dialog the Rust callback will drive."""
+        dialog = ProgressDialog(self.window)
+        dialog.update_language()
+        dialog.setModal(True)
+        dialog.show()
+
+        dialog.lbl_text.setText(self.window.tr("Generating thumbnails"))
+        dialog.lbl_detail.setText(self.window.tr("Initializing..."))
+
+        dialog.pb_progress.setMinimum(0)
+        dialog.pb_progress.setMaximum(100)
+        dialog.pb_progress.setValue(0)
+
+        self.window.progress_dialog = dialog
+
+    @staticmethod
+    def _format_rust_progress(percentage: float, elapsed: float) -> str:
+        """Build the detail line for the Rust progress dialog.
+
+        An ETA needs some progress to extrapolate from and means nothing once
+        finished, so outside 0 < percentage < 100 only the percentage is shown.
+        """
+
+        def as_duration(seconds: float) -> str:
+            if seconds < 60:
+                return f"{int(seconds)}s"
+            return f"{int(seconds / 60)}m {int(seconds % 60)}s"
+
+        if not 0 < percentage < 100:
+            return f"{percentage:.1f}%"
+
+        eta = elapsed * (100 - percentage) / percentage
+        return f"{percentage:.1f}% - Elapsed: {as_duration(elapsed)} - ETA: {as_duration(eta)}"
+
+    def _report_rust_outcome(self, success: bool, total_elapsed: float) -> None:
+        """Load the results if it worked, and say what happened either way.
+
+        On failure minimum_volume is seeded empty, so callers downstream find
+        the attribute they expect rather than an AttributeError on top of the
+        original problem.
+        """
+        if success and not self.window.rust_cancelled:
+            self.window.load_thumbnail_data_from_disk()
+            if self.window.progress_dialog:
+                self.window.progress_dialog.lbl_text.setText(
+                    self.window.tr("Thumbnail generation complete")
+                )
+                self.window.progress_dialog.lbl_detail.setText(
+                    f"Completed in {int(total_elapsed)}s"
+                )
+            return
+
+        if self.window.progress_dialog:
+            message = (
+                self.window.tr("Thumbnail generation cancelled")
+                if self.window.rust_cancelled
+                else self.window.tr("Thumbnail generation failed")
+            )
+            self.window.progress_dialog.lbl_text.setText(message)
+
+        if not hasattr(self.window, "minimum_volume"):
+            self.window.minimum_volume = []
+            logger.warning(
+                "Initialized empty minimum_volume after Rust thumbnail generation failure"
+            )
+
     def create_thumbnail_rust(self) -> bool:
         """Create thumbnails using Rust-based high-performance module.
 
@@ -103,20 +170,7 @@ class ThumbnailCreationHandler:
         logger.info(f"Start time: {thumbnail_start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
         logger.info(f"Directory: {dirname}")
 
-        # Initialize progress dialog
-        self.window.progress_dialog = ProgressDialog(self.window)
-        self.window.progress_dialog.update_language()
-        self.window.progress_dialog.setModal(True)
-        self.window.progress_dialog.show()
-
-        # Set initial progress text
-        self.window.progress_dialog.lbl_text.setText(self.window.tr("Generating thumbnails"))
-        self.window.progress_dialog.lbl_detail.setText(self.window.tr("Initializing..."))
-
-        # Setup progress bar (0-100%)
-        self.window.progress_dialog.pb_progress.setMinimum(0)
-        self.window.progress_dialog.pb_progress.setMaximum(100)
-        self.window.progress_dialog.pb_progress.setValue(0)
+        self._open_rust_progress_dialog()
 
         # Variables for progress tracking
         self.window.last_progress = 0
@@ -147,23 +201,10 @@ class ThumbnailCreationHandler:
             # Update progress bar
             self.window.progress_dialog.pb_progress.setValue(int(percentage))
 
-            # Calculate elapsed time and ETA
             elapsed = time.time() - self.window.progress_start_time
-            if percentage > 0 and percentage < 100:
-                eta = elapsed * (100 - percentage) / percentage
-                eta_str = f"{int(eta)}s" if eta < 60 else f"{int(eta / 60)}m {int(eta % 60)}s"
-                elapsed_str = (
-                    f"{int(elapsed)}s"
-                    if elapsed < 60
-                    else f"{int(elapsed / 60)}m {int(elapsed % 60)}s"
-                )
-
-                # Update detail text
-                self.window.progress_dialog.lbl_detail.setText(
-                    f"{percentage:.1f}% - Elapsed: {elapsed_str} - ETA: {eta_str}"
-                )
-            else:
-                self.window.progress_dialog.lbl_detail.setText(f"{percentage:.1f}%")
+            self.window.progress_dialog.lbl_detail.setText(
+                self._format_rust_progress(percentage, elapsed)
+            )
 
             # Process events again to keep UI responsive
             QApplication.processEvents()
@@ -229,35 +270,7 @@ class ThumbnailCreationHandler:
             f"Total duration: {total_elapsed:.2f} seconds ({total_elapsed / 60:.2f} minutes)"
         )
 
-        if success and not self.window.rust_cancelled:
-            # Load the generated thumbnails
-            self.window.load_thumbnail_data_from_disk()
-
-            # Update progress dialog
-            if self.window.progress_dialog:
-                self.window.progress_dialog.lbl_text.setText(
-                    self.window.tr("Thumbnail generation complete")
-                )
-                self.window.progress_dialog.lbl_detail.setText(
-                    f"Completed in {int(total_elapsed)}s"
-                )
-        else:
-            if self.window.progress_dialog:
-                if self.window.rust_cancelled:
-                    self.window.progress_dialog.lbl_text.setText(
-                        self.window.tr("Thumbnail generation cancelled")
-                    )
-                else:
-                    self.window.progress_dialog.lbl_text.setText(
-                        self.window.tr("Thumbnail generation failed")
-                    )
-
-            # Initialize minimum_volume as empty to prevent errors
-            if not hasattr(self.window, "minimum_volume"):
-                self.window.minimum_volume = []
-                logger.warning(
-                    "Initialized empty minimum_volume after Rust thumbnail generation failure"
-                )
+        self._report_rust_outcome(success, total_elapsed)
 
         # Close progress dialog
         if self.window.progress_dialog:

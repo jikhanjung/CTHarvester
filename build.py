@@ -208,6 +208,66 @@ def build_installer():
             logger.debug(f"Cleaned up temporary file: {Path(temp_iss_file).name}")
 
 
+def parse_build_types(args):
+    """Work out which builds were asked for, and set BUILD_NUMBER.
+
+    With neither --onefile nor --onedir given, both are built. Any remaining
+    positional argument is the build number; otherwise BUILD_NUMBER is taken
+    from the environment, or defaults to "local".
+
+    Args:
+        args: Command line arguments after the script name.
+
+    Returns:
+        (build_onefile, build_onedir)
+    """
+    args = list(args)
+
+    build_onefile = "--onefile" in args
+    build_onedir = "--onedir" in args
+    for flag in ("--onefile", "--onedir"):
+        if flag in args:
+            args.remove(flag)
+
+    if not build_onefile and not build_onedir:
+        logger.info("Building both onefile and onedir versions...")
+        build_onefile = build_onedir = True
+
+    if args:
+        os.environ["BUILD_NUMBER"] = args[0]
+        logger.info(f"BUILD_NUMBER: {args[0]}")
+    elif "BUILD_NUMBER" not in os.environ:
+        os.environ["BUILD_NUMBER"] = "local"
+        logger.info("BUILD_NUMBER: local (default)")
+
+    return build_onefile, build_onedir
+
+
+def build_onefile_executable():
+    """Build the single-file executable and give it a distinguishing name.
+
+    Returns:
+        bool: True if PyInstaller succeeded.
+    """
+    logger.info("\n" + "=" * 40)
+    logger.info("Building ONEFILE version...")
+    logger.info("=" * 40)
+
+    spec = (
+        "CTHarvester_onefile.spec"
+        if Path("CTHarvester_onefile.spec").exists()
+        else "CTHarvester.spec"
+    )
+    success = run_pyinstaller(spec, "onefile")
+
+    # Renamed so the onedir build below does not overwrite it.
+    if success and Path("dist/CTHarvester.exe").exists():
+        Path("dist/CTHarvester.exe").rename("dist/CTHarvester_onefile.exe")
+        logger.info("Renamed: dist/CTHarvester.exe -> dist/CTHarvester_onefile.exe")
+
+    return success
+
+
 def main():
     """Main build process"""
     logger.info("=" * 60)
@@ -221,55 +281,11 @@ def main():
         logger.error(" Failed to update BUILD_YEAR")
         return 1
 
-    # Parse command line arguments
-    build_both = True  # Default: build both versions
-    build_onefile = False
-    build_onedir = False
-
-    # Check for build type arguments
-    args = sys.argv[1:]
-    if "--onefile" in args:
-        build_both = False
-        build_onefile = True
-        args.remove("--onefile")
-    elif "--onedir" in args:
-        build_both = False
-        build_onedir = True
-        args.remove("--onedir")
-
-    # Set BUILD_NUMBER if provided as argument
-    if len(args) > 0:
-        os.environ["BUILD_NUMBER"] = args[0]
-        logger.info(f"BUILD_NUMBER: {args[0]}")
-    elif "BUILD_NUMBER" not in os.environ:
-        os.environ["BUILD_NUMBER"] = "local"
-        logger.info("BUILD_NUMBER: local (default)")
-
-    # Determine what to build
-    if build_both:
-        logger.info("Building both onefile and onedir versions...")
-        build_onefile = True
-        build_onedir = True
+    build_onefile, build_onedir = parse_build_types(sys.argv[1:])
 
     success = True
-
-    # Step 1: Build onefile executable if requested
     if build_onefile:
-        logger.info("\n" + "=" * 40)
-        logger.info("Building ONEFILE version...")
-        logger.info("=" * 40)
-        # Try both possible spec file names
-        if Path("CTHarvester_onefile.spec").exists():
-            success = run_pyinstaller("CTHarvester_onefile.spec", "onefile")
-        else:
-            success = run_pyinstaller("CTHarvester.spec", "onefile")
-
-        if success and Path("dist/CTHarvester.exe").exists():
-            # Rename onefile executable to distinguish it
-            Path("dist/CTHarvester.exe").rename("dist/CTHarvester_onefile.exe")
-            logger.info("Renamed: dist/CTHarvester.exe -> dist/CTHarvester_onefile.exe")
-
-    # Step 2: Build onedir executable if requested
+        success = build_onefile_executable()
     if build_onedir and success:
         logger.info("\n" + "=" * 40)
         logger.info("Building ONEDIR version...")

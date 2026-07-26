@@ -123,6 +123,38 @@ class FileHandler:
 
         return settings_hash
 
+    @staticmethod
+    def _most_common(counts: dict[str, int]) -> str:
+        """Return the key with the highest count; ties go to the first seen."""
+        return max(counts, key=lambda key: counts[key])
+
+    def _most_common_supported_extension(
+        self, extension_hash: dict[str, int], directory_path: str
+    ) -> str:
+        """Return the most common extension this application can actually read.
+
+        Counting only supported formats matters: a directory of TIFFs with a
+        stray pile of .txt logs should still be detected as a TIFF stack.
+
+        Raises:
+            InvalidImageFormatError: If nothing in the directory is a supported
+                image format.
+        """
+        supported = {
+            extension: count
+            for extension, count in extension_hash.items()
+            if f".{extension}".lower() in self.SUPPORTED_EXTENSIONS
+        }
+
+        if not supported:
+            logger.warning("No supported image format found")
+            raise InvalidImageFormatError(
+                f"No supported image formats found in: {directory_path}. "
+                f"Supported formats: {', '.join(self.SUPPORTED_EXTENSIONS)}"
+            )
+
+        return self._most_common(supported)
+
     def sort_file_list_from_dir(self, directory_path: str) -> dict:
         """Analyze and sort files in directory to detect CT image stack pattern
 
@@ -207,33 +239,13 @@ class FileHandler:
                 f"No files matching CT stack pattern found in: {directory_path}"
             )
 
-        # Step 4: Determine most common prefix
-        max_prefix_count = 0
-        max_prefix = ""
-        for prefix, count in prefix_hash.items():
-            if count > max_prefix_count:
-                max_prefix_count = count
-                max_prefix = prefix
+        max_prefix = self._most_common(prefix_hash)
+        logger.info(f"Most common prefix: '{max_prefix}' ({prefix_hash[max_prefix]} files)")
 
-        logger.info(f"Most common prefix: '{max_prefix}' ({max_prefix_count} files)")
-
-        # Step 5: Determine most common extension (and validate it's supported)
-        max_extension_count = 0
-        max_extension = ""
-        for extension, count in extension_hash.items():
-            ext_with_dot = f".{extension}"
-            if ext_with_dot.lower() in self.SUPPORTED_EXTENSIONS and count > max_extension_count:
-                max_extension_count = count
-                max_extension = extension
-
-        if not max_extension:
-            logger.warning("No supported image format found")
-            raise InvalidImageFormatError(
-                f"No supported image formats found in: {directory_path}. "
-                f"Supported formats: {', '.join(self.SUPPORTED_EXTENSIONS)}"
-            )
-
-        logger.info(f"Most common extension: '{max_extension}' ({max_extension_count} files)")
+        max_extension = self._most_common_supported_extension(extension_hash, directory_path)
+        logger.info(
+            f"Most common extension: '{max_extension}' ({extension_hash[max_extension]} files)"
+        )
 
         # Step 6: Filter files matching the most common prefix and extension
         for file in matching_files:

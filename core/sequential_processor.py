@@ -85,6 +85,61 @@ class SequentialProcessor:
         self.sample_start_time: float | None = None
         self.images_per_second = 0.0
 
+    @staticmethod
+    def _source_filenames(
+        level: int, seq: int, seq_begin: int, seq_end: int, settings_hash: dict[str, Any]
+    ) -> tuple[str, str | None]:
+        """Name the two source images a task averages together.
+
+        Level 0 reads the originals, whose names follow the scan's own prefix
+        and index width; later levels read the previous level's output, which is
+        always plain six-digit numbering. The second name is None for the final
+        task of an odd-length range -- there is no partner to average with.
+
+        Mirrors ThumbnailWorker's naming; the two must agree or a level reads
+        files that are not there.
+        """
+        if level == 0:
+
+            def original(number: int) -> str:
+                # settings_hash is dict[str, Any], so the concatenation is Any
+                # to mypy even though every part of it is a str.
+                name: str = (
+                    settings_hash["prefix"]
+                    + str(number).zfill(settings_hash["index_length"])
+                    + "."
+                    + settings_hash["file_type"]
+                )
+                return name
+
+            filename1 = original(seq)
+            filename2 = original(seq + 1) if seq + 1 <= seq_end else None
+        else:
+            relative_seq = seq - seq_begin
+            filename1 = f"{relative_seq:06}.tif"
+            filename2 = f"{relative_seq + 1:06}.tif" if seq + 1 <= seq_end else None
+
+        return filename1, filename2
+
+    def _maybe_finish_sampling(self) -> None:
+        """End the timing sample once enough tasks have run, and record the rate.
+
+        The measured rate is handed to the parent so later levels can estimate
+        without sampling again.
+        """
+        if not self.is_sampling or self.completed_tasks < self.sample_size:
+            return
+
+        elapsed = time.time() - (self.sample_start_time or 0)
+        self.images_per_second = self.level_weight * self.sample_size / elapsed
+        self.is_sampling = False
+        logger.info(f"Sampling complete: {self.images_per_second:.2f} weighted units/s")
+
+        if self.thumbnail_parent is not None and hasattr(
+            self.thumbnail_parent, "measured_images_per_second"
+        ):
+            self.thumbnail_parent.measured_images_per_second = self.images_per_second  # type: ignore[assignment]
+
     def process_level(
         self,
         level: int,
@@ -133,33 +188,9 @@ class SequentialProcessor:
             task_start_time = time.time()
             seq = seq_begin + (idx * 2)
 
-            # Generate filenames (same logic as ThumbnailWorker)
-            if level == 0:
-                # Reading from original images
-                filename1 = (
-                    settings_hash["prefix"]
-                    + str(seq).zfill(settings_hash["index_length"])
-                    + "."
-                    + settings_hash["file_type"]
-                )
-                # Check if seq+1 exceeds seq_end
-                if seq + 1 <= seq_end:
-                    filename2 = (
-                        settings_hash["prefix"]
-                        + str(seq + 1).zfill(settings_hash["index_length"])
-                        + "."
-                        + settings_hash["file_type"]
-                    )
-                else:
-                    filename2 = None  # Odd number case
-            else:
-                # Reading from thumbnail directory - use simple numbering
-                relative_seq = seq - seq_begin
-                filename1 = f"{relative_seq:06}.tif"
-                if seq + 1 <= seq_end:
-                    filename2 = f"{relative_seq + 1:06}.tif"
-                else:
-                    filename2 = None  # Odd number case
+            filename1, filename2 = self._source_filenames(
+                level, seq, seq_begin, seq_end, settings_hash
+            )
 
             # Output always uses simple sequential numbering
             filename3 = os.path.join(to_dir, f"{idx:06}.tif")
@@ -217,17 +248,7 @@ class SequentialProcessor:
                 self.update_eta_and_progress()
                 QApplication.processEvents()
 
-            # Performance sampling (for first level)
-            if self.is_sampling and self.completed_tasks >= self.sample_size:
-                elapsed = time.time() - (self.sample_start_time or 0)
-                self.images_per_second = self.level_weight * self.sample_size / elapsed
-                self.is_sampling = False
-                logger.info(f"Sampling complete: {self.images_per_second:.2f} weighted units/s")
-                # Store for parent
-                if self.thumbnail_parent is not None and hasattr(
-                    self.thumbnail_parent, "measured_images_per_second"
-                ):
-                    self.thumbnail_parent.measured_images_per_second = self.images_per_second  # type: ignore[assignment]
+            self._maybe_finish_sampling()
 
         seq_total_time = time.time() - seq_start_time
         logger.info(
