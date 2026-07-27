@@ -15,7 +15,7 @@ state and should be updated as items land.
 |---|---|---|---|
 | 1 | Cross-platform CI matrix + headless smoke test | ✅ | 3 OS x Python 3.12, `tests/test_smoke.py` |
 | 2 | Lint + tests gating | ✅ | ruff, mypy, the test matrix and the docs build all gate. No `\|\| true` left in the lint job (mypy became gating 2026-07-27) |
-| 3 | Expand the lint ruleset incrementally | ⚠️ | `E, F, I, N, UP, B, C4, LOG, DTZ, SIM, TRY, C901, RUF012`. `SIM` and `TRY` landed 2026-07-27 (three `TRY` rules waived, see below). `PTH` (499) and `S` (2166) not yet |
+| 3 | Expand the lint ruleset incrementally | ⚠️ | `E, F, I, N, UP, B, C4, LOG, DTZ, SIM, TRY, S, C901, RUF012`. `SIM`, `TRY` and `S` landed 2026-07-27. Only `PTH` (499) is left |
 | 4 | `filterwarnings = error` | ✅ | `pyproject.toml`, narrow documented ignores only |
 | 5 | Lockfile + pip-audit + Dependabot | ✅ | 9 per-platform lockfiles with hashes, pip-audit gating on all three platforms, `.github/dependabot.yml`, and `dependabot-lock-refresh.yml` to keep the locks in step with Dependabot's range bumps |
 | 6 | Coverage gate | ✅ | `--cov-fail-under=75` on the reference leg |
@@ -93,13 +93,30 @@ in the tree is exactly 15, so it cannot be lowered yet.
 **`TRY003` (65) and `TRY301` (2) are waived on the merits**, with the reasoning
 in `pyproject.toml` next to each. Revisit only if the reasoning stops holding.
 
-**`PTH` (499)** — `os.path` to `pathlib`. Large, mechanical, and touches almost
-every module; worth doing as its own change with a careful eye on the Windows
-path handling, not folded into anything else.
+**`PTH` (499)** — `os.path` to `pathlib`. The one large group left, and the only
+one that should be its own change: 322 of the findings are in `tests/` and 177
+in shipped code, the fixes are not autofixable, and converting a path from `str`
+to `Path` propagates into function signatures and into
+`security/file_validator.py`, where paths are validated *as strings*. Do it
+deliberately, with the Windows path handling in view.
 
-**`S` (2166)** — bandit rules. The count is misleading: most are `S101` (assert)
-in `tests/`, which needs a per-file ignore for the test tree before the real
-findings are visible. Do that first, then look at what is left.
+**`S` ✅ done 2026-07-27.** The 2,166 count was almost entirely `S101` (assert)
+in the test tree. After per-file ignores for `tests/**` (`S101`, plus `S108` for
+`/tmp` strings fed to the path validator and `S103` for permission-restoring
+teardown) and waiving the subprocess trio `S603`/`S607`/`S606`, the real work was
+three `try`/`except`/`pass` blocks.
+
+Two things worth remembering about it:
+
+- **It found nothing.** `bandit` already runs in `security.yml` over the same
+  code. The value is prospective — `eval`, `pickle`, `shell=True`, weak hashes
+  and hardcoded secrets now fail at lint time, in the PR, rather than in a
+  separate workflow. Verified by probe rather than assumed: a scratch file using
+  all five was flagged (S307, S301, S324, S602, S105) with the waivers in place.
+- **The `bandit` job now overlaps ruff substantially.** Removing it would be a
+  reasonable simplification, but dropping a security scanner is not a call to
+  make in passing — decide it on its own, checking which bandit checks ruff has
+  no port of.
 
 ---
 

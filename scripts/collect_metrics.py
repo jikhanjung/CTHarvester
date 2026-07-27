@@ -16,6 +16,7 @@ Usage:
 
 import argparse
 import ast
+import contextlib
 import json
 import os
 import subprocess
@@ -117,7 +118,9 @@ def count_functions_with_docstrings(directory: str) -> dict[str, int]:
             if file.endswith(".py"):
                 filepath = os.path.join(root, file)
 
-                try:
+                # A file that will not parse contributes nothing to the
+                # counts; this is a metrics script, not a syntax checker.
+                with contextlib.suppress(Exception):
                     with open(filepath, encoding="utf-8") as f:
                         tree = ast.parse(f.read())
 
@@ -130,8 +133,6 @@ def count_functions_with_docstrings(directory: str) -> dict[str, int]:
                             metrics["total_classes"] += 1
                             if ast.get_docstring(node):
                                 metrics["documented_classes"] += 1
-                except Exception:
-                    pass
 
     # Calculate percentages
     if metrics["total_functions"] > 0:
@@ -170,7 +171,8 @@ def count_type_hints(directory: str) -> dict[str, int]:
             if file.endswith(".py"):
                 filepath = os.path.join(root, file)
 
-                try:
+                # Same as above: unparseable files are skipped, not reported.
+                with contextlib.suppress(Exception):
                     with open(filepath, encoding="utf-8") as f:
                         tree = ast.parse(f.read())
 
@@ -187,8 +189,6 @@ def count_type_hints(directory: str) -> dict[str, int]:
                                 metrics["total_args"] += 1
                                 if arg.annotation:
                                     metrics["typed_args"] += 1
-                except Exception:
-                    pass
 
     # Calculate percentages
     if metrics["total_functions"] > 0:

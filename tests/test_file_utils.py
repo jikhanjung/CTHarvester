@@ -4,6 +4,7 @@ Unit tests for utils/file_utils.py
 Tests file system utility functions.
 """
 
+import contextlib
 import os
 import shutil
 import sys
@@ -326,15 +327,16 @@ class TestCleanOldThumbnails:
         # Make it read-only (this may not work on all systems)
         import stat
 
-        try:
+        # Suppressed because the platform decides whether this is testable at
+        # all: where chmod does not restrict the owner (Windows, or running as
+        # root) the read-only directory is still writable and there is nothing
+        # to observe.
+        with contextlib.suppress(Exception):
             os.chmod(thumb_dir, stat.S_IRUSR | stat.S_IXUSR)
             clean_old_thumbnails(self.temp_dir)
             # Might return False if permission denied
             # Restore permissions
             os.chmod(thumb_dir, stat.S_IRWXU)
-        except Exception:
-            # If we can't change permissions, skip this test
-            pass
 
 
 @pytest.mark.unit

@@ -164,7 +164,10 @@ extend-exclude = [
 # LOG  flake8-logging
 # DTZ  flake8-datetimez (naive datetime)
 # RUF012 mutable class default
-select = ["E", "F", "I", "N", "UP", "B", "C4", "LOG", "DTZ", "SIM", "TRY", "C901", "RUF012"]
+select = [
+    "E", "F", "I", "N", "UP", "B", "C4", "LOG", "DTZ", "SIM", "TRY", "S",
+    "C901", "RUF012",
+]
 ignore = [
     # The formatter owns line length. Left on as a warning it just duplicates
     # what `ruff format` already decided, including for strings it cannot split.
@@ -184,6 +187,23 @@ ignore = [
     # inside a `try` to reach their own `except`. Extracting a function to
     # satisfy the rule would make both harder to follow.
     "TRY301",
+    # The subprocess trio, 25 findings between them, all in the build scripts,
+    # the release tooling, and the "open the output folder" helpers.
+    #
+    # S603 fires on every `subprocess.run([...])` regardless of the arguments.
+    # Nothing here passes `shell=True`, so there is no shell to inject into: the
+    # argument list goes to execve as-is. The rule cannot tell that apart.
+    # S607 wants absolute paths for `git`, `open`, `xdg-open`, `pyinstaller`.
+    # Their locations differ by OS and by how the user installed them, so
+    # hard-coding a path is not more secure here, it is broken.
+    # S606 flags `os.startfile`, which is how Windows opens a folder.
+    #
+    # Removing these three does NOT make the ruleset pointless: `eval`, `pickle`,
+    # `shell=True`, weak hashes and hardcoded secrets are all still enforced, at
+    # lint time rather than only in the separate bandit job.
+    "S603",
+    "S607",
+    "S606",
 ]
 
 [tool.ruff.lint.mccabe]
@@ -203,7 +223,15 @@ max-complexity = 15
 "CTHarvester.py" = ["N802", "N803"]
 # Tests re-import inside test bodies to exercise import-time behaviour, and
 # fixture/helper names mirror the Qt API they wrap.
-"tests/**" = ["F401", "N802", "N803", "N806"]
+#
+# The three S rules are the bandit ruleset meeting a test suite:
+#   S101 (assert)          -- assert *is* the test. 2,129 of them.
+#   S108 (hardcoded /tmp)  -- strings like "/tmp/malicious.jpg" fed to the path
+#                             validator to check it rejects them; no file is
+#                             ever created at that path.
+#   S103 (permissive mode) -- chmod 0o755 in teardown, restoring permissions a
+#                             test removed on purpose to reach an error branch.
+"tests/**" = ["F401", "N802", "N803", "N806", "S101", "S103", "S108"]
 # Profiling and one-off analysis scripts, not shipped code. test_integration.py
 # hand-mocks Qt widgets, so its method names have to match the Qt API it stands
 # in for, and it imports to probe availability.

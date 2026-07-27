@@ -94,6 +94,13 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   `TRY300` followed: 20 `try` blocks now put their success path in an `else`,
   so the `except` only guards what can actually fail. `TRY003` and `TRY301`
   remain off; `pyproject.toml` says why next to each.
+- **`S` (bandit) lint rules enabled.** No existing vulnerability was found — the
+  separate `bandit` job already covered this code — so the value is prospective:
+  `eval`, `pickle`, `shell=True`, weak hashes and hardcoded secrets now fail in
+  the PR's lint step rather than in a separate workflow. Of the 2,166 raw
+  findings, 2,138 were `assert` and friends inside the test suite, waived for
+  `tests/**`; the subprocess rules are waived with reasons in `pyproject.toml`;
+  three `try`/`except`/`pass` blocks were fixed.
 
 ### Fixed
 - **Documentation described features that do not exist.** The "Keyboard Power
