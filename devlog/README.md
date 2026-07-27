@@ -4,6 +4,7 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Recent Sessions (July 2026)
 
+- [112](20260727_112_version_tooling_and_beta3_release.md) - **버전 도구 통합 & v0.2.3-beta.3 릴리스**: 버전 도구가 두 개였고 문서가 가리키는 것과 `make release`가 쓰는 것이 달랐던 문제 해결 — Modan2의 명령 체계(`premajor`/`stage`/`release`)를 남은 도구에 이식하고 `manage_version.py` 삭제. 어느 도구도 `Cargo.toml`을 갱신하지 않아 태그의 `verify-version`이 깨졌을 결함 수정. 3개 플랫폼 아티팩트와 함께 pre-release 발행
 - [111](20260727_111_pathlib_conversion.md) - **pathlib 전환 (PTH)**: 499건 중 출하 코드 221건을 5단계로 변환(자동 수정 2건뿐), `tests/` 322건은 근거를 적어 영구 면제. 문서 빌드가 cwd에 의존하던 잠복 버그와 `list[str]` 선언에 `Path`를 반환하던 결함(mypy가 검출) 발견, Modan2 예제 데이터 생성용 일회성 스크립트 `convert_tps.py`가 잘못 커밋돼 있던 것 삭제
 - [110](20260727_110_pytest_9_and_the_days_ledger.md) - **pytest 9 & 하루 결산**: 상한을 넓히는 Dependabot PR은 락이 기존 핀을 선호해 무효 — 하한을 올려 8.4.2→9.1.1 이동. 이날 10커밋의 얻은 것/내준 것 정리 (테스트 +16은 전부 문서 링크 테스트라는 착시 포함)
 - [109](20260727_109_backlog_sweep.md) - **백로그 4건 정리**: Dependabot이 락을 못 건드려 PR 4건이 구조적으로 머지 불가였던 문제 해결(그중 pillow PR은 CVE 18건 재유입), mypy 게이팅, 문서 상대 링크 15개 중 11개가 깨져 있던 것 수정 + 테스트화, `SIM`·`TRY` 룰셋 (TRY400 49곳이 트레이스백을 버리고 있었음)
