@@ -5,6 +5,7 @@ Part of Phase 2: Integration Tests Expansion
 Tests complete UI workflows with real widget interactions
 """
 
+import contextlib
 from pathlib import Path
 
 import pytest
@@ -72,10 +73,9 @@ class TestUIWorkflows:
         fake_dir = tmp_path / "non_existent"
 
         # This should not crash the application
-        try:
+        # Expected to fail gracefully rather than raise
+        with contextlib.suppress(Exception):
             main_window.edtDirname.setText(str(fake_dir))
-        except Exception:
-            pass  # Expected to fail gracefully
 
         # Verify window is still responsive
         assert main_window.isVisible()

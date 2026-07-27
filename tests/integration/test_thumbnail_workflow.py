@@ -215,9 +215,9 @@ def test_load_existing_thumbnails(main_window, sample_ct_directory, qtbot):
 
     while time.time() - start_time < timeout / 1000:
         qtbot.wait(500)
-        if (sample_ct_directory / ".thumbnail" / "1").exists():
-            if list((sample_ct_directory / ".thumbnail" / "1").glob("*.tif")):
-                break
+        level_dir = sample_ct_directory / ".thumbnail" / "1"
+        if level_dir.exists() and list(level_dir.glob("*.tif")):
+            break
 
     qtbot.wait(1000)
 

@@ -34,9 +34,11 @@ class TestThumbnailWorker:
     @pytest.fixture
     def temp_dirs(self):
         """Create temporary source and destination directories"""
-        with tempfile.TemporaryDirectory() as src_dir:
-            with tempfile.TemporaryDirectory() as dst_dir:
-                yield src_dir, dst_dir
+        with (
+            tempfile.TemporaryDirectory() as src_dir,
+            tempfile.TemporaryDirectory() as dst_dir,
+        ):
+            yield src_dir, dst_dir
 
     @pytest.fixture
     def mock_progress_dialog(self):

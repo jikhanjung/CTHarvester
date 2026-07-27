@@ -297,10 +297,9 @@ def main():
         return 1
 
     # Step 3: Build installer (Windows only)
-    if platform.system() == "Windows":
-        if not build_installer():
-            logger.warning("Installer build failed, but executable was built")
-            return 0  # Partial success
+    if platform.system() == "Windows" and not build_installer():
+        logger.warning("Installer build failed, but executable was built")
+        return 0  # Partial success
 
     logger.info("Build completed successfully!")
     logger.info("Output:")

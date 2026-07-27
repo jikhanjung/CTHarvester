@@ -207,10 +207,7 @@ class SequentialProcessor:
                 # Generate new thumbnail
                 was_generated = True
                 file1_path = os.path.join(from_dir, filename1)
-                if filename2:
-                    file2_path = os.path.join(from_dir, filename2)
-                else:
-                    file2_path = None
+                file2_path = os.path.join(from_dir, filename2) if filename2 else None
 
                 img_array = self._generate_thumbnail(
                     file1_path, file2_path, filename3, idx, size, max_thumbnail_size

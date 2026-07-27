@@ -252,7 +252,10 @@ class TestResourceCleanup:
         # Open and close files
         handles = []
         for f in test_files:
-            handle = open(f)
+            # noqa: SIM115 -- holding the handles open is the point. This test
+            # checks that files can be deleted once every handle is released,
+            # which a context manager per file would close too early to observe.
+            handle = open(f)  # noqa: SIM115
             handles.append(handle)
 
         # Close all

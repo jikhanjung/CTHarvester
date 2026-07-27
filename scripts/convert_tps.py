@@ -31,13 +31,12 @@ for idx, surface_type in enumerate(surface_type_list):
             specimen_id = f"{genus_name[0]}{surface_type[0]}-{0:03d}"
             # continue
         # print(x,y,z)
-        if specimen_id != prev_specimen_id:
-            if prev_specimen_id != "":
-                specimen_count += 1
-                specimen_text += f"lm={str(len(coords_list))}\t{prev_specimen_id}\n"
-                specimen_text += "\n".join(coords_list) + "\n"
-                coords_list = []
-                landmark_count = 0
+        if specimen_id != prev_specimen_id and prev_specimen_id != "":
+            specimen_count += 1
+            specimen_text += f"lm={str(len(coords_list))}\t{prev_specimen_id}\n"
+            specimen_text += "\n".join(coords_list) + "\n"
+            coords_list = []
+            landmark_count = 0
 
         landmark_count += 1
         coords = [x, y, z]

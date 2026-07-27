@@ -70,9 +70,11 @@ class TestImageUtilsErrorPaths:
         img = Image.fromarray(np.ones((50, 50), dtype=np.uint8) * 100)
         img.save(img_path)
 
-        with patch("PIL.Image.open", side_effect=MemoryError("Out of memory")):
-            with pytest.raises(ImageLoadError):
-                safe_load_image(img_path)
+        with (
+            patch("PIL.Image.open", side_effect=MemoryError("Out of memory")),
+            pytest.raises(ImageLoadError),
+        ):
+            safe_load_image(img_path)
 
     # ===== File I/O Errors =====
 

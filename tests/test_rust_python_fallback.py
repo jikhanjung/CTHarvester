@@ -31,26 +31,30 @@ class TestRustAvailabilityCheck:
     @patch("core.thumbnail_generator.logger")
     def test_rust_not_available(self, mock_logger):
         """Test when Rust module is not available"""
-        with patch.dict("sys.modules", {"ct_thumbnail": None}):
-            # Force ImportError
-            with patch("builtins.__import__", side_effect=ImportError("No module")):
-                generator = ThumbnailGenerator()
-                assert generator.rust_available is False
-                mock_logger.info.assert_called_with(
-                    "Rust thumbnail module not available, will use Python fallback"
-                )
+        # Force ImportError
+        with (
+            patch.dict("sys.modules", {"ct_thumbnail": None}),
+            patch("builtins.__import__", side_effect=ImportError("No module")),
+        ):
+            generator = ThumbnailGenerator()
+            assert generator.rust_available is False
+            mock_logger.info.assert_called_with(
+                "Rust thumbnail module not available, will use Python fallback"
+            )
 
     def test_availability_cached_in_instance(self):
         """Test that availability is checked once during init"""
-        with patch("core.thumbnail_generator.logger"):
-            with patch.dict("sys.modules", {"ct_thumbnail": MagicMock()}):
-                generator = ThumbnailGenerator()
-                first_check = generator.rust_available
+        with (
+            patch("core.thumbnail_generator.logger"),
+            patch.dict("sys.modules", {"ct_thumbnail": MagicMock()}),
+        ):
+            generator = ThumbnailGenerator()
+            first_check = generator.rust_available
 
-                # Modify sys.modules
-                with patch.dict("sys.modules", {"ct_thumbnail": None}):
-                    # Should still use cached value
-                    assert generator.rust_available == first_check
+            # Modify sys.modules
+            with patch.dict("sys.modules", {"ct_thumbnail": None}):
+                # Should still use cached value
+                assert generator.rust_available == first_check
 
 
 @pytest.mark.unit

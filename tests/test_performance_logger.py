@@ -124,9 +124,11 @@ class TestLogPerformanceContext:
 
     def test_context_preserves_exception(self):
         """Test context manager preserves exceptions"""
-        with pytest.raises(RuntimeError, match="Test failure"):
-            with log_performance_context("failing_operation"):
-                raise RuntimeError("Test failure")
+        with (
+            pytest.raises(RuntimeError, match="Test failure"),
+            log_performance_context("failing_operation"),
+        ):
+            raise RuntimeError("Test failure")
 
     def test_context_logs_on_exception(self):
         """Test context manager logs performance even on exception"""

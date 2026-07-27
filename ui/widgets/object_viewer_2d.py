@@ -347,13 +347,9 @@ class ObjectViewer2D(QLabel):
         self.set_cursor_mode()
 
     def set_cursor_mode(self):
-        if self.edit_x1 and self.edit_y1:
+        if (self.edit_x1 and self.edit_y1) or (self.edit_x2 and self.edit_y2):
             self.setCursor(Qt.SizeFDiagCursor)  # type: ignore[attr-defined]
-        elif self.edit_x2 and self.edit_y2:
-            self.setCursor(Qt.SizeFDiagCursor)  # type: ignore[attr-defined]
-        elif self.edit_x1 and self.edit_y2:
-            self.setCursor(Qt.SizeBDiagCursor)  # type: ignore[attr-defined]
-        elif self.edit_x2 and self.edit_y1:
+        elif (self.edit_x1 and self.edit_y2) or (self.edit_x2 and self.edit_y1):
             self.setCursor(Qt.SizeBDiagCursor)  # type: ignore[attr-defined]
         elif self.edit_x1 or self.edit_x2:
             self.setCursor(Qt.SizeHorCursor)  # type: ignore[attr-defined]
@@ -409,23 +405,13 @@ class ObjectViewer2D(QLabel):
             return
         me = QMouseEvent(event)
         if me.button() == Qt.LeftButton:  # type: ignore[attr-defined]
-            # If ROI is full or empty, automatically start creating a new box
-            if self.is_roi_full_or_empty():
-                self.set_mode(MODE["ADD_BOX"])
-                img_x = self._2imgx(me.x())
-                img_y = self._2imgy(me.y())
-                if (
-                    img_x < 0
-                    or img_x > self.orig_pixmap.width()
-                    or img_y < 0
-                    or img_y > self.orig_pixmap.height()
-                ):
-                    return
-                self.temp_x1 = img_x
-                self.temp_y1 = img_y
-                self.temp_x2 = img_x
-                self.temp_y2 = img_y
-            elif self.edit_mode == MODE["ADD_BOX"] or self.edit_mode == MODE["EDIT_BOX"]:
+            # Start a new box: either there is no usable ROI to edit, or the
+            # user is already in a box-drawing mode.
+            if (
+                self.is_roi_full_or_empty()
+                or self.edit_mode == MODE["ADD_BOX"]
+                or self.edit_mode == MODE["EDIT_BOX"]
+            ):
                 self.set_mode(MODE["ADD_BOX"])
                 img_x = self._2imgx(me.x())
                 img_y = self._2imgy(me.y())
@@ -615,10 +601,7 @@ class ObjectViewer2D(QLabel):
                 try:
                     tv = self.threed_view
                     # treat preview on left half → place overlay on right, else left
-                    if tv.x() <= self.width() // 2:
-                        x = x_right
-                    else:
-                        x = x_left
+                    x = x_right if tv.x() <= self.width() // 2 else x_left
                 except (AttributeError, TypeError, RuntimeError):
                     x = x_left
             y = 6
@@ -685,10 +668,7 @@ class ObjectViewer2D(QLabel):
         region = rgb_array[y1 : y2 + 1, x1 : x2 + 1]
 
         # Apply threshold mask and colorize in-place
-        if self.is_inverse:
-            mask = region[:, :, 0] <= threshold
-        else:
-            mask = region[:, :, 0] > threshold
+        mask = region[:, :, 0] <= threshold if self.is_inverse else region[:, :, 0] > threshold
 
         # Apply color in-place (no intermediate array)
         region[mask] = color

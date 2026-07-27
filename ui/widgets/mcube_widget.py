@@ -798,10 +798,14 @@ class MCubeWidget(QGLWidget):
             )
 
         """ render roi box """
-        if self.roi_box is not None:
-            if not (self.roi_box_vertices == self.bounding_box_vertices).all():
-                glLineWidth(2)
-                self.draw_box(self.roi_box_vertices, self.roi_box_edges, color=(1.0, 0.0, 0.0))
+        # Drawn only when the ROI is narrower than the whole volume: an ROI box
+        # exactly on the bounding box would just overdraw it in red.
+        if (
+            self.roi_box is not None
+            and not (self.roi_box_vertices == self.bounding_box_vertices).all()
+        ):
+            glLineWidth(2)
+            self.draw_box(self.roi_box_vertices, self.roi_box_edges, color=(1.0, 0.0, 0.0))
         glEnable(GL_LIGHTING)
 
         """ render 3d model """

@@ -61,7 +61,7 @@ def test_constants_reexports_the_real_version():
     from config import constants
 
     assert constants.__version__ == __version__
-    assert constants.PROGRAM_VERSION == __version__
+    assert __version__ == constants.PROGRAM_VERSION
     assert "unknown" not in constants.__version__
 
 

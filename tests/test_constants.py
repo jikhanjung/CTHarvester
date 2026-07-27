@@ -40,4 +40,4 @@ class TestConstants:
         import version
 
         assert constants_module.__version__ == version.__version__
-        assert constants_module.PROGRAM_VERSION == version.__version__
+        assert version.__version__ == constants_module.PROGRAM_VERSION

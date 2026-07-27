@@ -200,9 +200,10 @@ class ErrorMessageBuilder:
             return cls.build_error("opengl_error", exception, **kwargs)
 
         # ModuleNotFoundError for Rust
-        elif isinstance(exception, (ModuleNotFoundError, ImportError)):
-            if "ctharvester_rs" in str(exception):
-                return cls.build_error("rust_module_missing", exception, **kwargs)
+        elif isinstance(exception, (ModuleNotFoundError, ImportError)) and "ctharvester_rs" in str(
+            exception
+        ):
+            return cls.build_error("rust_module_missing", exception, **kwargs)
 
         # Default handling
         return cls.build_error("unknown", exception, **kwargs)

@@ -65,14 +65,14 @@ class TestFileHandler:
         """Test handler initializes correctly"""
         assert handler is not None
         assert handler.validator is not None
-        assert FileHandler.SUPPORTED_EXTENSIONS == {
+        assert {
             ".tif",
             ".tiff",
             ".bmp",
             ".jpg",
             ".jpeg",
             ".png",
-        }
+        } == FileHandler.SUPPORTED_EXTENSIONS
 
     def test_supported_extensions(self, handler):
         """Test supported extension list"""

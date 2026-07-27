@@ -77,10 +77,10 @@ def load_image_as_array(image_path: str, target_dtype: np.dtype | None = None) -
         with Image.open(image_path) as img:
             # Auto-detect dtype
             if target_dtype is None:
-                if img.mode == "I;16":
-                    target_dtype = np.uint16  # type: ignore[assignment]
-                else:
-                    target_dtype = np.uint8  # type: ignore[assignment]
+                # ignore[assignment]: the parameter is typed as a dtype instance,
+                # while these are the dtype classes. Kept on one line because the
+                # ignore has to sit on the line mypy reports.
+                target_dtype = np.uint16 if img.mode == "I;16" else np.uint8  # type: ignore[assignment]
 
             arr = np.array(img, dtype=target_dtype)
             return arr

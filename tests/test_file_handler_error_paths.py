@@ -5,6 +5,7 @@ Tests error handling scenarios including permissions, corrupted files,
 and edge cases.
 """
 
+import contextlib
 import gc
 import os
 import shutil
@@ -56,15 +57,11 @@ class TestFileHandlerErrorPaths:
             # Restore permissions before cleanup
             for root, dirs, files in os.walk(temp_dir):
                 for d in dirs:
-                    try:
+                    with contextlib.suppress(OSError):
                         os.chmod(os.path.join(root, d), 0o755)
-                    except OSError:
-                        pass
                 for f in files:
-                    try:
+                    with contextlib.suppress(OSError):
                         os.chmod(os.path.join(root, f), 0o644)
-                    except OSError:
-                        pass
 
             for attempt in range(3):
                 try:

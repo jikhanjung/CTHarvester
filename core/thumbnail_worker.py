@@ -161,9 +161,7 @@ class ThumbnailWorker(QRunnable):
 
                 if is_16bit:
                     img = img_temp.copy()
-                elif img_temp.mode[0] == "I":
-                    img = img_temp.convert("L")
-                elif img_temp.mode == "P":
+                elif img_temp.mode[0] == "I" or img_temp.mode == "P":
                     img = img_temp.convert("L")
                 else:
                     img = img_temp.copy()

@@ -169,7 +169,7 @@ class ProgressDialog(QDialog):
             # after sampling or periodic updates
             # Just keep the existing text if no new one is provided
             current_text = self.lbl_detail.text()
-            if not current_text.startswith("ETA:") and not current_text == "Estimating...":
+            if not current_text.startswith("ETA:") and current_text != "Estimating...":
                 # Only calculate if we don't have an externally set ETA
                 eta_text = self._calculate_eta(current_time)
                 if eta_text:

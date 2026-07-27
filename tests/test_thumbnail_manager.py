@@ -146,43 +146,45 @@ class TestThumbnailManager:
 
     def test_process_level_basic_setup(self, mock_parent, mock_progress_dialog, threadpool):
         """Test process_level sets up tracking variables correctly"""
-        with tempfile.TemporaryDirectory() as from_dir:
-            with tempfile.TemporaryDirectory() as to_dir:
-                manager = ThumbnailManager(mock_parent, mock_progress_dialog, threadpool)
+        with (
+            tempfile.TemporaryDirectory() as from_dir,
+            tempfile.TemporaryDirectory() as to_dir,
+        ):
+            manager = ThumbnailManager(mock_parent, mock_progress_dialog, threadpool)
 
-                # Create some dummy files
-                import os
+            # Create some dummy files
+            import os
 
-                for i in range(10):
-                    open(os.path.join(from_dir, f"img_{i:04d}.tif"), "w").close()
+            for i in range(10):
+                open(os.path.join(from_dir, f"img_{i:04d}.tif"), "w").close()
 
-                settings_hash = {
-                    "prefix": "img_",
-                    "index_length": 4,
-                    "file_type": "tif",
-                }
+            settings_hash = {
+                "prefix": "img_",
+                "index_length": 4,
+                "file_type": "tif",
+            }
 
-                # Mock the worker execution to avoid actual processing
-                with patch("core.thumbnail_manager.ThumbnailWorker") as mock_worker_class:
-                    mock_worker = Mock()
-                    mock_worker_class.return_value = mock_worker
+            # Mock the worker execution to avoid actual processing
+            with patch("core.thumbnail_manager.ThumbnailWorker") as mock_worker_class:
+                mock_worker = Mock()
+                mock_worker_class.return_value = mock_worker
 
-                    # Cancel immediately to avoid hanging
-                    mock_progress_dialog.is_cancelled = True
+                # Cancel immediately to avoid hanging
+                mock_progress_dialog.is_cancelled = True
 
-                    result, cancelled = manager.process_level(
-                        level=0,
-                        from_dir=from_dir,
-                        to_dir=to_dir,
-                        seq_begin=0,
-                        seq_end=9,
-                        settings_hash=settings_hash,
-                        size=256,
-                        max_thumbnail_size=512,
-                        global_step_offset=0,
-                    )
+                result, cancelled = manager.process_level(
+                    level=0,
+                    from_dir=from_dir,
+                    to_dir=to_dir,
+                    seq_begin=0,
+                    seq_end=9,
+                    settings_hash=settings_hash,
+                    size=256,
+                    max_thumbnail_size=512,
+                    global_step_offset=0,
+                )
 
-                    assert cancelled is True
+                assert cancelled is True
 
     def test_time_estimator_attribute(self, mock_parent, mock_progress_dialog, threadpool):
         """Test that ThumbnailManager has time_estimator attribute"""

@@ -39,10 +39,12 @@ class TestFileSystemErrors:
         test_dir.mkdir()
 
         # Mock os.listdir to raise PermissionError
-        with patch("os.listdir", side_effect=PermissionError("Access denied")):
-            # Should raise PermissionError
-            with pytest.raises(PermissionError):
-                file_handler.open_directory(str(test_dir))
+        # Should raise PermissionError
+        with (
+            patch("os.listdir", side_effect=PermissionError("Access denied")),
+            pytest.raises(PermissionError),
+        ):
+            file_handler.open_directory(str(test_dir))
 
     def test_os_error_opening_directory(self, file_handler, tmp_path, caplog):
         """Test handling of OS errors when opening directory."""
@@ -50,10 +52,12 @@ class TestFileSystemErrors:
         test_dir.mkdir()
 
         # Mock os.listdir to raise OSError
-        with patch("os.listdir", side_effect=OSError("Disk error")):
-            # Should raise OSError
-            with pytest.raises(OSError):
-                file_handler.open_directory(str(test_dir))
+        # Should raise OSError
+        with (
+            patch("os.listdir", side_effect=OSError("Disk error")),
+            pytest.raises(OSError),
+        ):
+            file_handler.open_directory(str(test_dir))
 
     def test_permission_error_sorting_files(self, file_handler, tmp_path, caplog):
         """Test handling of permission errors during file sorting."""
@@ -61,10 +65,12 @@ class TestFileSystemErrors:
         test_dir.mkdir()
 
         # Mock os.listdir to raise PermissionError
-        with patch("os.listdir", side_effect=PermissionError("Access denied")):
-            # Should raise PermissionError
-            with pytest.raises(PermissionError):
-                file_handler.sort_file_list_from_dir(str(test_dir))
+        # Should raise PermissionError
+        with (
+            patch("os.listdir", side_effect=PermissionError("Access denied")),
+            pytest.raises(PermissionError),
+        ):
+            file_handler.sort_file_list_from_dir(str(test_dir))
 
     def test_file_not_found_error(self, file_handler, tmp_path):
         """Test handling of non-existent directory."""
@@ -183,13 +189,15 @@ class TestCorruptImageHandling:
         corrupt_file.write_bytes(b"not an image")
 
         # Mock get_image_dimensions to raise exception
-        with patch(
-            "core.file_handler.get_image_dimensions",
-            side_effect=Exception("Cannot identify image file"),
+        # Should raise CorruptedImageError when first image is corrupt
+        with (
+            patch(
+                "core.file_handler.get_image_dimensions",
+                side_effect=Exception("Cannot identify image file"),
+            ),
+            pytest.raises((CorruptedImageError, NoImagesFoundError)),
         ):
-            # Should raise CorruptedImageError when first image is corrupt
-            with pytest.raises((CorruptedImageError, NoImagesFoundError)):
-                file_handler.sort_file_list_from_dir(str(test_dir))
+            file_handler.sort_file_list_from_dir(str(test_dir))
 
     def test_partial_corrupt_image_sequence(self, file_handler, tmp_path):
         """Test handling when some images in sequence are corrupt."""
@@ -229,10 +237,12 @@ class TestNetworkDriveErrors:
         test_dir.mkdir()
 
         # Mock os.listdir to raise OSError (connection lost)
-        with patch("os.listdir", side_effect=OSError(53, "Network path not found")):
-            # Should raise OSError
-            with pytest.raises(OSError):
-                file_handler.open_directory(str(test_dir))
+        # Should raise OSError
+        with (
+            patch("os.listdir", side_effect=OSError(53, "Network path not found")),
+            pytest.raises(OSError),
+        ):
+            file_handler.open_directory(str(test_dir))
 
     def test_intermittent_network_access(self, file_handler, tmp_path):
         """Test handling of intermittent network access."""

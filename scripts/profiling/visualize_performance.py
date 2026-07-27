@@ -357,10 +357,7 @@ def main():
 
     # Determine format
     if args.format == "auto":
-        if args.output.endswith(".html"):
-            output_format = "html"
-        else:
-            output_format = "text"
+        output_format = "html" if args.output.endswith(".html") else "text"
     else:
         output_format = args.format
 
