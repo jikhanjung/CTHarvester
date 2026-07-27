@@ -7,6 +7,7 @@ directory selection dialogs and CT image stack initialization.
 import logging
 import os
 from contextlib import contextmanager
+from pathlib import Path
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
@@ -116,8 +117,12 @@ class TestDirectoryOpenHandlerDialogHandling:
 
         handler.open_directory()
 
-        # Should update app's default directory to parent
-        assert mock_window.m_app.default_directory == "/test"
+        # Should update app's default directory to parent.
+        # Compared as paths, not strings: the handler derives this with
+        # Path.parent, which normalises to the platform separator, so on Windows
+        # the string is "\\test" while on POSIX it is "/test". Both are the same
+        # path, and that is what this test is about.
+        assert Path(mock_window.m_app.default_directory) == Path("/test")
 
 
 @patch("ui.handlers.directory_open_handler.wait_cursor", mock_wait_cursor)
