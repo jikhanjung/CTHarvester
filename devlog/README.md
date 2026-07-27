@@ -4,6 +4,7 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Recent Sessions (July 2026)
 
+- [105](20260727_105_complexity_backlog_cleared_and_manual_audit.md) - **복잡도 백로그 완료 & 매뉴얼 감사**: C901 8개 함수 정리로 가이드 기준(15) 달성, 매뉴얼이 구현되지 않은 기능을 설명하던 문제 수정, `docs/*.md`가 Sphinx 빌드에 아예 포함되지 않던 사실 발견
 - [104](20260726_104_rust_default_and_complexity_backlog.md) - **Rust 기본값 수정 & C901 첫 리팩터링**: `use_rust_module: false`로 배포돼 Rust 모듈이 설치돼 있어도 안 쓰이던 문제 발견·수정, `process_level` 복잡도 32→9
 - [103](20260726_103_code_quality_guide_follow_through.md) - **코드 품질 가이드 후속**: `DTZ` 적용, 문서 빌드 게이팅, 3-OS 패키지 smoke 테스트 — frozen Linux 빌드가 실행조차 안 되던 PyOpenGL 번들링 결함 발견·수정, `C901` 래칫 (vulture는 오탐률 5/6으로 기각)
 - [102](20260726_102_auto_threshold_and_roi_detection.md) - **자동 threshold/ROI 감지**: 피라미드 완료 시 최소 레벨로 Otsu 임계값·ROI·슬라이스 범위를 잡아 초기값으로 적용 (+32 tests)
@@ -49,6 +50,7 @@ Chronological index of all development sessions for CTHarvester.
 - [026](20250930_026_test_coverage_initial.md) - 테스트 커버리지 확대 시작
 
 ### Quality Improvements & Testing
+- [105](20260727_105_complexity_backlog_cleared_and_manual_audit.md) - C901 복잡도 백로그 완료 (32→15), _calculate_eta characterization 테스트 26개
 - [097](20251008_097_phase3_complete.md) - **Phase 3 완료**: 성능 & 견고성 (+277 tests)
 - [096](20251008_096_phase3_error_recovery_complete.md) - Phase 3: 에러 복구 테스트 (+18 tests)
 - [095](20251008_095_phase3_performance_benchmarking.md) - Phase 3: 성능 벤치마킹 (+13 tests)
@@ -96,6 +98,7 @@ Chronological index of all development sessions for CTHarvester.
 - [002](20250806_002_github_actions_and_version_management.md) - GitHub Actions CI/CD 설정
 
 ### Documentation & Retrospectives
+- [105](20260727_105_complexity_backlog_cleared_and_manual_audit.md) - 매뉴얼 감사: 미구현 기능 기술 제거, 수치 정정, .rst/.md 발행 경계 명문화
 - [094](20251008_094_phase2_complete.md) - Phase 2 문서화 & UI 폴리싱 완료
 - [090](20251007_090_phase2_user_documentation_completion.md) - 사용자 문서화 완료 (2,500+ lines)
 - [059](20251001_059_korean_documentation.md) - Sphinx i18n 한국어 번역

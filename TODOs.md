@@ -24,6 +24,13 @@ state and should be updated as items land.
 | 9 | Packaged-artifact smoke test; signed installers | ⚠️ | Smoke test done (2026-07-26): `--self-test` entry point, run against the frozen build on all 3 OSes in `reusable_build.yml`. Installer signing/notarization still open |
 | 10 | Property-based / fuzz tests | ⚠️ | `tests/property/test_image_properties.py` exists but its body is `pytest.skip("Template - to be implemented in Phase 4")` |
 
+**Also on the list now:** adopt Modan2's per-platform lockfiles
+(`uv pip compile --python-platform linux|windows|macos`) instead of one
+`--universal` lock. The universal lock cannot express a package whose wheel
+coverage differs by platform, which is what broke every Windows CI job via
+`pyqt5-qt5`; environment markers patched it, but per-platform locks make the
+class of bug impossible. See devlog 105.
+
 **Working order** (cheapest first, per the guide's own ordering): ~~#3 `DTZ`~~,
 ~~#2 docs build gating~~, ~~#9 packaged smoke test~~ and ~~#8 complexity
 ratchet~~ (all done 2026-07-26). Remaining: the complexity backlog below,
