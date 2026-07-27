@@ -151,6 +151,12 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
 
 ## [0.2.3-beta.2] - 2025-10-08
 
+> **Note:** the shortcut list below is what was planned for this release,
+> not what shipped — several bindings differ in the application. The
+> authoritative list is the user guide, or press `F1` in CTHarvester.
+> Left as published rather than rewritten: a released changelog is a
+> record.
+
 ### Added
 - **Comprehensive keyboard shortcuts system** (24 shortcuts)
   - File operations: Open directory (Ctrl+O), Save cropped (Ctrl+S), Export (Ctrl+E)

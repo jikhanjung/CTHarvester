@@ -35,6 +35,10 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
     "sphinx.ext.coverage",
+    # Present for one reason: changelog.rst includes ../../CHANGELOG.md, the
+    # canonical release history. Enabling it does not publish docs/*.md -- the
+    # Sphinx source directory is docs/manual/, and those files are outside it.
+    "myst_parser",
 ]
 
 templates_path = ["_templates"]
