@@ -19,7 +19,7 @@ state and should be updated as items land.
 | 4 | `filterwarnings = error` | ✅ | `pyproject.toml`, narrow documented ignores only |
 | 5 | Lockfile + pip-audit + Dependabot | ✅ | 9 per-platform lockfiles with hashes, pip-audit gating on all three platforms, `.github/dependabot.yml`, and `dependabot-lock-refresh.yml` to keep the locks in step with Dependabot's range bumps |
 | 6 | Coverage gate | ✅ | `--cov-fail-under=75` on the reference leg |
-| 7 | Static type checking, scoped | ✅ | mypy per-module strict; runs in CI (advisory, see #2) |
+| 7 | Static type checking, scoped | ✅ | mypy per-module strict, gating in CI. Scope is `core/` and `utils/`; widening to `ui/` is the open part |
 | 8 | Dead-code / complexity automation | ✅ | `C901` enforced at the guide's threshold of 15 (2026-07-26); the backlog of eight functions is cleared. vulture evaluated and rejected — 5 of its 6 findings were false positives; Modan2 does not use it either. |
 | 9 | Packaged-artifact smoke test; signed installers | ⚠️ | Smoke test done (2026-07-26): `--self-test` entry point, run against the frozen build on all 3 OSes in `reusable_build.yml`. Installer signing/notarization still open |
 | 10 | Property-based / fuzz tests | ⚠️ | `tests/property/test_image_properties.py` exists but its body is `pytest.skip("Template - to be implemented in Phase 4")` |
@@ -46,9 +46,10 @@ directory at a time, each clean before it is added — the same shape as the C90
 ratchet.
 
 **Working order** (cheapest first, per the guide's own ordering): ~~#3 `DTZ`~~,
-~~#2 docs build gating~~, ~~#9 packaged smoke test~~, ~~#8 complexity
-ratchet~~ and ~~per-platform locks~~ (all done 2026-07-26/27). Remaining:
-#10 property tests, mypy gating, installer signing.
+~~#2 docs build gating~~, ~~#9 packaged smoke test~~, ~~#8 complexity ratchet~~,
+~~per-platform locks~~, ~~mypy gating~~ and ~~the full lint ruleset~~ (all done
+2026-07-26/27). Remaining: **#10 property tests**, **installer signing**, and
+widening mypy's scope to `ui/`.
 
 ### Complexity backlog (`C901`) ✅ cleared 2026-07-26
 
