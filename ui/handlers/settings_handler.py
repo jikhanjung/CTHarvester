@@ -95,8 +95,8 @@ class WindowSettingsHandler:
             self._read_language_settings()
             self._read_processing_settings()
             logger.info("Settings loaded successfully")
-        except Exception as e:
-            logger.error(f"Error reading main window settings: {e}")
+        except Exception:
+            logger.exception("Error reading main window settings")
             self._apply_defaults()
 
     def _read_directory_settings(self) -> None:
@@ -236,8 +236,8 @@ class WindowSettingsHandler:
             self.settings.save()
             logger.info("Settings saved successfully")
 
-        except Exception as e:
-            logger.error(f"Error saving main window settings: {e}")
+        except Exception:
+            logger.exception("Error saving main window settings")
 
     def _save_directory_settings(self) -> None:
         """Save default directory setting to YAML."""

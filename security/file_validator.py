@@ -197,7 +197,7 @@ class SecureFileValidator:
                     continue
 
         except OSError as e:
-            logger.error(f"Failed to list directory {directory}: {e}")
+            logger.exception(f"Failed to list directory {directory}")
             raise FileSecurityError(f"Directory access failed: {e}") from e
 
         return sorted(safe_files)

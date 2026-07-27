@@ -122,7 +122,7 @@ def guard_slot(
             except Exception as exc:  # noqa: BLE001 - deliberate catch-all boundary
                 restore_all_override_cursors()
 
-                logger.error("Unhandled exception while %s", context, exc_info=exc)
+                logger.exception("Unhandled exception while %s", context, exc_info=exc)
 
                 code = error_code or map_exception_to_error_code(exc, context)
                 # `self` for a bound slot; used as the dialog parent when it is

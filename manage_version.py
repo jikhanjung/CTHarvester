@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 try:
     import semver
 except ImportError:
-    logger.error("'semver' library not found. Please install it with 'pip install semver'")
+    logger.exception("'semver' library not found. Please install it with 'pip install semver'")
     sys.exit(1)
 
 
@@ -69,9 +69,9 @@ def update_version_file(new_version: str) -> None:
         version_file.write_text(new_content)
         logger.info(f"✅ Version updated to {new_version}")
         backup_file.unlink()
-    except Exception as e:
+    except Exception:
         backup_file.rename(version_file)
-        raise e
+        raise
 
 
 def get_new_version(
@@ -137,8 +137,8 @@ def create_git_tag(version: str, message: str | None = None) -> None:
         # if response.lower() == 'y':
         #     subprocess.run(['git', 'push', 'origin', tag_name], check=True)
         #     logger.info(f"✅ Tag pushed to remote")
-    except subprocess.CalledProcessError as e:
-        logger.error(f"❌ Failed to create git tag: {e}")
+    except subprocess.CalledProcessError:
+        logger.exception("❌ Failed to create git tag")
 
 
 def update_changelog(version: str) -> None:
@@ -246,7 +246,9 @@ def main():
         try:
             current_ver_info = semver.VersionInfo.parse(current_version_str)
         except ValueError:
-            logger.error(f"Error: Invalid semantic version in version.py: '{current_version_str}'")
+            logger.exception(
+                f"Error: Invalid semantic version in version.py: '{current_version_str}'"
+            )
             sys.exit(1)
 
         new_version = get_new_version(command, current_ver_info, token)
@@ -282,8 +284,8 @@ def main():
     except (KeyboardInterrupt, EOFError):
         logger.info("\nAborted by user")
         sys.exit(1)
-    except Exception as e:
-        logger.error(f"❌ Error: {e}")
+    except Exception:
+        logger.exception("❌ Error")
         sys.exit(1)
 
 

@@ -95,11 +95,11 @@ def run_pyinstaller(spec_file="CTHarvester.spec", build_type="onefile"):
         logger.info(f"PyInstaller {build_type} build completed successfully")
         return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"PyInstaller {build_type} build failed: {e}")
+        logger.exception(f"PyInstaller {build_type} build failed")
         if e.stdout:
-            logger.error(f"stdout: {e.stdout}")
+            logger.exception(f"stdout: {e.stdout}")
         if e.stderr:
-            logger.error(f"stderr: {e.stderr}")
+            logger.exception(f"stderr: {e.stderr}")
         return False
 
 
@@ -139,8 +139,8 @@ def prepare_inno_setup_template():
         temp_iss.write_text(iss_content)
         logger.info(f" Temporary ISS file created: {temp_iss.name}")
         return str(temp_iss)
-    except Exception as e:
-        logger.error(f" Error creating temporary ISS file: {e}")
+    except Exception:
+        logger.exception(" Error creating temporary ISS file")
         return None
 
 
@@ -195,11 +195,11 @@ def build_installer():
 
         return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"Installer build failed: {e}")
+        logger.exception("Installer build failed")
         if e.stdout:
-            logger.error(f"STDOUT: {e.stdout}")
+            logger.exception(f"STDOUT: {e.stdout}")
         if e.stderr:
-            logger.error(f"STDERR: {e.stderr}")
+            logger.exception(f"STDERR: {e.stderr}")
         return False
     finally:
         # Clean up temp file

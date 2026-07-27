@@ -79,6 +79,13 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
 - Previously-disabled lint rules that catch real defects are enabled and clean:
   undefined names, redefinitions, unused locals, bare excepts, mutable default
   arguments, blind `pytest.raises(Exception)` and redundant exception tuples.
+- **`SIM` and `TRY` lint rules enabled.** The one with teeth is `TRY400`:
+  49 `except` blocks logged with `logger.error`, which records the message and
+  throws the traceback away. They now use `logger.exception`, so a failure
+  report carries the stack that produced it. The redundant `: {e}` those
+  messages used to append is gone with it — the traceback has the exception.
+  `TRY003`, `TRY301` and `TRY300` are not enabled; `pyproject.toml` says why
+  next to each.
 
 ### Fixed
 - **Documentation described features that do not exist.** The "Keyboard Power

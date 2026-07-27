@@ -15,7 +15,7 @@ state and should be updated as items land.
 |---|---|---|---|
 | 1 | Cross-platform CI matrix + headless smoke test | ✅ | 3 OS x Python 3.12, `tests/test_smoke.py` |
 | 2 | Lint + tests gating | ✅ | ruff, mypy, the test matrix and the docs build all gate. No `\|\| true` left in the lint job (mypy became gating 2026-07-27) |
-| 3 | Expand the lint ruleset incrementally | ⚠️ | `E, F, I, N, UP, B, C4, LOG, DTZ, RUF012`. `SIM` (40), `TRY` (138), `PTH` (502), `S` (2083) not yet |
+| 3 | Expand the lint ruleset incrementally | ⚠️ | `E, F, I, N, UP, B, C4, LOG, DTZ, SIM, TRY, C901, RUF012`. `SIM` and `TRY` landed 2026-07-27 (three `TRY` rules waived, see below). `PTH` (499) and `S` (2166) not yet |
 | 4 | `filterwarnings = error` | ✅ | `pyproject.toml`, narrow documented ignores only |
 | 5 | Lockfile + pip-audit + Dependabot | ✅ | 9 per-platform lockfiles with hashes, pip-audit gating on all three platforms, `.github/dependabot.yml`, and `dependabot-lock-refresh.yml` to keep the locks in step with Dependabot's range bumps |
 | 6 | Coverage gate | ✅ | `--cov-fail-under=75` on the reference leg |
@@ -73,6 +73,26 @@ written before it was touched; they still pass unmodified. Its body went from
 
 Keep treating the number as a ratchet: lower it when the tree allows, never
 raise it.
+
+---
+
+## Lint ruleset: what is left after `SIM` and `TRY` (2026-07-27)
+
+**`TRY300` — 20 sites, deferred not waived.** Moving a trailing `return` out of
+a `try` into an `else` block makes explicit which statements the `except`
+actually guards. There is no autofix, so it is 20 hand edits. The rule is listed
+in `ignore` with a comment pointing here; delete that line when they are done.
+
+**`TRY003` (65) and `TRY301` (2) are waived on the merits**, with the reasoning
+in `pyproject.toml` next to each. Revisit only if the reasoning stops holding.
+
+**`PTH` (499)** — `os.path` to `pathlib`. Large, mechanical, and touches almost
+every module; worth doing as its own change with a careful eye on the Windows
+path handling, not folded into anything else.
+
+**`S` (2166)** — bandit rules. The count is misleading: most are `S101` (assert)
+in `tests/`, which needs a per-file ignore for the test tree before the real
+findings are visible. Do that first, then look at what is left.
 
 ---
 

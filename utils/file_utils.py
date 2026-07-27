@@ -76,8 +76,8 @@ def find_image_files(directory: str, extensions: tuple[str, ...] | None = None) 
                     files.append(filename)
             return sorted(files)
 
-    except Exception as e:
-        logger.error(f"Failed to list directory {directory}: {e}")
+    except Exception:
+        logger.exception(f"Failed to list directory {directory}")
         return []
 
 
@@ -137,8 +137,8 @@ def create_thumbnail_directory(base_dir: str, level: int = 1) -> str:
         os.makedirs(thumb_dir, exist_ok=True)
         logger.info(f"Created thumbnail directory: {thumb_dir}")
         return thumb_dir
-    except OSError as e:
-        logger.error(f"Failed to create thumbnail directory: {e}")
+    except OSError:
+        logger.exception("Failed to create thumbnail directory")
         raise
 
 
@@ -186,8 +186,8 @@ def clean_old_thumbnails(base_dir: str) -> bool:
             shutil.rmtree(thumb_dir)
             logger.info(f"Removed old thumbnail directory: {thumb_dir}")
             return True
-        except Exception as e:
-            logger.error(f"Failed to remove thumbnail directory: {e}")
+        except Exception:
+            logger.exception("Failed to remove thumbnail directory")
             return False
     return True
 
@@ -209,8 +209,8 @@ def get_directory_size(directory: str) -> int:
                 filepath = os.path.join(dirpath, filename)
                 if os.path.exists(filepath):
                     total_size += os.path.getsize(filepath)
-    except Exception as e:
-        logger.error(f"Failed to calculate directory size: {e}")
+    except Exception:
+        logger.exception("Failed to calculate directory size")
 
     return total_size
 

@@ -646,8 +646,8 @@ class MCubeWidget(QGLWidget):
                 img_array = safe_load_image(os.path.join(folder, filename))
                 if img_array is not None:
                     images.append(img_array)
-        except Exception as e:
-            logger.error(f"Error accessing folder {folder}: {e}")
+        except Exception:
+            logger.exception(f"Error accessing folder {folder}")
             return np.array([])
         return np.array(images)
 

@@ -147,8 +147,8 @@ def build_executable(platform_name):
         logger.debug(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"Build failed: {e}")
-        logger.error(e.stderr)
+        logger.exception("Build failed")
+        logger.exception(e.stderr)
         return False
 
 
@@ -248,7 +248,7 @@ def main():
     try:
         subprocess.run(["pyinstaller", "--version"], capture_output=True, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
-        logger.error("PyInstaller not found. Install with: pip install pyinstaller")
+        logger.exception("PyInstaller not found. Install with: pip install pyinstaller")
         return 1
 
     # Build executable

@@ -288,7 +288,7 @@ class ThumbnailGenerator:
         try:
             from ct_thumbnail import build_thumbnails
         except ImportError:
-            logger.error("Rust module not available")
+            logger.exception("Rust module not available")
             return False
 
         # Start timing

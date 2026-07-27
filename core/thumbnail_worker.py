@@ -174,8 +174,8 @@ class ThumbnailWorker(QRunnable):
 
             return img, is_16bit
 
-        except OSError as e:
-            logger.error(f"Error loading image {filepath}: {e}")
+        except OSError:
+            logger.exception(f"Error loading image {filepath}")
             return None, False
 
     def _process_single_image(self, img: Image.Image, is_16bit: bool) -> Image.Image:
@@ -354,10 +354,12 @@ class ThumbnailWorker(QRunnable):
             self.signals.progress.emit(self.idx)
             self.signals.result.emit((self.idx, img_array, was_generated))
 
-        except Exception as e:
+        except Exception:
             exctype, value = sys.exc_info()[:2]
+            # Still formatted by hand because the traceback goes out on the
+            # error signal as well, not only to the log.
             error_trace = traceback.format_exc()
-            logger.error(f"Exception in worker {self.idx}: {e}\n{error_trace}")
+            logger.exception(f"Exception in worker {self.idx}")
             self.signals.error.emit((exctype, value, error_trace))
         finally:
             logger.debug(f"Finished worker for idx={self.idx}")
@@ -425,10 +427,8 @@ class ThumbnailWorker(QRunnable):
 
             return None
 
-        except (OSError, ValueError) as e:
-            logger.error(
-                f"Error creating thumbnail {self.filename3}: {e}\n{traceback.format_exc()}"
-            )
+        except (OSError, ValueError):
+            logger.exception(f"Error creating thumbnail {self.filename3}")
             return None
         finally:
             # Periodic garbage collection

@@ -144,11 +144,11 @@ class DirectoryOpenHandler:
             show_error(self.window, ErrorCode.INVALID_IMAGE_FORMAT, ddir)
             return
         except CorruptedImageError as e:
-            logger.error(f"Corrupted image file: {e}")
+            logger.exception("Corrupted image file")
             show_error(self.window, ErrorCode.CORRUPTED_IMAGE, ddir, exception=e)
             return
         except FileSecurityError as e:
-            logger.error(f"Security validation failed: {e}")
+            logger.exception("Security validation failed")
             show_error(
                 self.window,
                 ErrorCode.PERMISSION_DENIED,
@@ -157,12 +157,12 @@ class DirectoryOpenHandler:
                 include_traceback=True,
             )
             return
-        except FileNotFoundError as e:
-            logger.error(f"Directory not found: {e}")
+        except FileNotFoundError:
+            logger.exception("Directory not found")
             show_error(self.window, ErrorCode.DIRECTORY_NOT_FOUND, ddir)
             return
         except PermissionError as e:
-            logger.error(f"Permission denied: {e}")
+            logger.exception("Permission denied")
             show_error(
                 self.window,
                 ErrorCode.PERMISSION_DENIED,
@@ -182,7 +182,7 @@ class DirectoryOpenHandler:
             )
             return
         except Exception as e:
-            logger.exception(f"Unexpected error opening directory: {e}")
+            logger.exception("Unexpected error opening directory")
             show_error(
                 self.window,
                 ErrorCode.UNKNOWN_ERROR,

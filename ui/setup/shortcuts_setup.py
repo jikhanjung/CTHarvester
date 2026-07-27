@@ -84,8 +84,8 @@ def setup_shortcuts(window: "CTHarvesterMainWindow") -> None:
             qs.activated.connect(action_method)
             shortcuts_created += 1
             logger.debug(f"Created shortcut: {shortcut.key} -> {action_name}")
-        except Exception as e:
-            logger.error(f"Failed to create shortcut for {action_name}: {e}")
+        except Exception:
+            logger.exception(f"Failed to create shortcut for {action_name}")
 
     logger.info(f"Setup {shortcuts_created}/{len(shortcuts)} keyboard shortcuts")
 
@@ -163,5 +163,5 @@ def _show_shortcuts_dialog(window: "CTHarvesterMainWindow") -> None:
 
         dialog = ShortcutDialog(window)
         dialog.exec_()
-    except Exception as e:
-        logger.error(f"Failed to show shortcuts dialog: {e}")
+    except Exception:
+        logger.exception("Failed to show shortcuts dialog")

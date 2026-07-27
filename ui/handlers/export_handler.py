@@ -357,8 +357,8 @@ class ExportHandler:
             # Process and save image
             try:
                 self._process_and_save_image(source_path, target_dir, filename, crop_info)
-            except Exception as e:
-                logger.error(f"Error opening/saving image {source_path}: {e}")
+            except Exception:
+                logger.exception(f"Error opening/saving image {source_path}")
                 continue
 
             # Update progress

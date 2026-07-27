@@ -444,7 +444,7 @@ class SettingsDialog(QDialog):
                 self.load_settings()
                 QMessageBox.information(self, "Import Complete", "Settings imported successfully.")
             except Exception as e:
-                logger.error(f"Failed to import settings: {e}")
+                logger.exception("Failed to import settings")
                 QMessageBox.critical(self, "Import Failed", f"Failed to import settings:\n{e}")
 
     def export_settings(self):
@@ -463,5 +463,5 @@ class SettingsDialog(QDialog):
                     self, "Export Complete", f"Settings exported to:\n{file_path}"
                 )
             except Exception as e:
-                logger.error(f"Failed to export settings: {e}")
+                logger.exception("Failed to export settings")
                 QMessageBox.critical(self, "Export Failed", f"Failed to export settings:\n{e}")

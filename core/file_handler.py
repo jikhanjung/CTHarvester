@@ -275,7 +275,7 @@ class FileHandler:
         try:
             width, height = get_image_dimensions(first_file_path)
         except Exception as e:
-            logger.error(f"Failed to read image dimensions from {first_file_path}: {e}")
+            logger.exception(f"Failed to read image dimensions from {first_file_path}")
             raise CorruptedImageError(
                 f"Failed to read image file: {first_file}. File may be corrupted."
             ) from e
@@ -425,11 +425,11 @@ class FileHandler:
             logger.info(f"Directory validation passed: {len(image_files)} image files found")
             return True
 
-        except FileSecurityError as e:
-            logger.error(f"Security validation failed: {e}")
+        except FileSecurityError:
+            logger.exception("Security validation failed")
             return False
-        except Exception as e:
-            logger.error(f"Directory validation error: {e}")
+        except Exception:
+            logger.exception("Directory validation error")
             return False
 
     def find_log_file(self, directory_path: str) -> str | None:
@@ -457,8 +457,8 @@ class FileHandler:
             logger.info("No log file found in directory")
             return None
 
-        except OSError as e:  # PermissionError is a subclass
-            logger.error(f"Error searching for log file: {e}")
+        except OSError:  # PermissionError is a subclass
+            logger.exception("Error searching for log file")
             return None
 
     def count_files_in_directory(self, directory_path: str, extension: str | None = None) -> int:
@@ -482,6 +482,6 @@ class FileHandler:
 
             return len(files)
 
-        except OSError as e:  # PermissionError is a subclass
-            logger.error(f"Error counting files: {e}")
+        except OSError:  # PermissionError is a subclass
+            logger.exception("Error counting files")
             return 0

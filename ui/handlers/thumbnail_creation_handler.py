@@ -250,7 +250,7 @@ class ThumbnailCreationHandler:
             except Exception as e:
                 success = False
                 if not self.window.rust_cancelled:  # Only show error if not cancelled
-                    logger.error(f"Error during Rust thumbnail generation: {e}")
+                    logger.exception("Error during Rust thumbnail generation")
                     # Show user-friendly error message
                     show_error(
                         self.window,

@@ -312,8 +312,8 @@ class CTHarvesterMainWindow(QMainWindow):
             self.image_label.repaint()
             self.update_3D_view(True)
             self.update_status()
-        except Exception as e:
-            logger.error(f"Error in rangeSliderValueChanged: {e}")
+        except Exception:
+            logger.exception("Error in rangeSliderValueChanged")
 
     def rangeSliderReleased(self):
         """Handle range slider release event (currently no-op)."""
@@ -754,8 +754,8 @@ class CTHarvesterMainWindow(QMainWindow):
                             "seq_end": seq_end,
                         }
                     )
-            except Exception as e:
-                logger.error(f"Error reading thumbnail level {level_idx}: {e}")
+            except Exception:
+                logger.exception(f"Error reading thumbnail level {level_idx}")
                 break
 
             level_idx += 1

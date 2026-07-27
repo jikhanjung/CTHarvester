@@ -123,8 +123,8 @@ class SettingsManager:
                     settings = yaml.safe_load(f)
                     logger.info(f"Default settings loaded from {default_file}")
                     return settings or {}
-            except Exception as e:
-                logger.error(f"Failed to load default settings: {e}")
+            except Exception:
+                logger.exception("Failed to load default settings")
 
         logger.warning("Default settings file not found, using empty defaults")
         return self._get_hardcoded_defaults()
@@ -170,8 +170,8 @@ class SettingsManager:
                 with open(self.config_file, encoding="utf-8") as f:
                     self.settings = yaml.safe_load(f) or {}
                 logger.info(f"Settings loaded from {self.config_file}")
-            except Exception as e:
-                logger.error(f"Failed to load settings: {e}")
+            except Exception:
+                logger.exception("Failed to load settings")
                 self.settings = deepcopy(self.default_settings)
         else:
             # Use default settings
@@ -184,8 +184,8 @@ class SettingsManager:
             with open(self.config_file, "w", encoding="utf-8") as f:
                 yaml.dump(self.settings, f, default_flow_style=False, allow_unicode=True)
             logger.info(f"Settings saved to {self.config_file}")
-        except Exception as e:
-            logger.error(f"Failed to save settings: {e}")
+        except Exception:
+            logger.exception("Failed to save settings")
 
     def get(self, key: str, default: Any = None) -> Any:
         """
@@ -246,8 +246,8 @@ class SettingsManager:
             with open(file_path, "w", encoding="utf-8") as f:
                 yaml.dump(self.settings, f, default_flow_style=False, allow_unicode=True)
             logger.info(f"Settings exported to {file_path}")
-        except Exception as e:
-            logger.error(f"Failed to export settings: {e}")
+        except Exception:
+            logger.exception("Failed to export settings")
             raise
 
     def import_settings(self, file_path: str) -> None:
@@ -269,8 +269,8 @@ class SettingsManager:
             else:
                 raise ValueError("Invalid settings file")
 
-        except Exception as e:
-            logger.error(f"Failed to import settings: {e}")
+        except Exception:
+            logger.exception("Failed to import settings")
             raise
 
     def _validate_settings(self, settings: dict) -> bool:
