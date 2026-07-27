@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-27
 **Current Version:** 0.2.3-beta.2
-**Status:** 🚧 In progress — stages 1 to 3 landed
+**Status:** 🚧 In progress — stages 1 to 4 landed
 **Previous:** [devlog 110 - pytest 9 and the Day's Ledger](./20260727_110_pytest_9_and_the_days_ledger.md)
 
 ---
@@ -167,11 +167,34 @@ the result.
 
 ---
 
+## 📦 Stage 4 — `ui/` (25 sites)
+
+Uneventful, which after stage 3 is worth saying. The one pattern that needed
+thought appears twice — in `main_window.py` and `object_viewer_2d.py` — and is
+the "retry with a lowercase extension" fallback for image files:
+
+```python
+base, ext = os.path.splitext(first_image_path)
+alt_path = base + ext.lower()
+```
+
+`Path.with_suffix()` expresses this directly:
+
+```python
+first_path = Path(first_image_path)
+alt_path = str(first_path.with_suffix(first_path.suffix.lower()))
+```
+
+Checked against the awkward inputs before trusting it: a name with several dots
+(`a.b.TIF` → `a.b.tif`) and a name with no extension at all (`a` → `a`) both
+behave the same as the `splitext` version.
+
+---
+
 ## 🔭 What is left
 
 | Stage | Target | Sites |
 |---|---|---|
-| 4 | `ui/` | 25 |
 | 5 | `scripts/` | 48 |
 | — | `tests/` | 322 — to be waived, see below |
 

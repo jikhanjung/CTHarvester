@@ -6,7 +6,7 @@ Refactored during Phase 4 to use ROIManager component.
 """
 
 import logging
-import os
+from pathlib import Path
 
 import numpy as np
 from PyQt5.QtCore import QRect, Qt
@@ -567,7 +567,7 @@ class ObjectViewer2D(QLabel):
 
         # overlay: filename, current index, bounds on separate lines
         try:
-            file_name = os.path.basename(getattr(self, "fullpath", "") or "")
+            file_name = Path(getattr(self, "fullpath", "") or "").name
         except (AttributeError, TypeError):
             file_name = ""
         curr_txt = str(self.curr_idx) if isinstance(self.curr_idx, int) else "-"
@@ -687,11 +687,11 @@ class ObjectViewer2D(QLabel):
         # print("set_image", file_path)
         # check if file exists (try lowercase extension if original doesn't exist)
         actual_path = file_path
-        if not os.path.exists(file_path):
+        if not Path(file_path).exists():
             # Try with lowercase extension
-            base, ext = os.path.splitext(file_path)
-            alt_path = base + ext.lower()
-            if os.path.exists(alt_path):
+            original = Path(file_path)
+            alt_path = str(original.with_suffix(original.suffix.lower()))
+            if Path(alt_path).exists():
                 actual_path = alt_path
             else:
                 self.curr_pixmap = None

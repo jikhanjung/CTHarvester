@@ -13,7 +13,7 @@ The handler coordinates:
 """
 
 import logging
-import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PyQt5.QtWidgets import QFileDialog
@@ -74,7 +74,7 @@ class DirectoryOpenHandler:
         logger.info(f"Selected directory: {ddir}")
         self.window.edtDirname.setText(ddir)
         if self.window.m_app:
-            self.window.m_app.default_directory = os.path.dirname(ddir)
+            self.window.m_app.default_directory = str(Path(ddir).parent)
 
         # Reset UI state
         self.window.settings_hash = {}

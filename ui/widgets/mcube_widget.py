@@ -6,8 +6,8 @@ Updated during Phase 1.2 UI/UX improvements with non-blocking mesh generation.
 """
 
 import logging
-import os
 from copy import deepcopy
+from pathlib import Path
 from queue import Queue
 
 import mcubes
@@ -642,8 +642,8 @@ class MCubeWidget(QGLWidget):
     def read_images_from_folder(self, folder):
         images = []
         try:
-            for filename in os.listdir(folder):
-                img_array = safe_load_image(os.path.join(folder, filename))
+            for entry in Path(folder).iterdir():
+                img_array = safe_load_image(str(entry))
                 if img_array is not None:
                     images.append(img_array)
         except Exception:

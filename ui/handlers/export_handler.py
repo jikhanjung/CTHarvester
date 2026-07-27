@@ -25,6 +25,7 @@ See Also:
 
 import logging
 import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import mcubes
@@ -180,7 +181,7 @@ class ExportHandler:
             import os
             import tempfile
 
-            base_dir = os.path.dirname(filename) or "."
+            base_dir = str(Path(filename).parent) or "."
             validated_path = validator.validate_path(filename, base_dir)
 
             # Write to temporary file first (atomic write)
@@ -196,7 +197,7 @@ class ExportHandler:
                     fh.write(f"f {f[0] + 1} {f[1] + 1} {f[2] + 1}\n")
 
             # Atomic rename
-            os.replace(temp_file, validated_path)
+            Path(temp_file).replace(validated_path)
             temp_file = None  # Successfully moved, don't cleanup
 
             logger.info(f"Successfully saved OBJ file: {filename}")
@@ -215,9 +216,9 @@ class ExportHandler:
             logger.error(error_msg, exc_info=True)
         finally:
             # Cleanup temporary file if it still exists
-            if temp_file and os.path.exists(temp_file):
+            if temp_file and Path(temp_file).exists():
                 try:
-                    os.unlink(temp_file)
+                    Path(temp_file).unlink()
                     logger.debug(f"Cleaned up temporary file: {temp_file}")
                 except OSError as e:
                     logger.warning(f"Failed to cleanup temporary file {temp_file}: {e}")

@@ -5,8 +5,8 @@ Extracted from CTHarvester.py during Phase 4c refactoring.
 """
 
 import logging
-import os
 import sys
+from pathlib import Path
 
 from PyQt5.QtCore import (
     QRect,
@@ -347,11 +347,11 @@ class CTHarvesterMainWindow(QMainWindow):
                 + self.settings_hash["file_type"]
             )
         else:
-            dirname = os.path.join(self.edtDirname.text(), ".thumbnail/" + str(size_idx))
+            dirname = str(Path(self.edtDirname.text()) / ".thumbnail" / str(size_idx))
             # Match Rust naming: simple sequential numbering without prefix
             filename = f"{curr_image_idx:06}.tif"
 
-        image_path = os.path.join(dirname, filename)
+        image_path = str(Path(dirname) / filename)
 
         # Store pending load and debounce
         self._pending_image_path = image_path
@@ -664,17 +664,17 @@ class CTHarvesterMainWindow(QMainWindow):
         if not image_file_list:
             return
 
-        first_image_path = os.path.join(ddir, image_file_list[0])
+        first_image_path = str(Path(ddir) / image_file_list[0])
 
         # Check if file exists (case-insensitive on Windows)
         actual_path = None
-        if os.path.exists(first_image_path):
+        if Path(first_image_path).exists():
             actual_path = first_image_path
         else:
             # Try with lowercase extension
-            base, ext = os.path.splitext(first_image_path)
-            alt_path = base + ext.lower()
-            if os.path.exists(alt_path):
+            first_path = Path(first_image_path)
+            alt_path = str(first_path.with_suffix(first_path.suffix.lower()))
+            if Path(alt_path).exists():
                 actual_path = alt_path
 
         if actual_path:
@@ -685,7 +685,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 if not pixmap.isNull():
                     self.image_label.setPixmap(pixmap.scaledToWidth(PREVIEW_WIDTH))
                 else:
-                    error_msg = f"Failed to load preview image: {os.path.basename(actual_path)}"
+                    error_msg = f"Failed to load preview image: {Path(actual_path).name}"
                     logger.error(f"QPixmap is null for {actual_path}")
                     self._show_preview_error_placeholder(error_msg)
             except OSError as e:
@@ -697,7 +697,7 @@ class CTHarvesterMainWindow(QMainWindow):
                 logger.error(f"Error loading initial image: {e}", exc_info=True)
                 self._show_preview_error_placeholder(error_msg)
         else:
-            error_msg = f"Image file not found: {os.path.basename(first_image_path)}"
+            error_msg = f"Image file not found: {Path(first_image_path).name}"
             logger.error(f"Image file does not exist: {first_image_path}")
             self._show_preview_error_placeholder(error_msg)
 
@@ -717,15 +717,15 @@ class CTHarvesterMainWindow(QMainWindow):
 
     def _load_existing_thumbnail_levels(self, ddir):
         """Check for existing thumbnail directories and populate level_info"""
-        thumbnail_base = os.path.join(ddir, ".thumbnail")
-        if not os.path.exists(thumbnail_base):
+        thumbnail_base = str(Path(ddir) / ".thumbnail")
+        if not Path(thumbnail_base).exists():
             return
 
         logger.info(f"Found existing thumbnail directory: {thumbnail_base}")
         level_idx = 1
         while True:
-            level_dir = os.path.join(thumbnail_base, str(level_idx))
-            if not os.path.exists(level_dir):
+            level_dir = str(Path(thumbnail_base) / str(level_idx))
+            if not Path(level_dir).exists():
                 break
 
             # Get first image from this level to determine dimensions
@@ -733,12 +733,12 @@ class CTHarvesterMainWindow(QMainWindow):
                 files = sorted(
                     [
                         f
-                        for f in os.listdir(level_dir)
+                        for f in (e.name for e in Path(level_dir).iterdir())
                         if f.endswith("." + self.settings_hash["file_type"])
                     ]
                 )
                 if files:
-                    first_img_path = os.path.join(level_dir, files[0])
+                    first_img_path = str(Path(level_dir) / files[0])
                     width, height = get_image_dimensions(first_img_path)
 
                     # Calculate sequence range for this level
