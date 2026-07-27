@@ -114,15 +114,25 @@ python build.py
 해당 플랫폼용 실행 파일이 생성됩니다.
 
 ### 버전 관리
+`version.py`가 단일 진실 공급원이며, `scripts/bump_version.py`가 버전을 올리고
+CHANGELOG를 롤하고 `Cargo.toml`을 맞춘 뒤 태그를 찍습니다. 자세한 내용은
+[VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md)를 참고하세요.
+
 ```bash
 # 패치 버전 증가 (0.2.0 -> 0.2.1)
-python manage_version.py bump patch
+python scripts/bump_version.py patch
 
-# 마이너 버전 증가 (0.2.0 -> 0.3.0)
-python manage_version.py bump minor
+# pre-release 사이클 시작 (0.2.0 -> 0.3.0-beta.1)
+python scripts/bump_version.py preminor beta
 
-# 메이저 버전 증가 (0.2.0 -> 1.0.0)
-python manage_version.py bump major
+# pre-release 번호 증가 (0.3.0-beta.1 -> 0.3.0-beta.2)
+python scripts/bump_version.py prerelease
+
+# 정식 버전으로 (0.3.0-rc.2 -> 0.3.0)
+python scripts/bump_version.py release
+
+# 아무것도 바꾸지 않고 미리보기
+python scripts/bump_version.py patch --dry-run
 ```
 
 ### 테스트
@@ -193,7 +203,6 @@ CTHarvester/
 ├── CTHarvester.py          # 메인 애플리케이션 진입점
 ├── version.py              # 버전 관리
 ├── build.py                # 패키징용 빌드 스크립트
-├── manage_version.py       # 버전 업데이트 유틸리티
 ├── requirements.txt        # Python 의존성
 ├── pyproject.toml          # 프로젝트 및 도구 설정 (pytest, mypy, ruff)
 │

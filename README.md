@@ -156,15 +156,25 @@ python build.py
 This will create the executable for your platform.
 
 ### Version Management
+`version.py` is the single source of truth; `scripts/bump_version.py` bumps it,
+rolls the changelog, keeps `Cargo.toml` in step and tags the release. See
+[VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md).
+
 ```bash
 # Bump patch version (0.2.0 -> 0.2.1)
-python manage_version.py bump patch
+python scripts/bump_version.py patch
 
-# Bump minor version (0.2.0 -> 0.3.0)
-python manage_version.py bump minor
+# Start a pre-release cycle (0.2.0 -> 0.3.0-beta.1)
+python scripts/bump_version.py preminor beta
 
-# Bump major version (0.2.0 -> 1.0.0)
-python manage_version.py bump major
+# Bump the pre-release number (0.3.0-beta.1 -> 0.3.0-beta.2)
+python scripts/bump_version.py prerelease
+
+# Finalise it (0.3.0-rc.2 -> 0.3.0)
+python scripts/bump_version.py release
+
+# Preview without changing anything
+python scripts/bump_version.py patch --dry-run
 ```
 
 ### Testing
@@ -236,7 +246,7 @@ CTHarvester/
 ├── CTHarvester.py          # Main application entry point
 ├── version.py              # Version management
 ├── build.py                # Build script for packaging
-├── manage_version.py       # Version bump utility
+├── Cargo.toml              # Rust module (ct_thumbnail) manifest
 ├── requirements.txt        # Python dependencies
 ├── pyproject.toml          # Project + tool configuration (pytest, mypy, ruff)
 │

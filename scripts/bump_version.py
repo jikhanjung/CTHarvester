@@ -18,11 +18,26 @@ Flow (mirrors Modan2's process — see docs/RELEASE_PROCESS.md):
     6. With --push, the commit and tag are pushed, which triggers release.yml
        (build all platforms + GitHub release with notes from the CHANGELOG).
 
+Commands (the same vocabulary Modan2's VERSION_MANAGEMENT.md describes):
+
+    major / minor / patch          1.2.3 -> 2.0.0 / 1.3.0 / 1.2.4
+    premajor / preminor / prepatch start a pre-release cycle; the optional
+      [token]                      token is alpha (default), beta or rc
+                                   1.2.3 -> preminor beta -> 1.3.0-beta.1
+    prerelease                     bump the pre-release number
+                                   1.3.0-beta.1 -> 1.3.0-beta.2
+    stage <alpha|beta|rc>          move stage, resetting the number to 1
+                                   1.3.0-alpha.4 -> stage beta -> 1.3.0-beta.1
+    release                        drop the pre-release suffix
+                                   1.3.0-rc.2 -> 1.3.0
+    --set X.Y.Z                    an explicit version
+
 Examples:
     python scripts/bump_version.py patch            # 0.2.3 -> 0.2.4
-    python scripts/bump_version.py minor            # 0.2.3 -> 0.3.0
+    python scripts/bump_version.py preminor beta    # 0.2.3 -> 0.3.0-beta.1
     python scripts/bump_version.py prerelease       # 0.2.4-beta.1 -> 0.2.4-beta.2
-    python scripts/bump_version.py --set 1.0.0
+    python scripts/bump_version.py stage rc         # 0.2.4-beta.3 -> 0.2.4-rc.1
+    python scripts/bump_version.py release          # 0.2.4-rc.1 -> 0.2.4
     python scripts/bump_version.py patch --push     # also push commit + tag
 
 Dry run:
@@ -46,8 +61,15 @@ except ImportError:
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 VERSION_FILE = PROJECT_ROOT / "version.py"
 CHANGELOG_FILE = PROJECT_ROOT / "CHANGELOG.md"
+# The Rust extension (ct_thumbnail) carries its own version, and
+# tests/test_version_consistency.py gates on it matching version.py. Modan2 has
+# no Rust component, so its tooling has no equivalent of this.
+CARGO_FILE = PROJECT_ROOT / "Cargo.toml"
 
 VERSION_RE = re.compile(r'^(__version__\s*=\s*")([^"]+)(")', re.MULTILINE)
+CARGO_VERSION_RE = re.compile(r'^(version\s*=\s*")([^"]+)(")', re.MULTILINE)
+
+VALID_STAGES = ("alpha", "beta", "rc")
 
 
 # --------------------------------------------------------------------------- #
@@ -67,6 +89,49 @@ def write_version(new_version: str) -> None:
     VERSION_FILE.write_text(text, encoding="utf-8")
 
 
+def write_cargo_version(new_version: str) -> None:
+    """Keep Cargo.toml's [package] version in step with version.py.
+
+    Rewrites the first `version = "..."` in the file, which is the [package]
+    one -- dependency versions appear later and inside tables.
+    """
+    text = CARGO_FILE.read_text(encoding="utf-8")
+    if not CARGO_VERSION_RE.search(text):
+        sys.exit(f"error: could not find a version line in {CARGO_FILE}")
+    CARGO_FILE.write_text(
+        CARGO_VERSION_RE.sub(rf"\g<1>{new_version}\g<3>", text, count=1), encoding="utf-8"
+    )
+
+
+def _validate_stage(token: str) -> None:
+    if token not in VALID_STAGES:
+        sys.exit(f"error: stage must be one of {', '.join(VALID_STAGES)} (got {token!r})")
+
+
+def _start_prerelease_cycle(ver: semver.VersionInfo, part: str, token: str | None) -> str:
+    """premajor/preminor/prepatch: bump the part, then open stage .1."""
+    stage = token or "alpha"
+    _validate_stage(stage)
+    bump = {"premajor": ver.bump_major, "preminor": ver.bump_minor, "prepatch": ver.bump_patch}
+    return str(bump[part]().bump_prerelease(token=stage))
+
+
+def _move_stage(ver: semver.VersionInfo, current: str, token: str | None) -> str:
+    """stage <alpha|beta|rc>: change stage, restarting the number at 1."""
+    if not ver.prerelease:
+        sys.exit(
+            "error: 'stage' moves between pre-release stages, and "
+            f"{current} is already stable. Use premajor/preminor/prepatch "
+            "to start a pre-release cycle."
+        )
+    if not token:
+        sys.exit(f"error: 'stage' needs a token: {', '.join(VALID_STAGES)}")
+    _validate_stage(token)
+    if ver.prerelease.split(".")[0] == token:
+        sys.exit(f"error: already in the {token!r} stage ({current})")
+    return str(ver.replace(prerelease=f"{token}.1"))
+
+
 def compute_new_version(current: str, args: argparse.Namespace) -> str:
     if args.set:
         # Validate but keep the literal string the user asked for.
@@ -75,15 +140,30 @@ def compute_new_version(current: str, args: argparse.Namespace) -> str:
 
     ver = semver.VersionInfo.parse(current)
     part = args.part
+    token = args.token
+
+    if part in ("major", "minor", "patch") and token:
+        sys.exit(f"error: '{part}' takes no token (got {token!r})")
+
     if part == "major":
         return str(ver.bump_major())
     if part == "minor":
         return str(ver.bump_minor())
     if part == "patch":
         return str(ver.bump_patch())
+
+    if part in ("premajor", "preminor", "prepatch"):
+        return _start_prerelease_cycle(ver, part, token)
     if part == "prerelease":
         # 0.2.4-beta.1 -> 0.2.4-beta.2; 0.2.4 -> 0.2.4-rc.1
         return str(ver.bump_prerelease())
+    if part == "stage":
+        return _move_stage(ver, current, token)
+    if part == "release":
+        if not ver.prerelease:
+            sys.exit(f"error: {current} is already a stable version")
+        return str(ver.finalize_version())
+
     raise AssertionError(part)  # argparse restricts choices
 
 
@@ -167,10 +247,25 @@ def parse_args() -> argparse.Namespace:
     g.add_argument(
         "part",
         nargs="?",
-        choices=["major", "minor", "patch", "prerelease"],
-        help="which version part to bump",
+        choices=[
+            "major",
+            "minor",
+            "patch",
+            "premajor",
+            "preminor",
+            "prepatch",
+            "prerelease",
+            "stage",
+            "release",
+        ],
+        help="which version part to bump (see the examples above)",
     )
     g.add_argument("--set", metavar="X.Y.Z", help="set an explicit version")
+    p.add_argument(
+        "token",
+        nargs="?",
+        help="pre-release stage (alpha, beta or rc) for premajor/preminor/prepatch/stage",
+    )
     p.add_argument(
         "--push", action="store_true", help="push the commit and tag (triggers release.yml)"
     )
@@ -204,6 +299,7 @@ def main() -> int:
     # Apply file changes (skipped on dry-run).
     if not args.dry_run:
         write_version(new_version)
+        write_cargo_version(new_version)
         roll_changelog(new_version, today)
 
     preview = (
@@ -228,6 +324,7 @@ def main() -> int:
             "git",
             "add",
             str(VERSION_FILE.relative_to(PROJECT_ROOT)),
+            str(CARGO_FILE.relative_to(PROJECT_ROOT)),
             str(CHANGELOG_FILE.relative_to(PROJECT_ROOT)),
         ],
         args.dry_run,
