@@ -42,7 +42,13 @@ extensions = [
 ]
 
 templates_path = ["_templates"]
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+# "**.md": with myst_parser enabled, any Markdown file dropped into this
+# directory would silently become a document -- and then warn that it is not in
+# any toctree, which is how Modan2 discovered the same thing after adding a
+# docs/manual/README.md. The published manual is .rst; the one Markdown file it
+# uses (../../CHANGELOG.md) arrives through an `include` directive, which reads
+# the file directly and is unaffected by this pattern.
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.md"]
 
 # Internationalization (i18n) settings
 locale_dirs = ["locale/"]
