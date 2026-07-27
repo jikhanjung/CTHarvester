@@ -14,7 +14,7 @@ state and should be updated as items land.
 | # | Item | Status | Where it stands |
 |---|---|---|---|
 | 1 | Cross-platform CI matrix + headless smoke test | ✅ | 3 OS x Python 3.12, `tests/test_smoke.py` |
-| 2 | Lint + tests gating | ⚠️ | ruff, the test matrix and the docs build gate. One `\|\| true` remains: mypy — **no longer blocked**, see below |
+| 2 | Lint + tests gating | ✅ | ruff, mypy, the test matrix and the docs build all gate. No `\|\| true` left in the lint job (mypy became gating 2026-07-27) |
 | 3 | Expand the lint ruleset incrementally | ⚠️ | `E, F, I, N, UP, B, C4, LOG, DTZ, RUF012`. `SIM` (40), `TRY` (138), `PTH` (502), `S` (2083) not yet |
 | 4 | `filterwarnings = error` | ✅ | `pyproject.toml`, narrow documented ignores only |
 | 5 | Lockfile + pip-audit + Dependabot | ✅ | 9 per-platform lockfiles with hashes, pip-audit gating on all three platforms, `.github/dependabot.yml`, and `dependabot-lock-refresh.yml` to keep the locks in step with Dependabot's range bumps |
@@ -33,14 +33,17 @@ dropping 3.11 the same day made the question moot — the floor is 3.12 and the
 locks carry numpy 2.5.1 / scipy 1.18.0. Keep `requires-python`, the CI matrix
 and `LOCK_ARGS` in step.
 
-**mypy gating is unblocked (2026-07-27), not yet enabled.** Item #2's remaining
-`|| true` was there because mypy pinned `python_version = 3.11` while the numpy
-2.5 stubs use 3.12 `type` syntax. With 3.11 dropped the config is at 3.12 and
-`mypy --config-file pyproject.toml core/ utils/` — the exact CI command —
-reports **Success: no issues found in 24 source files** against the locked mypy
-1.20.2 and numpy 2.5.1. Removing `|| true` in `test.yml` is all that is left;
-it was not done in the same change because gating was not what that change was
-about.
+**mypy is gating (2026-07-27).** Item #2's `|| true` was there because mypy
+pinned `python_version = 3.11` while the numpy 2.5 stubs use 3.12 `type` syntax.
+Dropping 3.11 moved the config to 3.12, `mypy --config-file pyproject.toml
+core/ utils/` reports **Success: no issues found in 24 source files** against
+the locked mypy 1.20.2, and the guard is gone.
+
+What is left here is **scope**, not enablement: mypy runs over `core/` and
+`utils/` only. `ui/` has per-module strict sections in `pyproject.toml` that
+mypy reports as unused because nothing passes those paths to it. Widen a
+directory at a time, each clean before it is added — the same shape as the C901
+ratchet.
 
 **Working order** (cheapest first, per the guide's own ordering): ~~#3 `DTZ`~~,
 ~~#2 docs build gating~~, ~~#9 packaged smoke test~~, ~~#8 complexity

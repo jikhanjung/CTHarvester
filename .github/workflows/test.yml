@@ -50,14 +50,15 @@ jobs:
       - name: ruff format --check
         run: ruff format --check --diff .
 
-      # Advisory (not gating), but no longer blocked: the reason for the
-      # `|| true` was that mypy pinned python_version=3.11 while the numpy 2.5
-      # stubs use 3.12 `type` syntax. Dropping 3.11 (2026-07-27) moved the
-      # config to 3.12 and this exact command now passes clean against the
-      # locked mypy 1.20.2 and numpy 2.5.1. Removing `|| true` is a one-word
-      # change whenever we want it gating. Tracked in TODOs.md.
-      - name: mypy (typed modules, advisory)
-        run: mypy --config-file pyproject.toml core/ utils/ || true
+      # Gating as of 2026-07-27. It ran advisory (`|| true`) for weeks because
+      # mypy pinned python_version=3.11 while the numpy 2.5 stubs use 3.12
+      # `type` syntax; dropping 3.11 moved the config to 3.12 and the tree is
+      # clean. Scope is core/ and utils/ -- the modules with per-module strict
+      # sections in pyproject.toml -- not the whole codebase. Widen the scope
+      # the same way the C901 ratchet was tightened: a directory at a time,
+      # each one clean before it is added.
+      - name: mypy (typed modules)
+        run: mypy --config-file pyproject.toml core/ utils/
 
   # Fast fail: if a module does not import or the app does not start on a
   # platform, there is no point running the full suite there.
