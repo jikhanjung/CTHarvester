@@ -166,3 +166,101 @@ overkill — Modan2 should not add these either:
 
 Items 1 and 2 are the ones worth doing soon; 3 and 4 fit Modan2's existing
 phased-adoption cadence.
+
+---
+
+# Addendum — 2026-07-27
+
+A second pass, after CTHarvester finished adopting the guide (devlogs 101–105).
+Everything below was checked against the Modan2 tree rather than assumed.
+
+## 1. Markdown under `docs/` is not published — 12 files ⚠️
+
+**This is the one worth acting on.**
+
+`docs/conf.py` has no `myst_parser`, so Sphinx reads `.rst` only. Every `.md`
+file under `docs/` therefore builds into nothing: it is readable on GitHub and
+nowhere else. Modan2 has 12 of them, and `index.rst`'s toctree lists only the
+8 `.rst` files.
+
+CTHarvester had the same setup and the same blind spot. It surfaced when a
+documentation audit called `docs/configuration.md` complete — a 457-line
+reference for every settings key that had never appeared on the documentation
+site at all.
+
+Worth checking which of Modan2's 12 are user-facing. Two options:
+
+- **Add `myst-parser`** and put the user-facing ones in the toctree.
+- **Split by extension explicitly** — `.rst` is the published manual, `.md` is
+  repository-only developer notes — and convert the ones on the wrong side.
+  CTHarvester took this route; see `docs/README.md` there for the wording.
+
+Either is fine. Leaving it implicit is what costs you a document nobody reads.
+
+## 2. PyOpenGL backends and PyInstaller — informational
+
+CTHarvester's packaged Linux build could not start at all:
+
+```
+File "OpenGL/platform/__init__.py", line 52, in _load
+TypeError: 'NoneType' object is not callable
+```
+
+PyOpenGL selects its backend at runtime through `OpenGL.plugins`, importing the
+module by dotted name (`OpenGL.platform.glx` and friends). PyInstaller's static
+analysis cannot see a dotted-name import, so no backend was bundled.
+
+Modan2 uses PyOpenGL and passes no `--hidden-import` at all, so this looked like
+a shared risk — but Modan2's packaged smoke test passes on all three platforms,
+so the bundle is fine as built. Recorded only so the signature is recognisable
+if it ever appears. The fix is `OpenGL.platform.{glx,egl,osmesa,win32,darwin}`
+in hidden imports.
+
+This is also the third time the packaged-artifact smoke test has justified
+itself: CTHarvester added it on Modan2's model and it failed on its first run,
+catching exactly this.
+
+## 3. Where Modan2 is *still* ahead — CTHarvester should copy these back
+
+Checked while looking for things to recommend, and found the reverse:
+
+- **Per-platform lockfiles** (`--python-platform linux|windows|macos`).
+  CTHarvester used one `--universal` lock and hit a defect Modan2's approach
+  cannot have: `pyqt5-qt5` stopped shipping Windows wheels after 5.15.2, uv does
+  not check wheel-tag coverage, and the single pin broke every Windows CI job.
+  CTHarvester patched it with environment markers; Modan2's per-platform locks
+  are the better design.
+- **`lock-check` seeding.** Modan2's Makefile already copies the committed lock
+  into the temp file before recompiling, with a comment explaining exactly why.
+  CTHarvester's did not, so its gating `dependency-lock` job failed on every
+  upstream release for weeks. Modan2 got this right first.
+
+## 4. A complexity ratchet, if you want one
+
+Modan2 has no `[tool.ruff.lint.mccabe]` setting, so `C901` is unenforced. Current
+distribution:
+
+| max-complexity | functions over |
+|---|---|
+| 10 | 53 |
+| 15 | 12 |
+| 20 | 1 |
+| 30 | 0 |
+
+Enabling `C901` at 15 would mean refactoring 12 functions first, which is why it
+tends not to get enabled at all. The ratchet avoids that: set `max-complexity` to
+the current worst value (30 here), so the rule passes today and nothing can get
+*worse*, then lower it as functions are split.
+
+CTHarvester went 32 → 28 → 20 → 18 → 15 over eight functions this way and is now
+at the guide's threshold. The cost is one config line up front instead of a
+refactoring project.
+
+## Summary of this addendum
+
+| Item | Value | Effort |
+|---|---|---|
+| 1. Publish or explicitly exclude `docs/*.md` | **High** | 1–2 h |
+| 2. PyOpenGL hidden imports | Informational | — |
+| 3. (CTHarvester adopting Modan2's lock design) | — | — |
+| 4. `C901` ratchet | Medium | 5 min + ongoing |

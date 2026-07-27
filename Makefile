@@ -27,6 +27,7 @@ help:
 	@echo "Documentation:"
 	@echo "  make docs             Build Sphinx documentation"
 	@echo "  make docs-serve       Build and serve documentation"
+	@echo "  make docs-watch       Live-reloading docs build for authoring"
 	@echo ""
 	@echo "Build:"
 	@echo "  make build            Build executable for current platform"
@@ -152,6 +153,13 @@ docs:
 docs-serve: docs
 	@echo "Serving documentation at http://localhost:8000"
 	cd docs/_build/html && python -m http.server
+
+# Rebuild and reload the browser on every save. This is the one to use while
+# writing docs; `make docs` is a one-shot build.
+docs-watch:
+	@echo "Watching docs/ - http://localhost:8000 (Ctrl+C to stop)"
+	@command -v sphinx-autobuild >/dev/null || { echo "sphinx-autobuild not found - pip install -e '.[docs]'"; exit 1; }
+	sphinx-autobuild docs docs/_build/html --port 8000 --open-browser
 
 docs-clean:
 	cd docs && make clean
