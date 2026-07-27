@@ -17,7 +17,7 @@ state and should be updated as items land.
 | 2 | Lint + tests gating | ⚠️ | ruff, the test matrix and the docs build gate. One `\|\| true` remains: mypy — **no longer blocked**, see below |
 | 3 | Expand the lint ruleset incrementally | ⚠️ | `E, F, I, N, UP, B, C4, LOG, DTZ, RUF012`. `SIM` (40), `TRY` (138), `PTH` (502), `S` (2083) not yet |
 | 4 | `filterwarnings = error` | ✅ | `pyproject.toml`, narrow documented ignores only |
-| 5 | Lockfile + pip-audit + Dependabot | ✅ | 3 lockfiles with hashes, pip-audit gating, `.github/dependabot.yml` |
+| 5 | Lockfile + pip-audit + Dependabot | ✅ | 9 per-platform lockfiles with hashes, pip-audit gating on all three platforms, `.github/dependabot.yml`, and `dependabot-lock-refresh.yml` to keep the locks in step with Dependabot's range bumps |
 | 6 | Coverage gate | ✅ | `--cov-fail-under=75` on the reference leg |
 | 7 | Static type checking, scoped | ✅ | mypy per-module strict; runs in CI (advisory, see #2) |
 | 8 | Dead-code / complexity automation | ✅ | `C901` enforced at the guide's threshold of 15 (2026-07-26); the backlog of eight functions is cleared. vulture evaluated and rejected — 5 of its 6 findings were false positives; Modan2 does not use it either. |

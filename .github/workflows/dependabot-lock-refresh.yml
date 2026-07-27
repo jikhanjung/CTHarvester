@@ -1,0 +1,74 @@
+name: Dependabot lock refresh
+
+# Dependabot edits the version RANGES in pyproject.toml (and the compatibility
+# requirements*.txt), never the pinned lockfiles. With nine per-platform locks
+# and a gating `dependency-lock` job in security.yml, that means every Dependabot
+# PR fails until someone regenerates all nine by hand. This workflow does it on
+# the PR branch so the PR can go green on its own.
+#
+# Why pull_request_target: a Dependabot-triggered `pull_request` run gets a
+# read-only token and cannot push. This event runs in the base-repo context with
+# a writable token. It is gated on `github.actor == 'dependabot[bot]'`, an actor
+# no external PR author can spoof.
+#
+# What it runs on the PR's content: `make lock`, i.e. `uv pip compile`. That is
+# dependency resolution, not the project's code -- but resolution can build a
+# source distribution to read its metadata, so it is not categorically inert.
+# The actor gate is what makes this acceptable: the diff being resolved comes
+# from Dependabot, and a hostile upstream release would compromise a local
+# `make lock` just the same.
+#
+# Token: pushing with the default GITHUB_TOKEN succeeds but does NOT re-trigger
+# CI on the new commit (GitHub's loop prevention), so the PR's checks would stay
+# stale. Provide a fine-grained PAT with `contents: write` as the
+# LOCK_REFRESH_TOKEN secret to make the pushed commit re-run CI. Without it the
+# locks are still refreshed, but the PR's checks need a manual re-run (or
+# `@dependabot rebase`).
+
+on:
+  pull_request_target:
+    branches: [main]
+    paths:
+      - pyproject.toml
+      - requirements.txt
+      - requirements-dev.txt
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-locks:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.LOCK_REFRESH_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # Must match LOCK_ARGS' --python-version in the Makefile, or the
+          # refreshed locks will not be the ones `make lock-check` expects.
+          python-version: '3.12'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Regenerate the per-platform lockfiles
+        run: make lock
+
+      - name: Commit and push the refreshed locks (if changed)
+        run: |
+          if git diff --quiet -- 'requirements-*.lock'; then
+            echo "Lockfiles already in sync with the updated declaration - nothing to refresh."
+            exit 0
+          fi
+          git config user.name "dependabot[bot]"
+          git config user.email "49699333+dependabot[bot]@users.noreply.github.com"
+          git add requirements-*.lock
+          git commit -m "chore: Refresh the per-platform lockfiles for the dependabot update"
+          git push
