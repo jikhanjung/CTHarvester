@@ -80,11 +80,18 @@ dev = [
     # Utilities
     "pre-commit>=3.3.3",
 ]
+# The single declaration of the documentation toolchain. The dev lockfiles are
+# compiled with `--extra dev --extra docs` (see the Makefile), so `make
+# install-dev` gives a contributor a working `make docs` and `make docs-watch`
+# without a second install step. docs/manual/requirements.txt is the narrower
+# set CI installs to *build* the docs, and does not include sphinx-autobuild.
 docs = [
     "sphinx>=7.1.2",
     "sphinx-rtd-theme>=1.3.0",
-    # Authoring only: `make docs-watch` rebuilds and reloads on save. Kept out of
-    # docs/requirements.txt, which is the set CI installs to *build* the docs.
+    # Translation workflow (docs/manual/locale/): extracting and updating .po
+    # files. Matches docs/manual/requirements.txt.
+    "sphinx-intl>=2.0.0",
+    # Authoring only: `make docs-watch` rebuilds and reloads on save.
     "sphinx-autobuild>=2024.2.4",
 ]
 build = [

@@ -87,6 +87,6 @@ check_*.py
 .eggs/
 
 # Documentation build
-docs/_build/
-docs/_static/
-# Note: docs/_templates/ contains custom Sphinx templates - NOT ignored
+docs/manual/_build/
+docs/manual/_static/
+# Note: docs/manual/_templates/ contains custom Sphinx templates - NOT ignored

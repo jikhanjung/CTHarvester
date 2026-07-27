@@ -67,7 +67,7 @@ def test_constants_reexports_the_real_version():
 
 def test_docs_conf_does_not_hardcode_version():
     """Sphinx `release` must be imported from version.py, not typed in."""
-    source = (PROJECT_ROOT / "docs" / "conf.py").read_text(encoding="utf-8")
+    source = (PROJECT_ROOT / "docs" / "manual" / "conf.py").read_text(encoding="utf-8")
     hardcoded = re.search(r"^\s*release\s*=\s*['\"]", source, re.MULTILINE)
-    assert not hardcoded, "docs/conf.py hardcodes `release`; import it from version.py"
+    assert not hardcoded, "docs/manual/conf.py hardcodes `release`; import it from version.py"
     assert "from version import" in source

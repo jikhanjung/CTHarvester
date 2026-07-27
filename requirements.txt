@@ -4,10 +4,10 @@
 # It is NOT what CI or release builds install.
 #
 #   Declaration (ranges)  -> pyproject.toml  [project.dependencies]
-#   Resolution (pinned)   -> requirements.lock  (exact versions + hashes)
+#   Resolution (pinned)   -> requirements-<os>.lock  (exact versions + hashes)
 #
-# Preferred install:   make install        (pip install --require-hashes -r requirements.lock)
-# Regenerate the lock: make lock
+# The locks are per-platform (linux / windows / macos); `make install` picks the
+# one matching the machine. Regenerate them all with `make lock`.
 
 # GUI Framework
 pyqt5>=5.15.0,<6.0.0

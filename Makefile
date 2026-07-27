@@ -55,9 +55,12 @@ help:
 # impossible, because uv only considers wheels the target platform can install.
 #
 # Three variants x three platforms, nine files:
-#   requirements-<os>.lock         runtime only    (pip-audit, CodeQL)
-#   requirements-dev-<os>.lock     + test and lint (test jobs)
-#   requirements-build-<os>.lock   + PyInstaller   (build jobs)
+#   requirements-<os>.lock         runtime only          (pip-audit, CodeQL)
+#   requirements-dev-<os>.lock     + test, lint and docs (test jobs)
+#   requirements-build-<os>.lock   + PyInstaller         (build jobs)
+#
+# The dev lock takes `--extra docs` as well, so `make install-dev` leaves a
+# contributor able to run `make docs` and `make docs-watch` straight away.
 #
 # Everything is compiled at the 3.11 floor, so one lock per platform installs
 # across the whole 3.11-3.13 CI matrix. This is the tradeoff against
@@ -85,7 +88,7 @@ lock:
 	@for p in $(PLATFORMS); do \
 		echo "Locking $$p ..."; \
 		$(COMPILE) --python-platform $$p -o requirements-$$p.lock; \
-		$(COMPILE) --python-platform $$p --extra dev -o requirements-dev-$$p.lock; \
+		$(COMPILE) --python-platform $$p --extra dev --extra docs -o requirements-dev-$$p.lock; \
 		$(COMPILE) --python-platform $$p --extra build -o requirements-build-$$p.lock; \
 	done
 
@@ -105,7 +108,7 @@ lock:
 lock-check:
 	@tmp=`mktemp -d`; status=0; \
 	for p in $(PLATFORMS); do \
-		for spec in "requirements-$$p.lock:" "requirements-dev-$$p.lock:--extra dev" "requirements-build-$$p.lock:--extra build"; do \
+		for spec in "requirements-$$p.lock:" "requirements-dev-$$p.lock:--extra dev --extra docs" "requirements-build-$$p.lock:--extra build"; do \
 			f=`echo "$$spec" | cut -d: -f1`; \
 			extra=`echo "$$spec" | cut -d: -f2`; \
 			cp "$$f" "$$tmp/candidate"; \
@@ -181,24 +184,26 @@ test-integration:
 	pytest tests/ -m integration -v
 
 # Documentation
+# The published manual is docs/manual/ and nothing else: docs/*.md are
+# repository-only notes that Sphinx never sees. See docs/README.md.
 docs:
 	@echo "Building documentation..."
-	cd docs && make html
-	@echo "Documentation built in docs/_build/html/"
+	cd docs/manual && make html
+	@echo "Documentation built in docs/manual/_build/html/"
 
 docs-serve: docs
 	@echo "Serving documentation at http://localhost:8000"
-	cd docs/_build/html && python -m http.server
+	cd docs/manual/_build/html && python -m http.server
 
 # Rebuild and reload the browser on every save. This is the one to use while
 # writing docs; `make docs` is a one-shot build.
 docs-watch:
-	@echo "Watching docs/ - http://localhost:8000 (Ctrl+C to stop)"
+	@echo "Watching docs/manual/ - http://localhost:8000 (Ctrl+C to stop)"
 	@command -v sphinx-autobuild >/dev/null || { echo "sphinx-autobuild not found - pip install -e '.[docs]'"; exit 1; }
-	sphinx-autobuild docs docs/_build/html --port 8000 --open-browser
+	sphinx-autobuild docs/manual docs/manual/_build/html --port 8000 --open-browser
 
 docs-clean:
-	cd docs && make clean
+	cd docs/manual && make clean
 
 # Building
 build:

@@ -123,17 +123,21 @@ CTHarvester can automatically read reconstruction settings from log files genera
 ### Building Documentation
 Documentation is available in both English and Korean.
 
+The manual source lives in `docs/manual/`; the Markdown files at the `docs/`
+root are repository-only notes and are not part of it (see `docs/README.md`).
+
 ```bash
-cd docs
+# Build both languages the way CI does
+make docs
 
-# Build English documentation
+# Or build one language directly
+cd docs/manual
 sphinx-build -b html -D language=en . _build/html/en
-
-# Build Korean documentation
 sphinx-build -b html -D language=ko . _build/html/ko
 ```
 
-The built documentation will be in `docs/_build/html/en/` and `docs/_build/html/ko/`.
+The built documentation will be in `docs/manual/_build/html/en/` and
+`docs/manual/_build/html/ko/`.
 
 ## Development
 

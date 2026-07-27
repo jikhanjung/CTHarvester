@@ -35,6 +35,17 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   default.
 
 ### Changed / Internal
+- **The published manual moved to `docs/manual/`.** The Sphinx source directory
+  (`conf.py`, every `.rst`, `locale/`, `_templates/`) is now separated from the
+  repository-only Markdown notes by a directory rather than by file extension.
+  The old split relied on Sphinx not reading `.md` — an invisible rule that had
+  already let a complete settings reference go unpublished, and one that adding
+  `myst_parser` would have quietly inverted. Published URLs are unchanged. The
+  Pages deploy now triggers on `docs/manual/**` instead of all of `docs/`, so
+  editing an internal note no longer redeploys the site. Matches Modan2's layout.
+- The documentation toolchain is part of the dev lockfiles (`--extra dev --extra
+  docs`), so `make install-dev` leaves `make docs` and `make docs-watch` working
+  without a second install.
 - **Dependency lockfiles are per-platform instead of universal.** One
   `--universal` lock resolved a single version per package for all three
   operating systems and did not check wheel coverage, so a package whose wheels

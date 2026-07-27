@@ -313,8 +313,9 @@ open htmlcov/index.html  # View coverage report
 
 When adding new features, update:
 
-- `docs/user_guide.rst` - User-facing features
-- `docs/api/` - API documentation
+- `docs/manual/user_guide.rst` - User-facing features. The published manual is
+  `docs/manual/` only; a note added at the `docs/` root reaches nobody but us
+  (see `docs/README.md`)
 - `README.md` - If affects installation/usage
 - `CHANGELOG.md` - Add entry to Unreleased section
 

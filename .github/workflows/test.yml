@@ -254,13 +254,13 @@ jobs:
         cache: 'pip'
 
     - name: Build docs
-      # Gating. Installs docs/requirements.txt rather than naming packages here:
+      # Gating. Installs docs/manual/requirements.txt rather than naming packages here:
       # conf.py imports version.py, which needs semver, and this step listing
       # its own subset is how the docs build came to fail for weeks while
       # continue-on-error reported it green.
       run: |
-        pip install -r docs/requirements.txt
-        cd docs
+        pip install -r docs/manual/requirements.txt
+        cd docs/manual
         make clean
         make html
 

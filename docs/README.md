@@ -1,11 +1,11 @@
 # docs/ layout
 
-Two kinds of document live here, and the file extension is what tells them
-apart.
+Two kinds of document live here, and **the directory** is what tells them apart.
 
-## `.rst` — the published manual
+## `docs/manual/` — the published manual
 
-Built by Sphinx, listed in `index.rst`'s toctree, and deployed to
+The Sphinx source directory: `conf.py`, the `.rst` pages, `locale/` and
+`_templates/`. Built and deployed to
 <https://jikhanjung.github.io/CTHarvester>. Written for people **using**
 CTHarvester.
 
@@ -20,15 +20,19 @@ CTHarvester.
 | `developer_guide.rst` | Contributing, architecture overview, testing |
 | `changelog.rst` | Release history |
 
-Build it with `make html` (or `make -C docs html` from the repo root); the
-`docs` job in `.github/workflows/test.yml` gates on it.
+Build it with `make docs` from the repo root (or `make html` inside
+`docs/manual/`); `make docs-watch` rebuilds and reloads while you write. The
+`docs` job in `.github/workflows/test.yml` gates on the build, and
+`.github/workflows/docs.yml` deploys on pushes that touch `docs/manual/**`.
 
-## `.md` — repository-only notes
+Adding a page means adding it to `index.rst`'s toctree. A file that is not in
+the toctree is not in the manual.
 
-**Not built and not published.** Sphinx reads `.rst` only — there is no
-`myst_parser` in `conf.py` — so a Markdown file added here is readable on GitHub
-and nowhere else. That is deliberate: these are notes for people **working on**
-CTHarvester, and they would only dilute a user manual.
+## `docs/` root — repository-only notes
+
+**Outside the Sphinx source directory, so not built and not published.** These
+are notes for people **working on** CTHarvester; they would only dilute a user
+manual.
 
 | File | Covers |
 |---|---|
@@ -37,15 +41,21 @@ CTHarvester, and they would only dilute a user manual.
 | `RELEASE_PROCESS.md`, `RELEASE_CHECKLIST.md` | Cutting a release |
 | `CI_CD_AUDIT.md`, `CI_RECOMMENDATIONS_FOR_MODAN2.md` | CI history and notes |
 | `GITHUB_PAGES_SETUP.md` | One-time Pages configuration |
-| `SETTINGS_DIALOG_INFO.md` | Implementation note from when the dialog landed; the user-facing version is `user_guide.rst` |
-| `developer_guide/error_recovery.md`, `developer_guide/performance.md` | Long-form developer references, linked from `developer_guide.rst` |
+| `SETTINGS_DIALOG_INFO.md` | Implementation note from when the dialog landed; the user-facing version is `manual/user_guide.rst` |
+| `developer_guide/error_recovery.md`, `developer_guide/performance.md` | Long-form developer references, linked from `manual/developer_guide.rst` |
 | `release-notes/` | Archived per-version notes; `CHANGELOG.md` is canonical |
 
 ## Which one am I writing?
 
-If a user of the application would read it, write `.rst` and add it to
-`index.rst`'s toctree — otherwise it will not reach them. Everything else is
-`.md`.
+If a user of the application would read it, it belongs in `docs/manual/` as
+`.rst`, in the toctree. Everything else stays at the `docs/` root.
 
-This split was made explicit after `configuration.md` — a complete reference for
-every setting — turned out to have never been published at all.
+## Why a directory and not a file extension
+
+This split used to be by extension — `.rst` published, `.md` not — because
+Sphinx reads `.rst` only and `conf.py` has no `myst_parser`. That rule was
+invisible and fragile: `configuration.md`, a complete reference for every
+setting, was audited and found complete while having never been published at
+all, and adding `myst_parser` some day would have silently turned nine internal
+notes into manual pages. A directory boundary states the same rule in a form
+that survives a configuration change, and it matches the layout Modan2 uses.

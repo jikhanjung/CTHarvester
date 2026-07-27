@@ -6,7 +6,9 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(".."))
+# The repository root, three levels up from docs/manual/conf.py: needed so the
+# `from version import ...` below and autodoc's imports resolve.
+sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -68,7 +70,7 @@ html_context = {
     "github_user": "jikhanjung",
     "github_repo": "CTHarvester",
     "github_version": "main",
-    "conf_py_path": "/docs/",
+    "conf_py_path": "/docs/manual/",
 }
 
 # Additional HTML theme options

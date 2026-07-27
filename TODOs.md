@@ -64,6 +64,26 @@ raise it.
 
 ---
 
+## Broken doc links, found during the `docs/manual/` move (2026-07-27)
+
+Four files point at `docs/user_guide/troubleshooting.rst`, a path that has never
+existed — the file is `docs/manual/troubleshooting.rst` (and was
+`docs/troubleshooting.rst` before the move). Left alone deliberately to keep the
+move a pure relocation; fix them in a pass of their own, and check the other
+relative links in the same files while there:
+
+- `docs/developer_guide/performance.md:597`
+- `docs/developer_guide/error_recovery.md:473,477`
+- `docs/manual/changelog.rst:196` (describes a historical layout; may be correct
+  as a record — check before editing)
+- `docs/release-notes/v0.2.3-beta.1-enhanced.md:81`
+
+Worth considering alongside this: a link checker. `sphinx-build -b linkcheck`
+covers the manual, but none of these live in it — the `.md` notes are exactly
+the files no build ever validates.
+
+---
+
 ## Fixed along the way: `make lock-check` reported "stale" forever
 
 `uv pip compile` prefers versions already pinned in its output file. `make lock`

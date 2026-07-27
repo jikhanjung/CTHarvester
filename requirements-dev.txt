@@ -4,10 +4,10 @@
 # It is NOT what CI installs.
 #
 #   Declaration (ranges)  -> pyproject.toml  [project.optional-dependencies].dev
-#   Resolution (pinned)   -> requirements-dev.lock  (exact versions + hashes)
+#   Resolution (pinned)   -> requirements-dev-<os>.lock  (exact versions + hashes)
 #
-# Preferred install:   make install-dev
-# Regenerate the lock: make lock
+# The locks are per-platform (linux / windows / macos); `make install-dev` picks
+# the one matching the machine. Regenerate them all with `make lock`.
 
 -r requirements.txt
 
@@ -27,3 +27,9 @@ types-PyYAML>=6.0.0,<7.0.0
 
 # Profiling
 memory-profiler>=0.61.0,<1.0.0
+
+# Documentation toolchain, so `make docs` and `make docs-watch` work out of the
+# box. Declared in pyproject.toml's `docs` extra, which the dev lockfiles are
+# compiled with; docs/manual/requirements.txt is the narrower set CI uses.
+-r docs/manual/requirements.txt
+sphinx-autobuild>=2024.2.4
