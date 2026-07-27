@@ -40,8 +40,21 @@ jobs:
       # Fails (non-zero) if any has a known vulnerability. If an unfixable
       # advisory appears, add `--ignore-vuln <ID>` with a comment rather than
       # dropping the gate.
-      - name: Audit runtime dependencies
-        run: pip-audit -r requirements.lock
+      #
+      # All three platform locks are audited from this one Linux runner, not
+      # just its own: the locks pin different versions per platform (pyqt5-qt5
+      # is 5.15.2 on Windows against 5.15.19 elsewhere), so auditing only the
+      # Linux lock would never look at what Windows and macOS actually ship.
+      # `--no-deps` audits the pinned lines as given instead of resolving them,
+      # which is what makes a foreign platform's lock auditable here; the locks
+      # are complete, so there is nothing left to resolve anyway.
+      - name: Audit runtime dependencies (all platforms)
+        run: |
+          for lock in requirements-linux.lock requirements-windows.lock requirements-macos.lock; do
+            echo "::group::$lock"
+            pip-audit --no-deps -r "$lock"
+            echo "::endgroup::"
+          done
 
   bandit:
     name: bandit (code security)
@@ -86,5 +99,8 @@ jobs:
       - name: Verify lockfiles match pyproject.toml
         run: make lock-check
 
+      # This runner is Linux, so only the Linux lock can be dry-run installed
+      # here. The other two are exercised by the Windows and macOS legs of the
+      # test matrix, which install their own lock for real.
       - name: Verify the lockfile installs with hashes
-        run: pip install --require-hashes --dry-run -r requirements.lock
+        run: pip install --require-hashes --dry-run -r requirements-linux.lock

@@ -35,6 +35,18 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   default.
 
 ### Changed / Internal
+- **Dependency lockfiles are per-platform instead of universal.** One
+  `--universal` lock resolved a single version per package for all three
+  operating systems and did not check wheel coverage, so a package whose wheels
+  differ by platform could not be expressed — `pyqt5-qt5` publishes Windows
+  wheels only up to 5.15.2, the lock pinned 5.15.19 everywhere, and every
+  Windows CI job failed to install. There are now nine locks
+  (`requirements[-dev|-build]-{linux,windows,macos}.lock`), each resolved
+  against wheels its own platform can actually install, and the hand-written
+  `pyqt5-qt5` environment markers that patched the symptom are gone. `pip-audit`
+  now audits all three platform locks rather than only the Linux one, so
+  Windows-only pins are no longer invisible to it. Contributors run the same
+  `make install-dev`; it picks the lock matching the machine.
 - CI/CD consolidated to nine workflows aligned with Modan2's layout.
 - Linting and formatting consolidated onto **Ruff** (pinned `0.16.0`), replacing
   black, isort, flake8, pyupgrade and pylint. `ruff check` and

@@ -27,9 +27,9 @@ jobs:
           python -m pip install --upgrade pip
           # Locked, hash-verified dependencies so the shipped installer is
           # built from exactly the packages CI tested (see `make lock`).
-          # requirements-build.lock includes the runtime deps plus the build
-          # toolchain (pyinstaller, maturin), all pinned with hashes.
-          pip install --require-hashes -r requirements-build.lock
+          # requirements-build-<os>.lock includes the runtime deps plus the
+          # build toolchain (pyinstaller, maturin), all pinned with hashes.
+          pip install --require-hashes -r requirements-build-windows.lock
 
       - name: Build Rust module
         shell: pwsh
@@ -184,9 +184,9 @@ jobs:
           python -m pip install --upgrade pip
           # Locked, hash-verified dependencies so the shipped installer is
           # built from exactly the packages CI tested (see `make lock`).
-          # requirements-build.lock includes the runtime deps plus the build
-          # toolchain (pyinstaller, maturin), all pinned with hashes.
-          pip install --require-hashes -r requirements-build.lock
+          # requirements-build-<os>.lock includes the runtime deps plus the
+          # build toolchain (pyinstaller, maturin), all pinned with hashes.
+          pip install --require-hashes -r requirements-build-macos.lock
 
       - name: Build Rust module
         run: |
@@ -311,9 +311,9 @@ jobs:
           python -m pip install --upgrade pip
           # Locked, hash-verified dependencies so the shipped installer is
           # built from exactly the packages CI tested (see `make lock`).
-          # requirements-build.lock includes the runtime deps plus the build
-          # toolchain (pyinstaller, maturin), all pinned with hashes.
-          pip install --require-hashes -r requirements-build.lock
+          # requirements-build-<os>.lock includes the runtime deps plus the
+          # build toolchain (pyinstaller, maturin), all pinned with hashes.
+          pip install --require-hashes -r requirements-build-linux.lock
 
       - name: Build Rust module
         run: |

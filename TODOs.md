@@ -24,16 +24,18 @@ state and should be updated as items land.
 | 9 | Packaged-artifact smoke test; signed installers | ⚠️ | Smoke test done (2026-07-26): `--self-test` entry point, run against the frozen build on all 3 OSes in `reusable_build.yml`. Installer signing/notarization still open |
 | 10 | Property-based / fuzz tests | ⚠️ | `tests/property/test_image_properties.py` exists but its body is `pytest.skip("Template - to be implemented in Phase 4")` |
 
-**Also on the list now:** adopt Modan2's per-platform lockfiles
-(`uv pip compile --python-platform linux|windows|macos`) instead of one
-`--universal` lock. The universal lock cannot express a package whose wheel
-coverage differs by platform, which is what broke every Windows CI job via
-`pyqt5-qt5`; environment markers patched it, but per-platform locks make the
-class of bug impossible. See devlog 105.
+**Done 2026-07-27:** ~~adopt Modan2's per-platform lockfiles~~. Nine locks
+(runtime / dev / build x linux, windows, macos), the `pyqt5-qt5` environment
+markers removed, `pip-audit` extended to all three platform locks. See devlog
+106. One consequence to keep in mind: a per-platform lock is compiled at a
+single Python floor (3.11) and so cannot also fork by Python version the way
+`--universal` did — every leg of the 3.11-3.13 matrix now installs the
+3.11-compatible resolution (numpy 2.4.x, not 2.5.x). If testing against numpy
+2.5 on the newer legs matters, that needs a deliberate second axis of locks.
 
 **Working order** (cheapest first, per the guide's own ordering): ~~#3 `DTZ`~~,
-~~#2 docs build gating~~, ~~#9 packaged smoke test~~ and ~~#8 complexity
-ratchet~~ (all done 2026-07-26). Remaining: the complexity backlog below,
+~~#2 docs build gating~~, ~~#9 packaged smoke test~~, ~~#8 complexity
+ratchet~~ and ~~per-platform locks~~ (all done 2026-07-26/27). Remaining:
 #10 property tests, mypy gating, installer signing.
 
 ### Complexity backlog (`C901`) ✅ cleared 2026-07-26

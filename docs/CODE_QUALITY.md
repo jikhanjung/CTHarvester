@@ -71,7 +71,7 @@ one version to keep in sync.
   which rewrites documentation examples nobody reviewed.
 
 **Version pinning**: the exact version appears in three places and they must
-match — `pyproject.toml` (dev extra, which feeds `requirements-dev.lock`),
+match — `pyproject.toml` (dev extra, which feeds `requirements-dev-<os>.lock`),
 `.pre-commit-config.yaml` (`rev`), and the `lint` job in
 `.github/workflows/test.yml` (which installs from the lockfile). A newer ruff
 formats code the pinned one accepted, so an accidental bump turns unrelated PRs

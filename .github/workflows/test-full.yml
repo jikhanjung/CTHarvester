@@ -66,8 +66,9 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        # Locked, hash-verified dependencies (see `make lock`).
-        pip install --require-hashes -r requirements-dev.lock
+        # Locked, hash-verified dependencies (see `make lock`). This job is
+        # ubuntu-latest only, so the Linux lock is named directly.
+        pip install --require-hashes -r requirements-dev-linux.lock
 
     - name: Run ALL tests (including slow tests)
       env:

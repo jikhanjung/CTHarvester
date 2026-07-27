@@ -38,9 +38,10 @@ jobs:
       - name: Install dev dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --require-hashes -r requirements-dev.lock
+          # ubuntu-latest only, so the Linux lock is named directly.
+          pip install --require-hashes -r requirements-dev-linux.lock
 
-      # Gating. The ruff version comes from requirements-dev.lock, which pins it
+      # Gating. The ruff version comes from requirements-dev-linux.lock, which pins it
       # exactly; .pre-commit-config.yaml pins the same version so a contributor's
       # hooks and CI never disagree about formatting.
       - name: ruff check
@@ -102,11 +103,20 @@ jobs:
           freeglut3-dev
 
     - name: Install Python dependencies
+      # bash, not the Windows default pwsh, so one script serves all three legs.
+      shell: bash
       run: |
         python -m pip install --upgrade pip
         # Install from the lockfile so CI, contributors and release builds all
-        # get byte-identical dependencies. Regenerate with `make lock`.
-        pip install --require-hashes -r requirements-dev.lock
+        # get byte-identical dependencies. Regenerate with `make lock`. The
+        # locks are per-platform, so pick the one matching this runner.
+        case "${{ runner.os }}" in
+          Linux)   LOCK=requirements-dev-linux.lock ;;
+          Windows) LOCK=requirements-dev-windows.lock ;;
+          macOS)   LOCK=requirements-dev-macos.lock ;;
+          *)       echo "No lockfile for runner OS ${{ runner.os }}"; exit 1 ;;
+        esac
+        pip install --require-hashes -r "$LOCK"
 
     - name: Run smoke tests (Linux)
       if: runner.os == 'Linux'
@@ -172,11 +182,20 @@ jobs:
           python3-opengl
 
     - name: Install Python dependencies
+      # bash, not the Windows default pwsh, so one script serves all three legs.
+      shell: bash
       run: |
         python -m pip install --upgrade pip
         # Install from the lockfile so CI, contributors and release builds all
-        # get byte-identical dependencies. Regenerate with `make lock`.
-        pip install --require-hashes -r requirements-dev.lock
+        # get byte-identical dependencies. Regenerate with `make lock`. The
+        # locks are per-platform, so pick the one matching this runner.
+        case "${{ runner.os }}" in
+          Linux)   LOCK=requirements-dev-linux.lock ;;
+          Windows) LOCK=requirements-dev-windows.lock ;;
+          macOS)   LOCK=requirements-dev-macos.lock ;;
+          *)       echo "No lockfile for runner OS ${{ runner.os }}"; exit 1 ;;
+        esac
+        pip install --require-hashes -r "$LOCK"
 
     - name: Run tests (Linux)
       if: runner.os == 'Linux'

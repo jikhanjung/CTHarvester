@@ -45,19 +45,30 @@ each resolve a *different* set of wheels. This is precisely the
 "corrupted/half-broken environment" class the code-quality guide (§6) warns
 about — and the guide is Modan2's own document.
 
-**Recommendation.** Generate a universal, hashed lockfile and install from it
+> **Superseded — see addendum §3.** This section recommended `--universal`.
+> Modan2 was already using **per-platform** locks, which is the better design,
+> and CTHarvester has since switched to it (2026-07-27). Read the commands below
+> as `--python-platform linux|windows|macos` rather than `--universal`; the rest
+> of the section — hash-verified installs, `lock-check`, the gating job — stands
+> unchanged.
+
+**Recommendation.** Generate a hashed lockfile per platform and install from it
 everywhere:
 
 ```bash
-uv pip compile pyproject.toml --universal --python-version 3.11 \
-    --generate-hashes -o requirements.lock
-uv pip compile pyproject.toml --universal --python-version 3.11 \
-    --generate-hashes --extra dev -o requirements-dev.lock
+for p in linux windows macos; do
+  uv pip compile pyproject.toml --python-platform $p --python-version 3.11 \
+      --generate-hashes -o requirements-$p.lock
+  uv pip compile pyproject.toml --python-platform $p --python-version 3.11 \
+      --generate-hashes --extra dev -o requirements-dev-$p.lock
+done
 ```
 
-- `--universal` emits one lock valid on Linux/macOS/Windows via environment
-  markers, so the same file serves the whole OS matrix.
-- CI and release builds: `pip install --require-hashes -r requirements-dev.lock`.
+- One lock per target OS. A universal lock resolves a single version per package
+  for all three and does not check wheel coverage, so a package whose wheels
+  differ by platform cannot be expressed — see addendum §3 for the defect this
+  caused.
+- CI and release builds: `pip install --require-hashes -r requirements-dev-<os>.lock`.
 - Add a **`make lock-check`** target (regenerate to a temp file, `diff` ignoring
   the header) and a gating CI job, so a `pyproject.toml` dependency change that
   forgets to re-lock fails the build instead of silently drifting.
@@ -230,6 +241,15 @@ Checked while looking for things to recommend, and found the reverse:
   not check wheel-tag coverage, and the single pin broke every Windows CI job.
   CTHarvester patched it with environment markers; Modan2's per-platform locks
   are the better design.
+  **Adopted 2026-07-27** — CTHarvester now ships nine locks (runtime / dev /
+  build x three platforms), and the `pyqt5-qt5` markers are gone because uv
+  picks 5.15.2 on Windows and 5.15.19 elsewhere on its own. Two notes for
+  Modan2, since its setup is the same shape: the locks are compiled at a single
+  Python floor, so a per-platform lock cannot also fork by Python version the
+  way a universal one can (CTHarvester's 3.12/3.13 legs now install the
+  3.11-compatible numpy); and `pip-audit` should audit **all** platform locks,
+  which `--no-deps` makes possible from one Linux runner — otherwise a
+  Windows-only pin like 5.15.2 is never audited at all.
 - **`lock-check` seeding.** Modan2's Makefile already copies the committed lock
   into the temp file before recompiling, with a comment explaining exactly why.
   CTHarvester's did not, so its gating `dependency-lock` job failed on every
