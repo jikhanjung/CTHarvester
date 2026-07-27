@@ -91,8 +91,9 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   throws the traceback away. They now use `logger.exception`, so a failure
   report carries the stack that produced it. The redundant `: {e}` those
   messages used to append is gone with it — the traceback has the exception.
-  `TRY003`, `TRY301` and `TRY300` are not enabled; `pyproject.toml` says why
-  next to each.
+  `TRY300` followed: 20 `try` blocks now put their success path in an `else`,
+  so the `except` only guards what can actually fail. `TRY003` and `TRY301`
+  remain off; `pyproject.toml` says why next to each.
 
 ### Fixed
 - **Documentation described features that do not exist.** The "Keyboard Power
@@ -120,6 +121,11 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
 - `make lock-check` (the gating `dependency-lock` CI job) reported the lockfiles
   stale whenever any dependency published a release, regardless of whether
   `pyproject.toml` had changed.
+- **The `@log_performance` decorator could report a success as a failure.** Its
+  success logging sat inside the same `try` as the wrapped call, so an exception
+  raised while building or emitting that log line was caught by the handler
+  below and recorded as *the wrapped function* having failed — then re-raised,
+  losing what actually went wrong. Only the call is guarded now.
 - **11 of the 15 relative links in the documentation notes were broken**, most
   of them pointing into `docs/user_guide/`, a directory that has never existed.
   `tests/test_docs_links.py` now checks every relative Markdown link under

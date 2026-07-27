@@ -172,11 +172,11 @@ class ThumbnailWorker(QRunnable):
             else:
                 logger.debug(f"Opened {os.path.basename(filepath)} in {open_time:.1f}ms")
 
-            return img, is_16bit
-
         except OSError:
             logger.exception(f"Error loading image {filepath}")
             return None, False
+        else:
+            return img, is_16bit
 
     def _process_single_image(self, img: Image.Image, is_16bit: bool) -> Image.Image:
         """
@@ -425,10 +425,12 @@ class ThumbnailWorker(QRunnable):
                 logger.debug(f"Created thumbnail shape: {img_array.shape}")
                 return img_array
 
-            return None
-
         except (OSError, ValueError):
             logger.exception(f"Error creating thumbnail {self.filename3}")
+            return None
+        else:
+            # Reached when the thumbnail was written but is too large to hand
+            # back in memory; the `if` above returns it when it is small enough.
             return None
         finally:
             # Periodic garbage collection

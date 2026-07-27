@@ -203,9 +203,10 @@ def check_git_status() -> bool:
             logger.warning("⚠️  Warning: You have uncommitted changes")
             response = input("Continue anyway? (y/N): ")
             return response.lower() == "y"
-        return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         logger.warning("⚠️  Not a git repository or git not available. Skipping check.")
+        return True
+    else:
         return True
 
 

@@ -422,15 +422,15 @@ class FileHandler:
                 logger.warning(f"No image files found in directory: {validated_path}")
                 return False
 
-            logger.info(f"Directory validation passed: {len(image_files)} image files found")
-            return True
-
         except FileSecurityError:
             logger.exception("Security validation failed")
             return False
         except Exception:
             logger.exception("Directory validation error")
             return False
+        else:
+            logger.info(f"Directory validation passed: {len(image_files)} image files found")
+            return True
 
     def find_log_file(self, directory_path: str) -> str | None:
         """Find CT scanner log file in directory
@@ -454,11 +454,11 @@ class FileHandler:
                     logger.info(f"Found log file: {file}")
                     return log_path
 
-            logger.info("No log file found in directory")
-            return None
-
         except OSError:  # PermissionError is a subclass
             logger.exception("Error searching for log file")
+            return None
+        else:
+            logger.info("No log file found in directory")
             return None
 
     def count_files_in_directory(self, directory_path: str, extension: str | None = None) -> int:

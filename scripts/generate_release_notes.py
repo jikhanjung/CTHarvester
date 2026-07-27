@@ -87,10 +87,11 @@ def get_commits_between_tags(
             commits = list(repo.iter_commits(f"{from_tag}..HEAD"))
         else:
             commits = list(repo.iter_commits(f"{from_tag}..{to_tag}"))
-        return commits
     except git.GitCommandError as e:
         print(f"Error getting commits: {e}")
         return []
+    else:
+        return commits
 
 
 def find_previous_tag(repo: git.Repo, current_tag: str) -> str:

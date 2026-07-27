@@ -58,12 +58,13 @@ def convert_png_to_ico(png_path, ico_path):
             append_images=ico_images[1:],
         )
 
-        print(f"✅ Successfully converted {png_path} to {ico_path}")
-        return True
-
     except Exception as e:
         print(f"❌ Error converting icon: {e}")
         return False
+
+    else:
+        print(f"✅ Successfully converted {png_path} to {ico_path}")
+        return True
 
 
 def main():

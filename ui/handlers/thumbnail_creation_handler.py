@@ -343,6 +343,25 @@ class ThumbnailCreationHandler:
             )
         self.window.edtStatus.setText(summary)
 
+    def _close_python_progress(self, status: str, detail: str = "") -> None:
+        """Show `status` on the progress dialog, then close and drop it.
+
+        `status` arrives already translated: `tr()` has to wrap a literal at the
+        call site or lupdate cannot find the string to translate.
+        """
+        if not self.window.progress_dialog:
+            return
+        self.window.progress_dialog.lbl_text.setText(status)
+        self.window.progress_dialog.lbl_detail.setText(detail)
+        self.window.progress_dialog.close()
+        self.window.progress_dialog = None
+
+    def _fail_python_generation(self, status: str, code: "ErrorCode", detail: str) -> bool:
+        """Close the dialog with `status`, report `code` to the user, return False."""
+        self._close_python_progress(status)
+        show_error(self.window, code, detail)
+        return False
+
     def create_thumbnail_python(self) -> bool:
         """Create thumbnails using Python implementation (fallback).
 
@@ -396,73 +415,36 @@ class ThumbnailCreationHandler:
                 # Handle result
                 if result is None:
                     logger.error("Thumbnail generation failed - generate_python returned None")
-                    if self.window.progress_dialog:
-                        self.window.progress_dialog.lbl_text.setText(
-                            self.window.tr("Thumbnail generation failed")
-                        )
-                        self.window.progress_dialog.lbl_detail.setText("")
-                        self.window.progress_dialog.close()
-                        self.window.progress_dialog = None
-                    # Show user-friendly error
-                    show_error(
-                        self.window,
+                    return self._fail_python_generation(
+                        self.window.tr("Thumbnail generation failed"),
                         ErrorCode.PYTHON_FALLBACK_FAILED,
                         "Unknown error - no result returned",
                     )
-                    return False
 
                 # Handle cancellation
                 if result.get("cancelled"):
                     logger.info("Thumbnail generation cancelled by user")
-                    if self.window.progress_dialog:
-                        self.window.progress_dialog.lbl_text.setText(
-                            self.window.tr("Thumbnail generation cancelled")
-                        )
-                        self.window.progress_dialog.lbl_detail.setText("")
-                        self.window.progress_dialog.close()
-                        self.window.progress_dialog = None
-                    # Show info message for user cancellation
-                    show_error(
-                        self.window,
+                    return self._fail_python_generation(
+                        self.window.tr("Thumbnail generation cancelled"),
                         ErrorCode.USER_CANCELLED,
                         "Thumbnail generation",
                     )
-                    return False
 
                 # Handle generation failure (not cancelled, but success=False)
                 if not result.get("success"):
                     error_msg = result.get("error", "Thumbnail generation failed")
                     logger.error(f"Thumbnail generation failed: {error_msg}")
-                    if self.window.progress_dialog:
-                        self.window.progress_dialog.lbl_text.setText(
-                            self.window.tr("Thumbnail generation failed")
-                        )
-                        self.window.progress_dialog.lbl_detail.setText("")
-                        self.window.progress_dialog.close()
-                        self.window.progress_dialog = None
-                    # Show user-friendly error with details
-                    show_error(
-                        self.window,
+                    return self._fail_python_generation(
+                        self.window.tr("Thumbnail generation failed"),
                         ErrorCode.THUMBNAIL_GENERATION_FAILED,
                         error_msg,
                     )
-                    return False
 
                 # Update instance state from result (only if successful)
                 self.window.minimum_volume = result.get("minimum_volume", [])
                 self.window.level_info = result.get("level_info", [])
 
-                # Show completion message
-                if self.window.progress_dialog:
-                    self.window.progress_dialog.lbl_text.setText(
-                        self.window.tr("Thumbnail generation complete")
-                    )
-                    self.window.progress_dialog.lbl_detail.setText("")
-
-                # Close progress dialog
-                if self.window.progress_dialog:
-                    self.window.progress_dialog.close()
-                    self.window.progress_dialog = None
+                self._close_python_progress(self.window.tr("Thumbnail generation complete"))
 
                 # Proceed with UI updates (only if successful)
                 # Load thumbnail data from disk (same as Rust does)
@@ -495,18 +477,13 @@ class ThumbnailCreationHandler:
                     # Update 3D view after initializing combo level
                     self.window.update_3D_view(False)
 
-                return True
-
             except Exception as e:
                 # Handle unexpected errors
                 logger.error(f"Unexpected error in create_thumbnail_python: {e}", exc_info=True)
 
-                if self.window.progress_dialog:
-                    self.window.progress_dialog.lbl_text.setText(
-                        self.window.tr("Thumbnail generation failed")
-                    )
-                    self.window.progress_dialog.lbl_detail.setText(str(e))
-                    self.window.progress_dialog.close()
-                    self.window.progress_dialog = None
-
+                self._close_python_progress(
+                    self.window.tr("Thumbnail generation failed"), detail=str(e)
+                )
                 return False
+            else:
+                return True

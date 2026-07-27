@@ -159,18 +159,6 @@ def log_performance(
 
             try:
                 result = func(*args, **kwargs)
-                # Log successful completion
-                elapsed = time.perf_counter() - start
-                success_fields = extra_fields.copy()
-                success_fields["duration_seconds"] = elapsed
-                success_fields["failed"] = False
-
-                logger.log(
-                    log_level,
-                    f"Performance: {name} took {elapsed:.3f}s",
-                    extra={"extra_fields": success_fields},
-                )
-                return result
             except Exception as e:
                 # Log performance even on failure
                 elapsed = time.perf_counter() - start
@@ -185,6 +173,21 @@ def log_performance(
                     extra={"extra_fields": error_fields},
                 )
                 raise
+            else:
+                # Only `func` belongs in the `try`. With the success logging
+                # inside it, an exception raised while logging would be caught
+                # below and reported as the wrapped function having failed.
+                elapsed = time.perf_counter() - start
+                success_fields = extra_fields.copy()
+                success_fields["duration_seconds"] = elapsed
+                success_fields["failed"] = False
+
+                logger.log(
+                    log_level,
+                    f"Performance: {name} took {elapsed:.3f}s",
+                    extra={"extra_fields": success_fields},
+                )
+                return result
 
         return wrapper
 

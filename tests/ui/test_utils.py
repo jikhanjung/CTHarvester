@@ -43,9 +43,10 @@ def wait_for_signal_or_timeout(qtbot, signal, timeout=1000):
     try:
         with qtbot.waitSignal(signal, timeout=timeout):
             pass
-        return True
     except Exception:
         return False
+    else:
+        return True
 
 
 def get_widget_center(widget):

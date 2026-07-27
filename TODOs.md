@@ -78,10 +78,17 @@ raise it.
 
 ## Lint ruleset: what is left after `SIM` and `TRY` (2026-07-27)
 
-**`TRY300` — 20 sites, deferred not waived.** Moving a trailing `return` out of
-a `try` into an `else` block makes explicit which statements the `except`
-actually guards. There is no autofix, so it is 20 hand edits. The rule is listed
-in `ignore` with a comment pointing here; delete that line when they are done.
+**`TRY300` ✅ done 2026-07-27.** All 20 sites converted and the rule is enabled.
+It was not purely cosmetic: `performance_logger`'s decorator had its success
+logging inside the `try`, so an exception raised while logging would have been
+caught and reported as the *wrapped function* failing. Splitting the block put
+that right. One knock-on — the extra `else` branch pushed
+`create_thumbnail_python` to complexity 16, over the `C901` limit, so its three
+near-identical failure blocks were extracted into `_fail_python_generation` and
+`_close_python_progress`.
+
+The `C901` ratchet stays at 15: measured after this change, the worst function
+in the tree is exactly 15, so it cannot be lowered yet.
 
 **`TRY003` (65) and `TRY301` (2) are waived on the merits**, with the reasoning
 in `pyproject.toml` next to each. Revisit only if the reasoning stops holding.

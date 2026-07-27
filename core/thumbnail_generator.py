@@ -93,11 +93,12 @@ class ThumbnailGenerator:
             # library). Only an actual import proves it is usable.
             from ct_thumbnail import build_thumbnails  # noqa: F401
 
-            logger.info("Rust thumbnail module is available")
-            return True
         except ImportError:
             logger.info("Rust thumbnail module not available, will use Python fallback")
             return False
+        else:
+            logger.info("Rust thumbnail module is available")
+            return True
 
     def calculate_total_thumbnail_work(
         self, seq_begin: int, seq_end: int, size: int, max_size: int
@@ -328,13 +329,6 @@ class ThumbnailGenerator:
                 logger.info("Thumbnail generation was cancelled by user")
                 return False
 
-            # If we reach here, Rust succeeded (no exception raised)
-            # Calculate elapsed time
-            elapsed = time.time() - (self.thumbnail_start_time or 0)
-            logger.info(f"=== Rust thumbnail generation completed in {elapsed:.2f} seconds ===")
-
-            return True
-
         except ImportError:
             logger.error(
                 "Rust module import failed during generation",
@@ -359,6 +353,12 @@ class ThumbnailGenerator:
         except Exception:
             logger.exception(f"Unexpected error during Rust thumbnail generation: {directory}")
             return False
+        else:
+            # Reached only when build_thumbnails raised nothing, which is how it
+            # reports success -- it returns None either way.
+            elapsed = time.time() - (self.thumbnail_start_time or 0)
+            logger.info(f"=== Rust thumbnail generation completed in {elapsed:.2f} seconds ===")
+            return True
 
     @staticmethod
     def _log_environment(directory: str, threadpool: QThreadPool) -> None:
@@ -796,14 +796,6 @@ class ThumbnailGenerator:
                 progress_dialog.lbl_text.setText("Thumbnail generation complete")
                 progress_dialog.lbl_detail.setText("")
 
-            return {
-                "minimum_volume": minimum_volume,
-                "level_info": level_info,
-                "success": True,
-                "cancelled": False,
-                "elapsed_time": total_elapsed,
-            }
-
         except MemoryError as e:
             logger.error(
                 "Out of memory during Python thumbnail generation",
@@ -859,6 +851,14 @@ class ThumbnailGenerator:
                 "elapsed_time": (
                     time.time() - thumbnail_start_time if "thumbnail_start_time" in locals() else 0
                 ),
+            }
+        else:
+            return {
+                "minimum_volume": minimum_volume,
+                "level_info": level_info,
+                "success": True,
+                "cancelled": False,
+                "elapsed_time": total_elapsed,
             }
 
     @staticmethod

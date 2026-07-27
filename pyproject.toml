@@ -184,11 +184,6 @@ ignore = [
     # inside a `try` to reach their own `except`. Extracting a function to
     # satisfy the rule would make both harder to follow.
     "TRY301",
-    # TRY300 -- "move the trailing return into an `else` block". Worth doing
-    # (it makes explicit which statements the `except` actually guards) but it
-    # is 20 hand edits with no autofix, so it is deferred rather than waived.
-    # See TODOs.md; drop this line when they are done.
-    "TRY300",
 ]
 
 [tool.ruff.lint.mccabe]

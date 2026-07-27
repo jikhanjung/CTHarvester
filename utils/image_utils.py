@@ -211,8 +211,6 @@ def save_image_from_array(img_array: np.ndarray, output_path: str, compress: boo
         else:
             img.save(output_path)
 
-        return True
-
     except PermissionError:
         logger.error(f"Permission denied saving image: {output_path}", exc_info=True)
         return False
@@ -233,6 +231,8 @@ def save_image_from_array(img_array: np.ndarray, output_path: str, compress: boo
     except Exception:
         logger.exception(f"Unexpected error saving image: {output_path}")
         return False
+    else:
+        return True
 
 
 def get_image_dimensions(image_path: str) -> tuple[int, int]:

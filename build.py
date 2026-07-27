@@ -92,8 +92,6 @@ def run_pyinstaller(spec_file="CTHarvester.spec", build_type="onefile"):
     try:
         logger.info(f"Running: {' '.join(cmd)}")
         subprocess.run(cmd, check=True, capture_output=True, text=True)
-        logger.info(f"PyInstaller {build_type} build completed successfully")
-        return True
     except subprocess.CalledProcessError as e:
         logger.exception(f"PyInstaller {build_type} build failed")
         if e.stdout:
@@ -101,6 +99,9 @@ def run_pyinstaller(spec_file="CTHarvester.spec", build_type="onefile"):
         if e.stderr:
             logger.exception(f"stderr: {e.stderr}")
         return False
+    else:
+        logger.info(f"PyInstaller {build_type} build completed successfully")
+        return True
 
 
 def prepare_inno_setup_template():
@@ -193,7 +194,6 @@ def build_installer():
         if installer_path.exists():
             logger.info(f"Installer: {installer_path}")
 
-        return True
     except subprocess.CalledProcessError as e:
         logger.exception("Installer build failed")
         if e.stdout:
@@ -201,6 +201,8 @@ def build_installer():
         if e.stderr:
             logger.exception(f"STDERR: {e.stderr}")
         return False
+    else:
+        return True
     finally:
         # Clean up temp file
         if Path(temp_iss_file).exists():

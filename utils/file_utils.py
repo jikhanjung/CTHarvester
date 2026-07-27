@@ -104,10 +104,11 @@ def parse_filename(filename: str, pattern: str | None = None) -> tuple[str, int,
         prefix, number_str, ext = match.groups()
         try:
             number = int(number_str)
-            return (prefix, number, ext)
         except ValueError:
             logger.warning(f"Cannot parse number in filename: {filename}")
             return None
+        else:
+            return (prefix, number, ext)
     else:
         return None
 
@@ -135,11 +136,12 @@ def create_thumbnail_directory(base_dir: str, level: int = 1) -> str:
 
     try:
         os.makedirs(thumb_dir, exist_ok=True)
-        logger.info(f"Created thumbnail directory: {thumb_dir}")
-        return thumb_dir
     except OSError:
         logger.exception("Failed to create thumbnail directory")
         raise
+    else:
+        logger.info(f"Created thumbnail directory: {thumb_dir}")
+        return thumb_dir
 
 
 def get_thumbnail_path(base_dir: str, level: int, index: int) -> str:
@@ -184,11 +186,12 @@ def clean_old_thumbnails(base_dir: str) -> bool:
     if os.path.exists(thumb_dir):
         try:
             shutil.rmtree(thumb_dir)
-            logger.info(f"Removed old thumbnail directory: {thumb_dir}")
-            return True
         except Exception:
             logger.exception("Failed to remove thumbnail directory")
             return False
+        else:
+            logger.info(f"Removed old thumbnail directory: {thumb_dir}")
+            return True
     return True
 
 

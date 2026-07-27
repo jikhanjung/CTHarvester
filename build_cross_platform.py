@@ -143,13 +143,14 @@ def build_executable(platform_name):
     logger.info(f"Running: {' '.join(cmd)}")
     try:
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        logger.info("Build successful!")
-        logger.debug(result.stdout)
-        return True
     except subprocess.CalledProcessError as e:
         logger.exception("Build failed")
         logger.exception(e.stderr)
         return False
+    else:
+        logger.info("Build successful!")
+        logger.debug(result.stdout)
+        return True
 
 
 def create_distribution_archive(platform_name):
