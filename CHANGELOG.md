@@ -79,6 +79,13 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
 - Previously-disabled lint rules that catch real defects are enabled and clean:
   undefined names, redefinitions, unused locals, bare excepts, mutable default
   arguments, blind `pytest.raises(Exception)` and redundant exception tuples.
+- **pytest 9.** The test dependency moved from 8.4.2 to 9.1.1, declared as
+  `>=9.0.0,<10.0.0` rather than a widened ceiling: the lockfiles pin an exact
+  version and the resolver prefers the pin it already has, so a range that still
+  admitted pytest 8 would have left the suite on pytest 8 indefinitely. The
+  floor is what moves it. All five pytest plugins already resolved against 9
+  within their existing ranges, and the full suite (1,311 tests, including slow
+  and benchmark) passes unchanged — no test or configuration needed adjusting.
 - **`SIM` and `TRY` lint rules enabled.** The one with teeth is `TRY400`:
   49 `except` blocks logged with `logger.error`, which records the message and
   throws the traceback away. They now use `logger.exception`, so a failure

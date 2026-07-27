@@ -885,9 +885,9 @@ pyqt5-sip==12.18.0 \
     --hash=sha256:ead5e0a64ad852ac60797989d8444a6a5bd834768536b04a07b40b2937d922f6 \
     --hash=sha256:fdb45c7cd2af7eccd7370b994d432bfc7965079f845392760724f26771bb59dc
     # via pyqt5
-pytest==8.4.2 \
-    --hash=sha256:86c0d0b93306b961d58d62a4db4879f27fe25513d4b969df351abdddb3c30e01 \
-    --hash=sha256:872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79
+pytest==9.1.1 \
+    --hash=sha256:1088fbde8f2b49d95a549a195707afa7a76a3ce9bcadc26b6d71f0ffda5fe313 \
+    --hash=sha256:37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c
     # via
     #   ctharvester (pyproject.toml)
     #   pytest-cov
