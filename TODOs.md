@@ -13,8 +13,8 @@ state and should be updated as items land.
 
 | # | Item | Status | Where it stands |
 |---|---|---|---|
-| 1 | Cross-platform CI matrix + headless smoke test | ✅ | 3 OS x Python 3.11-3.13, `tests/test_smoke.py` |
-| 2 | Lint + tests gating | ⚠️ | ruff, the test matrix and the docs build gate. One `\|\| true` remains: mypy, blocked on the numpy 2.5 stub issue |
+| 1 | Cross-platform CI matrix + headless smoke test | ✅ | 3 OS x Python 3.12, `tests/test_smoke.py` |
+| 2 | Lint + tests gating | ⚠️ | ruff, the test matrix and the docs build gate. One `\|\| true` remains: mypy — **no longer blocked**, see below |
 | 3 | Expand the lint ruleset incrementally | ⚠️ | `E, F, I, N, UP, B, C4, LOG, DTZ, RUF012`. `SIM` (40), `TRY` (138), `PTH` (502), `S` (2083) not yet |
 | 4 | `filterwarnings = error` | ✅ | `pyproject.toml`, narrow documented ignores only |
 | 5 | Lockfile + pip-audit + Dependabot | ✅ | 3 lockfiles with hashes, pip-audit gating, `.github/dependabot.yml` |
@@ -27,11 +27,20 @@ state and should be updated as items land.
 **Done 2026-07-27:** ~~adopt Modan2's per-platform lockfiles~~. Nine locks
 (runtime / dev / build x linux, windows, macos), the `pyqt5-qt5` environment
 markers removed, `pip-audit` extended to all three platform locks. See devlog
-106. One consequence to keep in mind: a per-platform lock is compiled at a
-single Python floor (3.11) and so cannot also fork by Python version the way
-`--universal` did — every leg of the 3.11-3.13 matrix now installs the
-3.11-compatible resolution (numpy 2.4.x, not 2.5.x). If testing against numpy
-2.5 on the newer legs matters, that needs a deliberate second axis of locks.
+106. A per-platform lock cannot fork by Python version the way `--universal`
+did, which briefly pinned the whole matrix to the 3.11-compatible resolution;
+dropping 3.11 the same day made the question moot — the floor is 3.12 and the
+locks carry numpy 2.5.1 / scipy 1.18.0. Keep `requires-python`, the CI matrix
+and `LOCK_ARGS` in step.
+
+**mypy gating is unblocked (2026-07-27), not yet enabled.** Item #2's remaining
+`|| true` was there because mypy pinned `python_version = 3.11` while the numpy
+2.5 stubs use 3.12 `type` syntax. With 3.11 dropped the config is at 3.12 and
+`mypy --config-file pyproject.toml core/ utils/` — the exact CI command —
+reports **Success: no issues found in 24 source files** against the locked mypy
+1.20.2 and numpy 2.5.1. Removing `|| true` in `test.yml` is all that is left;
+it was not done in the same change because gating was not what that change was
+about.
 
 **Working order** (cheapest first, per the guide's own ordering): ~~#3 `DTZ`~~,
 ~~#2 docs build gating~~, ~~#9 packaged smoke test~~, ~~#8 complexity

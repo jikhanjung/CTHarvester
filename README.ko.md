@@ -180,7 +180,7 @@ pytest tests/test_error_recovery.py -v      # 에러 복구 테스트
 ### CI/CD
 프로젝트는 지속적 통합 및 배포를 위해 GitHub Actions를 사용합니다:
 - **test.yml**: 모든 푸시 및 PR에서 테스트 실행
-  - Python 3.12 및 3.13에서 실행
+  - Linux, Windows, macOS에서 Python 3.12로 실행
   - 커버리지 리포트 생성
   - Codecov에 업로드
 - **build.yml**: main 브랜치에서 개발 빌드 생성

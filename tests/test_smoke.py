@@ -48,12 +48,12 @@ def _discover_modules():
 
 @pytest.mark.smoke
 def test_python_version_is_supported():
-    """The declared minimum in pyproject.toml is 3.11; fail loudly below it.
+    """The declared minimum in pyproject.toml is 3.12; fail loudly below it.
 
-    Catches version-only stdlib symbols (e.g. ``datetime.UTC`` is 3.11+) being
-    used on an interpreter that predates them.
+    Catches version-only stdlib symbols (e.g. ``itertools.batched`` is 3.12+)
+    being used on an interpreter that predates them.
     """
-    assert sys.version_info >= (3, 11), f"Python 3.11+ required, running {sys.version}"
+    assert sys.version_info >= (3, 12), f"Python 3.12+ required, running {sys.version}"
 
 
 @pytest.mark.smoke

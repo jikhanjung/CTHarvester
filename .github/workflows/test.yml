@@ -50,10 +50,12 @@ jobs:
       - name: ruff format --check
         run: ruff format --check --diff .
 
-      # Advisory (not gating): the mypy config pins python_version=3.11, which
-      # the numpy 2.5 stubs reject (they use 3.12 `type` syntax). Flipping this
-      # to gating needs the stub issue resolved first — bump python_version or
-      # scope-exclude numpy. Tracked in TODOs.md. Kept in CI for signal.
+      # Advisory (not gating), but no longer blocked: the reason for the
+      # `|| true` was that mypy pinned python_version=3.11 while the numpy 2.5
+      # stubs use 3.12 `type` syntax. Dropping 3.11 (2026-07-27) moved the
+      # config to 3.12 and this exact command now passes clean against the
+      # locked mypy 1.20.2 and numpy 2.5.1. Removing `|| true` is a one-word
+      # change whenever we want it gating. Tracked in TODOs.md.
       - name: mypy (typed modules, advisory)
         run: mypy --config-file pyproject.toml core/ utils/ || true
 
@@ -68,7 +70,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.11', '3.13']  # min and max supported
+        # The only supported version (see `requires-python`). Kept as a matrix
+        # axis rather than inlined so re-widening is a one-line change.
+        python-version: ['3.12']
 
     steps:
     - name: Checkout code
@@ -139,14 +143,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.11', '3.12', '3.13']
-        exclude:
-          # Full Python sweep on Linux; min/max only on Windows and macOS to
-          # keep the matrix affordable.
-          - os: windows-latest
-            python-version: '3.12'
-          - os: macos-latest
-            python-version: '3.12'
+        # One version, three operating systems. The Python sweep went away with
+        # 3.11 and 3.13 support; the OS sweep is the axis that finds real bugs
+        # here (Qt plugins, path handling, wheel availability).
+        python-version: ['3.12']
 
     steps:
     - name: Checkout code
@@ -204,11 +204,11 @@ jobs:
         QT_DEBUG_PLUGINS: 0
       run: |
         # Coverage gate lives here now (was quality-gates.yml). 75% is a ratchet
-        # floor; raise it over time. Gate + measurement on the reference leg only.
-        COV_ARGS=""
-        if [ "${{ matrix.python-version }}" = "3.12" ]; then
-          COV_ARGS="--cov-fail-under=75"
-        fi
+        # floor; raise it over time. This step is Linux-only and there is one
+        # Python version, so this leg *is* the reference leg -- the gate used to
+        # be guarded by a `matrix.python-version == 3.12` check that is now
+        # always true.
+        COV_ARGS="--cov-fail-under=75"
         xvfb-run -a -s "-screen 0 1024x768x24" \
           pytest tests/ \
             -m "not slow and not benchmark" \
@@ -230,7 +230,7 @@ jobs:
     - name: Upload coverage to Codecov
       # Coverage is measured once, on the reference platform (the same leg that
       # enforces --cov-fail-under above).
-      if: always() && runner.os == 'Linux' && matrix.python-version == '3.12'
+      if: always() && runner.os == 'Linux'
       uses: codecov/codecov-action@v4
       with:
         files: ./coverage.xml
@@ -279,8 +279,8 @@ jobs:
         echo "| Job | Result |" >> $GITHUB_STEP_SUMMARY
         echo "|---|---|" >> $GITHUB_STEP_SUMMARY
         echo "| Lint (ruff/mypy) | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Smoke (3 OS x py3.11/3.13) | ${{ needs.smoke.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Tests (Linux py3.11-3.13, Win/macOS py3.11/3.13) | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Smoke (3 OS x py3.12) | ${{ needs.smoke.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tests (3 OS x py3.12) | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Docs | ${{ needs.docs.result }} |" >> $GITHUB_STEP_SUMMARY
 
         if [ "${{ needs.lint.result }}" != "success" ] || [ "${{ needs.smoke.result }}" != "success" ] || [ "${{ needs.test.result }}" != "success" ] || [ "${{ needs.docs.result }}" != "success" ]; then

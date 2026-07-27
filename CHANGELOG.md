@@ -34,6 +34,18 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   change it under Settings, or delete the settings file to pick up the new
   default.
 
+### Removed
+- **Python 3.11 support. CTHarvester now requires Python 3.12.** This is a CI
+  decision more than a technical one: a three-version sweep across three
+  operating systems cost a lot and told us little, because neither group of
+  users is exposed to the difference — anyone running from source sets up their
+  own environment, and anyone installing a release gets a bundled interpreter
+  and never chooses a Python version. Testing three versions while shipping one
+  interpreter is effort spent on a risk nobody carries. `requires-python`, the
+  CI matrix and the lockfiles' compile floor all say 3.12 now, and the locks
+  moved up to numpy 2.5.1 / scipy 1.18.0 with the floor. If you run from source
+  on 3.11, install 3.12.
+
 ### Changed / Internal
 - **The published manual moved to `docs/manual/`.** The Sphinx source directory
   (`conf.py`, every `.rst`, `locale/`, `_templates/`) is now separated from the

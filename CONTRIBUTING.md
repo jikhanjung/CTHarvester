@@ -34,7 +34,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ### Prerequisites
 
-- Python 3.11 or higher (3.12+ recommended)
+- Python 3.12 (the only version CI runs; see `requires-python`)
 - Git
 - Virtual environment tool (venv or conda)
 

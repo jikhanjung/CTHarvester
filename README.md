@@ -5,7 +5,7 @@
 [![Release Status](https://github.com/jikhanjung/CTHarvester/actions/workflows/release.yml/badge.svg)](https://github.com/jikhanjung/CTHarvester/actions/workflows/release.yml)
 [![codecov](https://codecov.io/gh/jikhanjung/CTHarvester/branch/main/graph/badge.svg)](https://codecov.io/gh/jikhanjung/CTHarvester)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Tests: 1295 passing](https://img.shields.io/badge/tests-1295%20passing-brightgreen.svg)](https://github.com/jikhanjung/CTHarvester/tree/main/tests)
 
 *Read this in other languages: [English](README.md), [한국어](README.ko.md)*
@@ -50,7 +50,7 @@ Download the latest installer from the [Releases](https://github.com/jikhanjung/
 ### From Source
 
 #### Prerequisites
-- Python 3.11 or higher
+- Python 3.12 or higher
 - pip package manager
 
 #### Steps
@@ -223,7 +223,7 @@ pytest tests/test_error_recovery.py -v # Error recovery tests
 ### CI/CD
 The project uses GitHub Actions for continuous integration and deployment:
 - **test.yml**: Runs tests on all pushes and PRs
-  - Runs on Python 3.12 and 3.13
+  - Runs on Linux, Windows and macOS, Python 3.12
   - Generates coverage reports
   - Uploads to Codecov
 - **build.yml**: Creates development builds on main branch

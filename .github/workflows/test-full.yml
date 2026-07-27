@@ -20,7 +20,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.11', '3.12', '3.13']
+        # The only supported version (see `requires-python`).
+        python-version: ['3.12']
 
     steps:
     - name: Checkout code
@@ -161,12 +162,10 @@ jobs:
       run: |
         echo "# 🎯 Full Test Suite Complete" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Comprehensive testing across all Python versions completed." >> $GITHUB_STEP_SUMMARY
+        echo "Comprehensive testing completed." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "## Test Matrix Results" >> $GITHUB_STEP_SUMMARY
-        echo "- Python 3.11: ${{ needs.test-comprehensive.result }}" >> $GITHUB_STEP_SUMMARY
         echo "- Python 3.12: ${{ needs.test-comprehensive.result }}" >> $GITHUB_STEP_SUMMARY
-        echo "- Python 3.13: ${{ needs.test-comprehensive.result }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Scope" >> $GITHUB_STEP_SUMMARY
         echo "This run included:" >> $GITHUB_STEP_SUMMARY

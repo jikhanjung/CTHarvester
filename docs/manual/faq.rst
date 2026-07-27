@@ -1018,7 +1018,7 @@ How do I build CTHarvester from source?
 
 **Prerequisites:**
 
-* Python 3.11+
+* Python 3.12+
 * Rust toolchain (optional, for Rust module)
 
 **Steps:**

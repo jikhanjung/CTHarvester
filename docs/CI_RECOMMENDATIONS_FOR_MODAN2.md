@@ -57,9 +57,9 @@ everywhere:
 
 ```bash
 for p in linux windows macos; do
-  uv pip compile pyproject.toml --python-platform $p --python-version 3.11 \
+  uv pip compile pyproject.toml --python-platform $p --python-version 3.12 \
       --generate-hashes -o requirements-$p.lock
-  uv pip compile pyproject.toml --python-platform $p --python-version 3.11 \
+  uv pip compile pyproject.toml --python-platform $p --python-version 3.12 \
       --generate-hashes --extra dev -o requirements-dev-$p.lock
 done
 ```
@@ -244,12 +244,14 @@ Checked while looking for things to recommend, and found the reverse:
   **Adopted 2026-07-27** — CTHarvester now ships nine locks (runtime / dev /
   build x three platforms), and the `pyqt5-qt5` markers are gone because uv
   picks 5.15.2 on Windows and 5.15.19 elsewhere on its own. Two notes for
-  Modan2, since its setup is the same shape: the locks are compiled at a single
-  Python floor, so a per-platform lock cannot also fork by Python version the
-  way a universal one can (CTHarvester's 3.12/3.13 legs now install the
-  3.11-compatible numpy); and `pip-audit` should audit **all** platform locks,
-  which `--no-deps` makes possible from one Linux runner — otherwise a
-  Windows-only pin like 5.15.2 is never audited at all.
+  Modan2, since its setup is the same shape: a per-platform lock is compiled at
+  a single Python floor and cannot also fork by Python version the way a
+  universal one can, so `requires-python`, the CI matrix and the lock's
+  `--python-version` have to agree — CTHarvester briefly had a 3.11 floor
+  pinning its whole 3.11-3.13 matrix to numpy 2.4.x, and resolved it by dropping
+  to 3.12 only, which Modan2 already does; and `pip-audit` should audit **all**
+  platform locks, which `--no-deps` makes possible from one Linux runner —
+  otherwise a Windows-only pin like 5.15.2 is never audited at all.
 - **`lock-check` seeding.** Modan2's Makefile already copies the committed lock
   into the temp file before recompiling, with a comment explaining exactly why.
   CTHarvester's did not, so its gating `dependency-lock` job failed on every

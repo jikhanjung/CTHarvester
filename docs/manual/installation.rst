@@ -19,7 +19,8 @@ System Requirements
 
 **Software (for source installation only):**
 
-* Python 3.11 or later
+* Python 3.12 or later (only needed to run from source; the released
+  installers bundle their own interpreter)
 * PyQt5
 * NumPy
 * PIL/Pillow

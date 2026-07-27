@@ -446,7 +446,7 @@ graph LR
 - Linux: AppImage (universal)
 
 **Dependencies Bundled:**
-- Python 3.11+ runtime
+- Python 3.12+ runtime
 - PyQt5 libraries
 - NumPy, Pillow
 - Optional Rust module
@@ -573,7 +573,7 @@ graph TB
 ## Technology Stack
 
 ### Core Technologies
-- **Python:** 3.11+
+- **Python:** 3.12+
 - **GUI Framework:** PyQt5
 - **Image Processing:** Pillow (PIL), NumPy
 - **Optional:** Rust (maturin)

@@ -104,7 +104,7 @@ at a time rather than in one large sweep.
 **Configuration**: `pyproject.toml` → `[tool.mypy]`
 
 **Settings**:
-- Python version: 3.11+
+- Python version: 3.12+
 - Strict mode: Gradually enforced per module
 - Ignores: Qt widgets (PyQt5 stub issues)
 

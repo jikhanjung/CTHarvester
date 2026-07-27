@@ -62,13 +62,13 @@ help:
 # The dev lock takes `--extra docs` as well, so `make install-dev` leaves a
 # contributor able to run `make docs` and `make docs-watch` straight away.
 #
-# Everything is compiled at the 3.11 floor, so one lock per platform installs
-# across the whole 3.11-3.13 CI matrix. This is the tradeoff against
-# `--universal`, which could also fork by Python version (numpy 2.4.x below
-# 3.12, 2.5.x from 3.12 up): every leg now gets the 3.11-compatible resolution.
+# Compiled at 3.12, which is both `requires-python`'s floor and the only version
+# CI runs -- keep the three in step. A per-platform lock cannot fork by Python
+# version the way `--universal` could (`--python-platform` and `--universal` are
+# mutually exclusive), so this floor is exactly what every install gets.
 UV ?= uv
 PLATFORMS := linux windows macos
-LOCK_ARGS = --python-version 3.11 --generate-hashes
+LOCK_ARGS = --python-version 3.12 --generate-hashes
 COMPILE = $(UV) pip compile pyproject.toml $(LOCK_ARGS)
 
 # Which lock `make install` uses. Anything that is not Linux or Darwin is

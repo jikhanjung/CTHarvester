@@ -11,7 +11,15 @@ name = "CTHarvester"
 dynamic = ["version"]
 description = "CT scan image processing and visualization tool"
 readme = "README.md"
-requires-python = ">=3.11"
+# 3.12 only, as of 2026-07-27. The driver is CI complexity: a three-version
+# sweep across three operating systems buys little here, because neither group
+# of users is exposed to the difference. Someone building from source sets up
+# their own environment and can make it 3.12; someone installing a release gets
+# a bundled interpreter and never picks a Python version at all. Supporting a
+# version no leg of the matrix runs would be a claim nobody checks, so the
+# declaration follows the matrix. The lockfiles compile at this same floor --
+# keep `requires-python`, the matrix and LOCK_ARGS in step.
+requires-python = ">=3.12"
 license = {text = "MIT"}
 authors = [
     {name = "CTHarvester Contributors"}
@@ -23,7 +31,6 @@ classifiers = [
     "Intended Audience :: Healthcare Industry",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
     "Topic :: Scientific/Engineering :: Visualization",
@@ -130,7 +137,7 @@ version = {attr = "version.__version__"}
 # alone, which turns every unrelated PR red.
 [tool.ruff]
 line-length = 100
-target-version = "py311"  # matches requires-python
+target-version = "py312"  # matches requires-python
 extend-exclude = [
     "target",       # Rust build output
     "InnoSetup",
@@ -280,7 +287,7 @@ exclude_lines = [
 
 # mypy configuration
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false  # Still permissive for old code
