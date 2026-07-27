@@ -106,6 +106,10 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
 - `make lock-check` (the gating `dependency-lock` CI job) reported the lockfiles
   stale whenever any dependency published a release, regardless of whether
   `pyproject.toml` had changed.
+- **11 of the 15 relative links in the documentation notes were broken**, most
+  of them pointing into `docs/user_guide/`, a directory that has never existed.
+  `tests/test_docs_links.py` now checks every relative Markdown link under
+  `docs/`, which is the one part of the documentation no build was validating.
 
 ## [0.2.3-beta.2] - 2025-10-08
 

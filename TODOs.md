@@ -76,23 +76,24 @@ raise it.
 
 ---
 
-## Broken doc links, found during the `docs/manual/` move (2026-07-27)
+## Broken doc links ✅ fixed 2026-07-27
 
-Four files point at `docs/user_guide/troubleshooting.rst`, a path that has never
-existed — the file is `docs/manual/troubleshooting.rst` (and was
-`docs/troubleshooting.rst` before the move). Left alone deliberately to keep the
-move a pure relocation; fix them in a pass of their own, and check the other
-relative links in the same files while there:
+Found during the `docs/manual/` move. It was worse than the four references
+spotted then: **11 of the 15 relative links** in the Markdown under `docs/` were
+broken, mostly pointing into `docs/user_guide/`, a directory that has never
+existed in this repository. All repointed, and `tests/test_docs_links.py` now
+parametrises over every relative Markdown link under `docs/` so the class cannot
+come back silently.
 
-- `docs/developer_guide/performance.md:597`
-- `docs/developer_guide/error_recovery.md:473,477`
-- `docs/manual/changelog.rst:196` (describes a historical layout; may be correct
-  as a record — check before editing)
-- `docs/release-notes/v0.2.3-beta.1-enhanced.md:81`
+Two mentions were left alone on purpose, because they are records rather than
+links: `docs/manual/changelog.rst:196` and a file listing in
+`docs/release-notes/v0.2.3-beta.1-enhanced.md` both name
+``docs/user_guide/troubleshooting.rst`` as prose describing a past release.
+Rewriting a published changelog is worse than letting it be wrong about a path.
 
-Worth considering alongside this: a link checker. `sphinx-build -b linkcheck`
-covers the manual, but none of these live in it — the `.md` notes are exactly
-the files no build ever validates.
+Still open, if wanted: nothing checks **external** URLs. `sphinx-build -b
+linkcheck` would cover the manual's; the notes would need a separate tool. Not
+obviously worth a network-dependent CI job.
 
 ---
 

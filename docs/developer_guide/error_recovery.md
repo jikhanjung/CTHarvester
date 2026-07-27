@@ -470,13 +470,13 @@ python -m pytest tests/test_error_recovery.py::TestErrorMessageCatalog -v
 - `ui/errors.py` - Error catalog and display functions
 - `core/file_handler.py` - File operation exceptions
 - `tests/test_error_recovery.py` - Error recovery tests
-- `docs/user_guide/troubleshooting.rst` - User troubleshooting guide
+- `docs/manual/troubleshooting.rst` - User troubleshooting guide
 
 ### Related Documentation
 
-- [User Troubleshooting Guide](../user_guide/troubleshooting.rst)
-- [Developer Guide](../developer_guide/index.rst)
-- [Testing Guide](../developer_guide/testing.rst)
+- [User Troubleshooting Guide](../manual/troubleshooting.rst)
+- [Developer Guide](../manual/developer_guide.rst)
+- [Testing Guide](../manual/developer_guide.rst)
 
 ---
 

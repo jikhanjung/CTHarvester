@@ -594,8 +594,8 @@ When implementing new features:
 ### Related Documentation
 
 - [Error Recovery Guide](./error_recovery.md)
-- [User Troubleshooting](../user_guide/troubleshooting.rst)
-- [Developer Guide](./index.rst)
+- [User Troubleshooting](../manual/troubleshooting.rst)
+- [Developer Guide](../manual/developer_guide.rst)
 
 ---
 
