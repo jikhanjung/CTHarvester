@@ -56,7 +56,7 @@ class SecureFileValidator:
                 raise FileSecurityError(f"Filename contains forbidden pattern: {filename}")
 
         # basename만 추출 (디렉토리 부분 제거)
-        safe_name = os.path.basename(filename)
+        safe_name = Path(filename).name
 
         if safe_name != filename:
             logger.warning(f"Filename contained directory path: {filename} -> {safe_name}")
@@ -66,7 +66,7 @@ class SecureFileValidator:
     @staticmethod
     def validate_extension(filename: str) -> bool:
         """파일 확장자 검증"""
-        ext = os.path.splitext(filename)[1].lower()
+        ext = Path(filename).suffix.lower()
         return ext in SecureFileValidator.ALLOWED_EXTENSIONS
 
     @staticmethod
@@ -151,7 +151,7 @@ class SecureFileValidator:
             validated_parts.append(SecureFileValidator.validate_filename(part))
 
         # 경로 결합
-        joined = os.path.join(base_dir, *validated_parts)
+        joined = str(Path(base_dir).joinpath(*validated_parts))
 
         # 최종 검증
         return SecureFileValidator.validate_path(joined, base_dir)
@@ -168,7 +168,7 @@ class SecureFileValidator:
         Returns:
             검증된 파일 목록 (basename만)
         """
-        if not os.path.isdir(directory):
+        if not Path(directory).is_dir():
             raise FileSecurityError(f"Not a directory: {directory}")
 
         if extensions is None:
@@ -176,7 +176,7 @@ class SecureFileValidator:
 
         safe_files = []
         try:
-            for item in os.listdir(directory):
+            for item in (entry.name for entry in Path(directory).iterdir()):
                 try:
                     # 파일명 검증
                     safe_name = SecureFileValidator.validate_filename(item)
@@ -185,8 +185,8 @@ class SecureFileValidator:
                     full_path = SecureFileValidator.safe_join(directory, safe_name)
 
                     # 파일인지 확인하고 확장자 검증
-                    if os.path.isfile(full_path):
-                        ext = os.path.splitext(safe_name)[1].lower()
+                    if Path(full_path).is_file():
+                        ext = Path(safe_name).suffix.lower()
                         if ext in extensions:
                             safe_files.append(safe_name)
                         else:
@@ -205,7 +205,7 @@ class SecureFileValidator:
     @staticmethod
     def validate_no_symlink(file_path: str) -> str:
         """심볼릭 링크가 아닌지 확인"""
-        if os.path.islink(file_path):
+        if Path(file_path).is_symlink():
             raise FileSecurityError(f"Symbolic links not allowed: {file_path}")
         return file_path
 

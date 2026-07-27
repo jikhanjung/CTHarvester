@@ -23,7 +23,7 @@ Note:
 """
 
 import logging
-import os
+from pathlib import Path
 
 # Application Information
 APP_NAME = "CTHarvester"
@@ -49,11 +49,11 @@ BUILD_YEAR = 2026
 PROGRAM_COPYRIGHT = f"© 2023-{BUILD_YEAR} Jikhan Jung"
 
 # Directory setup
-USER_PROFILE_DIRECTORY = os.path.expanduser("~")
-DEFAULT_DB_DIRECTORY = os.path.join(USER_PROFILE_DIRECTORY, COMPANY_NAME, PROGRAM_NAME)
-DEFAULT_STORAGE_DIRECTORY = os.path.join(DEFAULT_DB_DIRECTORY, "data/")
-DEFAULT_LOG_DIRECTORY = os.path.join(DEFAULT_DB_DIRECTORY, "logs/")
-DB_BACKUP_DIRECTORY = os.path.join(DEFAULT_DB_DIRECTORY, "backups/")
+USER_PROFILE_DIRECTORY = str(Path.home())
+DEFAULT_DB_DIRECTORY = str(Path(USER_PROFILE_DIRECTORY) / COMPANY_NAME / PROGRAM_NAME)
+DEFAULT_STORAGE_DIRECTORY = str(Path(DEFAULT_DB_DIRECTORY) / "data")
+DEFAULT_LOG_DIRECTORY = str(Path(DEFAULT_DB_DIRECTORY) / "logs")
+DB_BACKUP_DIRECTORY = str(Path(DEFAULT_DB_DIRECTORY) / "backups")
 
 # File Extensions
 SUPPORTED_IMAGE_EXTENSIONS = (".bmp", ".jpg", ".jpeg", ".png", ".tif", ".tiff")

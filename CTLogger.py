@@ -13,6 +13,7 @@ import logging
 import os
 import uuid
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 
 def setup_logger(name, log_dir=None, level=logging.INFO, console_level=None, session_id=None):
@@ -77,20 +78,19 @@ def setup_logger(name, log_dir=None, level=logging.INFO, console_level=None, ses
     if env_log_dir:
         log_dir = env_log_dir
     elif log_dir is None:
-        user_profile = os.path.expanduser("~")
-        log_dir = os.path.join(user_profile, "PaleoBytes", name.replace(" ", "_"), "logs")
+        log_dir = str(Path.home() / "PaleoBytes" / name.replace(" ", "_") / "logs")
 
     # Ensure log directory exists
-    if not os.path.exists(log_dir):
+    if not Path(log_dir).exists():
         try:
-            os.makedirs(log_dir, exist_ok=True)
+            Path(log_dir).mkdir(parents=True, exist_ok=True)
         except Exception as e:
             print(f"Warning: Could not create log directory {log_dir}: {e}")
             # Fall back to current directory
             log_dir = "."
 
     # Create log filename (single rotating log file)
-    logfile_path = os.path.join(log_dir, f"{name.replace(' ', '_')}.log")
+    logfile_path = str(Path(log_dir) / f"{name.replace(' ', '_')}.log")
 
     # Create formatter with session ID
     formatter = logging.Formatter(

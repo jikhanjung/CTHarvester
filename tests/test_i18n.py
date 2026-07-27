@@ -6,6 +6,7 @@ Part of Phase 1 quality improvement plan (devlog 072)
 
 import os
 import tempfile
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -49,7 +50,7 @@ class TestTranslationManager:
         assert result is False
         assert "Unsupported language" in caplog.text
 
-    @patch("os.path.exists")
+    @patch.object(Path, "exists")
     def test_load_language_file_not_found(self, mock_exists, translation_manager, caplog):
         """Test loading language when translation file doesn't exist"""
         mock_exists.return_value = False
@@ -59,7 +60,7 @@ class TestTranslationManager:
         assert result is False
         assert "Translation file not found" in caplog.text
 
-    @patch("os.path.exists")
+    @patch.object(Path, "exists")
     @patch.object(QTranslator, "load")
     def test_load_language_success(self, mock_load, mock_exists, translation_manager, qapp):
         """Test successful language loading"""
@@ -72,7 +73,7 @@ class TestTranslationManager:
         assert translation_manager.current_language == "ko"
         mock_load.assert_called_once()
 
-    @patch("os.path.exists")
+    @patch.object(Path, "exists")
     @patch.object(QTranslator, "load")
     def test_load_language_load_failed(self, mock_load, mock_exists, translation_manager, caplog):
         """Test language loading when QTranslator.load() fails"""
@@ -84,7 +85,7 @@ class TestTranslationManager:
         assert result is False
         assert "Failed to load translation" in caplog.text
 
-    @patch("os.path.exists")
+    @patch.object(Path, "exists")
     @patch.object(QTranslator, "load")
     def test_translator_installation(self, mock_load, mock_exists, translation_manager, qapp):
         """Test that translator is installed to application"""
@@ -96,7 +97,7 @@ class TestTranslationManager:
             translation_manager.load_language("ko")
             mock_install.assert_called_once_with(translation_manager.translator)
 
-    @patch("os.path.exists")
+    @patch.object(Path, "exists")
     @patch.object(QTranslator, "load")
     def test_translator_removal_on_reload(self, mock_load, mock_exists, translation_manager, qapp):
         """Test that old translator is removed before installing new one"""
@@ -159,7 +160,7 @@ class TestTranslationManager:
         """Test getting current language"""
         assert translation_manager.get_current_language() == "en"
 
-    @patch("os.path.exists")
+    @patch.object(Path, "exists")
     @patch.object(QTranslator, "load")
     def test_get_current_language_after_load(self, mock_load, mock_exists, translation_manager):
         """Test getting current language after loading a different language"""
@@ -187,21 +188,25 @@ class TestTranslationManager:
     def test_translation_file_path(self, translation_manager):
         """Test that translation file path is constructed correctly"""
         # This tests the internal logic for finding translation files
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        expected_path = os.path.join(project_root, "resources", "translations", "CTHarvester_ko.qm")
+        project_root = Path(__file__).resolve().parent.parent
+        expected_path = project_root / "resources" / "translations" / "CTHarvester_ko.qm"
 
-        with patch("os.path.exists") as mock_exists:
+        # autospec so the bound instance is recorded as args[0]: the manager
+        # calls `qm_path.exists()`, and the path under test is the receiver
+        # rather than an argument.
+        with patch.object(Path, "exists", autospec=True) as mock_exists:
             mock_exists.return_value = False
             result = translation_manager.load_language("ko")
 
             assert result is False
             # The manager must have probed the conventional .qm location.
-            # Compare the recorded arguments, not str(call): the repr of a call
-            # escapes backslashes, so on Windows a substring match against a
-            # real path with single separators never hits.
+            # Compare Path objects, not strings: a repr comparison escapes
+            # backslashes, so on Windows a substring match against a real path
+            # with single separators never hits.
             checked = [c.args[0] for c in mock_exists.call_args_list if c.args]
             assert expected_path in checked, checked
-            # The path should have been checked via os.path.exists
+            # ...and it is the language-specific file under translations/, not
+            # some other path that happens to exist.
             called_path = mock_exists.call_args[0][0]
-            assert "CTHarvester_ko.qm" in called_path
-            assert "translations" in called_path
+            assert called_path.name == "CTHarvester_ko.qm"
+            assert called_path.parent.name == "translations"

@@ -16,7 +16,6 @@ Example:
 
 import argparse
 import logging
-import os
 import platform
 import shutil
 import subprocess
@@ -52,15 +51,15 @@ def clean_build_dirs():
     """Clean build and dist directories."""
     dirs_to_clean = ["build", "dist"]
     for dir_name in dirs_to_clean:
-        if os.path.exists(dir_name):
+        if Path(dir_name).exists():
             logger.info(f"Cleaning {dir_name}/")
             shutil.rmtree(dir_name)
 
     # Remove spec file
     spec_file = "CTHarvester.spec"
-    if os.path.exists(spec_file):
+    if Path(spec_file).exists():
         logger.info(f"Removing {spec_file}")
-        os.remove(spec_file)
+        Path(spec_file).unlink()
 
 
 def get_icon_path(platform_name):

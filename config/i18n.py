@@ -6,7 +6,7 @@ Created during Phase 1.4 UI/UX improvements.
 """
 
 import logging
-import os
+from pathlib import Path
 from typing import ClassVar
 
 from PyQt5.QtCore import QCoreApplication, QLocale, QTranslator
@@ -49,12 +49,11 @@ class TranslationManager:
 
         # Translation file path
         # Look for .qm files in resources/translations/
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        qm_file = os.path.join(
-            project_root, "resources", "translations", f"CTHarvester_{language_code}.qm"
-        )
+        project_root = Path(__file__).resolve().parent.parent
+        qm_path = project_root / "resources" / "translations" / f"CTHarvester_{language_code}.qm"
+        qm_file = str(qm_path)
 
-        if not os.path.exists(qm_file):
+        if not qm_path.exists():
             logger.error(f"Translation file not found: {qm_file}")
             return False
 

@@ -3,12 +3,15 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-import os
 import sys
+from pathlib import Path
 
-# The repository root, three levels up from docs/manual/conf.py: needed so the
-# `from version import ...` below and autodoc's imports resolve.
-sys.path.insert(0, os.path.abspath("../.."))
+# The repository root, two directories up from docs/manual/conf.py: needed so
+# the `from version import ...` below and autodoc's imports resolve. Derived
+# from __file__ rather than the process cwd, because sphinx-autobuild (`make
+# docs-watch`) runs from the repository root, where a relative "../.." would
+# point outside the repository.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information

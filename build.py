@@ -32,7 +32,7 @@ except ImportError:
 
     def get_version_from_file():
         version_file = PROJECT_ROOT / "version.py"
-        with open(version_file) as f:
+        with version_file.open() as f:
             content = f.read()
             match = re.search(r'__version__ = "(.*?)"', content)
             if match:
