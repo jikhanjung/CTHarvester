@@ -1,6 +1,6 @@
 [package]
 name = "ct_thumbnail"
-version = "0.2.3-beta.2"  # keep in sync with version.py (tests/test_version_consistency.py)
+version = "0.2.3-beta.3"  # keep in sync with version.py (tests/test_version_consistency.py)
 edition = "2021"
 rust-version = "1.75"
 authors = ["Jikhan Jung"]

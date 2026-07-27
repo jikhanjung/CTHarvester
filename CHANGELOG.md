@@ -14,6 +14,8 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
 
 ## [Unreleased]
 
+## [0.2.3-beta.3] - 2026-07-27
+
 ### Added
 - **Automatic initial setup after thumbnail generation.** The smallest pyramid
   level is analysed to detect an intensity threshold (Otsu's method), a region of
