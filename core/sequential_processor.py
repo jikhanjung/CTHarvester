@@ -9,8 +9,8 @@ Sequential processing is 3-5x slower than Rust multithreaded processing (9-10 mi
 """
 
 import logging
-import os
 import time
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -193,21 +193,21 @@ class SequentialProcessor:
             )
 
             # Output always uses simple sequential numbering
-            filename3 = os.path.join(to_dir, f"{idx:06}.tif")
+            filename3 = str(Path(to_dir) / f"{idx:06}.tif")
 
             # Check if thumbnail exists
             img_array = None
             was_generated = False
 
-            if os.path.exists(filename3):
+            if Path(filename3).exists():
                 # Load existing
                 if size < max_thumbnail_size:
                     img_array = safe_load_image(filename3)  # type: ignore[assignment]
             else:
                 # Generate new thumbnail
                 was_generated = True
-                file1_path = os.path.join(from_dir, filename1)
-                file2_path = os.path.join(from_dir, filename2) if filename2 else None
+                file1_path = str(Path(from_dir) / filename1)
+                file2_path = str(Path(from_dir) / filename2) if filename2 else None
 
                 img_array = self._generate_thumbnail(
                     file1_path, file2_path, filename3, idx, size, max_thumbnail_size
@@ -283,14 +283,14 @@ class SequentialProcessor:
             arr1 = None
             arr2 = None
 
-            if os.path.exists(file1_path):
+            if Path(file1_path).exists():
                 load1_start = time.time()
                 arr1 = safe_load_image(file1_path)
                 load1_time = (time.time() - load1_start) * 1000
                 if load1_time > 1000:
                     logger.warning(f"SLOW load img1: {load1_time:.1f}ms")
 
-            if file2_path and os.path.exists(file2_path):
+            if file2_path and Path(file2_path).exists():
                 load2_start = time.time()
                 arr2 = safe_load_image(file2_path)
                 load2_time = (time.time() - load2_start) * 1000

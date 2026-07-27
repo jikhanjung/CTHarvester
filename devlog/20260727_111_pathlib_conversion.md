@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-27
 **Current Version:** 0.2.3-beta.2
-**Status:** 🚧 In progress — stages 1 and 2 landed
+**Status:** 🚧 In progress — stages 1 to 3 landed
 **Previous:** [devlog 110 - pytest 9 and the Day's Ledger](./20260727_110_pytest_9_and_the_days_ledger.md)
 
 ---
@@ -116,11 +116,61 @@ guarding a call whose entire purpose is to not need one. Now a single
 
 ---
 
+## 📦 Stage 3 — `core/` (47 sites)
+
+The largest slice of shipped code: `file_handler.py`, `thumbnail_generator.py`,
+`thumbnail_worker.py`, `sequential_processor.py`. Almost all of it is
+`os.path.join` building a path that is then stored on `self` or handed to PIL,
+the Rust module or `SecureFileValidator` — so almost all of it converts to a
+`Path` expression wrapped in `str()` at the assignment.
+
+Two things went wrong, and both are worth having on the record.
+
+### A scripted replacement ate an `if`
+
+The conversion was applied by script, matching exact source text. This pattern:
+
+```python
+if not os.path.exists(to_dir):
+    os.makedirs(to_dir)
+    logger.debug(f"Created directory {to_dir}")
+else:
+    logger.debug(f"Directory already exists: {to_dir}")
+```
+
+was replaced with a single `Path(to_dir).mkdir(parents=True, exist_ok=True)`,
+which is the right call *for the two lines it matched* and left the `logger`
+line and the `else:` branch dangling behind it. Syntax error, caught
+immediately by ruff.
+
+The repair kept the `if`/`else`, because the two branches log different
+things — collapsing them would have silently dropped the distinction between
+"created" and "already existed". **A pattern that looks mechanical in three
+files is not mechanical in the fourth.**
+
+### mypy caught the exact leak this conversion is trying to avoid
+
+```
+core/file_handler.py:378: error: Incompatible return value type
+    (got "list[Path]", expected "list[str]")
+```
+
+`get_file_list` builds its entries with `Path(directory_path) / filename` and
+returns them. The declared return type is `list[str]`, and callers treat the
+entries as strings. Converting the `exists()` check was right; letting the
+`Path` into the returned list was not.
+
+This is the boundary rule failing in practice and being caught by a gate that
+was advisory until this morning. Nothing in the test suite would have found it:
+`Path` and `str` behave identically until something does string arithmetic on
+the result.
+
+---
+
 ## 🔭 What is left
 
 | Stage | Target | Sites |
 |---|---|---|
-| 3 | `core/` | 47 |
 | 4 | `ui/` | 25 |
 | 5 | `scripts/` | 48 |
 | — | `tests/` | 322 — to be waived, see below |

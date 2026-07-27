@@ -5,10 +5,10 @@ Handles thumbnail generation in separate threads
 
 import gc
 import logging
-import os
 import sys
 import time
 import traceback
+from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageChops
@@ -139,7 +139,7 @@ class ThumbnailWorker(QRunnable):
                 self.filename2 = None
 
         # Output: Always simple sequential numbering
-        self.filename3 = os.path.join(self.to_dir, f"{self.idx:06}.tif")
+        self.filename3 = str(Path(self.to_dir) / f"{self.idx:06}.tif")
 
     def _load_image(self, filepath: str) -> tuple[Image.Image | None, bool]:
         """
@@ -168,9 +168,9 @@ class ThumbnailWorker(QRunnable):
 
             open_time = (time.time() - open_start) * 1000
             if self.idx < 5:
-                logger.info(f"Opened {os.path.basename(filepath)} in {open_time:.1f}ms")
+                logger.info(f"Opened {Path(filepath).name} in {open_time:.1f}ms")
             else:
-                logger.debug(f"Opened {os.path.basename(filepath)} in {open_time:.1f}ms")
+                logger.debug(f"Opened {Path(filepath).name} in {open_time:.1f}ms")
 
         except OSError:
             logger.exception(f"Error loading image {filepath}")
@@ -324,7 +324,7 @@ class ThumbnailWorker(QRunnable):
             was_generated = False
 
             # Check if thumbnail already exists
-            if os.path.exists(self.filename3):
+            if Path(self.filename3).exists():
                 logger.debug(f"Found existing thumbnail: {self.filename3}")
                 was_generated = False
 
@@ -374,8 +374,8 @@ class ThumbnailWorker(QRunnable):
         """
         try:
             # Load first image
-            file1_path = os.path.join(self.from_dir, self.filename1)
-            if not os.path.exists(file1_path):
+            file1_path = str(Path(self.from_dir) / self.filename1)
+            if not Path(file1_path).exists():
                 logger.error(f"File not found: {file1_path}")
                 return None
 
@@ -387,8 +387,8 @@ class ThumbnailWorker(QRunnable):
             img2 = None
             is_16bit2 = False
             if self.filename2:
-                file2_path = os.path.join(self.from_dir, self.filename2)
-                if os.path.exists(file2_path):
+                file2_path = str(Path(self.from_dir) / self.filename2)
+                if Path(file2_path).exists():
                     img2, is_16bit2 = self._load_image(file2_path)
 
             # Process images

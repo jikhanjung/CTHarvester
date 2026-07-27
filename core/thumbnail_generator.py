@@ -10,6 +10,7 @@ import os
 import time
 from collections.abc import Callable
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -463,11 +464,11 @@ class ThumbnailGenerator:
             logger.debug(f"Level {level + 1}: Reading from original directory: {from_dir}")
             total_count = seq_end - seq_begin + 1
         else:
-            from_dir = os.path.join(directory, ".thumbnail/" + str(level))
+            from_dir = str(Path(directory) / ".thumbnail" / str(level))
             logger.debug(f"Level {level + 1}: Reading from thumbnail directory: {from_dir}")
 
-            if os.path.exists(from_dir):
-                actual_files = [f for f in os.listdir(from_dir) if f.endswith(".tif")]
+            if Path(from_dir).exists():
+                actual_files = [f.name for f in Path(from_dir).iterdir() if f.suffix == ".tif"]
                 total_count = len(actual_files)
                 seq_end = seq_begin + total_count - 1
                 logger.info(
@@ -480,9 +481,10 @@ class ThumbnailGenerator:
                     f"using calculated count: {total_count}"
                 )
 
-        to_dir = os.path.join(directory, ".thumbnail/" + str(level + 1))
-        if not os.path.exists(to_dir):
-            os.makedirs(to_dir)
+        to_path = Path(directory) / ".thumbnail" / str(level + 1)
+        to_dir = str(to_path)
+        if not to_path.exists():
+            to_path.mkdir(parents=True)
             logger.debug(f"Created directory {to_dir}")
         else:
             logger.debug(f"Directory already exists: {to_dir}")
@@ -517,18 +519,18 @@ class ThumbnailGenerator:
         else. An empty array is returned when the directory is missing or holds
         nothing readable, which callers already treat as "no volume".
         """
-        smallest_dir = os.path.join(directory, f".thumbnail/{level}")
+        smallest_dir = str(Path(directory) / ".thumbnail" / str(level))
 
-        if not os.path.exists(smallest_dir):
+        if not Path(smallest_dir).exists():
             logger.warning(f"Smallest level directory not found: {smallest_dir}")
             return np.array([])
 
         logger.info(f"Loading minimum_volume from {smallest_dir}")
-        tif_files = sorted([f for f in os.listdir(smallest_dir) if f.endswith(".tif")])
+        tif_files = sorted(f.name for f in Path(smallest_dir).iterdir() if f.suffix == ".tif")
 
         slices: list[np.ndarray] = []
         for tif_file in tif_files:
-            img_array = safe_load_image(os.path.join(smallest_dir, tif_file))
+            img_array = safe_load_image(str(Path(smallest_dir) / tif_file))
             if img_array is not None:
                 slices.append(img_array)  # type: ignore[arg-type]
 
@@ -872,8 +874,8 @@ class ThumbnailGenerator:
 
         level_dirs = []
         for i in range(1, MAX_THUMBNAIL_LEVELS):
-            level_dir = os.path.join(thumbnail_base, str(i))
-            if not os.path.exists(level_dir):
+            level_dir = str(Path(thumbnail_base) / str(i))
+            if not Path(level_dir).exists():
                 break
             level_dirs.append((i, level_dir))
         return level_dirs
@@ -890,11 +892,11 @@ class ThumbnailGenerator:
         the caller with no volume at all.
         """
         for level_num, level_dir in level_dirs:
-            files = [f for f in os.listdir(level_dir) if f.endswith(".tif")]
+            files = [f.name for f in Path(level_dir).iterdir() if f.suffix == ".tif"]
             if not files:
                 continue
 
-            width, height = get_image_dimensions(os.path.join(level_dir, files[0]))
+            width, height = get_image_dimensions(str(Path(level_dir) / files[0]))
             if max(width, height) < max_thumbnail_size:
                 logger.info(
                     f"Found appropriate level {level_num} with size {width}x{height} "
@@ -960,9 +962,9 @@ class ThumbnailGenerator:
         if max_thumbnail_size is None:
             max_thumbnail_size = DEFAULT_MAX_SIZE
         # Find the highest level thumbnail directory
-        thumbnail_base = os.path.join(directory, ".thumbnail")
+        thumbnail_base = str(Path(directory) / ".thumbnail")
 
-        if not os.path.exists(thumbnail_base):
+        if not Path(thumbnail_base).exists():
             logger.warning("No thumbnail directory found")
             return None, {}
 
@@ -978,13 +980,13 @@ class ThumbnailGenerator:
 
         try:
             # List all tif files in the directory
-            files = sorted([f for f in os.listdir(thumbnail_dir) if f.endswith(".tif")])
+            files = sorted(f.name for f in Path(thumbnail_dir).iterdir() if f.suffix == ".tif")
 
             logger.info(f"Found {len(files)} thumbnail files")
 
             minimum_volume = []
             for file in files:
-                filepath = os.path.join(thumbnail_dir, file)
+                filepath = str(Path(thumbnail_dir) / file)
                 img_array = safe_load_image(filepath)
                 if img_array is None:
                     continue

@@ -8,6 +8,7 @@ Provides file listing, sorting, and metadata extraction for CT image stacks.
 import logging
 import os
 import re
+from pathlib import Path
 from typing import ClassVar
 
 from security.file_validator import FileSecurityError, SecureFileValidator
@@ -102,11 +103,11 @@ class FileHandler:
         # Validate directory path
         validated_path = self.validator.validate_path(directory_path, directory_path)
 
-        if not os.path.exists(validated_path):
+        if not Path(validated_path).exists():
             logger.error(f"Directory does not exist: {validated_path}")
             raise FileNotFoundError(f"Directory does not exist: {validated_path}")
 
-        if not os.path.isdir(validated_path):
+        if not Path(validated_path).is_dir():
             logger.error(f"Path is not a directory: {validated_path}")
             raise NotADirectoryError(f"Path is not a directory: {validated_path}")
 
@@ -191,9 +192,7 @@ class FileHandler:
             5. Extract sequence range and image metadata
         """
         # Step 1: Get all files in directory
-        all_files = [
-            f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))
-        ]
+        all_files = [entry.name for entry in Path(directory_path).iterdir() if entry.is_file()]
 
         if not all_files:
             logger.warning(f"No files found in directory: {directory_path}")
@@ -269,7 +268,7 @@ class FileHandler:
         # Step 7: Extract metadata from first and last files
         first_file = ct_stack_files[0]
         last_file = ct_stack_files[-1]
-        first_file_path = os.path.join(directory_path, first_file)
+        first_file_path = str(Path(directory_path) / first_file)
 
         # Get image dimensions from first file
         try:
@@ -350,10 +349,12 @@ class FileHandler:
         for i in range(seq_begin, seq_end + 1):
             # Format with leading zeros based on index_length
             filename = f"{prefix}{i:0{index_length}d}.{extension}"
-            filepath = os.path.join(directory_path, filename)
+            filepath = Path(directory_path) / filename
 
-            if os.path.exists(filepath):
-                file_list.append(filepath)
+            if filepath.exists():
+                # str, not Path: this list is the declared return type and goes
+                # on to callers that treat the entries as strings.
+                file_list.append(str(filepath))
             else:
                 missing_files.append(filename)
                 # Only log first few missing files to avoid log spam
@@ -397,11 +398,11 @@ class FileHandler:
             validated_path = self.validator.validate_path(directory_path, directory_path)
 
             # Existence check
-            if not os.path.exists(validated_path):
+            if not Path(validated_path).exists():
                 logger.error(f"Directory does not exist: {validated_path}")
                 return False
 
-            if not os.path.isdir(validated_path):
+            if not Path(validated_path).is_dir():
                 logger.error(f"Path is not a directory: {validated_path}")
                 return False
 
@@ -411,7 +412,7 @@ class FileHandler:
                 return False
 
             # Check for image files
-            files = os.listdir(validated_path)
+            files = [entry.name for entry in Path(validated_path).iterdir()]
             image_files = [
                 f
                 for f in files
@@ -446,11 +447,11 @@ class FileHandler:
             Optional[str]: Path to log file if found, None otherwise
         """
         try:
-            files = os.listdir(directory_path)
+            files = [entry.name for entry in Path(directory_path).iterdir()]
             for file in files:
                 file_lower = file.lower()
                 if file_lower.endswith(".log"):
-                    log_path = os.path.join(directory_path, file)
+                    log_path = str(Path(directory_path) / file)
                     logger.info(f"Found log file: {file}")
                     return log_path
 
@@ -472,10 +473,10 @@ class FileHandler:
             int: Number of files found
         """
         try:
-            if not os.path.exists(directory_path):
+            if not Path(directory_path).exists():
                 return 0
 
-            files = os.listdir(directory_path)
+            files = [entry.name for entry in Path(directory_path).iterdir()]
 
             if extension:
                 files = [f for f in files if f.lower().endswith(extension.lower())]
