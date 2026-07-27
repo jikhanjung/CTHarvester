@@ -4,6 +4,11 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Recent Sessions (July 2026)
 
+- [110](20260727_110_pytest_9_and_the_days_ledger.md) - **pytest 9 & 하루 결산**: 상한을 넓히는 Dependabot PR은 락이 기존 핀을 선호해 무효 — 하한을 올려 8.4.2→9.1.1 이동. 이날 10커밋의 얻은 것/내준 것 정리 (테스트 +16은 전부 문서 링크 테스트라는 착시 포함)
+- [109](20260727_109_backlog_sweep.md) - **백로그 4건 정리**: Dependabot이 락을 못 건드려 PR 4건이 구조적으로 머지 불가였던 문제 해결(그중 pillow PR은 CVE 18건 재유입), mypy 게이팅, 문서 상대 링크 15개 중 11개가 깨져 있던 것 수정 + 테스트화, `SIM`·`TRY` 룰셋 (TRY400 49곳이 트레이스백을 버리고 있었음)
+- [108](20260727_108_python_312_only.md) - **Python 3.12 단일화**: CI 매트릭스 13→6 job, 선언(`requires-python`·ruff·mypy·락 floor·배지)을 매트릭스에 일치. floor를 올려도 핀은 안 움직인다는 것을 확인하고 numpy/scipy 명시적 업그레이드. mypy 게이팅 차단 요인 해소
+- [107](20260727_107_manual_moved_to_docs_manual.md) - **매뉴얼을 `docs/manual/`로 분리**: 확장자 규칙(myst_parser 하나면 뒤집히는)을 디렉토리 경계로 교체, Modan2 레이아웃과 일치. Pages 배포 트리거도 `docs/manual/**`로 축소. docs 툴체인을 dev 락에 포함
+- [106](20260727_106_per_platform_lockfiles.md) - **per-platform 락파일**: universal 락이 표현할 수 없던 `pyqt5-qt5` Windows 휠 문제를 구조적으로 제거(마커 우회책 삭제), 락 3→9개, pip-audit이 Linux 락만 감사하던 사각지대 해소
 - [105](20260727_105_complexity_backlog_cleared_and_manual_audit.md) - **복잡도 백로그 완료 & 매뉴얼 감사**: C901 8개 함수 정리로 가이드 기준(15) 달성, 매뉴얼이 구현되지 않은 기능을 설명하던 문제 수정, `docs/*.md`가 Sphinx 빌드에 아예 포함되지 않던 사실 발견
 - [104](20260726_104_rust_default_and_complexity_backlog.md) - **Rust 기본값 수정 & C901 첫 리팩터링**: `use_rust_module: false`로 배포돼 Rust 모듈이 설치돼 있어도 안 쓰이던 문제 발견·수정, `process_level` 복잡도 32→9
 - [103](20260726_103_code_quality_guide_follow_through.md) - **코드 품질 가이드 후속**: `DTZ` 적용, 문서 빌드 게이팅, 3-OS 패키지 smoke 테스트 — frozen Linux 빌드가 실행조차 안 되던 PyOpenGL 번들링 결함 발견·수정, `C901` 래칫 (vulture는 오탐률 5/6으로 기각)
