@@ -4,6 +4,7 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Recent Sessions (July 2026)
 
+- [111](20260727_111_pathlib_conversion.md) - **pathlib 전환 (PTH)**: 499건 중 출하 코드 221건을 5단계로 변환(자동 수정 2건뿐), `tests/` 322건은 근거를 적어 영구 면제. 문서 빌드가 cwd에 의존하던 잠복 버그와 `list[str]` 선언에 `Path`를 반환하던 결함(mypy가 검출) 발견, Modan2 예제 데이터 생성용 일회성 스크립트 `convert_tps.py`가 잘못 커밋돼 있던 것 삭제
 - [110](20260727_110_pytest_9_and_the_days_ledger.md) - **pytest 9 & 하루 결산**: 상한을 넓히는 Dependabot PR은 락이 기존 핀을 선호해 무효 — 하한을 올려 8.4.2→9.1.1 이동. 이날 10커밋의 얻은 것/내준 것 정리 (테스트 +16은 전부 문서 링크 테스트라는 착시 포함)
 - [109](20260727_109_backlog_sweep.md) - **백로그 4건 정리**: Dependabot이 락을 못 건드려 PR 4건이 구조적으로 머지 불가였던 문제 해결(그중 pillow PR은 CVE 18건 재유입), mypy 게이팅, 문서 상대 링크 15개 중 11개가 깨져 있던 것 수정 + 테스트화, `SIM`·`TRY` 룰셋 (TRY400 49곳이 트레이스백을 버리고 있었음)
 - [108](20260727_108_python_312_only.md) - **Python 3.12 단일화**: CI 매트릭스 13→6 job, 선언(`requires-python`·ruff·mypy·락 floor·배지)을 매트릭스에 일치. floor를 올려도 핀은 안 움직인다는 것을 확인하고 numpy/scipy 명시적 업그레이드. mypy 게이팅 차단 요인 해소

@@ -230,9 +230,9 @@ at it closely enough to ask what it was.
 
 ---
 
-## 🔭 What is left
+## 🔭 What is not converted
 
-Nothing in shipped code. `tests/` (322) is waived, permanently:
+Nothing in shipped code. `tests/` (322 sites) is waived, permanently:
 
 ### Why `tests/` is waived rather than converted
 
@@ -249,16 +249,44 @@ written next to it in `pyproject.toml`.
 
 ---
 
-## 💡 Lessons so far
+## 🧪 Verification
+
+Each stage was checked before the next began: `ruff check`, `mypy` over
+`core/` and `utils/`, and the full suite including slow and benchmark tests.
+Final state: **1,311 passed, 5 skipped**, ruff clean with `PTH` enabled, mypy
+clean, docs build unchanged.
+
+221 call sites converted across shipped code and `scripts/`; 322 waived in
+`tests/`; one file deleted.
+
+---
+
+## 💡 Lessons
 
 1. **"It cannot change behaviour" is not the same as "it cannot break tests."**
-   The i18n mocks were aimed at a call that stopped existing.
+   The i18n mocks were aimed at a call that stopped existing. Behaviour was
+   identical; the interception point was gone.
 
 2. **Check the string, not just the call.** `os.path.join(x, "data/")` and
    `Path(x) / "data"` are not the same string, and only one of them has a
-   trailing separator.
+   trailing separator. Four exported constants depended on which.
 
 3. **A conversion is a good time to notice what the old call was hiding.**
    `os.path.abspath(".")` reads as "an absolute path"; `Path.cwd()` reads as
-   "wherever this process happens to be", which is the thing you actually want
-   to think about.
+   "wherever this process happens to be", which is the thing that was actually
+   wrong in the docs config.
+
+4. **The type checker earns its keep on exactly this kind of change.**
+   `get_file_list` returning `list[Path]` from a `list[str]` signature is
+   invisible to a test suite and obvious to mypy — which had been advisory until
+   this morning and gating for a few hours by the time it caught it.
+
+5. **Scripted edits need to match structure, not text.** Replacing exact source
+   strings ate an `if` in one file and matched a line's tail in another. Ruff
+   caught the first immediately and the second was correct by accident. Line
+   numbers from the linter, and the line's own text, are a safer input than a
+   guessed indentation.
+
+6. **A cleanup pass is when someone finally reads the files.** `convert_tps.py`
+   sat in this repository for over a year. Nothing found it because nothing had
+   reason to open it.
