@@ -97,9 +97,9 @@ class SettingsManager:
         if config_dir is None:
             # Default location: ~/.config/CTHarvester (Linux/Mac) or %APPDATA%/CTHarvester (Windows)
             if os.name == "nt":
-                config_dir = os.path.join(os.environ.get("APPDATA", ""), "CTHarvester")
+                config_dir = str(Path(os.environ.get("APPDATA", "")) / "CTHarvester")
             else:
-                config_dir = os.path.join(os.path.expanduser("~"), ".config", "CTHarvester")
+                config_dir = str(Path.home() / ".config" / "CTHarvester")
 
         self.config_dir = Path(config_dir)
         self.config_file = self.config_dir / self.DEFAULT_CONFIG_FILE
@@ -119,7 +119,7 @@ class SettingsManager:
 
         if default_file.exists():
             try:
-                with open(default_file, encoding="utf-8") as f:
+                with default_file.open(encoding="utf-8") as f:
                     settings = yaml.safe_load(f)
                     logger.info(f"Default settings loaded from {default_file}")
                     return settings or {}
@@ -167,7 +167,7 @@ class SettingsManager:
         """Load settings from file"""
         if self.config_file.exists():
             try:
-                with open(self.config_file, encoding="utf-8") as f:
+                with self.config_file.open(encoding="utf-8") as f:
                     self.settings = yaml.safe_load(f) or {}
                 logger.info(f"Settings loaded from {self.config_file}")
             except Exception:
@@ -181,7 +181,7 @@ class SettingsManager:
     def save(self) -> None:
         """Save settings to file"""
         try:
-            with open(self.config_file, "w", encoding="utf-8") as f:
+            with self.config_file.open("w", encoding="utf-8") as f:
                 yaml.dump(self.settings, f, default_flow_style=False, allow_unicode=True)
             logger.info(f"Settings saved to {self.config_file}")
         except Exception:
@@ -243,7 +243,7 @@ class SettingsManager:
             file_path: Export file path
         """
         try:
-            with open(file_path, "w", encoding="utf-8") as f:
+            with Path(file_path).open("w", encoding="utf-8") as f:
                 yaml.dump(self.settings, f, default_flow_style=False, allow_unicode=True)
             logger.info(f"Settings exported to {file_path}")
         except Exception:
@@ -258,7 +258,7 @@ class SettingsManager:
             file_path: Import file path
         """
         try:
-            with open(file_path, encoding="utf-8") as f:
+            with Path(file_path).open(encoding="utf-8") as f:
                 imported = yaml.safe_load(f)
 
             # Validate and apply

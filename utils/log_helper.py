@@ -19,8 +19,7 @@ def get_log_directory() -> Path:
     - Windows: ~/PaleoBytes/CTHarvester/logs
     - Linux/Mac: ~/PaleoBytes/CTHarvester/logs
     """
-    user_profile = os.path.expanduser("~")
-    log_dir = Path(user_profile) / "PaleoBytes" / "CTHarvester" / "logs"
+    log_dir = Path.home() / "PaleoBytes" / "CTHarvester" / "logs"
     return log_dir
 
 
@@ -80,7 +79,7 @@ def get_recent_log_lines(num_lines: int = 100) -> list[str]:
         return []
 
     try:
-        with open(log_file, encoding="utf-8") as f:
+        with Path(log_file).open(encoding="utf-8") as f:
             lines = f.readlines()
             return lines[-num_lines:]
     except Exception:

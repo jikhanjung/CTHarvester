@@ -3,7 +3,7 @@ Image Processing Utility Functions
 """
 
 import logging
-import os
+from pathlib import Path
 from typing import TypedDict
 
 import numpy as np
@@ -290,7 +290,7 @@ def load_image_with_metadata(image_path: str) -> tuple[np.ndarray, ImageMetadata
         >>> print(f"{meta['width']}x{meta['height']}, {meta['bit_depth']}-bit")
         2048x2048, 16-bit
     """
-    if not os.path.exists(image_path):
+    if not Path(image_path).exists():
         raise FileNotFoundError(f"Image not found: {image_path}")
 
     try:
@@ -306,7 +306,7 @@ def load_image_with_metadata(image_path: str) -> tuple[np.ndarray, ImageMetadata
                 img_array = np.array(img, dtype=np.uint8)
 
             # Get file size
-            file_size = os.path.getsize(image_path)
+            file_size = Path(image_path).stat().st_size
 
             metadata: ImageMetadata = {
                 "width": width,

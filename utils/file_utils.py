@@ -33,6 +33,7 @@ See Also:
 import logging
 import os
 import re
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -71,9 +72,9 @@ def find_image_files(directory: str, extensions: tuple[str, ...] | None = None) 
         except ImportError:
             # Fallback to os.listdir
             files = []
-            for filename in os.listdir(directory):
-                if os.path.splitext(filename)[1].lower() in extensions:
-                    files.append(filename)
+            for entry in Path(directory).iterdir():
+                if entry.suffix.lower() in extensions:
+                    files.append(entry.name)
             return sorted(files)
 
     except Exception:
@@ -129,13 +130,13 @@ def create_thumbnail_directory(base_dir: str, level: int = 1) -> str:
     """
     from config.constants import THUMBNAIL_DIR_NAME
 
-    if level == 1:
-        thumb_dir = os.path.join(base_dir, THUMBNAIL_DIR_NAME)
-    else:
-        thumb_dir = os.path.join(base_dir, THUMBNAIL_DIR_NAME, str(level))
+    thumb_path = Path(base_dir) / THUMBNAIL_DIR_NAME
+    if level != 1:
+        thumb_path = thumb_path / str(level)
+    thumb_dir = str(thumb_path)
 
     try:
-        os.makedirs(thumb_dir, exist_ok=True)
+        thumb_path.mkdir(parents=True, exist_ok=True)
     except OSError:
         logger.exception("Failed to create thumbnail directory")
         raise
@@ -158,13 +159,12 @@ def get_thumbnail_path(base_dir: str, level: int, index: int) -> str:
     """
     from config.constants import THUMBNAIL_DIR_NAME, THUMBNAIL_EXTENSION
 
-    if level == 1:
-        thumb_dir = os.path.join(base_dir, THUMBNAIL_DIR_NAME)
-    else:
-        thumb_dir = os.path.join(base_dir, THUMBNAIL_DIR_NAME, str(level))
+    thumb_dir = Path(base_dir) / THUMBNAIL_DIR_NAME
+    if level != 1:
+        thumb_dir = thumb_dir / str(level)
 
     filename = f"{index:06d}{THUMBNAIL_EXTENSION}"
-    return os.path.join(thumb_dir, filename)
+    return str(thumb_dir / filename)
 
 
 def clean_old_thumbnails(base_dir: str) -> bool:
@@ -181,9 +181,9 @@ def clean_old_thumbnails(base_dir: str) -> bool:
 
     from config.constants import THUMBNAIL_DIR_NAME
 
-    thumb_dir = os.path.join(base_dir, THUMBNAIL_DIR_NAME)
+    thumb_dir = Path(base_dir) / THUMBNAIL_DIR_NAME
 
-    if os.path.exists(thumb_dir):
+    if thumb_dir.exists():
         try:
             shutil.rmtree(thumb_dir)
         except Exception:
@@ -209,9 +209,9 @@ def get_directory_size(directory: str) -> int:
     try:
         for dirpath, _dirnames, filenames in os.walk(directory):
             for filename in filenames:
-                filepath = os.path.join(dirpath, filename)
-                if os.path.exists(filepath):
-                    total_size += os.path.getsize(filepath)
+                filepath = Path(dirpath) / filename
+                if filepath.exists():
+                    total_size += filepath.stat().st_size
     except Exception:
         logger.exception("Failed to calculate directory size")
 

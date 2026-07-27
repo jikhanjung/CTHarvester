@@ -25,9 +25,9 @@ See Also:
     utils.settings_manager: Settings persistence
 """
 
-import os
 import sys
 import warnings
+from pathlib import Path
 from typing import Any
 
 
@@ -36,8 +36,8 @@ def resource_path(relative_path: str) -> str:
     try:
         base_path = sys._MEIPASS  # type: ignore[attr-defined]
     except AttributeError:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
+        base_path = str(Path.cwd())
+    return str(Path(base_path) / relative_path)
 
 
 def value_to_bool(value: Any) -> bool:
@@ -83,8 +83,7 @@ def ensure_directories(directories: list[str] | str) -> None:
 
     for directory in directories:
         try:
-            if not os.path.exists(directory):
-                os.makedirs(directory, exist_ok=True)
+            Path(directory).mkdir(parents=True, exist_ok=True)
         except OSError as e:  # PermissionError is a subclass
             # Use warnings here since logger might not be initialized yet
             # stacklevel=2 to show caller's location instead of this line
