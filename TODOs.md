@@ -15,7 +15,7 @@ state and should be updated as items land.
 |---|---|---|---|
 | 1 | Cross-platform CI matrix + headless smoke test | ✅ | 3 OS x Python 3.12, `tests/test_smoke.py` |
 | 2 | Lint + tests gating | ✅ | ruff, mypy, the test matrix and the docs build all gate. No `\|\| true` left in the lint job (mypy became gating 2026-07-27) |
-| 3 | Expand the lint ruleset incrementally | ⚠️ | `E, F, I, N, UP, B, C4, LOG, DTZ, SIM, TRY, S, C901, RUF012`. `SIM`, `TRY` and `S` landed 2026-07-27. Only `PTH` (499) is left |
+| 3 | Expand the lint ruleset incrementally | ✅ | `E, F, I, N, UP, B, C4, LOG, DTZ, SIM, TRY, S, PTH, C901, RUF012`. All of the guide's groups landed 2026-07-27; individual waivers are argued in `pyproject.toml` |
 | 4 | `filterwarnings = error` | ✅ | `pyproject.toml`, narrow documented ignores only |
 | 5 | Lockfile + pip-audit + Dependabot | ✅ | 9 per-platform lockfiles with hashes, pip-audit gating on all three platforms, `.github/dependabot.yml`, and `dependabot-lock-refresh.yml` to keep the locks in step with Dependabot's range bumps |
 | 6 | Coverage gate | ✅ | `--cov-fail-under=75` on the reference leg |
@@ -93,12 +93,14 @@ in the tree is exactly 15, so it cannot be lowered yet.
 **`TRY003` (65) and `TRY301` (2) are waived on the merits**, with the reasoning
 in `pyproject.toml` next to each. Revisit only if the reasoning stops holding.
 
-**`PTH` (499)** — `os.path` to `pathlib`. The one large group left, and the only
-one that should be its own change: 322 of the findings are in `tests/` and 177
-in shipped code, the fixes are not autofixable, and converting a path from `str`
-to `Path` propagates into function signatures and into
-`security/file_validator.py`, where paths are validated *as strings*. Do it
-deliberately, with the Windows path handling in view.
+**`PTH` ✅ done 2026-07-27**, in five stages — `security`/`config`/`CTLogger`,
+`utils`, `core`, `ui`, `scripts` — each verified against the full suite before
+the next. Shipped code is fully converted; `tests/**` (322 sites) is waived
+permanently, with the argument in `pyproject.toml`. See devlog 111.
+
+The rule the conversion followed, worth keeping if anything else touches paths:
+**public signatures keep returning `str`; `Path` is an internal detail converted
+back at the boundary.** mypy caught the one place it slipped.
 
 **`S` ✅ done 2026-07-27.** The 2,166 count was almost entirely `S101` (assert)
 in the test tree. After per-file ignores for `tests/**` (`S101`, plus `S108` for

@@ -7,6 +7,7 @@ Tests image loading speed to diagnose performance issues
 import os
 import statistics
 import time
+from pathlib import Path
 
 from PIL import Image
 
@@ -16,9 +17,9 @@ def test_pil_performance(image_dir, num_tests=10):
 
     # Find first few image files
     image_files = []
-    for file in os.listdir(image_dir):
-        if file.lower().endswith((".tif", ".tiff", ".bmp", ".png", ".jpg")):
-            image_files.append(os.path.join(image_dir, file))
+    for entry in Path(image_dir).iterdir():
+        if entry.suffix.lower() in (".tif", ".tiff", ".bmp", ".png", ".jpg"):
+            image_files.append(str(entry))
             if len(image_files) >= num_tests:
                 break
 
@@ -34,7 +35,7 @@ def test_pil_performance(image_dir, num_tests=10):
 
     # Test each file
     for i, filepath in enumerate(image_files):
-        file_size = os.path.getsize(filepath) / (1024 * 1024)  # MB
+        file_size = Path(filepath).stat().st_size / (1024 * 1024)  # MB
 
         # Time the image loading
         start = time.time()
@@ -46,7 +47,7 @@ def test_pil_performance(image_dir, num_tests=10):
 
             load_times.append(load_time)
 
-            print(f"{i + 1}. {os.path.basename(filepath)}")
+            print(f"{i + 1}. {Path(filepath).name}")
             print(f"   Size: {file_size:.1f} MB")
             print(f"   Mode: {img.mode}, Dimensions: {img.size}")
             print(f"   Load time: {load_time:.1f} ms")
@@ -82,7 +83,7 @@ if __name__ == "__main__":
     if not test_dir:
         test_dir = "."
 
-    if os.path.exists(test_dir):
+    if Path(test_dir).exists():
         test_pil_performance(test_dir)
     else:
         print(f"Directory not found: {test_dir}")

@@ -94,6 +94,15 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   `TRY300` followed: 20 `try` blocks now put their success path in an `else`,
   so the `except` only guards what can actually fail. `TRY003` and `TRY301`
   remain off; `pyproject.toml` says why next to each.
+- **`PTH` lint rules enabled; shipped code converted to `pathlib`.** 221 call
+  sites across `security/`, `config/`, `utils/`, `core/`, `ui/` and `scripts/`,
+  done in five verified stages. Public signatures still return `str` — `Path` is
+  an internal detail — so nothing about the module APIs changed. The test tree's
+  322 sites are waived, because converting them would change the types the tests
+  feed the code under test. Two latent problems surfaced on the way: the
+  documentation build resolved the repository root from the process working
+  directory (wrong under `make docs-watch`), and `get_file_list()` was returning
+  `Path` objects from a function declared to return strings.
 - **`S` (bandit) lint rules enabled.** No existing vulnerability was found — the
   separate `bandit` job already covered this code — so the value is prospective:
   `eval`, `pickle`, `shell=True`, weak hashes and hardcoded secrets now fail in

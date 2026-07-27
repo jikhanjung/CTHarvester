@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-27
 **Current Version:** 0.2.3-beta.2
-**Status:** 🚧 In progress — stages 1 to 4 landed
+**Status:** ✅ Shipped code fully converted; `PTH` enabled with `tests/**` waived
 **Previous:** [devlog 110 - pytest 9 and the Day's Ledger](./20260727_110_pytest_9_and_the_days_ledger.md)
 
 ---
@@ -191,14 +191,50 @@ behave the same as the `splitext` version.
 
 ---
 
+## 📦 Stage 5 — `scripts/` (44 sites), and the rule goes on
+
+Mostly `open()` in the profiling and one-off analysis scripts. Nothing
+structural, but two process notes worth keeping.
+
+**Scripted replacement by exact source text bit twice.** Once when a matched
+pattern was only part of an `if`/`else` (stage 3), and once when a 4-space
+pattern matched the *tail* of a 12-space line — which happened to produce
+correct output by luck, since `str.replace` preserves what precedes the match.
+Luck is not a review strategy. The remaining sites were converted by line
+number, taking each line's real text rather than guessing its indentation.
+
+**`PTH` is now in `select`, with `tests/**` waived** and the reasoning written
+beside it. Shipped code is fully converted: 177 of 499 sites, plus 44 in
+`scripts/`. The 322 in the test tree stay as they are, permanently, for the
+reason given below.
+
+---
+
+## 🗑️ A file that was never ours
+
+Spotted while converting `scripts/`: `convert_tps.py`.
+
+TPS is a landmark morphometrics format — Modan2's domain, not a CT
+preprocessor's. The file references nothing from CTHarvester, reads from
+`D:/Dropbox/Blender/{}_simulation/...` hardcoded to one machine, and writes
+`{genus}_{surface}_20230619.tps`. Modan2's repository contains
+`Phacops_flat_20230619.tps` and `Phacops_irregular_20230619.tps`.
+
+So this is the one-off script that generated Modan2's example datasets in June
+2023, committed to the wrong repository and carried since. Deleted;
+`git show af95881:scripts/convert_tps.py` brings it back if the history is ever
+wanted.
+
+It took a conversion pass touching every file in `scripts/` for anyone to look
+at it closely enough to ask what it was.
+
+---
+
 ## 🔭 What is left
 
-| Stage | Target | Sites |
-|---|---|---|
-| 5 | `scripts/` | 48 |
-| — | `tests/` | 322 — to be waived, see below |
+Nothing in shipped code. `tests/` (322) is waived, permanently:
 
-### Why `tests/` will be waived rather than converted
+### Why `tests/` is waived rather than converted
 
 322 of the 499 findings are in the test suite, and nearly all are
 `os.path.join(self.temp_dir, "name")` producing a **string that is then handed
@@ -208,8 +244,8 @@ noise and tests nothing new. Doing it properly means rewriting those fixtures
 onto pytest's `tmp_path`, which is a rewrite, not a conversion.
 
 Same reasoning as waiving `S101` there: the rule is aimed at production code and
-the test tree is a different context. It will be a per-file ignore with that
-argument written next to it.
+the test tree is a different context. It is a per-file ignore with that argument
+written next to it in `pyproject.toml`.
 
 ---
 

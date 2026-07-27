@@ -30,7 +30,7 @@ def load_all_metrics(metrics_dir: Path) -> list:
 
     for json_file in metrics_dir.glob("*_metrics*.json"):
         try:
-            with open(json_file) as f:
+            with json_file.open() as f:
                 data = json.load(f)
 
             timestamp = data.get("timestamp")
@@ -389,7 +389,7 @@ def main():
     output_path = project_root / args.output
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_path, "w") as f:
+    with Path(output_path).open("w") as f:
         f.write(report)
 
     print(f" Report generated: {output_path}")

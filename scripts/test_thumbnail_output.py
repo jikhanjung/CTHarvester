@@ -94,7 +94,7 @@ def main():
     else:
         base_dir = input("Enter the directory containing CT images: ").strip()
 
-    if not os.path.exists(base_dir):
+    if not Path(base_dir).exists():
         print(f"Directory does not exist: {base_dir}")
         return
 

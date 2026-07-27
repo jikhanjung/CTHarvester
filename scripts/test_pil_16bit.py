@@ -5,6 +5,7 @@ Test PIL's native 16-bit image handling vs NumPy conversion
 
 import os
 import time
+from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageChops
@@ -108,10 +109,10 @@ if __name__ == "__main__":
     if not test_dir:
         test_dir = "D:\\Lichas_tif"
 
-    file1 = os.path.join(test_dir, "Lichas0000.tif")
-    file2 = os.path.join(test_dir, "Lichas0001.tif")
+    file1 = str(Path(test_dir) / "Lichas0000.tif")
+    file2 = str(Path(test_dir) / "Lichas0001.tif")
 
-    if os.path.exists(file1) and os.path.exists(file2):
+    if Path(file1).exists() and Path(file2).exists():
         test_methods(file1, file2)
     else:
         print(f"Files not found in {test_dir}")

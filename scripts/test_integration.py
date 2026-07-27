@@ -5,6 +5,7 @@ Test script for CTHarvester Rust integration
 
 import os
 import sys
+from pathlib import Path
 
 # Check if ct_thumbnail module is available
 try:
@@ -22,10 +23,10 @@ if rust_available:
     print("\nTesting Rust module directly...")
 
     test_dir = r"D:\Lichas_tif"
-    if not os.path.exists(test_dir):
+    if not Path(test_dir).exists():
         # Try a fallback test directory
         test_dir = "./test_images"
-        if not os.path.exists(test_dir):
+        if not Path(test_dir).exists():
             print(f"Test directory not found: {test_dir}")
             print("Please create test images or specify a valid directory")
             sys.exit(1)

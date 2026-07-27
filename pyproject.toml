@@ -163,9 +163,13 @@ extend-exclude = [
 # C4   flake8-comprehensions
 # LOG  flake8-logging
 # DTZ  flake8-datetimez (naive datetime)
+# SIM  flake8-simplify
+# TRY  tryceratops (exception handling)
+# S    flake8-bandit (security)
+# PTH  flake8-use-pathlib
 # RUF012 mutable class default
 select = [
-    "E", "F", "I", "N", "UP", "B", "C4", "LOG", "DTZ", "SIM", "TRY", "S",
+    "E", "F", "I", "N", "UP", "B", "C4", "LOG", "DTZ", "SIM", "TRY", "S", "PTH",
     "C901", "RUF012",
 ]
 ignore = [
@@ -231,7 +235,15 @@ max-complexity = 15
 #                             ever created at that path.
 #   S103 (permissive mode) -- chmod 0o755 in teardown, restoring permissions a
 #                             test removed on purpose to reach an error branch.
-"tests/**" = ["F401", "N802", "N803", "N806", "S101", "S103", "S108"]
+#
+# PTH is waived here for a different reason, and permanently. 322 of the 499
+# findings were in this tree, nearly all `os.path.join(self.temp_dir, "name")`
+# producing a *string that is then passed to the function under test*.
+# Converting them changes the type the tests feed the API, which changes what is
+# being tested; wrapping each in str() adds noise and tests nothing new. Doing it
+# properly means moving those fixtures onto pytest's tmp_path, which is a rewrite
+# rather than a conversion. Shipped code is fully converted.
+"tests/**" = ["F401", "N802", "N803", "N806", "S101", "S103", "S108", "PTH"]
 # Profiling and one-off analysis scripts, not shipped code. test_integration.py
 # hand-mocks Qt widgets, so its method names have to match the Qt API it stands
 # in for, and it imports to probe availability.

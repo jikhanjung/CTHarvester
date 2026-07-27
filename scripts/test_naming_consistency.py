@@ -5,15 +5,16 @@ Test script to verify that Python and Rust modules generate thumbnails with the 
 
 import os
 import sys
+from pathlib import Path
 
 
 def check_thumbnail_naming(thumbnail_dir):
     """Check the naming pattern of thumbnail files in a directory."""
-    if not os.path.exists(thumbnail_dir):
+    if not Path(thumbnail_dir).exists():
         print(f"Directory does not exist: {thumbnail_dir}")
         return None
 
-    files = sorted([f for f in os.listdir(thumbnail_dir) if f.endswith(".tif")])
+    files = sorted(f.name for f in Path(thumbnail_dir).iterdir() if f.suffix == ".tif")
 
     if not files:
         print(f"No .tif files found in {thumbnail_dir}")
@@ -46,13 +47,13 @@ def main():
     else:
         base_dir = input("Enter the directory containing CT images: ").strip()
 
-    if not os.path.exists(base_dir):
+    if not Path(base_dir).exists():
         print(f"Error: Directory '{base_dir}' does not exist")
         return
 
-    thumbnail_base = os.path.join(base_dir, ".thumbnail")
+    thumbnail_base = str(Path(base_dir) / ".thumbnail")
 
-    if not os.path.exists(thumbnail_base):
+    if not Path(thumbnail_base).exists():
         print(f"No .thumbnail directory found in {base_dir}")
         print("Please generate thumbnails first")
         return
@@ -62,8 +63,8 @@ def main():
 
     all_consistent = True
     for i in range(1, 20):
-        level_dir = os.path.join(thumbnail_base, str(i))
-        if os.path.exists(level_dir):
+        level_dir = str(Path(thumbnail_base) / str(i))
+        if Path(level_dir).exists():
             print(f"\n--- Level {i} ---")
             is_rust_pattern = check_thumbnail_naming(level_dir)
             if is_rust_pattern is False:

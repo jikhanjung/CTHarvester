@@ -234,7 +234,7 @@ def main():
     output_file = project_root / args.output
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_file, "w") as f:
+    with Path(output_file).open("w") as f:
         json.dump(metrics, f, indent=2)
 
     print("\n" + "=" * 60)
@@ -243,7 +243,7 @@ def main():
     # Save as baseline if requested
     if args.save_baseline:
         baseline_file = project_root / "performance_data" / "baseline_metrics.json"
-        with open(baseline_file, "w") as f:
+        with Path(baseline_file).open("w") as f:
             json.dump(metrics, f, indent=2)
         print(f" Baseline saved to: {baseline_file}")
 
@@ -251,7 +251,7 @@ def main():
     if args.compare_baseline:
         baseline_file = project_root / "performance_data" / "baseline_metrics.json"
         if baseline_file.exists():
-            with open(baseline_file) as f:
+            with Path(baseline_file).open() as f:
                 baseline = json.load(f)
 
             comparison = compare_with_baseline(metrics, baseline)

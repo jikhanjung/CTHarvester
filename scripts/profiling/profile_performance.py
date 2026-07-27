@@ -225,7 +225,7 @@ def main():
     output_file = project_root / args.output
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_file, "w") as f:
+    with Path(output_file).open("w") as f:
         json.dump(
             {
                 "profiling_date": datetime.now().astimezone().isoformat(),

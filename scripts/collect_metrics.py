@@ -46,10 +46,10 @@ def count_lines_of_code(directory: str, extensions: Sequence[str] | None = None)
 
         for file in files:
             if any(file.endswith(ext) for ext in extensions):
-                filepath = os.path.join(root, file)
+                filepath = str(Path(root) / file)
                 metrics["files"] += 1
 
-                with open(filepath, encoding="utf-8") as f:
+                with Path(filepath).open(encoding="utf-8") as f:
                     for line in f:
                         metrics["total_lines"] += 1
                         stripped = line.strip()
@@ -80,8 +80,8 @@ def get_test_coverage() -> dict[str, float]:
         )
 
         # Read coverage.json if it exists
-        if os.path.exists("coverage.json"):
-            with open("coverage.json") as f:
+        if Path("coverage.json").exists():
+            with Path("coverage.json").open() as f:
                 data = json.load(f)
                 return {
                     "line_coverage": data["totals"]["percent_covered"],
@@ -116,12 +116,12 @@ def count_functions_with_docstrings(directory: str) -> dict[str, int]:
 
         for file in files:
             if file.endswith(".py"):
-                filepath = os.path.join(root, file)
+                filepath = str(Path(root) / file)
 
                 # A file that will not parse contributes nothing to the
                 # counts; this is a metrics script, not a syntax checker.
                 with contextlib.suppress(Exception):
-                    with open(filepath, encoding="utf-8") as f:
+                    with Path(filepath).open(encoding="utf-8") as f:
                         tree = ast.parse(f.read())
 
                     for node in ast.walk(tree):
@@ -169,11 +169,11 @@ def count_type_hints(directory: str) -> dict[str, int]:
 
         for file in files:
             if file.endswith(".py"):
-                filepath = os.path.join(root, file)
+                filepath = str(Path(root) / file)
 
                 # Same as above: unparseable files are skipped, not reported.
                 with contextlib.suppress(Exception):
-                    with open(filepath, encoding="utf-8") as f:
+                    with Path(filepath).open(encoding="utf-8") as f:
                         tree = ast.parse(f.read())
 
                     for node in ast.walk(tree):
@@ -219,7 +219,7 @@ def collect_all_metrics(directories: list[str]) -> dict:
 
     # Collect per-directory metrics
     for directory in directories:
-        if not os.path.exists(directory):
+        if not Path(directory).exists():
             continue
 
         dir_metrics = {
@@ -324,7 +324,7 @@ def main():
 
     # Save to file if requested
     if args.output:
-        with open(args.output, "w") as f:
+        with Path(args.output).open("w") as f:
             json.dump(metrics, f, indent=2)
         print(f"Metrics saved to: {args.output}")
 

@@ -6,6 +6,7 @@ Simulates the exact same operations
 
 import os
 import time
+from pathlib import Path
 
 import numpy as np
 from PIL import Image
@@ -100,11 +101,11 @@ def test_full_process(file1_path, file2_path, output_path):
 
 if __name__ == "__main__":
     test_dir = "D:\\Lichas_tif"
-    file1 = os.path.join(test_dir, "Lichas0000.tif")
-    file2 = os.path.join(test_dir, "Lichas0001.tif")
+    file1 = str(Path(test_dir) / "Lichas0000.tif")
+    file2 = str(Path(test_dir) / "Lichas0001.tif")
     output = "test_thumbnail.png"
 
-    if os.path.exists(file1) and os.path.exists(file2):
+    if Path(file1).exists() and Path(file2).exists():
         test_full_process(file1, file2, output)
         print(f"\nOutput saved as: {output}")
     else:
