@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CTHarvester \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-01 17:48+0900\n"
+"POT-Creation-Date: 2026-07-28 18:24+0900\n"
 "PO-Revision-Date: 2025-10-01 18:30+0900\n"
 "Last-Translator: CTHarvester Documentation Team <noreply@ctharvester.org>\n"
 "Language: ko\n"
@@ -17,774 +17,843 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.17.0\n"
+"Generated-By: Babel 2.18.0\n"
 
-#: ../../developer_guide.rst:2
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:2
 msgid "Developer Guide"
 msgstr "개발자 가이드"
 
-#: ../../developer_guide.rst:4
-msgid ""
-"This guide is for developers who want to contribute to or extend "
-"CTHarvester."
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:4
+msgid "This guide is for developers who want to contribute to or extend CTHarvester."
 msgstr "이 가이드는 CTHarvester에 기여하거나 확장하려는 개발자를 위한 것입니다."
 
-#: ../../developer_guide.rst:7
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:7
 msgid "Architecture Overview"
 msgstr "아키텍처 개요"
 
-#: ../../developer_guide.rst:10
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:10
 msgid "Module Structure"
 msgstr "모듈 구조"
 
-#: ../../developer_guide.rst:12
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:12
 msgid "CTHarvester follows a modular architecture::"
 msgstr "CTHarvester는 모듈식 아키텍처를 따릅니다::"
 
-#: ../../developer_guide.rst:37
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:63
 msgid "Design Principles"
 msgstr "설계 원칙"
 
-#: ../../developer_guide.rst:39
-msgid ""
-"**Separation of Concerns**: UI, business logic, and data handling are "
-"separate"
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:65
+msgid "**Separation of Concerns**: UI, business logic, and data handling are separate"
 msgstr "**관심사 분리**: UI, 비즈니스 로직 및 데이터 처리가 분리됨"
 
-#: ../../developer_guide.rst:40
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:66
 msgid "**Modularity**: Each module has a single, well-defined responsibility"
 msgstr "**모듈성**: 각 모듈은 잘 정의된 단일 책임을 가짐"
 
-#: ../../developer_guide.rst:41
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:67
 msgid "**Testability**: Core logic is independent of UI for easy testing"
 msgstr "**테스트 가능성**: 핵심 로직이 UI와 독립적이어서 쉽게 테스트 가능"
 
-#: ../../developer_guide.rst:42
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:68
 msgid "**Thread Safety**: Proper synchronization for multithreaded operations"
 msgstr "**스레드 안전성**: 다중 스레드 작업을 위한 적절한 동기화"
 
-#: ../../developer_guide.rst:43
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:69
 msgid "**Security First**: Input validation and secure file operations"
 msgstr "**보안 우선**: 입력 검증 및 안전한 파일 작업"
 
-#: ../../developer_guide.rst:46
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:72
 msgid "Key Components"
 msgstr "주요 구성 요소"
 
-#: ../../developer_guide.rst:48
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:74
 msgid "**Progress Tracking:**"
 msgstr "**진행 상황 추적:**"
 
-#: ../../developer_guide.rst:50
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:76
 msgid "``SimpleProgressTracker``: Linear progress with ETA"
 msgstr "``SimpleProgressTracker``: ETA가 있는 선형 진행 상황"
 
-#: ../../developer_guide.rst:51
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:77
 msgid "``ProgressManager``: Weighted multi-level progress"
 msgstr "``ProgressManager``: 가중치가 적용된 다단계 진행 상황"
 
-#: ../../developer_guide.rst:52
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:78
 msgid "Signal/slot connections for UI updates"
 msgstr "UI 업데이트를 위한 시그널/슬롯 연결"
 
-#: ../../developer_guide.rst:54
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:80
 msgid "**Thumbnail Generation:**"
 msgstr "**썸네일 생성:**"
 
-#: ../../developer_guide.rst:56
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:82
+msgid "``ThumbnailCreationHandler``: Orchestrates Rust/Python thumbnail generation (Phase 4.2)"
+msgstr "``ThumbnailCreationHandler``: Rust/Python 썸네일 생성 조율 (Phase 4.2)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:83
+msgid "``ThumbnailGenerator``: Core thumbnail generation logic"
+msgstr "``ThumbnailGenerator``: 썸네일 생성 핵심 로직"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:84
 msgid "``ThumbnailManager``: Coordinates worker threads"
 msgstr "``ThumbnailManager``: 워커 스레드 조정"
 
-#: ../../developer_guide.rst:57
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:85
 msgid "``ThumbnailWorker``: Processes individual thumbnails"
 msgstr "``ThumbnailWorker``: 개별 썸네일 처리"
 
-#: ../../developer_guide.rst:58
-msgid "Support for both Rust and Python implementations"
-msgstr "Rust 및 Python 구현 모두 지원"
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:86
+msgid "``SequentialProcessor``: Python fallback sequential processing (Phase 4.1)"
+msgstr "``SequentialProcessor``: Python 폴백 순차 처리 (Phase 4.1)"
 
-#: ../../developer_guide.rst:60
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:87
+msgid "Support for both Rust (high-performance) and Python (fallback) implementations"
+msgstr "Rust(고성능)와 Python(폴백) 구현 모두 지원"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:89
+msgid "**UI Handlers (Phase 4 Refactoring):**"
+msgstr "**UI 핸들러 (Phase 4 리팩터링):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:91
+msgid "``ThumbnailCreationHandler``: Manages thumbnail generation workflows"
+msgstr "``ThumbnailCreationHandler``: 썸네일 생성 워크플로 관리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:92
+msgid "``DirectoryOpenHandler``: Handles directory selection and loading"
+msgstr "``DirectoryOpenHandler``: 디렉토리 선택과 로딩 처리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:93
+msgid "``ViewManager``: Manages 3D view updates and synchronization"
+msgstr "``ViewManager``: 3D 뷰 갱신과 동기화 관리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:94
+msgid "``ExportHandler``: Manages export operations"
+msgstr "``ExportHandler``: 내보내기 작업 관리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:95
+msgid "``FileHandler``: File operations and validation"
+msgstr "``FileHandler``: 파일 작업과 검증"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:96
+msgid "``SettingsHandler``: Window settings persistence"
+msgstr "``SettingsHandler``: 창 설정 저장"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:98
 msgid "**Settings Management:**"
 msgstr "**설정 관리:**"
 
-#: ../../developer_guide.rst:62
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:100
 msgid "YAML-based configuration"
 msgstr "YAML 기반 구성"
 
-#: ../../developer_guide.rst:63
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:101
 msgid "Platform-independent storage"
 msgstr "플랫폼 독립적인 저장소"
 
-#: ../../developer_guide.rst:64
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:102
 msgid "Import/Export functionality"
 msgstr "가져오기/내보내기 기능"
 
-#: ../../developer_guide.rst:65
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:103
 msgid "Dot notation access (``settings.get('app.language')``)"
 msgstr "점 표기법 접근 (``settings.get('app.language')``)"
 
-#: ../../developer_guide.rst:67
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:105
 msgid "**Security:**"
 msgstr "**보안:**"
 
-#: ../../developer_guide.rst:69
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:107
 msgid "``SecureFileValidator``: Path traversal prevention"
 msgstr "``SecureFileValidator``: 경로 탐색 방지"
 
-#: ../../developer_guide.rst:70
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:108
 msgid "Whitelist-based file extension validation"
 msgstr "화이트리스트 기반 파일 확장자 검증"
 
-#: ../../developer_guide.rst:71
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:109
 msgid "Safe file operations"
 msgstr "안전한 파일 작업"
 
-#: ../../developer_guide.rst:74
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:112
 msgid "Development Setup"
 msgstr "개발 환경 설정"
 
-#: ../../developer_guide.rst:77
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:115
 msgid "Prerequisites"
 msgstr "필수 조건"
 
-#: ../../developer_guide.rst:79
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:117
 msgid "Python 3.8+"
 msgstr "Python 3.8+"
 
-#: ../../developer_guide.rst:80
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:118
 msgid "Git"
 msgstr "Git"
 
-#: ../../developer_guide.rst:81
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:119
 msgid "Virtual environment tool (venv or conda)"
 msgstr "가상 환경 도구 (venv 또는 conda)"
 
-#: ../../developer_guide.rst:82
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:120
 msgid "Optional: Rust toolchain for building native module"
 msgstr "선택사항: 네이티브 모듈 빌드를 위한 Rust 툴체인"
 
-#: ../../developer_guide.rst:85
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:123
 msgid "Setting Up Development Environment"
 msgstr "개발 환경 설정"
 
-#: ../../developer_guide.rst:87
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:125
 msgid "**Clone and setup:**"
 msgstr "**복제 및 설정:**"
 
-#: ../../developer_guide.rst:104
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:142
 msgid "**Install pre-commit hooks:**"
 msgstr "**pre-commit 훅 설치:**"
 
-#: ../../developer_guide.rst:110
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:148
 msgid "**Run tests:**"
 msgstr "**테스트 실행:**"
 
-#: ../../developer_guide.rst:117
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:155
 msgid "Code Style and Standards"
 msgstr "코드 스타일 및 표준"
 
-#: ../../developer_guide.rst:120
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:158
 msgid "Python Style Guide"
 msgstr "Python 스타일 가이드"
 
-#: ../../developer_guide.rst:122
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:160
 msgid "We follow PEP 8 with some modifications:"
 msgstr "몇 가지 수정 사항과 함께 PEP 8을 따릅니다:"
 
-#: ../../developer_guide.rst:124
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:162
 msgid "Line length: 100 characters (not 79)"
 msgstr "줄 길이: 100자 (79자 아님)"
 
-#: ../../developer_guide.rst:125
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:163
 msgid "Use double quotes for strings"
 msgstr "문자열에 큰따옴표 사용"
 
-#: ../../developer_guide.rst:126
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:164
 msgid "Use type hints for function signatures"
 msgstr "함수 시그니처에 타입 힌트 사용"
 
-#: ../../developer_guide.rst:127
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:165
 msgid "Use Google-style docstrings"
 msgstr "Google 스타일 docstring 사용"
 
-#: ../../developer_guide.rst:129
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:167
 msgid "**Example:**"
 msgstr "**예제:**"
 
-#: ../../developer_guide.rst:156
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:194
 msgid "Docstring Style"
 msgstr "Docstring 스타일"
 
-#: ../../developer_guide.rst:158
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:196
 msgid "Use Google-style docstrings for all public APIs:"
 msgstr "모든 공개 API에 Google 스타일 docstring 사용:"
 
-#: ../../developer_guide.rst:184
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:222
 msgid "Type Hints"
 msgstr "타입 힌트"
 
-#: ../../developer_guide.rst:186
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:224
 msgid "Use type hints for all function signatures:"
 msgstr "모든 함수 시그니처에 타입 힌트 사용:"
 
-#: ../../developer_guide.rst:200
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:238
 msgid "Testing"
 msgstr "테스팅"
 
-#: ../../developer_guide.rst:203
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:241
 msgid "Test Organization"
 msgstr "테스트 구성"
 
-#: ../../developer_guide.rst:205
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:243
 msgid "Tests are organized by module::"
 msgstr "테스트는 모듈별로 구성됩니다::"
 
-#: ../../developer_guide.rst:214
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:252
 msgid "Running Tests"
 msgstr "테스트 실행"
 
-#: ../../developer_guide.rst:216
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:254
 msgid "**Run all tests:**"
 msgstr "**모든 테스트 실행:**"
 
-#: ../../developer_guide.rst:222
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:260
 msgid "**Run specific test file:**"
 msgstr "**특정 테스트 파일 실행:**"
 
-#: ../../developer_guide.rst:228
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:266
 msgid "**Run with coverage:**"
 msgstr "**커버리지와 함께 실행:**"
 
-#: ../../developer_guide.rst:234
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:272
 msgid "**Run specific test:**"
 msgstr "**특정 테스트 실행:**"
 
-#: ../../developer_guide.rst:241
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:279
 msgid "Writing Tests"
 msgstr "테스트 작성"
 
-#: ../../developer_guide.rst:243
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:281
 msgid "Example test structure:"
 msgstr "예제 테스트 구조:"
 
-#: ../../developer_guide.rst:297
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:335
 msgid "Test Coverage Goals"
 msgstr "테스트 커버리지 목표"
 
-#: ../../developer_guide.rst:299
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:337
 msgid "Overall coverage: >70%"
 msgstr "전체 커버리지: >70%"
 
-#: ../../developer_guide.rst:300
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:338
 msgid "Core modules: >80%"
 msgstr "핵심 모듈: >80%"
 
-#: ../../developer_guide.rst:301
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:339
 msgid "Security modules: >90%"
 msgstr "보안 모듈: >90%"
 
-#: ../../developer_guide.rst:304
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:342
 msgid "Contributing"
 msgstr "기여"
 
-#: ../../developer_guide.rst:307
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:345
 msgid "Contribution Workflow"
 msgstr "기여 워크플로우"
 
-#: ../../developer_guide.rst:309
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:347
 msgid "**Fork and Clone:**"
 msgstr "**포크 및 복제:**"
 
-#: ../../developer_guide.rst:311
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:349
 msgid "Fork the repository on GitHub"
 msgstr "GitHub에서 저장소 포크"
 
-#: ../../developer_guide.rst:312
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:350
 msgid "Clone your fork locally"
 msgstr "포크를 로컬로 복제"
 
-#: ../../developer_guide.rst:313
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:351
 msgid "Add upstream remote:"
 msgstr "업스트림 원격 추가:"
 
-#: ../../developer_guide.rst:319
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:357
 msgid "**Create Feature Branch:**"
 msgstr "**기능 브랜치 생성:**"
 
-#: ../../developer_guide.rst:325
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:363
 msgid "**Make Changes:**"
 msgstr "**변경사항 작성:**"
 
-#: ../../developer_guide.rst:327
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:365
 msgid "Write code"
 msgstr "코드 작성"
 
-#: ../../developer_guide.rst:328
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:366
 msgid "Add tests"
 msgstr "테스트 추가"
 
-#: ../../developer_guide.rst:329
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:367
 msgid "Update documentation"
 msgstr "문서 업데이트"
 
-#: ../../developer_guide.rst:330
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:368
 msgid "Run tests: ``pytest``"
 msgstr "테스트 실행: ``pytest``"
 
-#: ../../developer_guide.rst:331
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:369
 msgid "Check style: ``flake8`` or ``black --check .``"
 msgstr "스타일 확인: ``flake8`` 또는 ``black --check .``"
 
-#: ../../developer_guide.rst:333
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:371
 msgid "**Commit:**"
 msgstr "**커밋:**"
 
-#: ../../developer_guide.rst:340
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:378
 msgid "Follow conventional commits format:"
 msgstr "기존 커밋 형식 따르기:"
 
-#: ../../developer_guide.rst:342
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:380
 msgid "``feat:``: New feature"
 msgstr "``feat:``: 새로운 기능"
 
-#: ../../developer_guide.rst:343
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:381
 msgid "``fix:``: Bug fix"
 msgstr "``fix:``: 버그 수정"
 
-#: ../../developer_guide.rst:344
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:382
 msgid "``docs:``: Documentation changes"
 msgstr "``docs:``: 문서 변경"
 
-#: ../../developer_guide.rst:345
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:383
 msgid "``refactor:``: Code refactoring"
 msgstr "``refactor:``: 코드 리팩토링"
 
-#: ../../developer_guide.rst:346
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:384
 msgid "``test:``: Adding tests"
 msgstr "``test:``: 테스트 추가"
 
-#: ../../developer_guide.rst:347
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:385
 msgid "``chore:``: Maintenance tasks"
 msgstr "``chore:``: 유지보수 작업"
 
-#: ../../developer_guide.rst:349
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:387
 msgid "**Push and Create PR:**"
 msgstr "**푸시 및 PR 생성:**"
 
-#: ../../developer_guide.rst:355
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:393
 msgid "Create pull request on GitHub"
 msgstr "GitHub에서 풀 리퀘스트 생성"
 
-#: ../../developer_guide.rst:356
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:394
 msgid "Fill out PR template"
 msgstr "PR 템플릿 작성"
 
-#: ../../developer_guide.rst:357
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:395
 msgid "Link related issues"
 msgstr "관련 이슈 링크"
 
-#: ../../developer_guide.rst:358
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:396
 msgid "Wait for review"
 msgstr "리뷰 대기"
 
-#: ../../developer_guide.rst:361
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:399
 msgid "Code Review Process"
 msgstr "코드 리뷰 프로세스"
 
-#: ../../developer_guide.rst:363
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:401
 msgid "All code changes go through review:"
 msgstr "모든 코드 변경은 리뷰를 거칩니다:"
 
-#: ../../developer_guide.rst:365
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:403
 msgid "**Automated Checks:**"
 msgstr "**자동 검사:**"
 
-#: ../../developer_guide.rst:367
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:405
 msgid "Tests must pass"
 msgstr "테스트 통과 필수"
 
-#: ../../developer_guide.rst:368
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:406
 msgid "Code coverage must not decrease"
 msgstr "코드 커버리지 감소 금지"
 
-#: ../../developer_guide.rst:369
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:407
 msgid "Style checks must pass"
 msgstr "스타일 검사 통과 필수"
 
-#: ../../developer_guide.rst:371
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:409
 msgid "**Manual Review:**"
 msgstr "**수동 리뷰:**"
 
-#: ../../developer_guide.rst:373
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:411
 msgid "At least one approving review required"
 msgstr "최소 1개의 승인 리뷰 필요"
 
-#: ../../developer_guide.rst:374
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:412
 msgid "Address review comments"
 msgstr "리뷰 코멘트 해결"
 
-#: ../../developer_guide.rst:375
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:413
 msgid "Update as needed"
 msgstr "필요에 따라 업데이트"
 
-#: ../../developer_guide.rst:377
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:415
 msgid "**Merge:**"
 msgstr "**병합:**"
 
-#: ../../developer_guide.rst:379
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:417
 msgid "Squash and merge preferred"
 msgstr "스쿼시 및 병합 선호"
 
-#: ../../developer_guide.rst:380
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:418
 msgid "Delete branch after merge"
 msgstr "병합 후 브랜치 삭제"
 
-#: ../../developer_guide.rst:383
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:421
 msgid "Pull Request Guidelines"
 msgstr "풀 리퀘스트 가이드라인"
 
-#: ../../developer_guide.rst:385
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:423
 msgid "**Good PR:**"
 msgstr "**좋은 PR:**"
 
-#: ../../developer_guide.rst:387
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:425
 msgid "Focused on single feature/fix"
 msgstr "단일 기능/수정에 집중"
 
-#: ../../developer_guide.rst:388
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:426
 msgid "Includes tests"
 msgstr "테스트 포함"
 
-#: ../../developer_guide.rst:389
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:427
 msgid "Updates documentation"
 msgstr "문서 업데이트"
 
-#: ../../developer_guide.rst:390
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:428
 msgid "Clear description"
 msgstr "명확한 설명"
 
-#: ../../developer_guide.rst:391
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:429
 msgid "Links to related issues"
 msgstr "관련 이슈 링크"
 
-#: ../../developer_guide.rst:393
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:431
 msgid "**PR Template:**"
 msgstr "**PR 템플릿:**"
 
-#: ../../developer_guide.rst:421
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:459
 msgid "Building and Packaging"
 msgstr "빌드 및 패키징"
 
-#: ../../developer_guide.rst:424
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:462
 msgid "Building Rust Module"
 msgstr "Rust 모듈 빌드"
 
-#: ../../developer_guide.rst:432
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:470
 msgid "The compiled library will be placed in ``target/release/``."
 msgstr "컴파일된 라이브러리는 ``target/release/``에 배치됩니다."
 
-#: ../../developer_guide.rst:435
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:473
 msgid "Creating Executable"
 msgstr "실행 파일 생성"
 
-#: ../../developer_guide.rst:437
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:475
 msgid "**Using PyInstaller:**"
 msgstr "**PyInstaller 사용:**"
 
-#: ../../developer_guide.rst:447
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:485
 msgid "**Output:**"
 msgstr "**출력:**"
 
-#: ../../developer_guide.rst:449
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:487
 msgid "Executable in ``dist/`` directory"
 msgstr "``dist/`` 디렉토리의 실행 파일"
 
-#: ../../developer_guide.rst:450
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:488
 msgid "Standalone, no Python required"
 msgstr "독립 실행형, Python 불필요"
 
-#: ../../developer_guide.rst:453
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:491
 msgid "Building Documentation"
 msgstr "문서 빌드"
 
-#: ../../developer_guide.rst:460
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:498
 msgid "Output in ``docs/_build/html/``."
 msgstr "``docs/_build/html/``에 출력됩니다."
 
-#: ../../developer_guide.rst:463
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:501
 msgid "Release Process"
 msgstr "릴리스 프로세스"
 
-#: ../../developer_guide.rst:465
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:503
 msgid "**Update Version:**"
 msgstr "**버전 업데이트:**"
 
-#: ../../developer_guide.rst:467
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:505
 msgid "Update ``config/constants.py``"
 msgstr "``config/constants.py`` 업데이트"
 
-#: ../../developer_guide.rst:468
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:506
 msgid "Update ``docs/conf.py``"
 msgstr "``docs/conf.py`` 업데이트"
 
-#: ../../developer_guide.rst:469
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:507
 msgid "Update ``setup.py`` (if using)"
 msgstr "``setup.py`` 업데이트 (사용 중인 경우)"
 
-#: ../../developer_guide.rst:471
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:509
 msgid "**Update Changelog:**"
 msgstr "**변경 로그 업데이트:**"
 
-#: ../../developer_guide.rst:473
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:511
 msgid "Add release notes"
 msgstr "릴리스 노트 추가"
 
-#: ../../developer_guide.rst:474
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:512
 msgid "List all changes since last release"
 msgstr "마지막 릴리스 이후 모든 변경 사항 나열"
 
-#: ../../developer_guide.rst:476
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:514
 msgid "**Create Release:**"
 msgstr "**릴리스 생성:**"
 
-#: ../../developer_guide.rst:483
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:521
 msgid "**Build Artifacts:**"
 msgstr "**아티팩트 빌드:**"
 
-#: ../../developer_guide.rst:485
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:523
 msgid "Build executables for all platforms"
 msgstr "모든 플랫폼용 실행 파일 빌드"
 
-#: ../../developer_guide.rst:486
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:524
 msgid "Build documentation"
 msgstr "문서 빌드"
 
-#: ../../developer_guide.rst:487
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:525
 msgid "Create source distribution"
 msgstr "소스 배포 생성"
 
-#: ../../developer_guide.rst:489
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:527
 msgid "**Publish Release:**"
 msgstr "**릴리스 게시:**"
 
-#: ../../developer_guide.rst:491
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:529
 msgid "Create GitHub release"
 msgstr "GitHub 릴리스 생성"
 
-#: ../../developer_guide.rst:492
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:530
 msgid "Attach built artifacts"
 msgstr "빌드된 아티팩트 첨부"
 
-#: ../../developer_guide.rst:493
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:531
 msgid "Copy changelog to release notes"
 msgstr "변경 로그를 릴리스 노트에 복사"
 
-#: ../../developer_guide.rst:494
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:532
 msgid "Mark as latest release"
 msgstr "최신 릴리스로 표시"
 
-#: ../../developer_guide.rst:497
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:535
 msgid "Debugging Tips"
 msgstr "디버깅 팁"
 
-#: ../../developer_guide.rst:500
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:538
 msgid "Logging"
 msgstr "로깅"
 
-#: ../../developer_guide.rst:502
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:540
 msgid "CTHarvester uses Python's logging module:"
 msgstr "CTHarvester는 Python의 로깅 모듈을 사용합니다:"
 
-#: ../../developer_guide.rst:514
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:552
 msgid "Set log level in settings or via command line."
 msgstr "설정 또는 명령줄을 통해 로그 수준을 설정합니다."
 
-#: ../../developer_guide.rst:517
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:555
 msgid "Common Debugging Scenarios"
 msgstr "일반적인 디버깅 시나리오"
 
-#: ../../developer_guide.rst:519
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:557
 msgid "**Threading Issues:**"
 msgstr "**스레드 문제:**"
 
-#: ../../developer_guide.rst:521
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:559
 msgid "Use ``QMutexLocker`` for thread-safe operations"
 msgstr "스레드 안전 작업을 위해 ``QMutexLocker`` 사용"
 
-#: ../../developer_guide.rst:522
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:560
 msgid "Check for race conditions with ``threading.current_thread()``"
 msgstr "``threading.current_thread()``로 경쟁 조건 확인"
 
-#: ../../developer_guide.rst:523
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:561
 msgid "Use ``logging`` instead of ``print()`` in threads"
 msgstr "스레드에서 ``print()`` 대신 ``logging`` 사용"
 
-#: ../../developer_guide.rst:525
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:563
 msgid "**Memory Leaks:**"
 msgstr "**메모리 누수:**"
 
-#: ../../developer_guide.rst:527
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:565
 msgid "Use ``memory_profiler`` to track memory usage"
 msgstr "메모리 사용량 추적을 위해 ``memory_profiler`` 사용"
 
-#: ../../developer_guide.rst:528
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:566
 msgid "Check for circular references"
 msgstr "순환 참조 확인"
 
-#: ../../developer_guide.rst:529
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:567
 msgid "Use weak references where appropriate"
 msgstr "적절한 경우 약한 참조 사용"
 
-#: ../../developer_guide.rst:531
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:569
 msgid "**Performance Issues:**"
 msgstr "**성능 문제:**"
 
-#: ../../developer_guide.rst:533
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:571
 msgid "Profile with ``cProfile``"
 msgstr "``cProfile``로 프로파일링"
 
-#: ../../developer_guide.rst:534
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:572
 msgid "Use ``line_profiler`` for line-by-line profiling"
 msgstr "라인별 프로파일링을 위해 ``line_profiler`` 사용"
 
-#: ../../developer_guide.rst:535
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:573
 msgid "Check I/O operations (often the bottleneck)"
 msgstr "I/O 작업 확인 (종종 병목 현상)"
 
-#: ../../developer_guide.rst:537
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:575
 msgid "**Qt/GUI Issues:**"
 msgstr "**Qt/GUI 문제:**"
 
-#: ../../developer_guide.rst:539
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:577
 msgid "Only update UI from main thread"
 msgstr "메인 스레드에서만 UI 업데이트"
 
-#: ../../developer_guide.rst:540
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:578
 msgid "Use signals/slots for cross-thread communication"
 msgstr "스레드 간 통신을 위해 시그널/슬롯 사용"
 
-#: ../../developer_guide.rst:541
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:579
 msgid "Check event loop is running"
 msgstr "이벤트 루프가 실행 중인지 확인"
 
-#: ../../developer_guide.rst:544
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:582
 msgid "Resources"
 msgstr "리소스"
 
-#: ../../developer_guide.rst:547
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:585
 msgid "Documentation"
 msgstr "문서"
 
-#: ../../developer_guide.rst:549
-msgid ""
-"`PyQt5 Documentation "
-"<https://www.riverbankcomputing.com/static/Docs/PyQt5/>`_"
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:587
+msgid "`PyQt5 Documentation <https://www.riverbankcomputing.com/static/Docs/PyQt5/>`_"
 msgstr "`PyQt5 문서 <https://www.riverbankcomputing.com/static/Docs/PyQt5/>`_"
 
-#: ../../developer_guide.rst:550
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:588
 msgid "`NumPy Documentation <https://numpy.org/doc/>`_"
 msgstr "`NumPy 문서 <https://numpy.org/doc/>`_"
 
-#: ../../developer_guide.rst:551
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:589
 msgid "`Pillow Documentation <https://pillow.readthedocs.io/>`_"
 msgstr "`Pillow 문서 <https://pillow.readthedocs.io/>`_"
 
-#: ../../developer_guide.rst:552
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:590
 msgid "`Sphinx Documentation <https://www.sphinx-doc.org/>`_"
 msgstr "`Sphinx 문서 <https://www.sphinx-doc.org/>`_"
 
-#: ../../developer_guide.rst:555
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:593
 msgid "Tools"
 msgstr "도구"
 
-#: ../../developer_guide.rst:557
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:595
 msgid "**pytest**: Testing framework"
 msgstr "**pytest**: 테스팅 프레임워크"
 
-#: ../../developer_guide.rst:558
-msgid "**black**: Code formatter"
-msgstr "**black**: 코드 포매터"
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:596
+msgid "**ruff**: Linter and formatter (replaced black, isort, flake8, pyupgrade and pylint)"
+msgstr "**ruff**: 린터 및 포매터 (black, isort, flake8, pyupgrade, pylint를 대체)"
 
-#: ../../developer_guide.rst:559
-msgid "**flake8**: Linter"
-msgstr "**flake8**: 린터"
-
-#: ../../developer_guide.rst:560
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:597
 msgid "**mypy**: Type checker"
 msgstr "**mypy**: 타입 체커"
 
-#: ../../developer_guide.rst:561
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:598
+msgid "**bandit**: Security linter"
+msgstr "**bandit**: 보안 린터"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:599
 msgid "**coverage.py**: Coverage reporting"
 msgstr "**coverage.py**: 커버리지 리포팅"
 
-#: ../../developer_guide.rst:562
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:600
 msgid "**PyInstaller**: Executable builder"
 msgstr "**PyInstaller**: 실행 파일 빌더"
 
-#: ../../developer_guide.rst:565
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:603
+msgid "In-repo notes"
+msgstr "저장소 내 문서"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:605
+msgid "Longer-form developer references live as Markdown in the repository rather than in this manual, because they are for people working on CTHarvester rather than using it. They are not part of this site -- see ``docs/README.md`` for the convention."
+msgstr "분량이 큰 개발자 참고 문서는 이 매뉴얼이 아니라 저장소의 Markdown으로 관리합니다. CTHarvester를 사용하는 사람이 아니라 개발하는 사람을 위한 문서이기 때문입니다. 이 사이트에는 포함되지 않으며, 규칙은 ``docs/README.md``를 참조하세요."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:610
+msgid "`ARCHITECTURE.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/ARCHITECTURE.md>`_ -- module layout and data flow"
+msgstr "`ARCHITECTURE.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/ARCHITECTURE.md>`_ -- 모듈 구성과 데이터 흐름"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:611
+msgid "`CODE_QUALITY.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/CODE_QUALITY.md>`_ -- ruff, mypy, bandit, pre-commit"
+msgstr "`CODE_QUALITY.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/CODE_QUALITY.md>`_ -- ruff, mypy, bandit, pre-commit"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:612
+msgid "`developer_guide/error_recovery.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/developer_guide/error_recovery.md>`_ -- error handling patterns"
+msgstr "`developer_guide/error_recovery.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/developer_guide/error_recovery.md>`_ -- 오류 처리 패턴"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:613
+msgid "`developer_guide/performance.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/developer_guide/performance.md>`_ -- profiling and optimisation"
+msgstr "`developer_guide/performance.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/developer_guide/performance.md>`_ -- 프로파일링과 최적화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:614
+msgid "`RELEASE_PROCESS.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/RELEASE_PROCESS.md>`_ -- cutting a release"
+msgstr "`RELEASE_PROCESS.md <https://github.com/jikhanjung/CTHarvester/blob/main/docs/RELEASE_PROCESS.md>`_ -- 릴리스 진행 절차"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:617
 msgid "Community"
 msgstr "커뮤니티"
 
-#: ../../developer_guide.rst:567
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:619
 msgid "**GitHub Issues**: Bug reports and feature requests"
 msgstr "**GitHub Issues**: 버그 보고 및 기능 요청"
 
-#: ../../developer_guide.rst:568
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:620
 msgid "**Discussions**: Questions and general discussion"
 msgstr "**Discussions**: 질문 및 일반 토론"
 
-#: ../../developer_guide.rst:569
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:621
 msgid "**Pull Requests**: Code contributions"
 msgstr "**Pull Requests**: 코드 기여"
 
-#: ../../developer_guide.rst:570
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:622
 msgid "**Wiki**: Additional documentation"
 msgstr "**Wiki**: 추가 문서"
 
-#: ../../developer_guide.rst:573
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:625
 msgid "Getting Help"
 msgstr "도움 받기"
 
-#: ../../developer_guide.rst:575
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:627
 msgid "Check this documentation"
 msgstr "이 문서 확인"
 
-#: ../../developer_guide.rst:576
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:628
 msgid "Search existing issues"
 msgstr "기존 이슈 검색"
 
-#: ../../developer_guide.rst:577
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:629
 msgid "Ask in GitHub Discussions"
 msgstr "GitHub Discussions에서 질문"
 
-#: ../../developer_guide.rst:578
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:630
 msgid "Create new issue if needed"
 msgstr "필요 시 새 이슈 생성"
 
-#: ../../developer_guide.rst:580
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:632
 msgid "When asking for help, include:"
 msgstr "도움을 요청할 때 포함 사항:"
 
-#: ../../developer_guide.rst:582
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:634
 msgid "Python version"
 msgstr "Python 버전"
 
-#: ../../developer_guide.rst:583
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:635
 msgid "Operating system"
 msgstr "운영 체제"
 
-#: ../../developer_guide.rst:584
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:636
 msgid "CTHarvester version"
 msgstr "CTHarvester 버전"
 
-#: ../../developer_guide.rst:585
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:637
 msgid "Error message (full traceback)"
 msgstr "오류 메시지 (전체 트레이스백)"
 
-#: ../../developer_guide.rst:586
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:638
 msgid "Minimal reproduction steps"
 msgstr "최소 재현 단계"
 
-#: ../../developer_guide.rst:587
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:639
 msgid "What you've tried"
 msgstr "시도한 내용"
+
+#~ msgid "**black**: Code formatter"
+#~ msgstr "**black**: 코드 포매터"
+
+#~ msgid "**flake8**: Linter"
+#~ msgstr "**flake8**: 린터"
+
