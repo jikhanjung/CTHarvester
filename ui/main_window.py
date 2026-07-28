@@ -707,7 +707,7 @@ class CTHarvesterMainWindow(QMainWindow):
 
         # Create a simple error placeholder pixmap
         placeholder = QPixmap(PREVIEW_WIDTH, PREVIEW_WIDTH)
-        placeholder.fill(Qt.lightGray)
+        placeholder.fill(Qt.GlobalColor.lightGray)
 
         # Optionally show error message to user (non-blocking)
         logger.warning(f"Preview unavailable: {error_message}")

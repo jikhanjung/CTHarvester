@@ -19,7 +19,7 @@ state and should be updated as items land.
 | 4 | `filterwarnings = error` | ✅ | `pyproject.toml`, narrow documented ignores only |
 | 5 | Lockfile + pip-audit + Dependabot | ✅ | 9 per-platform lockfiles with hashes, pip-audit gating on all three platforms, `.github/dependabot.yml`, and `dependabot-lock-refresh.yml` to keep the locks in step with Dependabot's range bumps |
 | 6 | Coverage gate | ✅ | `--cov-fail-under=75` on the reference leg |
-| 7 | Static type checking, scoped | ✅ | mypy per-module strict, gating in CI. Scope is `core/` and `utils/`; widening to `ui/` is the open part |
+| 7 | Static type checking, scoped | ✅ | mypy per-module strict, gating in CI over `core/`, `utils/` and `ui/` (43 files, clean). Only `ui/widgets/` is still excluded. CI, `make type-check` and the pre-commit hook now run one identical command |
 | 8 | Dead-code / complexity automation | ✅ | `C901` enforced at the guide's threshold of 15 (2026-07-26); the backlog of eight functions is cleared. vulture evaluated and rejected — 5 of its 6 findings were false positives; Modan2 does not use it either. |
 | 9 | Packaged-artifact smoke test; signed installers | ⚠️ | Smoke test done (2026-07-26): `--self-test` entry point, run against the frozen build on all 3 OSes in `reusable_build.yml`. Installer signing/notarization still open |
 | 10 | Property-based / fuzz tests | ⚠️ | `tests/property/test_image_properties.py` exists but its body is `pytest.skip("Template - to be implemented in Phase 4")` |
@@ -39,17 +39,24 @@ Dropping 3.11 moved the config to 3.12, `mypy --config-file pyproject.toml
 core/ utils/` reports **Success: no issues found in 24 source files** against
 the locked mypy 1.20.2, and the guard is gone.
 
-What is left here is **scope**, not enablement: mypy runs over `core/` and
-`utils/` only. `ui/` has per-module strict sections in `pyproject.toml` that
-mypy reports as unused because nothing passes those paths to it. Widen a
-directory at a time, each clean before it is added — the same shape as the C901
-ratchet.
+**`ui/` joined the scope 2026-07-28.** `mypy --config-file pyproject.toml core/
+utils/ ui/` reports **Success: no issues found in 43 source files**. It took six
+fixes in `ui/` proper and four in `ui/dialogs/progress_dialog.py`, which came
+off the exclude list at the same time.
+
+What remains outside is **`ui/widgets/`** — 38 errors across `mcube_widget.py`
+(27) and `object_viewer_2d.py` (11), still excluded in `pyproject.toml` and
+still `ignore_errors = true`. Most are one mechanical class: `Qt.LeftButton`
+and friends, which PyQt5 exposes on `Qt` at runtime but the stubs place on
+`Qt.GlobalColor` / `Qt.MouseButton`. The rest are `union-attr` on
+`QApplication.instance()`, a few `override` mismatches and three
+`var-annotated`. Same approach: one file clean before it is added.
 
 **Working order** (cheapest first, per the guide's own ordering): ~~#3 `DTZ`~~,
 ~~#2 docs build gating~~, ~~#9 packaged smoke test~~, ~~#8 complexity ratchet~~,
 ~~per-platform locks~~, ~~mypy gating~~ and ~~the full lint ruleset~~ (all done
-2026-07-26/27). Remaining: **#10 property tests**, **installer signing**, and
-widening mypy's scope to `ui/`.
+2026-07-26/27) and ~~widening mypy to `ui/`~~ (2026-07-28). Remaining: **#10
+property tests**, **installer signing**, and mypy over `ui/widgets/`.
 
 ### Complexity backlog (`C901`) ✅ cleared 2026-07-26
 

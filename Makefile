@@ -151,9 +151,12 @@ lint:
 	@echo "Linting complete!"
 
 # Type checking
+# Same invocation as the gating CI step and the pre-commit hook. Do not widen
+# it to `mypy .` without making the other two match: the point of naming the
+# directories is that this scope is the one that is kept clean.
 type-check:
 	@echo "Running mypy..."
-	mypy . --ignore-missing-imports
+	mypy --config-file pyproject.toml core/ utils/ ui/
 	@echo "Type checking complete!"
 
 # Pre-commit hooks

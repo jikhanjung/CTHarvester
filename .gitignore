@@ -87,6 +87,9 @@ check_*.py
 .eggs/
 
 # Documentation build
-docs/manual/_build/
+# Any Sphinx output tree, wherever it is built. The manual lives in
+# docs/manual/, but docs/_build/ survived the move there as 24MB of untracked
+# stale HTML, so match the directory name rather than one path.
+_build/
 docs/manual/_static/
 # Note: docs/manual/_templates/ contains custom Sphinx templates - NOT ignored

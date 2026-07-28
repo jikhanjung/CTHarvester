@@ -10,6 +10,7 @@ Created: 2025-10-07
 
 import logging
 import traceback
+from collections.abc import Callable
 from enum import Enum
 
 from PyQt5.QtWidgets import QMessageBox, QWidget
@@ -93,7 +94,11 @@ class ErrorMessage:
 
 
 # Error message catalog
-ERROR_MESSAGES = {
+# The factories deliberately differ in arity: some interpolate a path or a
+# dependency name, others take nothing. get_error_message() calls with the
+# caller's arguments and retries with none on TypeError, so the callable type
+# is intentionally unconstrained in its parameters.
+ERROR_MESSAGES: dict[ErrorCode, Callable[..., ErrorMessage]] = {
     # File System Errors
     ErrorCode.DIRECTORY_NOT_FOUND: lambda path: ErrorMessage(
         title="Directory Not Found",
@@ -332,14 +337,15 @@ def get_error_message(
 
 
 def show_error_dialog(
-    parent: QWidget,
+    parent: QWidget | None,
     error_message: ErrorMessage,
     show_details: bool = False,
 ) -> int:
     """Show user-friendly error dialog with optional technical details.
 
     Args:
-        parent: Parent widget for dialog
+        parent: Parent widget for dialog, or None for a top-level dialog.
+            Callers reporting an error from a broken or torn-down UI pass None.
         error_message: ErrorMessage instance
         show_details: Whether to show technical details by default
 
@@ -382,7 +388,7 @@ def show_error_dialog(
 
 
 def show_error(
-    parent: QWidget,
+    parent: QWidget | None,
     error_code: ErrorCode,
     *args,
     exception: Exception | None = None,
@@ -392,7 +398,7 @@ def show_error(
     """Convenience function to show error dialog.
 
     Args:
-        parent: Parent widget for dialog
+        parent: Parent widget for dialog, or None for a top-level dialog
         error_code: Error code from ErrorCode enum
         *args: Arguments for error message factory
         exception: Original exception

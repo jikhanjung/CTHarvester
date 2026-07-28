@@ -17,25 +17,30 @@ from PyQt5.QtWidgets import (
     QProgressBar,
     QPushButton,
     QVBoxLayout,
+    QWidget,
 )
 
 from core.progress_tracker import ProgressInfo
+from ui.ctharvester_app import CTHarvesterApp
 from utils.common import resource_path
 
 logger = logging.getLogger(__name__)
 
 
 class ProgressDialog(QDialog):
-    def __init__(self, parent):
+    def __init__(self, parent: QWidget) -> None:
         super().__init__()
         self.setWindowTitle(self.tr("CTHarvester - Progress Dialog"))
-        self.parent = parent
-        self.m_app = QApplication.instance()
+        # Named parent_widget, not parent: QWidget.parent() is a method, and
+        # binding an attribute over it breaks every caller that expects the
+        # method. Same reason main_layout is not called layout.
+        self.parent_widget = parent
+        self.m_app: CTHarvesterApp | None = QApplication.instance()  # type: ignore[assignment]
         self.setGeometry(QRect(100, 100, 320, 180))
-        self.move(self.parent.pos() + QPoint(100, 100))
+        self.move(self.parent_widget.pos() + QPoint(100, 100))
 
-        self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(50, 50, 50, 50)
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(50, 50, 50, 50)
 
         self.lbl_text = QLabel(self)
         self.lbl_detail = QLabel(self)  # Additional label for ETA
@@ -56,30 +61,32 @@ class ProgressDialog(QDialog):
         self.btnStop.clicked.connect(self.set_stop_progress)
         self.btnStop.hide()
 
-        self.layout.addWidget(self.lbl_text)
-        self.layout.addWidget(self.lbl_detail)
-        self.layout.addWidget(self.lbl_remaining)
-        self.layout.addWidget(self.pb_progress)
-        self.layout.addWidget(self.btnCancel)
-        self.setLayout(self.layout)
+        self.main_layout.addWidget(self.lbl_text)
+        self.main_layout.addWidget(self.lbl_detail)
+        self.main_layout.addWidget(self.lbl_remaining)
+        self.main_layout.addWidget(self.pb_progress)
+        self.main_layout.addWidget(self.btnCancel)
+        self.setLayout(self.main_layout)
 
         # For time estimation
-        self.start_time = None
+        self.start_time: float | None = None
         self.total_steps = 0
         self.current_step = 0
 
         # Advanced ETA calculation with improved stability
-        self.step_times = deque(maxlen=100)  # Keep last 100 step times for better averaging
-        self.last_update_time = None
-        self.smoothed_eta = None  # Exponentially smoothed ETA
+        self.step_times: deque[float] = deque(
+            maxlen=100
+        )  # Keep last 100 step times for better averaging
+        self.last_update_time: float | None = None
+        self.smoothed_eta: float | None = None  # Exponentially smoothed ETA
         self.ema_alpha = (
             0.1  # Reduced EMA smoothing factor for more stability (0.1 = 10% new, 90% old)
         )
         self.min_samples_for_eta = 10  # Increased minimum samples before showing ETA
-        self.step_history = []  # Store (timestamp, step_number) tuples
-        self.last_eta_update = 0  # Track last ETA update time
+        self.step_history: list[tuple[float, int]] = []  # Store (timestamp, step_number) tuples
+        self.last_eta_update = 0.0  # Track last ETA update time
         self.eta_update_interval = 1.0  # Update ETA at most once per second
-        self.velocity_history = deque(maxlen=30)  # Track processing velocity
+        self.velocity_history: deque[float] = deque(maxlen=30)  # Track processing velocity
 
     def set_cancelled(self):
         self.is_cancelled = True
@@ -332,6 +339,10 @@ class ProgressDialog(QDialog):
         return self._format_eta(self.smoothed_eta)
 
     def update_language(self):
+        if not self.m_app:
+            logger.warning("Application instance not available for translation")
+            return
+
         translator = QTranslator()
         translator.load(
             resource_path("resources/translations/CTHarvester_{}.qm").format(self.m_app.language)

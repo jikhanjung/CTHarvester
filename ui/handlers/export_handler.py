@@ -436,15 +436,20 @@ class ExportHandler:
         validator = SecureFileValidator()
 
         with Image.open(source_path) as img:
-            # Apply crop if specified
-            if crop_info["from_x"] > -1:
-                img = img.crop(
+            # Apply crop if specified. Kept in a separate name because crop()
+            # returns a plain Image while img is the ImageFile owned by the
+            # context manager.
+            out = (
+                img.crop(
                     (crop_info["from_x"], crop_info["from_y"], crop_info["to_x"], crop_info["to_y"])
                 )
+                if crop_info["from_x"] > -1
+                else img
+            )
 
             # Save image with secure path
             output_path = validator.safe_join(target_dir, filename)
-            img.save(output_path)
+            out.save(output_path)
 
     def _update_progress(self, progress_dialog: ProgressDialog, current: int, total: int) -> None:
         """Update progress dialog with current progress.

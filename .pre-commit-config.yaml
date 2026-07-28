@@ -33,20 +33,28 @@ repos:
       - id: mixed-line-ending
         args: ['--fix=lf']
 
-  # mypy - Type checking (enabled for core modules)
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
+  # mypy - Type checking, scoped to core/, utils/ and ui/
+  #
+  # Deliberately a local hook rather than mirrors-mypy. The mirror runs in its
+  # own isolated venv, which had drifted badly: it pinned mypy v1.8.0 against
+  # the lockfile's 1.20.2, and declared types-Pillow and PyQt5-stubs, neither
+  # of which is in any lockfile. mypy's answers depend on the installed stubs,
+  # so the hook and CI could disagree in either direction. Running the
+  # project's own mypy over the same paths as the CI step makes them the same
+  # check by construction; the version is pinned once, in the dev lockfile.
+  #
+  # pass_filenames is off on purpose: mypy given a file subset follows imports
+  # differently than mypy given directories, so the CI invocation is repeated
+  # verbatim. ui/widgets/ stays out via `exclude` in pyproject.toml.
+  - repo: local
     hooks:
       - id: mypy
-        additional_dependencies:
-          - types-PyYAML
-          - types-Pillow
-          - numpy
-          - PyQt5-stubs
-        args:
-          - '--config-file=pyproject.toml'
-        files: '^(core|utils)/.*\.py$'
-        exclude: 'tests/|build/|dist/'
+        name: mypy (typed modules)
+        entry: mypy --config-file pyproject.toml core/ utils/ ui/
+        language: system
+        types: [python]
+        pass_filenames: false
+        files: '^(core|utils|ui)/.*\.py$'
 
   # Bandit - Security linter
   - repo: https://github.com/PyCQA/bandit
