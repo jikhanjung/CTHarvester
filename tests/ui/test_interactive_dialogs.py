@@ -415,20 +415,21 @@ class TestSettingsDialogImportExport:
 
     def test_import_settings(self, dialog, qtbot, monkeypatch, tmp_path):
         """Should import settings from file"""
-        import yaml
+        import json
 
-        # Create test settings file
-        import_file = tmp_path / "import.yaml"
+        # Create test settings file. Needs the keys import_settings validates
+        # ("application", "thumbnails", "processing") or the import is rejected.
+        import_file = tmp_path / "import.json"
         test_settings = {
             "application": {"language": "ko", "theme": "dark"},
             "thumbnails": {"max_size": 256},
+            "processing": {"use_rust_module": False},
         }
-        with open(import_file, "w") as f:
-            yaml.dump(test_settings, f)
+        import_file.write_text(json.dumps(test_settings), encoding="utf-8")
 
         # Mock file dialog
         def mock_open_file(*args, **kwargs):
-            return (str(import_file), "YAML files (*.yaml)")
+            return (str(import_file), "JSON files (*.json)")
 
         monkeypatch.setattr(QFileDialog, "getOpenFileName", mock_open_file)
 
@@ -443,8 +444,11 @@ class TestSettingsDialogImportExport:
 
         qtbot.mouseClick(import_button, Qt.LeftButton)
 
-        # Verify button exists (implementation may vary)
-        assert import_button is not None
+        # The import actually took effect. This used to assert only that the
+        # button existed, so it passed while writing a file the dialog could not
+        # even parse.
+        assert dialog.settings_manager.get("application.language") == "ko"
+        assert dialog.settings_manager.get("thumbnails.max_size") == 256
 
 
 @pytest.mark.skipif(not PYQT_AVAILABLE, reason="PyQt5 not available")

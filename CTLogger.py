@@ -15,6 +15,8 @@ import uuid
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+from utils import paths
+
 
 def setup_logger(name, log_dir=None, level=logging.INFO, console_level=None, session_id=None):
     """
@@ -73,12 +75,15 @@ def setup_logger(name, log_dir=None, level=logging.INFO, console_level=None, ses
     elif console_level is None:
         console_level = level
 
-    # Read log directory from environment variable
-    env_log_dir = os.getenv("CTHARVESTER_LOG_DIR")
-    if env_log_dir:
-        log_dir = env_log_dir
-    elif log_dir is None:
-        log_dir = str(Path.home() / "PaleoBytes" / name.replace(" ", "_") / "logs")
+    # An explicit log_dir wins; otherwise utils.paths resolves it, applying
+    # CTHARVESTER_LOG_DIR and CTHARVESTER_DATA_DIR. Resolving the overrides there
+    # rather than here is what makes log_helper's "Open log directory" and log
+    # viewer point at the files this handler actually writes -- while the two
+    # worked it out separately, CTHARVESTER_LOG_DIR moved the logs but not the UI.
+    # The directory no longer derives from `name` either, so a differently-named
+    # logger still writes into the one profile.
+    if log_dir is None:
+        log_dir = str(paths.get_log_directory())
 
     # Ensure log directory exists
     if not Path(log_dir).exists():

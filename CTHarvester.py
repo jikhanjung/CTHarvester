@@ -3,30 +3,17 @@ import sys
 from PyQt5.QtGui import QIcon
 
 # Project modules
-from config.constants import (
-    COMPANY_NAME,
-    DB_BACKUP_DIRECTORY,
-    DEFAULT_DB_DIRECTORY,
-    DEFAULT_LOG_DIRECTORY,
-    DEFAULT_STORAGE_DIRECTORY,
-    PROGRAM_NAME,
-)
+from config.constants import COMPANY_NAME, PROGRAM_NAME
 from ui.ctharvester_app import CTHarvesterApp
 from ui.exception_handler import install_global_exception_hook
 from ui.main_window import CTHarvesterMainWindow
 from utils.common import ensure_directories, resource_path
+from utils.paths import user_directories
 from version import __version__
 
 # Try to create directories on import, but don't fail if it doesn't work
 try:
-    ensure_directories(
-        [
-            DEFAULT_DB_DIRECTORY,
-            DEFAULT_STORAGE_DIRECTORY,
-            DEFAULT_LOG_DIRECTORY,
-            DB_BACKUP_DIRECTORY,
-        ]
-    )
+    ensure_directories(user_directories())
 except OSError as e:  # PermissionError is a subclass
     # Use print here since logger might not be initialized yet
     print(f"Warning: Directory initialization failed: {e}")

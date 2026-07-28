@@ -652,8 +652,8 @@ msgid "Choose save location"
 msgstr "저장 위치 선택"
 
 #: ../../user_guide.rst:274
-msgid "Settings saved as ``ctharvester_settings.yaml``"
-msgstr "설정이 ``ctharvester_settings.yaml``로 저장됨"
+msgid "Settings saved as ``ctharvester_settings.json``"
+msgstr "설정이 ``ctharvester_settings.json``으로 저장됨"
 
 #: ../../user_guide.rst:276
 msgid "**Import Settings:**"
@@ -880,12 +880,12 @@ msgid "Check write permissions on config directory"
 msgstr "구성 디렉토리에 대한 쓰기 권한 확인"
 
 #: ../../user_guide.rst:370
-msgid "Windows: ``%APPDATA%\\\\CTHarvester``"
-msgstr "Windows: ``%APPDATA%\\\\CTHarvester``"
+msgid "Windows: ``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester``"
+msgstr "Windows: ``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester``"
 
 #: ../../user_guide.rst:371
-msgid "Linux/macOS: ``~/.config/CTHarvester``"
-msgstr "Linux/macOS: ``~/.config/CTHarvester``"
+msgid "Linux/macOS: ``~/PaleoBytes/CTHarvester``"
+msgstr "Linux/macOS: ``~/PaleoBytes/CTHarvester``"
 
 #: ../../user_guide.rst:374
 msgid "Getting Help"

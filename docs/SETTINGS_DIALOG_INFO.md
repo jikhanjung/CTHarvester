@@ -52,14 +52,14 @@ Settings Dialog가 메인 윈도우에 통합되었습니다.
 ### 주요 기능
 
 #### Import Settings (설정 가져오기)
-- YAML 파일로부터 설정 가져오기
+- JSON 파일로부터 설정 가져오기
 - 다른 컴퓨터에서 사용한 설정 복원
-- 파일 선택 다이얼로그 → YAML 파일 선택
+- 파일 선택 다이얼로그 → JSON 파일 선택
 
 #### Export Settings (설정 내보내기)
-- 현재 설정을 YAML 파일로 저장
+- 현재 설정을 JSON 파일로 저장
 - 백업 또는 공유용
-- 기본 파일명: `ctharvester_settings.yaml`
+- 기본 파일명: `ctharvester_settings.json`
 
 #### Reset to Defaults (기본값 복원)
 - 모든 설정을 기본값으로 초기화
@@ -72,17 +72,21 @@ Settings Dialog가 메인 윈도우에 통합되었습니다.
 
 ### 설정 파일 위치
 
+로그와 같은 디렉토리에 함께 들어간다 (`utils/paths.py`가 결정).
+
 #### Windows
 ```
-%APPDATA%\CTHarvester\settings.yaml
+%USERPROFILE%\PaleoBytes\CTHarvester\preferences.json
 ```
-예: `C:\Users\YourName\AppData\Roaming\CTHarvester\settings.yaml`
+예: `C:\Users\YourName\PaleoBytes\CTHarvester\preferences.json`
 
 #### Linux/Mac
 ```
-~/.config/CTHarvester/settings.yaml
+~/PaleoBytes/CTHarvester/preferences.json
 ```
-예: `/home/yourname/.config/CTHarvester/settings.yaml`
+예: `/home/yourname/PaleoBytes/CTHarvester/preferences.json`
+
+`CTHARVESTER_DATA_DIR`로 위치를 바꿀 수 있다.
 
 ### 기존 PreferencesDialog와의 차이
 
@@ -99,7 +103,7 @@ Settings Dialog가 메인 윈도우에 통합되었습니다.
 ### 개발자 노트
 
 #### 설정 추가 방법
-1. `config/settings.yaml`에 기본값 추가
+1. `SettingsManager._get_default_settings()`에 기본값 추가
 2. `ui/dialogs/settings_dialog.py`에 UI 컨트롤 추가
 3. `load_settings()` 메서드에 로딩 로직 추가
 4. `save_settings()` 메서드에 저장 로직 추가
@@ -138,8 +142,8 @@ self.settings_manager.save()
 
 3. **설정 파일 직접 편집 테스트**
    - 프로그램 종료
-   - 설정 파일 위치에서 `settings.yaml` 텍스트 에디터로 열기
-   - 값 수정 (예: `thumbnails.max_size: 1000`)
+   - 설정 파일 위치에서 `preferences.json` 텍스트 에디터로 열기
+   - 값 수정 (예: `"max_size": 1000`)
    - 프로그램 실행 후 설정 반영 확인
 
 ### 문제 해결

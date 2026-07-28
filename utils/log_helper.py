@@ -8,19 +8,17 @@ import platform
 import subprocess
 from pathlib import Path
 
+from utils import paths
+
 
 def get_log_directory() -> Path:
     """Get the log directory path for CTHarvester.
 
     Returns:
-        Path: Path to the log directory
-
-    The log directory location depends on the platform:
-    - Windows: ~/PaleoBytes/CTHarvester/logs
-    - Linux/Mac: ~/PaleoBytes/CTHarvester/logs
+        Path: Path to the log directory (``~/PaleoBytes/CTHarvester/logs`` on
+        every platform). :mod:`utils.paths` owns the layout.
     """
-    log_dir = Path.home() / "PaleoBytes" / "CTHarvester" / "logs"
-    return log_dir
+    return paths.get_log_directory()
 
 
 def get_log_file_path() -> Path | None:

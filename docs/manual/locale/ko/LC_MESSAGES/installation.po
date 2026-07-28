@@ -287,16 +287,16 @@ msgid "CTHarvester stores its configuration in platform-specific locations:"
 msgstr "CTHarvester는 플랫폼별 위치에 구성을 저장합니다:"
 
 #: ../../installation.rst:189
-msgid "``%APPDATA%\\\\CTHarvester\\\\settings.yaml``"
-msgstr "``%APPDATA%\\\\CTHarvester\\\\settings.yaml``"
+msgid "``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester\\\\preferences.json``"
+msgstr "``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester\\\\preferences.json``"
 
 #: ../../installation.rst:191
 msgid "**Linux/macOS:**"
 msgstr "**Linux/macOS:**"
 
 #: ../../installation.rst:192
-msgid "``~/.config/CTHarvester/settings.yaml``"
-msgstr "``~/.config/CTHarvester/settings.yaml``"
+msgid "``~/PaleoBytes/CTHarvester/preferences.json``"
+msgstr "``~/PaleoBytes/CTHarvester/preferences.json``"
 
 #: ../../installation.rst:194
 msgid ""
@@ -365,9 +365,9 @@ msgid "To completely remove CTHarvester, also delete configuration files:"
 msgstr "CTHarvester를 완전히 제거하려면 구성 파일도 삭제하세요:"
 
 #: ../../installation.rst:234
-msgid "Windows: Delete ``%APPDATA%\\\\CTHarvester``"
-msgstr "Windows: ``%APPDATA%\\\\CTHarvester`` 삭제"
+msgid "Windows: Delete ``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester``"
+msgstr "Windows: ``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester`` 삭제"
 
 #: ../../installation.rst:235
-msgid "Linux/macOS: Delete ``~/.config/CTHarvester``"
-msgstr "Linux/macOS: ``~/.config/CTHarvester`` 삭제"
+msgid "Linux/macOS: Delete ``~/PaleoBytes/CTHarvester``"
+msgstr "Linux/macOS: ``~/PaleoBytes/CTHarvester`` 삭제"

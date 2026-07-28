@@ -1,7 +1,7 @@
 Configuration Guide
 ===================
 
-CTHarvester uses YAML-based configuration for flexible, human-readable settings management. This guide documents all available configuration options in ``config/settings.yaml``.
+CTHarvester keeps your preferences in a plain file you can read, copy and back up. This guide documents every available option.
 
 .. contents:: On this page
    :local:
@@ -10,24 +10,32 @@ CTHarvester uses YAML-based configuration for flexible, human-readable settings 
 Configuration File Location
 ---------------------------
 
-**Default Location:**
+**Your preferences** are written as JSON to ``preferences.json`` in the CTHarvester
+data directory, next to the logs:
 
-- Linux/macOS: ``~/.config/CTHarvester/settings.yaml``
-- Windows: ``%APPDATA%\CTHarvester\settings.yaml``
+- Linux/macOS: ``~/PaleoBytes/CTHarvester/preferences.json``
+- Windows: ``%USERPROFILE%\PaleoBytes\CTHarvester\preferences.json``
 
-**Fallback:** ``config/settings.yaml`` in the application directory
+Everything CTHarvester keeps for you lives under that one directory, so backing up
+or moving a profile is a single directory copy. Set ``CTHARVESTER_DATA_DIR`` to put
+it somewhere else.
 
-The settings file is created automatically on first run with default values.
+The preferences file is created automatically on first run with default values.
+Defaults have a single definition, in ``SettingsManager._get_default_settings()``;
+there is no second settings file to keep in step with it.
 
 Application Settings
 --------------------
 
-.. code:: yaml
+.. code:: json
 
-   application:
-     language: auto
-     theme: light
-     auto_save_settings: true
+   {
+     "application": {
+       "language": "auto",
+       "theme": "light",
+       "auto_save_settings": true
+     }
+   }
 
 ``language``
 ~~~~~~~~~~~~
@@ -43,10 +51,13 @@ Application Settings
 
 - **Example:**
 
-  .. code:: yaml
+  .. code:: json
 
-     application:
-       language: en
+     {
+       "application": {
+         "language": "en"
+       }
+     }
 
 ``theme``
 ~~~~~~~~~
@@ -68,13 +79,16 @@ Application Settings
 Window Settings
 ---------------
 
-.. code:: yaml
+.. code:: json
 
-   window:
-     width: 1200
-     height: 800
-     remember_position: true
-     remember_size: true
+   {
+     "window": {
+       "width": 1200,
+       "height": 800,
+       "remember_position": true,
+       "remember_size": true
+     }
+   }
 
 .. _width--height:
 
@@ -87,11 +101,14 @@ Window Settings
 - **Description:** Default window dimensions
 - **Example:**
 
-  .. code:: yaml
+  .. code:: json
 
-     window:
-       width: 1600
-       height: 900
+     {
+       "window": {
+         "width": 1600,
+         "height": 900
+       }
+     }
 
 .. _remember_position--remember_size:
 
@@ -106,14 +123,17 @@ Window Settings
 Thumbnail Settings
 ------------------
 
-.. code:: yaml
+.. code:: json
 
-   thumbnails:
-     max_size: 500
-     sample_size: 20
-     max_level: 10
-     compression: true
-     format: tif
+   {
+     "thumbnails": {
+       "max_size": 500,
+       "sample_size": 20,
+       "max_level": 10,
+       "compression": true,
+       "format": "tif"
+     }
+   }
 
 ``max_size``
 ~~~~~~~~~~~~
@@ -125,10 +145,13 @@ Thumbnail Settings
 - **Performance Impact:** Higher values = better quality, slower generation
 - **Example:**
 
-  .. code:: yaml
+  .. code:: json
 
-     thumbnails:
-       max_size: 256  # Faster preview, lower quality
+     {
+       "thumbnails": {
+         "max_size": 256
+       }
+     }
 
 ``sample_size``
 ~~~~~~~~~~~~~~~
@@ -144,10 +167,13 @@ Thumbnail Settings
 
 - **Example:**
 
-  .. code:: yaml
+  .. code:: json
 
-     thumbnails:
-       sample_size: 50  # More accurate ETA for large datasets
+     {
+       "thumbnails": {
+         "sample_size": 50
+       }
+     }
 
 ``max_level``
 ~~~~~~~~~~~~~
@@ -159,10 +185,13 @@ Thumbnail Settings
 - **Note:** Actual levels depend on image size (each level is 1/2 resolution)
 - **Example:**
 
-  .. code:: yaml
+  .. code:: json
 
-     thumbnails:
-       max_level: 5  # For smaller datasets
+     {
+       "thumbnails": {
+         "max_level": 5
+       }
+     }
 
 ``compression``
 ~~~~~~~~~~~~~~~
@@ -190,12 +219,15 @@ Thumbnail Settings
 Processing Settings
 -------------------
 
-.. code:: yaml
+.. code:: json
 
-   processing:
-     threads: auto
-     memory_limit_gb: 4
-     use_rust_module: false
+   {
+     "processing": {
+       "threads": "auto",
+       "memory_limit_gb": 4,
+       "use_rust_module": false
+     }
+   }
 
 ``threads``
 ~~~~~~~~~~~
@@ -216,10 +248,13 @@ Processing Settings
 
 - **Example:**
 
-  .. code:: yaml
+  .. code:: json
 
-     processing:
-       threads: 4  # Use 4 threads explicitly
+     {
+       "processing": {
+         "threads": 4
+       }
+     }
 
 ``memory_limit_gb``
 ~~~~~~~~~~~~~~~~~~~
@@ -246,21 +281,31 @@ Processing Settings
   back on its own if the import fails.
 - **Example:**
 
-  .. code:: yaml
+  .. code:: json
 
-     processing:
-       use_rust_module: false  # force the Python implementation
+     {
+       "processing": {
+         "use_rust_module": false
+       }
+     }
 
 Rendering Settings
 ------------------
 
-.. code:: yaml
+.. code:: json
 
-   rendering:
-     background_color: [0.2, 0.2, 0.2]
-     default_threshold: 128
-     anti_aliasing: true
-     show_fps: false
+   {
+     "rendering": {
+       "background_color": [
+         0.2,
+         0.2,
+         0.2
+       ],
+       "default_threshold": 128,
+       "anti_aliasing": true,
+       "show_fps": false
+     }
+   }
 
 ``background_color``
 ~~~~~~~~~~~~~~~~~~~~
@@ -271,10 +316,17 @@ Rendering Settings
 - **Description:** 3D viewer background color
 - **Example:**
 
-  .. code:: yaml
+  .. code:: json
 
-     rendering:
-       background_color: [0.0, 0.0, 0.0]  # Black background
+     {
+       "rendering": {
+         "background_color": [
+           0.0,
+           0.0,
+           0.0
+         ]
+       }
+     }
 
 ``default_threshold``
 ~~~~~~~~~~~~~~~~~~~~~
@@ -304,12 +356,15 @@ Rendering Settings
 Export Settings
 ---------------
 
-.. code:: yaml
+.. code:: json
 
-   export:
-     mesh_format: stl
-     image_format: tif
-     compression_level: 6
+   {
+     "export": {
+       "mesh_format": "stl",
+       "image_format": "tif",
+       "compression_level": 6
+     }
+   }
 
 ``mesh_format``
 ~~~~~~~~~~~~~~~
@@ -353,13 +408,16 @@ Export Settings
 Logging Settings
 ----------------
 
-.. code:: yaml
+.. code:: json
 
-   logging:
-     level: INFO
-     max_file_size_mb: 10
-     backup_count: 5
-     console_output: true
+   {
+     "logging": {
+       "level": "INFO",
+       "max_file_size_mb": 10,
+       "backup_count": 5,
+       "console_output": true
+     }
+   }
 
 ``level``
 ~~~~~~~~~
@@ -402,11 +460,14 @@ Logging Settings
 Path Settings
 -------------
 
-.. code:: yaml
+.. code:: json
 
-   paths:
-     last_directory: ""
-     export_directory: ""
+   {
+     "paths": {
+       "last_directory": "",
+       "export_directory": ""
+     }
+   }
 
 ``last_directory``
 ~~~~~~~~~~~~~~~~~~
@@ -431,45 +492,43 @@ Configuration Priority
 ~~~~~~~~~~~~~~~~~~~~~~
 
 1. Command-line arguments (future feature)
-2. User settings file (``~/.config/CTHarvester/settings.yaml``)
-3. Default settings file (``config/settings.yaml``)
+2. User preferences file (``~/PaleoBytes/CTHarvester/preferences.json``)
+3. Built-in defaults (``SettingsManager._get_default_settings()``)
 
 Resetting to Defaults
 ~~~~~~~~~~~~~~~~~~~~~
 
 To reset all settings:
 
-1. Delete the user settings file
+1. Delete the user preferences file
 2. Restart CTHarvester
-3. New settings file will be created with defaults
+3. A new preferences file will be created with defaults
 
 **Linux/macOS:**
 
 .. code:: bash
 
-   rm ~/.config/CTHarvester/settings.yaml
+   rm ~/PaleoBytes/CTHarvester/preferences.json
 
 **Windows:**
 
 .. code:: powershell
 
-   del %APPDATA%\CTHarvester\settings.yaml
+   del %USERPROFILE%\PaleoBytes\CTHarvester\preferences.json
 
 Environment-Specific Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For different workflows, maintain multiple configuration files:
+For different workflows, keep a profile per workflow and point
+``CTHARVESTER_DATA_DIR`` at the one you want. Each gets its own preferences and
+logs, and nothing has to be copied over the file in use:
 
 .. code:: bash
 
-   # Development configuration
-   cp config/settings.yaml config/settings.dev.yaml
+   CTHARVESTER_DATA_DIR=~/PaleoBytes/CTHarvester-dev CTHarvester
 
-   # Production configuration
-   cp config/settings.yaml config/settings.prod.yaml
-
-   # Copy desired config to user location
-   cp config/settings.dev.yaml ~/.config/CTHarvester/settings.yaml
+Alternatively, export your settings to a file from the Settings dialog
+(**Export Settings...**) and import it again later.
 
 Validation
 ~~~~~~~~~~
@@ -486,43 +545,52 @@ Performance Tuning
 For Large Datasets (>1000 images)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code:: yaml
+.. code:: json
 
-   thumbnails:
-     max_size: 256  # Reduce for faster previews
-     sample_size: 50  # Increase for better ETA
-     max_level: 8
-
-   processing:
-     threads: auto
-     use_rust_module: true  # If available
+   {
+     "thumbnails": {
+       "max_size": 256,
+       "sample_size": 50,
+       "max_level": 8
+     },
+     "processing": {
+       "threads": "auto",
+       "use_rust_module": true
+     }
+   }
 
 For High-Quality Previews
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code:: yaml
+.. code:: json
 
-   thumbnails:
-     max_size: 1024  # Higher quality
-     compression: true
-     format: tif
-
-   rendering:
-     anti_aliasing: true
-     default_threshold: 100  # Adjust per dataset
+   {
+     "thumbnails": {
+       "max_size": 1024,
+       "compression": true,
+       "format": "tif"
+     },
+     "rendering": {
+       "anti_aliasing": true,
+       "default_threshold": 100
+     }
+   }
 
 For Low-Memory Systems
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. code:: yaml
+.. code:: json
 
-   thumbnails:
-     max_size: 256
-     max_level: 6
-
-   processing:
-     threads: 2  # Reduce parallelism
-     memory_limit_gb: 2
+   {
+     "thumbnails": {
+       "max_size": 256,
+       "max_level": 6
+     },
+     "processing": {
+       "threads": 2,
+       "memory_limit_gb": 2
+     }
+   }
 
 Troubleshooting
 ---------------

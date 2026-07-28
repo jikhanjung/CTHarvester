@@ -103,7 +103,6 @@ def build_executable(platform_name):
     data_files = [
         ("resources/icons/*.png", "resources/icons"),
         ("resources/translations/*.qm", "resources/translations"),
-        ("config/settings.yaml", "config"),
     ]
 
     for src, dst in data_files:

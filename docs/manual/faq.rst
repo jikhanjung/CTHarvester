@@ -633,10 +633,10 @@ How do I reset settings to defaults?
 .. code-block:: bash
 
    # Windows
-   del %APPDATA%\CTHarvester\settings.yaml
+   del %USERPROFILE%\PaleoBytes\CTHarvester\preferences.json
 
    # Linux/macOS
-   rm ~/.config/CTHarvester/settings.yaml
+   rm ~/PaleoBytes/CTHarvester/preferences.json
 
 Settings will be regenerated with defaults on next launch.
 
@@ -646,7 +646,7 @@ Can I save and share my settings?
 **Yes:**
 
 1. Settings dialog → "Export Settings..."
-2. Save as ``my_settings.yaml``
+2. Save as ``my_settings.json``
 3. Share file with colleagues
 
 **To import:**
@@ -666,8 +666,8 @@ Where are logs stored?
 
 **Log locations:**
 
-* **Windows:** ``%APPDATA%\PaleoBytes\CTHarvester\logs\``
-* **Linux/macOS:** ``~/.local/share/PaleoBytes/CTHarvester/logs/``
+* **Windows:** ``%USERPROFILE%\PaleoBytes\CTHarvester\logs\``
+* **Linux/macOS:** ``~/PaleoBytes/CTHarvester/logs/``
 
 **Access logs:**
 

@@ -42,14 +42,14 @@ CTHarvester follows a modular architecture::
     │   └── setup/                     # UI setup modules
     │       └── main_window_setup.py       # Window initialization
     ├── utils/                     # Utility functions
-    │   ├── settings_manager.py        # YAML settings
+    │   ├── settings_manager.py        # User preferences (preferences.json)
+    │   ├── paths.py                   # User-data locations (single owner)
     │   ├── common.py                  # Common utilities
     │   ├── ui_utils.py                # UI helper functions
     │   ├── file_utils.py              # File utilities
     │   └── image_utils.py             # Image processing utilities
     ├── config/                    # Configuration
     │   ├── constants.py               # Application constants
-    │   ├── settings.yaml              # Default settings
     │   ├── shortcuts.py               # Keyboard shortcuts
     │   └── tooltips.py                # Tooltip definitions
     ├── security/                  # Security modules

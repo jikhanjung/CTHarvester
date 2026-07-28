@@ -299,7 +299,7 @@ Import/Export Settings
 
 1. Click **"Export Settings..."**
 2. Choose save location
-3. Settings saved as ``ctharvester_settings.yaml``
+3. Settings saved as ``ctharvester_settings.json``
 
 **Import Settings:**
 
@@ -395,8 +395,8 @@ Common Issues
 **Settings not saving**
 
 * Check write permissions on config directory
-* Windows: ``%APPDATA%\\CTHarvester``
-* Linux/macOS: ``~/.config/CTHarvester``
+* Windows: ``%USERPROFILE%\\PaleoBytes\\CTHarvester``
+* Linux/macOS: ``~/PaleoBytes/CTHarvester``
 
 Getting Help
 ~~~~~~~~~~~~

@@ -39,30 +39,6 @@ def qapp():
 
 
 @pytest.fixture
-def temp_settings_file(tmp_path):
-    """
-    Create temporary YAML settings file with default values.
-
-    Returns:
-        Path: Path to the temporary settings file
-    """
-    settings_file = tmp_path / "settings.yaml"
-    settings_file.write_text(
-        """
-# CTHarvester test settings
-language: en
-log_level: INFO
-thumbnail_quality: high
-max_thumbnail_size: 256
-auto_generate_thumbnails: true
-remember_window_geometry: true
-recent_files_max: 10
-"""
-    )
-    return settings_file
-
-
-@pytest.fixture
 def mock_image_stack(tmp_path):
     """
     Create temporary image stack for testing.

@@ -493,13 +493,13 @@ CTHarvester/
 ├── utils/                     # Utilities
 │   ├── image_utils.py             # Image processing (with error handling)
 │   ├── file_utils.py              # File system utilities
-│   ├── settings_manager.py        # YAML-based configuration
+│   ├── paths.py                   # User-data locations (single owner)
+│   ├── settings_manager.py        # User preferences (preferences.json)
 │   ├── error_messages.py          # User-friendly error messages
 │   └── performance_logger.py      # Performance tracking (NEW in Phase 3)
 │
 ├── config/                    # Configuration
 │   ├── constants.py               # Application constants
-│   ├── settings.yaml              # Default settings
 │   ├── shortcuts.py               # Keyboard shortcuts
 │   ├── tooltips.py                # Tooltip definitions
 │   ├── i18n.py                    # Internationalization

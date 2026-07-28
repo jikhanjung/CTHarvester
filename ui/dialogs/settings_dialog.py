@@ -435,7 +435,7 @@ class SettingsDialog(QDialog):
     def import_settings(self):
         """Import settings from file"""
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "Import Settings", "", "YAML Files (*.yaml *.yml);;All Files (*)"
+            self, "Import Settings", "", "JSON Files (*.json);;All Files (*)"
         )
 
         if file_path:
@@ -452,8 +452,8 @@ class SettingsDialog(QDialog):
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Export Settings",
-            "ctharvester_settings.yaml",
-            "YAML Files (*.yaml *.yml);;All Files (*)",
+            "ctharvester_settings.json",
+            "JSON Files (*.json);;All Files (*)",
         )
 
         if file_path:

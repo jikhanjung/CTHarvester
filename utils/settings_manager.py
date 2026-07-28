@@ -1,15 +1,15 @@
-"""YAML-based settings manager for application configuration.
+"""Settings manager for application configuration.
 
-This module provides a unified settings management system using YAML for human-readable
-configuration storage. It replaces the previous QSettings-based approach with a more
-portable and version-control friendly solution.
+Provides a unified settings management system, replacing the platform-specific
+QSettings approach it started from with a plain file the user can read, copy and
+version-control.
 
-The module was created during Phase 2.1 settings management improvements as part of
-the transition from platform-specific QSettings to platform-independent YAML files.
+There is one settings file: ``preferences.json`` in the data directory (see
+:mod:`utils.paths`), matching Modan2 and PaperMeister. The defaults are defined
+once, in :meth:`SettingsManager._get_default_settings`.
 
 Key features:
     - Platform-independent configuration storage
-    - Human-readable YAML format
     - Default settings with validation
     - Import/Export functionality
     - Dot notation for nested settings access (e.g., 'application.language')
@@ -33,27 +33,27 @@ Typical usage example:
     settings.save()
 
     # Export/Import
-    settings.export('backup.yaml')
-    settings.import_settings('backup.yaml')
+    settings.export('backup.json')
+    settings.import_settings('backup.json')
 """
 
+import json
 import logging
-import os
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-import yaml
+from utils.paths import CONFIG_FILENAME, get_data_dir
 
 logger = logging.getLogger(__name__)
 
 
 class SettingsManager:
-    """YAML-based settings manager for application configuration.
+    """Settings manager for application configuration.
 
-    This class manages application settings using YAML files stored in platform-specific
-    configuration directories. It provides a simple key-value interface with dot notation
-    support for nested settings.
+    This class manages application settings as a JSON file in the user's data
+    directory. It provides a simple key-value interface with dot notation support
+    for nested settings.
 
     Settings are organized hierarchically and accessed using dot notation (e.g.,
     'application.language'). The manager automatically creates configuration directories
@@ -61,12 +61,12 @@ class SettingsManager:
 
     Attributes:
         config_dir: Path object pointing to configuration directory.
-        config_file: Path object pointing to settings YAML file.
+        config_file: Path object pointing to the preferences file.
         settings: Dictionary containing current settings.
-        default_settings: Dictionary containing default settings from config/settings.yaml.
+        default_settings: Dictionary containing the default settings.
 
     Class Attributes:
-        DEFAULT_CONFIG_FILE: Default filename for settings (settings.yaml).
+        DEFAULT_CONFIG_FILE: Default filename for settings (preferences.json).
 
     Example:
         >>> mgr = SettingsManager()
@@ -76,7 +76,7 @@ class SettingsManager:
         >>> mgr.save()
     """
 
-    DEFAULT_CONFIG_FILE = "settings.yaml"
+    DEFAULT_CONFIG_FILE = CONFIG_FILENAME
 
     def __init__(self, config_dir: str | None = None):
         """Initialize the settings manager.
@@ -85,23 +85,15 @@ class SettingsManager:
         from disk. If no settings file exists, uses default settings.
 
         Args:
-            config_dir: Path to configuration directory. If None, uses platform-specific
-                default location:
-                - Windows: %APPDATA%/CTHarvester
-                - Linux/Mac: ~/.config/CTHarvester
+            config_dir: Path to configuration directory. If None, uses the data
+                directory from :mod:`utils.paths` (``~/PaleoBytes/CTHarvester``),
+                which is also where logs go.
 
         Note:
             The configuration directory and file are created automatically if they
             don't exist.
         """
-        if config_dir is None:
-            # Default location: ~/.config/CTHarvester (Linux/Mac) or %APPDATA%/CTHarvester (Windows)
-            if os.name == "nt":
-                config_dir = str(Path(os.environ.get("APPDATA", "")) / "CTHarvester")
-            else:
-                config_dir = str(Path.home() / ".config" / "CTHarvester")
-
-        self.config_dir = Path(config_dir)
+        self.config_dir = Path(config_dir) if config_dir is not None else get_data_dir()
         self.config_file = self.config_dir / self.DEFAULT_CONFIG_FILE
 
         # Create directory
@@ -109,30 +101,30 @@ class SettingsManager:
 
         # Load settings
         self.settings: dict[str, Any] = {}
-        self.default_settings = self._load_default_settings()
+        self.default_settings = self._get_default_settings()
         self.load()
 
-    def _load_default_settings(self) -> dict:
-        """Load default settings from config/settings.yaml"""
-        # Look for default settings in config directory
-        default_file = Path(__file__).parent.parent / "config" / "settings.yaml"
+    def _get_default_settings(self) -> dict:
+        """Return the default settings.
 
-        if default_file.exists():
-            try:
-                with default_file.open(encoding="utf-8") as f:
-                    settings = yaml.safe_load(f)
-                    logger.info(f"Default settings loaded from {default_file}")
-                    return settings or {}
-            except Exception:
-                logger.exception("Failed to load default settings")
-
-        logger.warning("Default settings file not found, using empty defaults")
-        return self._get_hardcoded_defaults()
-
-    def _get_hardcoded_defaults(self) -> dict:
-        """Hardcoded default settings as fallback"""
+        This is the only definition of them. It used to be a fallback behind
+        ``config/settings.yaml``, and the two drifted exactly as a hand-kept
+        second copy does: the YAML carried keys nothing reads
+        (``rendering.background_color``, ``logging.backup_count``,
+        ``paths.export_directory``) and lacked three the application writes
+        (``application.default_directory``, ``window.main_geometry``,
+        ``window.mcube_geometry``). Worse, the YAML was never bundled into the
+        frozen build, so released versions always ran on this dict while the
+        manual documented the file.
+        """
         return {
-            "application": {"language": "auto", "theme": "light", "auto_save_settings": True},
+            "application": {
+                # auto, en, ko
+                "language": "auto",
+                # light, dark
+                "theme": "light",
+                "auto_save_settings": True,
+            },
             "window": {
                 "width": 1200,
                 "height": 800,
@@ -144,17 +136,36 @@ class SettingsManager:
                 "sample_size": 20,
                 "max_level": 10,
                 "compression": True,
+                # tif, png
                 "format": "tif",
             },
-            "processing": {"threads": "auto", "memory_limit_gb": 4, "use_rust_module": True},
+            "processing": {
+                # auto, or a specific number (1-16)
+                "threads": "auto",
+                "memory_limit_gb": 4,
+                # True uses the compiled Rust thumbnail generator, which is what
+                # the application ships with. If the module is missing or fails to
+                # import, ThumbnailCreationHandler falls back to the Python
+                # implementation on its own -- set this False only to force that
+                # fallback for debugging.
+                "use_rust_module": True,
+            },
             "rendering": {
                 "background_color": [0.2, 0.2, 0.2],
                 "default_threshold": 128,
                 "anti_aliasing": True,
                 "show_fps": False,
             },
-            "export": {"mesh_format": "stl", "image_format": "tif", "compression_level": 6},
+            "export": {
+                # stl, ply, obj
+                "mesh_format": "stl",
+                # tif, png, jpg
+                "image_format": "tif",
+                # 0-9
+                "compression_level": 6,
+            },
             "logging": {
+                # DEBUG, INFO, WARNING, ERROR
                 "level": "INFO",
                 "max_file_size_mb": 10,
                 "backup_count": 5,
@@ -168,21 +179,35 @@ class SettingsManager:
         if self.config_file.exists():
             try:
                 with self.config_file.open(encoding="utf-8") as f:
-                    self.settings = yaml.safe_load(f) or {}
+                    self.settings = json.load(f) or {}
                 logger.info(f"Settings loaded from {self.config_file}")
-            except Exception:
-                logger.exception("Failed to load settings")
+            except (OSError, ValueError):
+                # Falling back to defaults means every preference the user set is
+                # gone, so do not let the file that caused it disappear with
+                # them: keep it as .bak for recovery, and say so loudly.
+                logger.exception("Failed to load settings; falling back to defaults")
+                self._back_up_unreadable_config()
                 self.settings = deepcopy(self.default_settings)
         else:
             # Use default settings
             self.settings = deepcopy(self.default_settings)
             self.save()
 
+    def _back_up_unreadable_config(self) -> None:
+        """Move a config file that could not be read aside, as ``.bak``."""
+        backup = self.config_file.with_suffix(self.config_file.suffix + ".bak")
+        try:
+            self.config_file.replace(backup)
+        except OSError as err:
+            logger.warning(f"Could not back up unreadable settings file: {err}")
+        else:
+            logger.error(f"Unreadable settings file backed up to {backup}")
+
     def save(self) -> None:
         """Save settings to file"""
         try:
             with self.config_file.open("w", encoding="utf-8") as f:
-                yaml.dump(self.settings, f, default_flow_style=False, allow_unicode=True)
+                json.dump(self.settings, f, indent=2, ensure_ascii=False)
             logger.info(f"Settings saved to {self.config_file}")
         except Exception:
             logger.exception("Failed to save settings")
@@ -244,7 +269,7 @@ class SettingsManager:
         """
         try:
             with Path(file_path).open("w", encoding="utf-8") as f:
-                yaml.dump(self.settings, f, default_flow_style=False, allow_unicode=True)
+                json.dump(self.settings, f, indent=2, ensure_ascii=False)
             logger.info(f"Settings exported to {file_path}")
         except Exception:
             logger.exception("Failed to export settings")
@@ -259,7 +284,7 @@ class SettingsManager:
         """
         try:
             with Path(file_path).open(encoding="utf-8") as f:
-                imported = yaml.safe_load(f)
+                imported = json.load(f)
 
             # Validate and apply
             if self._validate_settings(imported):

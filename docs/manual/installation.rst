@@ -42,8 +42,10 @@ Download the pre-built binary from the releases page:
 2. Download the latest ``CTHarvester-windows.zip``
 3. Extract the ZIP file to a folder
 4. Run the ``CTHarvester_vX.X.X_Installer.exe`` inside the extracted folder
-5. Follow the installation wizard
-6. Launch CTHarvester from the Start Menu or Desktop shortcut
+5. Follow the installation wizard — no administrator rights are needed; it
+   installs for the current user into ``%LOCALAPPDATA%\Programs\PaleoBytes\CTHarvester``
+6. Launch CTHarvester from the Start Menu (under **PaleoBytes**) or the Desktop
+   shortcut
 
 **macOS:**
 
@@ -187,10 +189,10 @@ Configuration
 CTHarvester stores its configuration in platform-specific locations:
 
 **Windows:**
-  ``%APPDATA%\\CTHarvester\\settings.yaml``
+  ``%USERPROFILE%\\PaleoBytes\\CTHarvester\\preferences.json``
 
 **Linux/macOS:**
-  ``~/.config/CTHarvester/settings.yaml``
+  ``~/PaleoBytes/CTHarvester/preferences.json``
 
 You can customize settings through the Preferences dialog (gear icon) in the application.
 
@@ -232,5 +234,5 @@ Uninstallation
 
 To completely remove CTHarvester, also delete configuration files:
 
-* Windows: Delete ``%APPDATA%\\CTHarvester``
-* Linux/macOS: Delete ``~/.config/CTHarvester``
+* Windows: Delete ``%USERPROFILE%\\PaleoBytes\\CTHarvester``
+* Linux/macOS: Delete ``~/PaleoBytes/CTHarvester``

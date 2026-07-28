@@ -653,58 +653,26 @@ Settings Management
 Configuration File Format
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-CTHarvester settings are stored in YAML format.
+CTHarvester settings are stored as JSON.
 
 **Location:**
 
-* Windows: ``%APPDATA%\CTHarvester\settings.yaml``
-* Linux/macOS: ``~/.config/CTHarvester/settings.yaml``
+* Windows: ``%USERPROFILE%\PaleoBytes\CTHarvester\preferences.json``
+* Linux/macOS: ``~/PaleoBytes/CTHarvester/preferences.json``
 
-**Example settings.yaml:**
+**Example preferences.json:**
 
-.. code-block:: yaml
+.. code-block:: json
 
-   # General settings
-   general:
-     language: "en"  # or "ko" for Korean
-     theme: "light"
-     remember_window_geometry: true
-     remember_last_directory: true
+   {
+     "application": { "language": "auto", "theme": "light" },
+     "thumbnails": { "max_size": 500, "sample_size": 20, "format": "tif" },
+     "processing": { "threads": "auto", "memory_limit_gb": 4, "use_rust_module": true },
+     "logging": { "level": "INFO", "console_output": true }
+   }
 
-   # Thumbnail generation
-   thumbnails:
-     max_size: 500
-     sample_size: 20
-     max_pyramid_level: 10
-     enable_compression: true
-     format: "tif"  # or "png"
-
-   # Processing
-   processing:
-     worker_threads: 4
-     memory_limit_gb: 4
-     use_rust_module: true
-     priority: "normal"  # or "high", "low"
-
-   # Rendering
-   rendering:
-     default_threshold: 128
-     enable_antialiasing: true
-     show_fps: false
-     backface_culling: false
-     wireframe_mode: false
-
-   # Export
-   export:
-     mesh_format: "obj"  # or "ply", "stl"
-     image_format: "tif"  # or "png", "jpg"
-     compression_level: 6
-
-   # Advanced
-   advanced:
-     log_level: "INFO"  # or "DEBUG", "WARNING", "ERROR"
-     console_output: true
-     auto_save_settings: true
+The excerpt above is partial. :doc:`configuration` documents every available key
+and is the reference to work from.
 
 Bulk Settings Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -714,17 +682,17 @@ Bulk Settings Configuration
 .. code-block:: bash
 
    # Export settings
-   # Settings → Export Settings... → save as team_settings.yaml
+   # Settings → Export Settings... → save as team_settings.json
 
    # Distribute to team
-   cp team_settings.yaml /shared/ctharvester/
+   cp team_settings.json /shared/ctharvester/
 
 **Import settings for team:**
 
 .. code-block:: bash
 
    # Each team member imports
-   # Settings → Import Settings... → select team_settings.yaml
+   # Settings → Import Settings... → select team_settings.json
 
 **Programmatic settings update:**
 
@@ -734,24 +702,24 @@ Bulk Settings Configuration
    """
    Update settings for batch processing
    """
-   import yaml
+   import json
    from pathlib import Path
 
-   settings_path = Path.home() / ".config" / "CTHarvester" / "settings.yaml"
+   settings_path = Path.home() / "PaleoBytes" / "CTHarvester" / "preferences.json"
 
    # Load existing settings
-   with open(settings_path) as f:
-       settings = yaml.safe_load(f)
+   with open(settings_path, encoding="utf-8") as f:
+       settings = json.load(f)
 
    # Update for batch processing
-   settings["processing"]["worker_threads"] = 1  # Sequential
+   settings["processing"]["threads"] = 1  # Sequential
    settings["processing"]["memory_limit_gb"] = 2  # Low memory
    settings["thumbnails"]["max_size"] = 300  # Smaller thumbs
-   settings["advanced"]["log_level"] = "DEBUG"  # Detailed logs
+   settings["logging"]["level"] = "DEBUG"  # Detailed logs
 
    # Save updated settings
-   with open(settings_path, "w") as f:
-       yaml.dump(settings, f, default_flow_style=False)
+   with open(settings_path, "w", encoding="utf-8") as f:
+       json.dump(settings, f, indent=2, ensure_ascii=False)
 
    print(f"Settings updated: {settings_path}")
 
@@ -774,12 +742,25 @@ Control CTHarvester behavior via environment variables:
    export CTHARVESTER_CONSOLE_LEVEL=WARNING
    python CTHarvester.py
 
+**Custom data directory (preferences and logs):**
+
+.. code-block:: bash
+
+   export CTHARVESTER_DATA_DIR=~/PaleoBytes/CTHarvester-dev
+   python CTHarvester.py
+
+Moves the whole profile — ``preferences.json`` and ``logs/`` — which is the clean
+way to keep separate configurations side by side.
+
 **Custom log directory:**
 
 .. code-block:: bash
 
    export CTHARVESTER_LOG_DIR=/custom/log/path
    python CTHarvester.py
+
+Moves the logs only, and takes precedence over ``CTHARVESTER_DATA_DIR`` for them.
+The in-application log viewer and **Open log directory** follow it too.
 
 **Disable Rust module:**
 
@@ -1064,23 +1045,23 @@ Advanced Logging
 .. code-block:: bash
 
    # Linux/macOS
-   tail -f ~/.local/share/PaleoBytes/CTHarvester/logs/ctharvester_*.log
+   tail -f ~/PaleoBytes/CTHarvester/logs/CTHarvester.log
 
    # Windows PowerShell
-   Get-Content -Path "$env:APPDATA\PaleoBytes\CTHarvester\logs\ctharvester_*.log" -Wait
+   Get-Content -Path "$env:USERPROFILE\PaleoBytes\CTHarvester\logs\CTHarvester.log" -Wait
 
 **Parse logs for errors:**
 
 .. code-block:: bash
 
    # Find all errors
-   grep "ERROR" ~/.local/share/PaleoBytes/CTHarvester/logs/*.log
+   grep "ERROR" ~/PaleoBytes/CTHarvester/logs/CTHarvester.log*
 
    # Find memory-related issues
-   grep -i "memory\|oom\|malloc" ~/.local/share/PaleoBytes/CTHarvester/logs/*.log
+   grep -i "memory\|oom\|malloc" ~/PaleoBytes/CTHarvester/logs/CTHarvester.log*
 
    # Find file I/O errors
-   grep -i "permission\|not found\|corrupted" ~/.local/share/PaleoBytes/CTHarvester/logs/*.log
+   grep -i "permission\|not found\|corrupted" ~/PaleoBytes/CTHarvester/logs/CTHarvester.log*
 
 Performance Profiling
 ~~~~~~~~~~~~~~~~~~~~~
@@ -1167,10 +1148,10 @@ Safe Mode and Recovery
 
    # Delete config file
    # Windows
-   del %APPDATA%\CTHarvester\settings.yaml
+   del %USERPROFILE%\PaleoBytes\CTHarvester\preferences.json
 
    # Linux/macOS
-   rm ~/.config/CTHarvester/settings.yaml
+   rm ~/PaleoBytes/CTHarvester/preferences.json
 
    # Launch CTHarvester - settings regenerated with defaults
 
@@ -1180,17 +1161,6 @@ Safe Mode and Recovery
 
    # Delete all cached thumbnails
    find /data/ct_scans/ -name ".thumbnail" -type d -exec rm -rf {} +
-
-**Database repair (if using internal database):**
-
-.. code-block:: bash
-
-   # Check for corrupted database
-   sqlite3 ~/.config/CTHarvester/cache.db "PRAGMA integrity_check;"
-
-   # Rebuild if corrupted
-   rm ~/.config/CTHarvester/cache.db
-   # CTHarvester will regenerate on next launch
 
 Tips and Tricks
 ---------------

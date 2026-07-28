@@ -23,7 +23,6 @@ Note:
 """
 
 import logging
-from pathlib import Path
 
 # Application Information
 APP_NAME = "CTHarvester"
@@ -48,12 +47,11 @@ PROGRAM_VERSION = __version__
 BUILD_YEAR = 2026
 PROGRAM_COPYRIGHT = f"© 2023-{BUILD_YEAR} Jikhan Jung"
 
-# Directory setup
-USER_PROFILE_DIRECTORY = str(Path.home())
-DEFAULT_DB_DIRECTORY = str(Path(USER_PROFILE_DIRECTORY) / COMPANY_NAME / PROGRAM_NAME)
-DEFAULT_STORAGE_DIRECTORY = str(Path(DEFAULT_DB_DIRECTORY) / "data")
-DEFAULT_LOG_DIRECTORY = str(Path(DEFAULT_DB_DIRECTORY) / "logs")
-DB_BACKUP_DIRECTORY = str(Path(DEFAULT_DB_DIRECTORY) / "backups")
+# User-data directories live in utils.paths, which resolves them on call rather
+# than at import so CTHARVESTER_DATA_DIR is honoured. The eager string constants
+# that used to sit here (DEFAULT_DB_DIRECTORY and friends) were inherited from
+# Modan2 along with a data/ and backups/ pair for a database CTHarvester does not
+# have.
 
 # File Extensions
 SUPPORTED_IMAGE_EXTENSIONS = (".bmp", ".jpg", ".jpeg", ".png", ".tif", ".tiff")

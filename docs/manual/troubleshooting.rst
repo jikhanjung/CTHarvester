@@ -149,8 +149,8 @@ Permission Issues
 
 **Location of settings files:**
 
-* Windows: ``%APPDATA%\CTHarvester\settings.yaml``
-* Linux/macOS: ``~/.config/CTHarvester/settings.yaml``
+* Windows: ``%USERPROFILE%\PaleoBytes\CTHarvester\preferences.json``
+* Linux/macOS: ``~/PaleoBytes/CTHarvester/preferences.json``
 
 **Solution:**
 
@@ -160,20 +160,20 @@ Permission Issues
    .. code-block:: bash
 
       # Windows (PowerShell)
-      mkdir "$env:APPDATA\CTHarvester"
+      mkdir "$env:USERPROFILE\PaleoBytes\CTHarvester"
 
       # Linux/macOS
-      mkdir -p ~/.config/CTHarvester
+      mkdir -p ~/PaleoBytes/CTHarvester
 
 3. Delete corrupted settings file to regenerate defaults:
 
    .. code-block:: bash
 
       # Windows (PowerShell)
-      rm "$env:APPDATA\CTHarvester\settings.yaml"
+      rm "$env:USERPROFILE\PaleoBytes\CTHarvester\preferences.json"
 
       # Linux/macOS
-      rm ~/.config/CTHarvester/settings.yaml
+      rm ~/PaleoBytes/CTHarvester/preferences.json
 
 Directory and File Loading Issues
 ----------------------------------
@@ -267,8 +267,8 @@ Corrupted Image Files
 
    Check the log files for error messages:
 
-   * Windows: ``%APPDATA%\CTHarvester\logs\``
-   * Linux/macOS: ``~/.config/CTHarvester/logs/``
+   * Windows: ``%USERPROFILE%\PaleoBytes\CTHarvester\logs\``
+   * Linux/macOS: ``~/PaleoBytes/CTHarvester/logs/``
 
    Look for lines containing "CorruptedImageError" or "Failed to load"
 
@@ -660,17 +660,17 @@ Settings Not Persisting
 .. code-block:: bash
 
    # Windows
-   dir %APPDATA%\CTHarvester
+   dir %USERPROFILE%\PaleoBytes\CTHarvester
 
    # Linux/macOS
-   ls ~/.config/CTHarvester
+   ls ~/PaleoBytes/CTHarvester
 
 **Solution 2: Fix permissions**
 
 .. code-block:: bash
 
    # Linux/macOS
-   chmod -R u+rw ~/.config/CTHarvester
+   chmod -R u+rw ~/PaleoBytes/CTHarvester
 
    # Windows: Use file properties to grant full control
 
@@ -680,10 +680,10 @@ Settings Not Persisting
 
    # This will regenerate default settings
    # Windows
-   del %APPDATA%\CTHarvester\settings.yaml
+   del %USERPROFILE%\PaleoBytes\CTHarvester\preferences.json
 
    # Linux/macOS
-   rm ~/.config/CTHarvester/settings.yaml
+   rm ~/PaleoBytes/CTHarvester/preferences.json
 
 Cannot Import Settings
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -703,7 +703,7 @@ Cannot Import Settings
    .. code-block:: bash
 
       # Check if file is valid YAML
-      python -c "import yaml; yaml.safe_load(open('settings.yaml'))"
+      python -c "import json; json.load(open('preferences.json'))"
 
 3. Try exporting settings first, then modifying the exported file
 
@@ -756,8 +756,8 @@ When reporting issues, include this information:
 
 3. **Log files:**
 
-   * Windows: ``%APPDATA%\PaleoBytes\CTHarvester\logs\``
-   * Linux/macOS: ``~/.local/share/PaleoBytes/CTHarvester/logs/``
+   * Windows: ``%USERPROFILE%\PaleoBytes\CTHarvester\logs\``
+   * Linux/macOS: ``~/PaleoBytes/CTHarvester/logs/``
 
 4. **Package versions:**
 

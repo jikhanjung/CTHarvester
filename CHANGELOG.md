@@ -14,6 +14,42 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
 
 ## [Unreleased]
 
+### Changed
+- **The Windows installer is now a per-user install into
+  `%LOCALAPPDATA%\Programs\PaleoBytes\CTHarvester`** and no longer asks for administrator
+  rights. It also carries a publisher name and a stable application id, so future
+  versions upgrade in place instead of installing beside each other, and its Start
+  menu shortcut sits in a PaleoBytes group alongside Modan2 and PaperMeister.
+  Your preferences and logs are untouched by install or uninstall — both live
+  under `%USERPROFILE%\PaleoBytes\CTHarvester`.
+- **Preferences moved to `~/PaleoBytes/CTHarvester/preferences.json`** — the same
+  directory as the logs, and the layout Modan2 and PaperMeister use, so a profile
+  can be backed up or moved as one directory. They were previously written as
+  `settings.yaml` under `%APPDATA%\CTHarvester` (Windows) or
+  `~/.config/CTHarvester` (Linux/macOS), which meant preferences and logs lived in
+  different places on every platform. Export/Import in the Settings dialog now
+  reads and writes JSON as well. `CTHARVESTER_DATA_DIR` overrides the location,
+  and `CTHARVESTER_LOG_DIR` now moves the in-application log viewer and
+  "Open log directory" along with the log files themselves — previously it moved
+  only the files, and the UI kept looking at the default directory.
+- **There is now one settings file.** `config/settings.yaml` held a second,
+  hand-maintained copy of the defaults and has been removed; the defaults are
+  defined once, in `SettingsManager._get_default_settings()`. The two copies had
+  already drifted — the YAML carried three keys nothing reads and was missing
+  three the application writes — and it was never bundled into the frozen build,
+  so released versions had always run on the Python defaults while the manual
+  documented the file.
+- Startup no longer creates empty `data/` and `backups/` directories in your
+  profile. They came from constants inherited from Modan2, which has a database;
+  CTHarvester has none and nothing ever read them.
+
+### Fixed
+- **The manual documented preference and log locations that did not exist.** The
+  log path was given three different wrong ways (`%APPDATA%\PaleoBytes\...`,
+  `~/.local/share/PaleoBytes/...`, a `ctharvester_*.log` filename), the settings
+  schema example used key names the application does not have, and a
+  "database repair" section described a SQLite cache CTHarvester has never had.
+
 ## [0.2.3-beta.3] - 2026-07-27
 
 ### Added

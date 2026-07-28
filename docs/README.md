@@ -13,7 +13,7 @@ CTHarvester.
 |---|---|
 | `installation.rst` | Getting it installed |
 | `user_guide.rst` | The main workflow, the Settings dialog, shortcuts |
-| `configuration.rst` | Every key in `settings.yaml` |
+| `configuration.rst` | Every key in `preferences.json` |
 | `advanced_features.rst` | Pyramid levels, large datasets, tips |
 | `troubleshooting.rst` | Symptoms and fixes |
 | `faq.rst` | Questions, with performance figures |
