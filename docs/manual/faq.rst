@@ -652,7 +652,7 @@ Can I save and share my settings?
 **To import:**
 
 1. Settings dialog → "Import Settings..."
-2. Select YAML file
+2. Select JSON file
 3. Settings applied immediately
 
 **Use cases:**
@@ -677,7 +677,7 @@ Where are logs stored?
 **Log files:**
 
 * Rotating logs (max 5 files × 10MB = 50MB total)
-* Named with timestamps: ``ctharvester_YYYYMMDD_HHMMSS.log``
+* Single rotating file: ``CTHarvester.log``, with older ones as ``.log.1`` … ``.log.5``
 
 Troubleshooting and Support
 ----------------------------

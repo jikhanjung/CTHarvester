@@ -97,7 +97,7 @@ Key Components
 
 **Settings Management:**
 
-* YAML-based configuration
+* JSON-based configuration
 * Platform-independent storage
 * Import/Export functionality
 * Dot notation access (``settings.get('app.language')``)

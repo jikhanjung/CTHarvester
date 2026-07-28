@@ -1,0 +1,1346 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023-2025, Jikhan Jung
+# This file is distributed under the same license as the CTHarvester
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: CTHarvester 0.2.3-beta.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-28 18:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ko\n"
+"Language-Team: ko <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:2
+msgid "Advanced Features Guide"
+msgstr "고급 기능 가이드"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:4
+msgid "This guide covers advanced features and techniques for power users of CTHarvester."
+msgstr "이 문서는 CTHarvester를 깊이 활용하는 사용자를 위한 고급 기능과 기법을 다룹니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:8
+msgid "Table of Contents"
+msgstr "목차"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:11
+msgid "Performance Optimization"
+msgstr "성능 최적화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:14
+msgid "Rust Module for High-Speed Processing"
+msgstr "고속 처리를 위한 Rust 모듈"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:16
+msgid "The Rust thumbnail generation module is roughly 3-10x faster than the Python implementation, depending on image size and disk speed. On a real dataset the same stack took 9-10 minutes in Python and 2-3 minutes in Rust."
+msgstr "Rust 썸네일 생성 모듈은 Python 구현보다 대략 3-10배 빠르며, 정확한 배수는 이미지 크기와 디스크 속도에 따라 달라집니다. 실제 데이터셋에서 같은 스택이 Python으로는 9-10분, Rust로는 2-3분 걸렸습니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:20
+msgid "**Installation:**"
+msgstr "**설치:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:36
+msgid "**Verification:**"
+msgstr "**확인:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:38
+msgid "Check console output when starting CTHarvester:"
+msgstr "CTHarvester를 시작할 때 콘솔 출력을 확인하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:44
+msgid "If you see \"Rust thumbnail module not available, using Python fallback\", the module is not loaded."
+msgstr "\"Rust thumbnail module not available, using Python fallback\"이 보이면 모듈이 로드되지 않은 것입니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:46
+msgid "**Troubleshooting:**"
+msgstr "**문제 해결:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:58
+msgid "**Performance comparison:**"
+msgstr "**성능 비교:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:61
+msgid "Dataset Size"
+msgstr "데이터셋 크기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:61
+msgid "Python (seconds)"
+msgstr "Python (초)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:61
+msgid "Rust (seconds)"
+msgstr "Rust (초)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:63
+msgid "500 images"
+msgstr "이미지 500장"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:63
+msgid "500-1000"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:63
+msgid "50-100"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:65
+msgid "1000 images"
+msgstr "이미지 1000장"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:65
+msgid "1200-2400"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:65
+msgid "120-300"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:67
+msgid "2000 images"
+msgstr "이미지 2000장"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:67
+msgid "2400-4800"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:67
+msgid "300-600"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:69
+msgid "5000 images"
+msgstr "이미지 5000장"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:69
+msgid "6000-12000"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:69
+msgid "900-1500"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:73
+msgid "Multi-Threading Configuration"
+msgstr "멀티스레딩 설정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:75
+msgid "CTHarvester uses multi-threading for parallel thumbnail generation."
+msgstr "CTHarvester는 썸네일 병렬 생성에 멀티스레딩을 사용합니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:77
+msgid "**Optimal thread count:**"
+msgstr "**최적 스레드 수:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:79
+msgid "**2-4 cores:** 2 threads"
+msgstr "**2-4 코어:** 2 스레드"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:80
+msgid "**4-8 cores:** 4 threads"
+msgstr "**4-8 코어:** 4 스레드"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:81
+msgid "**8+ cores:** 4-6 threads (diminishing returns beyond 6)"
+msgstr "**8 코어 이상:** 4-6 스레드 (6개를 넘으면 효과가 줄어듭니다)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:83
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:225
+msgid "**Configuration:**"
+msgstr "**설정:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:85
+msgid "Settings → Processing → Worker threads"
+msgstr "Settings → Processing → Worker threads"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:86
+msgid "Select thread count"
+msgstr "스레드 수 선택"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:87
+msgid "Restart thumbnail generation for changes to take effect"
+msgstr "변경을 적용하려면 썸네일 생성을 다시 시작하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:89
+msgid "**Thread count trade-offs:**"
+msgstr "스레드 수의 트레이드오프:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:92
+msgid "Threads"
+msgstr "스레드"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:92
+msgid "Speed"
+msgstr "속도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:92
+msgid "Memory Usage"
+msgstr "메모리 사용량"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:92
+msgid "Disk I/O"
+msgstr "디스크 I/O"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:94
+msgid "1"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:94
+msgid "Baseline (1.0x)"
+msgstr "기준 (1.0배)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:94
+msgid "Low (1x)"
+msgstr "낮음 (1배)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:94
+msgid "Sequential"
+msgstr "순차"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:96
+msgid "2"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:96
+msgid "1.7-1.9x faster"
+msgstr "1.7-1.9배 빠름"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:96
+msgid "Medium (1.8x)"
+msgstr "보통 (1.8배)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:96
+msgid "Moderate"
+msgstr "중간"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:98
+msgid "4"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:98
+msgid "3.0-3.5x faster"
+msgstr "3.0-3.5배 빠름"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:98
+msgid "High (3.5x)"
+msgstr "높음 (3.5배)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:98
+msgid "High contention"
+msgstr "경합 많음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:100
+msgid "8"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:100
+msgid "3.5-4.0x faster"
+msgstr "3.5-4.0배 빠름"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:100
+msgid "Very high (7x)"
+msgstr "매우 높음 (7배)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:100
+msgid "Severe contention"
+msgstr "경합 심각"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:103
+msgid "**Best practices:**"
+msgstr "**권장 사항:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:105
+msgid "Use 1 thread for network drives or USB 2.0 devices"
+msgstr "네트워크 드라이브나 USB 2.0 장치에는 1 스레드"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:106
+msgid "Use 2-4 threads for local SSDs"
+msgstr "로컬 SSD에는 2-4 스레드"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:107
+msgid "Use 1-2 threads on low-RAM systems (4GB)"
+msgstr "RAM이 적은 시스템(4GB)에는 1-2 스레드"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:108
+msgid "Monitor system during generation to find optimal setting"
+msgstr "생성 중 시스템을 관찰하며 최적값을 찾으세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:111
+msgid "Memory Management Strategies"
+msgstr "메모리 관리 전략"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:113
+msgid "**Settings affecting memory usage:**"
+msgstr "**메모리 사용량에 영향을 주는 설정:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:115
+msgid "**Memory limit** (Settings → Processing)"
+msgstr "**메모리 상한** (Settings → Processing)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:117
+msgid "Soft limit for image processing"
+msgstr "이미지 처리에 대한 느슨한 상한"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:118
+msgid "Default: 4GB"
+msgstr "기본값: 4GB"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:119
+#, python-format
+msgid "Recommended: 50-70% of available RAM"
+msgstr "권장: 사용 가능한 RAM의 50-70%"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:121
+msgid "**Worker threads**"
+msgstr "**워커 스레드**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:123
+msgid "Each thread requires memory for image buffers"
+msgstr "스레드마다 이미지 버퍼용 메모리가 필요합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:124
+msgid "Formula: ``total_memory ≈ base (200MB) + threads × image_size × 2``"
+msgstr "공식: ``total_memory ≈ base (200MB) + threads × image_size × 2``"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:126
+msgid "**Max thumbnail size**"
+msgstr "**최대 썸네일 크기**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:128
+msgid "Larger thumbnails = more memory per thread"
+msgstr "썸네일이 클수록 스레드당 메모리 사용량이 늘어납니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:129
+msgid "300px: ~3MB per thread"
+msgstr "300px: 스레드당 약 3MB"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:130
+msgid "500px: ~8MB per thread"
+msgstr "500px: 스레드당 약 8MB"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:131
+msgid "800px: ~20MB per thread"
+msgstr "800px: 스레드당 약 20MB"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:133
+msgid "**Memory optimization for large datasets:**"
+msgstr "**큰 데이터셋을 위한 메모리 최적화:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:164
+msgid "**Monitoring memory usage:**"
+msgstr "**메모리 사용량 모니터링:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:166
+msgid "Windows: Task Manager → Performance → Memory"
+msgstr "Windows: 작업 관리자 → 성능 → 메모리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:167
+msgid "macOS: Activity Monitor → Memory"
+msgstr "macOS: 활성 상태 보기 → 메모리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:168
+msgid "Linux: ``htop`` or ``free -h``"
+msgstr "Linux: ``htop`` 또는 ``free -h``"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:171
+msgid "Disk I/O Optimization"
+msgstr "디스크 I/O 최적화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:173
+msgid "**Best practices for maximum throughput:**"
+msgstr "**최대 처리량을 위한 권장 사항:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:175
+msgid "**Use local SSD**"
+msgstr "**로컬 SSD 사용**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:177
+msgid "Sequential read: 500-7000 MB/s"
+msgstr "순차 읽기: 500-7000 MB/s"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:178
+msgid "vs HDD: 100-200 MB/s"
+msgstr "HDD 대비: 100-200 MB/s"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:179
+msgid "vs USB 2.0: 35 MB/s"
+msgstr "USB 2.0 대비: 35 MB/s"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:180
+msgid "vs Network (1Gbps): 125 MB/s"
+msgstr "네트워크(1Gbps) 대비: 125 MB/s"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:182
+msgid "**Copy to local drive first**"
+msgstr "**먼저 로컬 드라이브로 복사**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:193
+msgid "**Disable real-time antivirus temporarily**"
+msgstr "**실시간 백신 검사 일시 중지**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:195
+msgid "Add CTHarvester directory to exclusions"
+msgstr "CTHarvester 디렉토리를 검사 예외에 추가"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:196
+msgid "Or temporarily disable real-time scanning"
+msgstr "또는 실시간 검사를 일시적으로 끄기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:197
+msgid "**Re-enable after processing**"
+msgstr "**처리 후 다시 켜세요**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:199
+msgid "**TRIM/Defrag maintenance**"
+msgstr "**TRIM/조각 모음 관리**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:210
+msgid "Advanced Thumbnail Configuration"
+msgstr "고급 썸네일 설정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:213
+msgid "Multi-Level Pyramid System"
+msgstr "다중 레벨 피라미드"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:215
+msgid "CTHarvester generates a multi-resolution pyramid for efficient navigation."
+msgstr "CTHarvester는 효율적인 탐색을 위해 다중 해상도 피라미드를 생성합니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:217
+msgid "**Pyramid levels:**"
+msgstr "**피라미드 레벨:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:219
+msgid "Level 0: Full resolution"
+msgstr "레벨 0: 원본 해상도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:220
+msgid "Level 1: 1/2 resolution (width/2, height/2)"
+msgstr "레벨 1: 1/2 해상도 (너비/2, 높이/2)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:221
+msgid "Level 2: 1/4 resolution"
+msgstr "레벨 2: 1/4 해상도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:222
+msgid "Level 3: 1/8 resolution"
+msgstr "레벨 3: 1/8 해상도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:223
+msgid "... up to configured maximum"
+msgstr "... 설정된 최대 레벨까지"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:227
+msgid "Settings → Thumbnails:"
+msgstr "Settings → Thumbnails:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:229
+msgid "**Max pyramid level:** 1-20 (default: 10)"
+msgstr "**최대 피라미드 레벨:** 1-20 (기본값: 10)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:230
+msgid "**Max thumbnail size:** 100-2000 px (default: 500)"
+msgstr "**최대 썸네일 크기:** 100-2000 px (기본값: 500)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:231
+msgid "**Sample size:** 10-100 images (default: 20)"
+msgstr "**표본 수:** 이미지 10-100장 (기본값: 20)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:233
+msgid "**Level calculation:**"
+msgstr "**레벨 계산:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:248
+msgid "**Example:**"
+msgstr "**예시:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:250
+msgid "Image: 2048×2048 px"
+msgstr "이미지: 2048×2048 px"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:251
+msgid "Max thumbnail: 500 px"
+msgstr "최대 썸네일: 500 px"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:252
+msgid "Levels generated:"
+msgstr "생성되는 레벨:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:254
+msgid "Level 0: 2048×2048 (full resolution)"
+msgstr "레벨 0: 2048×2048 (원본 해상도)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:255
+msgid "Level 1: 1024×1024"
+msgstr "레벨 1: 1024×1024"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:256
+msgid "Level 2: 512×512 ✓ (below max_thumbnail_size)"
+msgstr "레벨 2: 512×512 ✓ (max_thumbnail_size 이하)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:257
+msgid "Level 3: 256×256 ✓"
+msgstr "레벨 3: 256×256 ✓"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:258
+msgid "Level 4: 128×128 ✓"
+msgstr "레벨 4: 128×128 ✓"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:260
+msgid "**Disk space calculation:**"
+msgstr "**디스크 용량 계산:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:277
+msgid "Custom Sampling Strategies"
+msgstr "표본 추출 전략"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:279
+msgid "The sample size parameter controls how many images are used to generate initial thumbnails."
+msgstr "표본 수 설정은 초기 썸네일 생성에 몇 장의 이미지를 사용할지 결정합니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:281
+msgid "**Sampling strategy:**"
+msgstr "**표본 추출 전략:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:294
+msgid "**Use cases:**"
+msgstr "**사용 사례:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:296
+msgid "**Small sample (10-15):** Quick preview for large datasets"
+msgstr "**적은 표본 (10-15):** 큰 데이터셋의 빠른 미리보기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:297
+msgid "**Medium sample (20-30):** Balanced speed/quality"
+msgstr "**중간 표본 (20-30):** 속도와 품질의 균형"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:298
+msgid "**Large sample (50-100):** High quality preview, slower"
+msgstr "**많은 표본 (50-100):** 고품질 미리보기, 더 느림"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:300
+msgid "**When to use large sample size:**"
+msgstr "**표본 수를 늘리는 것이 좋은 경우:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:302
+msgid "Highly variable dataset (different structures per slice)"
+msgstr "슬라이스마다 구조가 크게 달라지는 데이터셋"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:303
+msgid "Quality preview needed before full processing"
+msgstr "전체 처리 전에 품질 미리보기가 필요한 경우"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:304
+msgid "Sufficient time for thumbnail generation"
+msgstr "썸네일 생성에 충분한 시간이 있는 경우"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:306
+msgid "**When to use small sample size:**"
+msgstr "**표본 수를 줄이는 것이 좋은 경우:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:308
+msgid "Quick exploration"
+msgstr "빠르게 훑어볼 때"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:309
+msgid "Homogeneous dataset (similar structures throughout)"
+msgstr "전체적으로 구조가 비슷한 균일한 데이터셋"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:310
+msgid "Limited time or disk space"
+msgstr "시간이나 디스크 공간이 부족할 때"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:313
+msgid "Thumbnail Format Optimization"
+msgstr "썸네일 형식 최적화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:315
+msgid "**Supported formats:**"
+msgstr "**지원 형식:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:317
+msgid "**TIF (default)**"
+msgstr "**TIF (기본값)**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:319
+msgid "Pros: Lossless, preserves bit depth, fast"
+msgstr "장점: 무손실, 비트 심도 보존, 빠름"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:320
+msgid "Cons: Larger file size"
+msgstr "단점: 파일 크기가 큼"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:321
+msgid "Best for: Quality-critical workflows"
+msgstr "적합한 용도: 품질이 중요한 작업"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:323
+msgid "**PNG**"
+msgstr "**PNG**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:325
+msgid "Pros: Lossless, good compression"
+msgstr "장점: 무손실, 좋은 압축률"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:326
+msgid "Cons: Slower encoding/decoding"
+msgstr "단점: 인코딩/디코딩이 느림"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:327
+msgid "Best for: Disk-space-constrained systems"
+msgstr "적합한 용도: 디스크 공간이 부족한 시스템"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:329
+msgid "**Compression settings:**"
+msgstr "**압축 설정:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:344
+msgid "**Benchmark (1000 images, 512×512, 8-bit):**"
+msgstr "**벤치마크 (이미지 1000장, 512×512, 8비트):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:347
+msgid "Format"
+msgstr "형식"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:347
+msgid "Size"
+msgstr "크기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:347
+msgid "Write Speed"
+msgstr "쓰기 속도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:347
+msgid "Read Speed"
+msgstr "읽기 속도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:349
+msgid "TIF (uncompressed)"
+msgstr "TIF (무압축)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:349
+msgid "250 MB"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:349
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:351
+msgid "200 MB/s"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:349
+msgid "500 MB/s"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:351
+msgid "TIF (LZW)"
+msgstr "TIF (LZW)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:351
+msgid "150 MB"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:351
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:353
+msgid "100 MB/s"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:353
+msgid "PNG"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:353
+msgid "120 MB"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:353
+msgid "50 MB/s"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:357
+msgid "3D Visualization Techniques"
+msgstr "3D 시각화 기법"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:360
+msgid "Threshold Tuning for Different Materials"
+msgstr "재질별 임계값 조정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:362
+msgid "The threshold parameter acts as the isovalue for marching cubes algorithm."
+msgstr "임계값 설정은 마칭 큐브 알고리즘의 등값면 값으로 사용됩니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:364
+msgid "**Material-specific thresholds:**"
+msgstr "**재질별 임계값:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:367
+msgid "Material"
+msgstr "재질"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:367
+msgid "Typical Range"
+msgstr "일반적인 범위"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:367
+msgid "Notes"
+msgstr "비고"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:369
+msgid "Air/Void"
+msgstr "공기/공극"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:369
+msgid "0-30"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:369
+msgid "Background"
+msgstr "배경"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:371
+msgid "Soft tissue"
+msgstr "연조직"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:371
+msgid "30-80"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:371
+msgid "Low density"
+msgstr "낮은 밀도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:373
+msgid "Muscle"
+msgstr "근육"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:373
+msgid "80-120"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:373
+msgid "Medium density"
+msgstr "중간 밀도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:375
+msgid "Bone (trabecular)"
+msgstr "뼈 (해면골)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:375
+msgid "120-180"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:375
+msgid "Medium-high density"
+msgstr "중상 밀도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:377
+msgid "Bone (cortical)"
+msgstr "뼈 (치밀골)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:377
+msgid "180-255"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:377
+msgid "High density"
+msgstr "높은 밀도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:380
+msgid "**Finding optimal threshold:**"
+msgstr "**최적 임계값 찾기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:382
+msgid "Start at 128 (midpoint)"
+msgstr "128(중간값)에서 시작"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:383
+msgid "Increase threshold until:"
+msgstr "다음이 나타날 때까지 임계값을 올립니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:385
+msgid "Internal structures disappear"
+msgstr "내부 구조가 사라짐"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:386
+msgid "Only outer shell visible"
+msgstr "외곽 껍데기만 보임"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:388
+msgid "Decrease threshold until:"
+msgstr "다음이 나타날 때까지 임계값을 낮춥니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:390
+msgid "Noise appears"
+msgstr "노이즈가 보임"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:391
+msgid "Too much detail obscures structure"
+msgstr "세부가 너무 많아 구조가 가려짐"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:393
+msgid "Fine-tune in range where structure is clear"
+msgstr "구조가 뚜렷한 범위에서 미세 조정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:395
+msgid "**Multi-threshold visualization:**"
+msgstr "**다중 임계값 시각화:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:397
+msgid "For complex specimens, visualize multiple thresholds:"
+msgstr "복잡한 표본은 여러 임계값으로 살펴보세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:407
+msgid "**Inversion mode:**"
+msgstr "**반전 모드:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:409
+msgid "For negative CT scans (phase-contrast, certain staining):"
+msgstr "음성 CT 스캔(위상차, 특정 염색)의 경우:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:411
+msgid "Check \"Inv.\" checkbox"
+msgstr "\"Inv.\" 체크박스 선택"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:412
+msgid "Threshold interpretation reversed:"
+msgstr "임계값 해석이 반대가 됩니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:414
+msgid "Low threshold → high density"
+msgstr "낮은 임계값 → 높은 밀도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:415
+msgid "High threshold → low density"
+msgstr "높은 임계값 → 낮은 밀도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:418
+msgid "Advanced Mesh Export Options"
+msgstr "고급 메시 내보내기 옵션"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:420
+msgid "**Export formats:**"
+msgstr "**내보내기 형식:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:422
+msgid "**OBJ (Wavefront)**"
+msgstr "**OBJ (Wavefront)**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:424
+msgid "Pros: Universal compatibility, readable text format"
+msgstr "장점: 범용 호환성, 사람이 읽을 수 있는 텍스트 형식"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:425
+msgid "Cons: Large file size, no color"
+msgstr "단점: 파일 크기가 큼, 색상 없음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:426
+msgid "Best for: General 3D software (Blender, Maya, MeshLab)"
+msgstr "적합한 용도: 일반 3D 소프트웨어 (Blender, Maya, MeshLab)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:428
+msgid "**PLY (Polygon File Format)**"
+msgstr "**PLY (Polygon File Format)**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:430
+msgid "Pros: Supports color and vertex attributes"
+msgstr "장점: 색상과 정점 속성 지원"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:431
+msgid "Cons: Less universal than OBJ"
+msgstr "단점: OBJ보다 범용성이 낮음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:432
+msgid "Best for: CloudCompare, scientific visualization"
+msgstr "적합한 용도: CloudCompare, 과학 시각화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:434
+msgid "**STL (Stereolithography)**"
+msgstr "**STL (Stereolithography)**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:436
+msgid "Pros: Compact binary, 3D printing standard"
+msgstr "장점: 간결한 바이너리, 3D 프린팅 표준"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:437
+msgid "Cons: No color, less readable"
+msgstr "단점: 색상 없음, 가독성 낮음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:438
+msgid "Best for: 3D printing (Cura, PrusaSlicer)"
+msgstr "적합한 용도: 3D 프린팅 (Cura, PrusaSlicer)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:440
+msgid "**Post-processing workflow:**"
+msgstr "**후처리 워크플로:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:446
+msgid "**Mesh cleanup in MeshLab:**"
+msgstr "**MeshLab에서 메시 정리:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:459
+msgid "**Blender workflow:**"
+msgstr "**Blender 워크플로:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:474
+msgid "OpenGL Rendering Customization"
+msgstr "OpenGL 렌더링 사용자 설정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:476
+msgid "**Settings → Rendering:**"
+msgstr "**Settings → Rendering:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:478
+msgid "**Anti-aliasing:** Smooth edges, slower rendering"
+msgstr "**안티에일리어싱:** 경계가 매끄러워지고 렌더링은 느려집니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:479
+msgid "**Backface culling:** Faster, may hide internal structures"
+msgstr "**백페이스 컬링:** 더 빠르지만 내부 구조가 가려질 수 있습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:480
+msgid "**Wireframe mode:** View mesh topology"
+msgstr "**와이어프레임 모드:** 메시 토폴로지 보기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:481
+msgid "**FPS counter:** Monitor performance"
+msgstr "**FPS 카운터:** 성능 모니터링"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:483
+msgid "**Performance optimization:**"
+msgstr "**성능 최적화:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:501
+msgid "**Keyboard shortcuts for 3D view:**"
+msgstr "**3D 뷰 키보드 단축키:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:503
+msgid "Click+Drag: Rotate"
+msgstr "클릭+드래그: 회전"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:504
+msgid "Shift+Click+Drag: Pan"
+msgstr "Shift+클릭+드래그: 이동"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:505
+msgid "Scroll: Zoom"
+msgstr "스크롤: 확대/축소"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:506
+msgid "Double-click: Reset view"
+msgstr "더블클릭: 뷰 초기화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:507
+msgid "``F3``: Toggle 3D view"
+msgstr "``F3``: 3D 뷰 전환"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:508
+msgid "``W``: Toggle wireframe mode"
+msgstr "``W``: 와이어프레임 모드 전환"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:509
+msgid "``B``: Toggle backface culling"
+msgstr "``B``: 백페이스 컬링 전환"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:512
+msgid "Batch Processing Workflows"
+msgstr "일괄 처리 워크플로"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:515
+msgid "Processing Multiple Datasets"
+msgstr "여러 데이터셋 처리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:517
+msgid "**Current limitation:** CTHarvester processes one dataset at a time."
+msgstr "**현재 제약:** CTHarvester는 한 번에 하나의 데이터셋만 처리합니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:519
+msgid "**Workaround for batch processing:**"
+msgstr "**일괄 처리 우회 방법:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:543
+msgid "**Future CLI support (planned):**"
+msgstr "**향후 CLI 지원 (계획):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:559
+msgid "Scripting with Python API"
+msgstr "Python API로 스크립팅"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:561
+msgid "For advanced automation, use CTHarvester modules directly:"
+msgstr "고급 자동화가 필요하면 CTHarvester 모듈을 직접 사용하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:610
+msgid "**Automated cropping and export:**"
+msgstr "**자동 크롭 및 내보내기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:651
+msgid "Settings Management"
+msgstr "설정 관리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:654
+msgid "Configuration File Format"
+msgstr "설정 파일 형식"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:656
+msgid "CTHarvester settings are stored as JSON."
+msgstr "CTHarvester 설정은 JSON으로 저장됩니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:658
+msgid "**Location:**"
+msgstr "**위치:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:660
+msgid "Windows: ``%USERPROFILE%\\PaleoBytes\\CTHarvester\\preferences.json``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:661
+msgid "Linux/macOS: ``~/PaleoBytes/CTHarvester/preferences.json``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:663
+msgid "**Example preferences.json:**"
+msgstr "**preferences.json 예시:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:674
+msgid "The excerpt above is partial. :doc:`configuration` documents every available key and is the reference to work from."
+msgstr "위 예시는 일부만 담고 있습니다. 사용 가능한 모든 키는 :doc:`configuration`에 정리되어 있으며, 그 문서를 기준으로 삼으세요."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:678
+msgid "Bulk Settings Configuration"
+msgstr "설정 일괄 구성"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:680
+msgid "**Export settings for team:**"
+msgstr "**팀용 설정 내보내기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:690
+msgid "**Import settings for team:**"
+msgstr "**팀용 설정 가져오기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:697
+msgid "**Programmatic settings update:**"
+msgstr "**프로그램으로 설정 변경:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:727
+msgid "Environment Variables"
+msgstr "환경 변수"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:729
+msgid "Control CTHarvester behavior via environment variables:"
+msgstr "환경 변수로 CTHarvester의 동작을 제어할 수 있습니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:731
+msgid "**Log level:**"
+msgstr "**로그 수준:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:738
+msgid "**Console log level (separate from file log):**"
+msgstr "**콘솔 로그 수준 (파일 로그와 별도):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:745
+msgid "**Custom data directory (preferences and logs):**"
+msgstr "**데이터 디렉토리 지정 (환경 설정과 로그):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:752
+msgid "Moves the whole profile — ``preferences.json`` and ``logs/`` — which is the clean way to keep separate configurations side by side."
+msgstr "``preferences.json``과 ``logs/``를 포함한 프로필 전체를 옮깁니다. 여러 설정을 나란히 두고 쓰는 가장 깔끔한 방법입니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:755
+msgid "**Custom log directory:**"
+msgstr "**로그 디렉토리 지정:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:762
+msgid "Moves the logs only, and takes precedence over ``CTHARVESTER_DATA_DIR`` for them. The in-application log viewer and **Open log directory** follow it too."
+msgstr "로그만 옮기며, 로그에 대해서는 ``CTHARVESTER_DATA_DIR``보다 우선합니다. 애플리케이션 내 로그 뷰어와 **로그 디렉토리 열기**도 이 값을 따릅니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:765
+msgid "**Disable Rust module:**"
+msgstr "**Rust 모듈 비활성화:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:772
+msgid "**Force single-threaded:**"
+msgstr "**단일 스레드 강제:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:779
+msgid "**Combined example:**"
+msgstr "**조합 예시:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:795
+msgid "Integration with Other Tools"
+msgstr "다른 도구와의 연동"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:798
+msgid "ImageJ/Fiji Integration"
+msgstr "ImageJ/Fiji 연동"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:800
+msgid "**Export for ImageJ:**"
+msgstr "**ImageJ용 내보내기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:802
+msgid "Save cropped image stack (TIF format recommended)"
+msgstr "크롭한 이미지 스택 저장 (TIF 형식 권장)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:803
+msgid "Open in ImageJ: File → Import → Image Sequence"
+msgstr "ImageJ에서 열기: File → Import → Image Sequence"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:804
+msgid "Select first file in sequence"
+msgstr "시퀀스의 첫 파일 선택"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:805
+msgid "ImageJ automatically loads all files"
+msgstr "ImageJ가 나머지 파일을 자동으로 불러옵니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:807
+msgid "**ImageJ macro for batch import:**"
+msgstr "**일괄 가져오기용 ImageJ 매크로:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:816
+msgid "**CTHarvester → ImageJ → Analysis workflow:**"
+msgstr "**CTHarvester → ImageJ → 분석 워크플로:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:830
+msgid "Blender Integration"
+msgstr "Blender 연동"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:832
+msgid "**Import CTHarvester mesh:**"
+msgstr "**CTHarvester 메시 가져오기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:843
+msgid "**Blender Python script for batch import:**"
+msgstr "**일괄 가져오기용 Blender Python 스크립트:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:865
+msgid "**Render animation:**"
+msgstr "**애니메이션 렌더링:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:886
+msgid "CloudCompare Integration"
+msgstr "CloudCompare 연동"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:888
+msgid "**Import CTHarvester mesh into CloudCompare:**"
+msgstr "**CTHarvester 메시를 CloudCompare로 가져오기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:900
+msgid "**Command-line CloudCompare:**"
+msgstr "**명령줄 CloudCompare:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:911
+msgid "Python/NumPy Integration"
+msgstr "Python/NumPy 연동"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:913
+msgid "**Load CTHarvester images for custom processing:**"
+msgstr "**직접 처리하기 위해 CTHarvester 이미지 불러오기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:946
+msgid "**3D morphological operations:**"
+msgstr "**3D 형태학 연산:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:971
+msgid "Custom Analysis Pipelines"
+msgstr "사용자 분석 파이프라인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:973
+msgid "**Example: Automated porosity analysis**"
+msgstr "**예시: 공극률 자동 분석**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1027
+msgid "Debugging and Diagnostics"
+msgstr "디버깅과 진단"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1030
+msgid "Advanced Logging"
+msgstr "고급 로깅"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1032
+msgid "**Enable debug logging:**"
+msgstr "**디버그 로깅 활성화:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1043
+msgid "**View logs in real-time:**"
+msgstr "**실시간 로그 보기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1053
+msgid "**Parse logs for errors:**"
+msgstr "**로그에서 오류 찾기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1067
+msgid "Performance Profiling"
+msgstr "성능 프로파일링"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1069
+msgid "**Profile thumbnail generation:**"
+msgstr "**썸네일 생성 프로파일링:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1114
+msgid "**Memory profiling:**"
+msgstr "**메모리 프로파일링:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1133
+msgid "Safe Mode and Recovery"
+msgstr "안전 모드와 복구"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1135
+msgid "**Run in safe mode (minimal features):**"
+msgstr "**안전 모드로 실행 (최소 기능):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1145
+msgid "**Reset to factory settings:**"
+msgstr "**설정 초기화:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1158
+msgid "**Clear thumbnail cache:**"
+msgstr "**썸네일 캐시 삭제:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1166
+msgid "Tips and Tricks"
+msgstr "팁과 요령"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1169
+msgid "Keyboard Power User Shortcuts"
+msgstr "파워 사용자용 단축키"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1171
+msgid "Beyond the basics, these are the combinations that save the most time. The full list of 24 shortcuts is in the User Guide, and ``F1`` shows it in the application."
+msgstr "기본 단축키 외에, 시간을 가장 많이 아껴 주는 조합들입니다. 전체 24개 목록은 사용자 가이드에 있고, 애플리케이션에서는 ``F1``로 볼 수 있습니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1175
+msgid "**Quick navigation:**"
+msgstr "**빠른 이동:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1177
+msgid "``Home`` / ``End``: Jump to the first / last slice"
+msgstr "``Home`` / ``End``: 첫 / 마지막 슬라이스로 이동"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1178
+msgid "``Ctrl+Left`` / ``Ctrl+Right``: Jump 10 slices backward / forward"
+msgstr "``Ctrl+Left`` / ``Ctrl+Right``: 10 슬라이스 뒤로 / 앞으로 이동"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1179
+msgid "``Left`` / ``Right``: Step one slice"
+msgstr "``Left`` / ``Right``: 한 슬라이스씩 이동"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1181
+msgid "**Rapid ROI setting:**"
+msgstr "**빠른 ROI 설정:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1190
+msgid "**Threshold:**"
+msgstr "**임계값:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1192
+msgid "``Up`` / ``Down``: Adjust the threshold"
+msgstr "``Up`` / ``Down``: 임계값 조정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1193
+msgid "``Ctrl+R``: Reset the crop region"
+msgstr "``Ctrl+R``: 크롭 영역 초기화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1195
+msgid "**View management:**"
+msgstr "**뷰 관리:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1197
+msgid "``F3``: Toggle the 3D view"
+msgstr "``F3``: 3D 뷰 전환"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1198
+msgid "``Ctrl+0``: Fit the image to the window"
+msgstr "``Ctrl+0``: 이미지를 창에 맞추기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1199
+msgid "``Ctrl++`` / ``Ctrl+-``: Zoom in / out"
+msgstr "``Ctrl++`` / ``Ctrl+-``: 확대 / 축소"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1203
+msgid "Workflow Optimization"
+msgstr "워크플로 최적화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1205
+msgid "**Efficient large dataset exploration:**"
+msgstr "**큰 데이터셋을 효율적으로 탐색하기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1217
+msgid "**Multi-stage processing:**"
+msgstr "**단계별 처리:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1235
+msgid "**Dataset organization:**"
+msgstr "**데이터셋 정리:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1247
+msgid "Further Resources"
+msgstr "더 읽을 자료"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1249
+msgid "**Documentation:**"
+msgstr "**문서:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1251
+msgid "Installation Guide: Detailed setup instructions"
+msgstr "설치 가이드: 상세한 설치 방법"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1252
+msgid "User Guide: Basic usage and workflow"
+msgstr "사용자 가이드: 기본 사용법과 작업 흐름"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1253
+msgid "Troubleshooting Guide: Problem-solving"
+msgstr "문제 해결 가이드: 문제 해결"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1254
+msgid "FAQ: Common questions"
+msgstr "FAQ: 자주 묻는 질문"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1256
+msgid "**Community:**"
+msgstr "**커뮤니티:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1258
+msgid "GitHub Discussions: Ask questions, share workflows"
+msgstr "GitHub Discussions: 질문하기, 작업 방식 공유"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1259
+msgid "GitHub Issues: Report bugs, request features"
+msgstr "GitHub Issues: 버그 신고, 기능 요청"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1261
+msgid "**Development:**"
+msgstr "**개발:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1263
+msgid "Developer Guide: Architecture and API"
+msgstr "개발자 가이드: 아키텍처와 API"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1264
+msgid "CONTRIBUTING.md: Contribution guidelines"
+msgstr "CONTRIBUTING.md: 기여 지침"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1265
+msgid "GitHub Repository: Source code and releases"
+msgstr "GitHub 저장소: 소스 코드와 릴리스"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1267
+msgid "**Contact:**"
+msgstr "**연락:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1269
+msgid "Email: jikhanjung@gmail.com"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1270
+msgid "GitHub: @jikhanjung"
+msgstr ""
+

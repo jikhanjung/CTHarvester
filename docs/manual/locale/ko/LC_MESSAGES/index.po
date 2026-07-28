@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CTHarvester \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 18:24+0900\n"
+"POT-Creation-Date: 2026-07-28 18:48+0900\n"
 "PO-Revision-Date: 2025-10-01 18:30+0900\n"
 "Last-Translator: CTHarvester Documentation Team <noreply@ctharvester.org>\n"
 "Language: ko\n"
@@ -56,8 +56,8 @@ msgid "**User-Friendly**: Modern UI with 24 keyboard shortcuts, 100% tooltip cov
 msgstr "**사용자 친화적**: 키보드 단축키 24개, 툴팁 100% 적용, 8px 그리드 기반 레이아웃을 갖춘 현대적인 UI"
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/index.rst:28
-msgid "**Flexible Settings**: YAML-based configuration with import/export functionality"
-msgstr "**유연한 설정**: 가져오기/내보내기 기능을 갖춘 YAML 기반 구성"
+msgid "**Flexible Settings**: JSON-based configuration with import/export functionality"
+msgstr "**유연한 설정**: 가져오기/내보내기를 지원하는 JSON 기반 설정"
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/index.rst:29
 msgid "**Multi-language Support**: English and Korean (한국어) interface"

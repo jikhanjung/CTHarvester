@@ -1,0 +1,2478 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023-2025, Jikhan Jung
+# This file is distributed under the same license as the CTHarvester
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: CTHarvester 0.2.3-beta.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-28 19:18+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ko\n"
+"Language-Team: ko <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:2
+msgid "Frequently Asked Questions (FAQ)"
+msgstr "자주 묻는 질문 (FAQ)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:6
+msgid "Table of Contents"
+msgstr "목차"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:9
+msgid "General Questions"
+msgstr "일반적인 질문"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:12
+msgid "What is CTHarvester?"
+msgstr "CTHarvester는 무엇인가요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:14
+msgid "CTHarvester is a preprocessing tool for CT (Computed Tomography) image stacks designed for users with limited memory resources. It enables efficient cropping and resampling of large CT datasets without loading entire volumes into memory, using Level of Detail (LoD) techniques for fast preview and navigation."
+msgstr "CTHarvester는 메모리가 넉넉하지 않은 환경을 염두에 두고 만든 CT(컴퓨터 단층촬영) 이미지 스택 전처리 도구입니다. 전체 볼륨을 메모리에 올리지 않고도 큰 CT 데이터셋을 효율적으로 크롭하고 리샘플링할 수 있으며, LoD(Level of Detail) 기법으로 빠른 미리보기와 탐색을 제공합니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:16
+msgid "**Key features:**"
+msgstr "**주요 기능:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:18
+msgid "Memory-efficient processing (works on 4GB RAM systems)"
+msgstr "메모리 효율적인 처리 (RAM 4GB 시스템에서도 동작)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:19
+msgid "Fast preview using multi-resolution thumbnails"
+msgstr "다중 해상도 썸네일을 이용한 빠른 미리보기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:20
+msgid "Interactive crop region selection"
+msgstr "대화형 크롭 영역 선택"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:21
+msgid "3D visualization and mesh export"
+msgstr "3D 시각화와 메시 내보내기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:22
+msgid "Batch processing support"
+msgstr "일괄 처리 지원"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:25
+msgid "Who is CTHarvester for?"
+msgstr "CTHarvester는 누구를 위한 도구인가요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:27
+msgid "CTHarvester is designed for:"
+msgstr "CTHarvester는 다음을 위해 설계되었습니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:29
+msgid "**Researchers** working with CT imaging data"
+msgstr "CT 영상 데이터를 다루는 **연구자**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:30
+msgid "**Paleontologists** studying fossil specimens"
+msgstr "화석 표본을 연구하는 **고생물학자**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:31
+msgid "**Medical imaging professionals** (for research, not diagnosis)"
+msgstr "**의료 영상 전문가** (진단이 아닌 연구 목적)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:32
+msgid "**Students** learning about CT data processing"
+msgstr "CT 데이터 처리를 배우는 **학생**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:33
+msgid "**Anyone** working with large CT datasets on limited hardware"
+msgstr "제한된 하드웨어로 큰 CT 데이터셋을 다루는 **모든 분**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:36
+msgid "What makes CTHarvester different from other CT software?"
+msgstr "다른 CT 소프트웨어와 무엇이 다른가요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:38
+msgid "**Traditional CT software problems:**"
+msgstr "**기존 CT 소프트웨어의 문제:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:40
+msgid "Requires loading entire dataset into RAM (often 10GB+)"
+msgstr "데이터셋 전체를 RAM에 올려야 함 (흔히 10GB 이상)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:41
+msgid "Slow preview and navigation"
+msgstr "미리보기와 탐색이 느림"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:42
+msgid "Expensive commercial licenses"
+msgstr "비싼 상용 라이선스"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:43
+msgid "Complex interfaces"
+msgstr "복잡한 인터페이스"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:45
+msgid "**CTHarvester advantages:**"
+msgstr "**CTHarvester의 장점:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:47
+msgid "Level of Detail (LoD) system for instant preview"
+msgstr "즉각적인 미리보기를 위한 LoD(Level of Detail) 시스템"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:48
+msgid "Works on low-spec machines (4GB RAM minimum)"
+msgstr "저사양 장비에서도 동작 (최소 RAM 4GB)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:49
+msgid "Free and open source (MIT license)"
+msgstr "무료 오픈소스 (MIT 라이선스)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:50
+msgid "Streamlined interface focused on cropping/resampling"
+msgstr "크롭/리샘플링에 집중한 간결한 인터페이스"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:51
+msgid "Does NOT require loading full dataset into memory"
+msgstr "데이터셋 전체를 메모리에 올릴 필요가 없음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:54
+msgid "Is CTHarvester suitable for medical diagnosis?"
+msgstr "의료 진단에 사용해도 되나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:56
+msgid "**No.** CTHarvester is a research and preprocessing tool, **not** a medical device. It should not be used for clinical diagnosis, treatment planning, or any medical decision-making."
+msgstr "**아니요.** CTHarvester는 연구·전처리 도구이며 의료 기기가 **아닙니다**. 임상 진단, 치료 계획, 그 밖의 의학적 의사결정에 사용해서는 안 됩니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:58
+msgid "For medical diagnosis, use FDA-approved DICOM viewers and workstations."
+msgstr "의료 진단에는 FDA 승인을 받은 DICOM 뷰어와 워크스테이션을 사용하세요."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:61
+msgid "Installation and Setup"
+msgstr "설치와 준비"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:64
+msgid "What are the system requirements?"
+msgstr "시스템 요구 사항은 무엇인가요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:66
+msgid "**Minimum Requirements:**"
+msgstr "**최소 사양:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:68
+msgid "**OS:** Windows 10+, macOS 10.14+, or Ubuntu 18.04+"
+msgstr "**운영체제:** Windows 10 이상, macOS 10.14 이상, Ubuntu 18.04 이상"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:69
+msgid "**CPU:** Dual-core processor (2.0 GHz+)"
+msgstr "**CPU:** 듀얼 코어 (2.0 GHz 이상)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:70
+msgid "**RAM:** 4GB minimum"
+msgstr "**RAM:** 최소 4GB"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:71
+msgid "**Disk:** 500MB for application + space for CT data and thumbnails"
+msgstr "**디스크:** 애플리케이션용 500MB + CT 데이터와 썸네일 공간"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:72
+msgid "**Display:** 1280×720 resolution"
+msgstr "**디스플레이:** 1280×720 해상도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:74
+msgid "**Recommended Requirements:**"
+msgstr "**권장 사양:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:76
+msgid "**CPU:** Quad-core processor (3.0 GHz+)"
+msgstr "**CPU:** 쿼드 코어 (3.0 GHz 이상)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:77
+msgid "**RAM:** 8GB or more"
+msgstr "**RAM:** 8GB 이상"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:78
+msgid "**Disk:** SSD for best performance"
+msgstr "**디스크:** 최적 성능을 위해 SSD"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:79
+msgid "**Display:** 1920×1080 or higher"
+msgstr "**디스플레이:** 1920×1080 이상"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:82
+msgid "How much disk space do thumbnails use?"
+msgstr "썸네일은 디스크를 얼마나 사용하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:84
+msgid "Thumbnail disk usage depends on dataset size and settings:"
+msgstr "썸네일 용량은 데이터셋 크기와 설정에 따라 달라집니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:86
+#, python-format
+msgid "**Formula:** ``~1-5% of original dataset size``"
+msgstr "**공식:** ``원본 데이터셋 크기의 약 1-5%``"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:88
+msgid "**Examples:**"
+msgstr "**예시:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:90
+msgid "1000 images × 15MB each = 15GB dataset → ~150-750MB thumbnails"
+msgstr "이미지 1000장 × 15MB = 15GB 데이터셋 → 썸네일 약 150-750MB"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:91
+msgid "5000 images × 8MB each = 40GB dataset → ~400MB-2GB thumbnails"
+msgstr "이미지 5000장 × 8MB = 40GB 데이터셋 → 썸네일 약 400MB-2GB"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:93
+msgid "**Factors affecting thumbnail size:**"
+msgstr "**썸네일 크기에 영향을 주는 요소:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:95
+msgid "Number of images"
+msgstr "이미지 수"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:96
+msgid "Max thumbnail size setting (default 500px)"
+msgstr "최대 썸네일 크기 설정 (기본 500px)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:97
+msgid "Number of pyramid levels (default 10)"
+msgstr "피라미드 레벨 수 (기본 10)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:98
+msgid "Compression enabled/disabled"
+msgstr "압축 사용 여부"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:101
+msgid "Can I delete thumbnail files?"
+msgstr "썸네일 파일을 지워도 되나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:103
+msgid "**Yes.** Thumbnails are stored in ``.thumbnail/`` subdirectory within your CT scan folder."
+msgstr "**네.** 썸네일은 CT 스캔 폴더 안의 ``.thumbnail/`` 하위 디렉토리에 저장됩니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:105
+msgid "Deleting thumbnails will **not** affect original images"
+msgstr "썸네일을 지워도 원본 이미지에는 **영향이 없습니다**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:106
+msgid "Thumbnails will be regenerated next time you open that directory"
+msgstr "해당 디렉토리를 다시 열면 썸네일이 재생성됩니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:107
+msgid "Regeneration takes time (1-10 minutes depending on dataset)"
+msgstr "재생성에는 시간이 걸립니다 (데이터셋에 따라 1-10분)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:109
+msgid "**When to delete thumbnails:**"
+msgstr "**썸네일을 지우면 좋은 경우:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:111
+msgid "Free up disk space"
+msgstr "디스크 공간 확보"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:112
+msgid "Settings changed (thumbnail size, levels, format)"
+msgstr "설정 변경 (썸네일 크기, 레벨 수, 형식)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:113
+msgid "Thumbnails corrupted or not displaying correctly"
+msgstr "썸네일이 손상되었거나 제대로 표시되지 않을 때"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:116
+msgid "How do I install CTHarvester?"
+msgstr "CTHarvester를 어떻게 설치하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:118
+msgid "**Binary Installation (Easiest):**"
+msgstr "**바이너리 설치 (가장 간단):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:120
+msgid "Download from https://github.com/jikhanjung/CTHarvester/releases"
+msgstr "https://github.com/jikhanjung/CTHarvester/releases 에서 내려받기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:121
+msgid "Windows: Run installer ``CTHarvester_Setup.exe``"
+msgstr "Windows: 인스톨러 ``CTHarvester_Setup.exe`` 실행"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:122
+msgid "macOS: Open DMG and drag to Applications"
+msgstr "macOS: DMG를 열고 Applications로 드래그"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:123
+msgid "Linux: Download AppImage, make executable, and run"
+msgstr "Linux: AppImage를 내려받아 실행 권한을 준 뒤 실행"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:125
+msgid "**From Source (For Developers):**"
+msgstr "**소스에서 설치 (개발자용):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:134
+msgid "See the Installation Guide for detailed instructions."
+msgstr "자세한 방법은 설치 가이드를 참고하세요."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:137
+msgid "Do I need to install Rust?"
+msgstr "Rust를 설치해야 하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:139
+msgid "**Optional but highly recommended.**"
+msgstr "**선택이지만 강력히 권장합니다.**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:141
+msgid "**Without Rust:** Thumbnail generation uses Python (slower, 1-2 seconds per image)"
+msgstr "**Rust 없이:** 썸네일 생성에 Python 사용 (느림, 이미지당 1-2초)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:142
+msgid "**With Rust:** 3-10x faster thumbnail generation"
+msgstr "**Rust 사용 시:** 썸네일 생성이 3-10배 빠름"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:144
+msgid "**Installation:**"
+msgstr "**설치:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:156
+msgid "For large datasets (1000+ images), Rust module is strongly recommended."
+msgstr "큰 데이터셋(이미지 1000장 이상)에는 Rust 모듈을 강력히 권장합니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:159
+msgid "File Formats and Compatibility"
+msgstr "파일 형식과 호환성"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:162
+msgid "What file formats are supported?"
+msgstr "어떤 파일 형식을 지원하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:164
+msgid "**Input Formats:**"
+msgstr "**입력 형식:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:166
+msgid "**TIF/TIFF** (8-bit or 16-bit grayscale) - **Recommended**"
+msgstr "**TIF/TIFF** (8비트 또는 16비트 그레이스케일) - **권장**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:167
+msgid "**PNG** (8-bit or 16-bit grayscale)"
+msgstr "**PNG** (8비트 또는 16비트 그레이스케일)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:168
+msgid "**JPG/JPEG** (8-bit, converted to grayscale)"
+msgstr "**JPG/JPEG** (8비트, 그레이스케일로 변환)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:169
+msgid "**BMP** (8-bit, converted to grayscale)"
+msgstr "**BMP** (8비트, 그레이스케일로 변환)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:171
+msgid "**Output Formats:**"
+msgstr "**출력 형식:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:173
+msgid "Same as input for image stacks"
+msgstr "이미지 스택은 입력과 동일"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:174
+msgid "**3D Export:** OBJ, PLY, STL"
+msgstr "**3D 내보내기:** OBJ, PLY, STL"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:176
+msgid "**Recommended:** Use TIF/TIFF for best quality and compatibility with scientific imaging."
+msgstr "**권장:** 품질과 과학 영상 도구와의 호환성을 위해 TIF/TIFF를 사용하세요."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:179
+msgid "Can CTHarvester read DICOM files?"
+msgstr "DICOM 파일을 읽을 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:181
+msgid "**Not currently.** DICOM support is planned for future versions."
+msgstr "**현재는 불가능합니다.** DICOM 지원은 향후 버전에 계획되어 있습니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:183
+msgid "**Workaround:**"
+msgstr "**우회 방법:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:185
+msgid "Convert DICOM to TIFF using ImageJ, Fiji, or dcm2niix:"
+msgstr "ImageJ, Fiji 또는 dcm2niix로 DICOM을 TIFF로 변환:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:192
+msgid "Import converted TIFF sequence into CTHarvester"
+msgstr "변환된 TIFF 시퀀스를 CTHarvester로 불러오기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:195
+msgid "Does CTHarvester work with RGB/color images?"
+msgstr "RGB/컬러 이미지도 동작하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:197
+msgid "**Sort of.** CTHarvester is designed for grayscale CT data."
+msgstr "**부분적으로요.** CTHarvester는 그레이스케일 CT 데이터를 위해 설계되었습니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:199
+msgid "RGB images are automatically converted to grayscale"
+msgstr "RGB 이미지는 자동으로 그레이스케일로 변환됩니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:200
+msgid "Conversion uses standard formula: ``0.299R + 0.587G + 0.114B``"
+msgstr "변환에는 표준 공식을 사용합니다: ``0.299R + 0.587G + 0.114B``"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:201
+msgid "Color information is lost"
+msgstr "색상 정보는 사라집니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:203
+msgid "For true color image processing, use ImageJ or similar tools."
+msgstr "실제 컬러 이미지 처리에는 ImageJ 등의 도구를 사용하세요."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:206
+msgid "Can I process 16-bit images?"
+msgstr "16비트 이미지를 처리할 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:208
+msgid "**Yes!** CTHarvester fully supports:"
+msgstr "**네!** CTHarvester는 다음을 완전히 지원합니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:210
+msgid "8-bit grayscale (0-255)"
+msgstr "8비트 그레이스케일 (0-255)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:211
+msgid "16-bit grayscale (0-65535)"
+msgstr "16비트 그레이스케일 (0-65535)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:213
+msgid "16-bit images are preserved during:"
+msgstr "16비트 이미지는 다음 과정에서 그대로 보존됩니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:215
+msgid "Thumbnail generation"
+msgstr "썸네일 생성"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:216
+msgid "Cropping"
+msgstr "크롭"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:217
+msgid "Resampling"
+msgstr "리샘플링"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:218
+msgid "Export"
+msgstr "내보내기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:221
+msgid "What file naming pattern is required?"
+msgstr "파일 이름은 어떤 규칙이어야 하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:223
+msgid "CTHarvester expects **sequential numeric patterns**:"
+msgstr "CTHarvester는 **연속된 숫자 패턴**을 기대합니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:225
+msgid "**Valid Patterns:**"
+msgstr "**유효한 패턴:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:227
+msgid "``slice_0001.tif``, ``slice_0002.tif``, ``slice_0003.tif``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:228
+msgid "``image001.png``, ``image002.png``, ``image003.png``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:229
+msgid "``CT_001.tif``, ``CT_002.tif``, ``CT_003.tif``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:230
+msgid "``0001.tif``, ``0002.tif``, ``0003.tif`` (numbers only, OK)"
+msgstr "``0001.tif``, ``0002.tif``, ``0003.tif`` (숫자만 있어도 됩니다)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:232
+msgid "**Invalid Patterns:**"
+msgstr "**잘못된 패턴:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:234
+msgid "``slice_a.tif``, ``slice_b.tif`` (no letters instead of numbers)"
+msgstr "``slice_a.tif``, ``slice_b.tif`` (숫자 대신 문자)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:235
+msgid "``img1.tif``, ``img10.tif``, ``img2.tif`` (not zero-padded, wrong sort order)"
+msgstr "``img1.tif``, ``img10.tif``, ``img2.tif`` (0으로 채우지 않아 정렬 순서가 어긋남)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:236
+msgid "``scan.tif``, ``scan.tif`` (duplicate names)"
+msgstr "``scan.tif``, ``scan.tif`` (이름 중복)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:238
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1062
+msgid "**Requirements:**"
+msgstr "**요구 사항:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:240
+msgid "Must have sequential numbers"
+msgstr "연속된 숫자가 있어야 합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:241
+msgid "Numbers must be zero-padded (same length)"
+msgstr "숫자는 0으로 채워 같은 자릿수여야 합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:242
+msgid "No gaps in sequence"
+msgstr "시퀀스에 빠진 번호가 없어야 합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:244
+msgid "**Renaming files:**"
+msgstr "**파일 이름 바꾸기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:246
+msgid "Use batch rename tools:"
+msgstr "일괄 이름 변경 도구를 사용하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:248
+msgid "Windows: PowerRename (PowerToys)"
+msgstr "Windows: PowerRename (PowerToys)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:249
+msgid "macOS: Finder bulk rename"
+msgstr "macOS: Finder 일괄 이름 변경"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:250
+msgid "Linux: ``rename`` command or Thunar bulk rename"
+msgstr "Linux: ``rename`` 명령 또는 Thunar 일괄 이름 변경"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:253
+msgid "Performance and Optimization"
+msgstr "성능과 최적화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:256
+msgid "How long does thumbnail generation take?"
+msgstr "썸네일 생성에는 얼마나 걸리나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:258
+msgid "**With Rust module (recommended):**"
+msgstr "**Rust 모듈 사용 시 (권장):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:260
+msgid "500 images: 1-2 minutes"
+msgstr "이미지 500장: 1-2분"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:261
+msgid "1000 images: 2-5 minutes"
+msgstr "이미지 1000장: 2-5분"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:262
+msgid "2000 images: 5-10 minutes"
+msgstr "이미지 2000장: 5-10분"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:263
+msgid "5000 images: 15-25 minutes"
+msgstr "이미지 5000장: 15-25분"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:265
+msgid "**Without Rust module (Python fallback):**"
+msgstr "**Rust 모듈 없이 (Python 폴백):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:267
+msgid "500 images: 10-15 minutes"
+msgstr "이미지 500장: 10-15분"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:268
+msgid "1000 images: 20-40 minutes"
+msgstr "이미지 1000장: 20-40분"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:269
+msgid "2000 images: 40-80 minutes"
+msgstr "이미지 2000장: 40-80분"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:270
+msgid "5000 images: 2-3 hours"
+msgstr "이미지 5000장: 2-3시간"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:272
+msgid "**Factors affecting speed:**"
+msgstr "**속도에 영향을 주는 요소:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:274
+msgid "Image resolution (larger = slower)"
+msgstr "이미지 해상도 (클수록 느림)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:275
+msgid "Bit depth (16-bit slower than 8-bit)"
+msgstr "비트 심도 (16비트가 8비트보다 느림)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:276
+msgid "Disk speed (SSD vs HDD)"
+msgstr "디스크 속도 (SSD vs HDD)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:277
+msgid "CPU performance"
+msgstr "CPU 성능"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:278
+msgid "Number of worker threads"
+msgstr "워커 스레드 수"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:280
+msgid "**Abnormally slow (8-10 sec per image)?**"
+msgstr "**비정상적으로 느리다면 (이미지당 8-10초)?**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:282
+msgid "See Troubleshooting Guide → Performance Issues"
+msgstr "문제 해결 가이드 → 성능 문제를 참고하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:285
+msgid "Why is thumbnail generation suddenly slow?"
+msgstr "썸네일 생성이 갑자기 느려진 이유는?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:287
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:741
+msgid "**Common causes:**"
+msgstr "**흔한 원인:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:289
+msgid "**Rust module not loading**"
+msgstr "**Rust 모듈이 로드되지 않음**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:291
+msgid "Check console for: \"Rust thumbnail module not available, using Python fallback\""
+msgstr "콘솔에서 확인: \"Rust thumbnail module not available, using Python fallback\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:293
+msgid "**Solution:** Reinstall Rust module"
+msgstr "**해결:** Rust 모듈 재설치"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:295
+msgid "**System sleep/resume (Windows)**"
+msgstr "**시스템 절전/복귀 (Windows)**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:297
+msgid "After system sleep, performance may degrade"
+msgstr "절전 후 복귀하면 성능이 떨어질 수 있습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:299
+msgid "**Solution:** Reboot computer"
+msgstr "**해결:** 컴퓨터 재부팅"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:301
+msgid "**Disk issues**"
+msgstr "**디스크 문제**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:303
+msgid "USB 2.0 drive (slow I/O)"
+msgstr "USB 2.0 드라이브 (느린 I/O)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:304
+msgid "Network drive (high latency)"
+msgstr "네트워크 드라이브 (높은 지연)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:305
+msgid "Disk fragmentation"
+msgstr "디스크 조각화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:307
+msgid "**Solution:** Use local SSD, run disk check"
+msgstr "**해결:** 로컬 SSD 사용, 디스크 점검 실행"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:309
+msgid "**Background processes**"
+msgstr "**백그라운드 프로세스**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:311
+msgid "Windows Search indexing"
+msgstr "Windows Search 인덱싱"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:312
+msgid "Antivirus scanning"
+msgstr "백신 검사"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:313
+msgid "Windows Updates"
+msgstr "Windows 업데이트"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:315
+msgid "**Solution:** Pause background tasks, close other apps"
+msgstr "**해결:** 백그라운드 작업 일시 중지, 다른 앱 종료"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:318
+msgid "How much RAM does CTHarvester use?"
+msgstr "CTHarvester는 RAM을 얼마나 쓰나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:320
+msgid "**Typical Memory Usage:**"
+msgstr "**일반적인 메모리 사용량:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:322
+msgid "**Base application:** 100-200 MB"
+msgstr "**기본 애플리케이션:** 100-200 MB"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:323
+msgid "**Thumbnail generation:** 500 MB - 2 GB (depends on settings)"
+msgstr "**썸네일 생성:** 500 MB - 2 GB (설정에 따라)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:324
+msgid "**3D visualization:** 200-500 MB (depends on mesh complexity)"
+msgstr "**3D 시각화:** 200-500 MB (메시 복잡도에 따라)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:325
+msgid "**Total:** 1-3 GB typical, 4-6 GB maximum"
+msgstr "**합계:** 보통 1-3 GB, 최대 4-6 GB"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:327
+msgid "**Settings affecting memory:**"
+msgstr "**메모리에 영향을 주는 설정:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:329
+msgid "Worker threads (more = more RAM)"
+msgstr "워커 스레드 (많을수록 RAM 사용 증가)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:330
+msgid "Max thumbnail size (larger = more RAM)"
+msgstr "최대 썸네일 크기 (클수록 RAM 사용 증가)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:331
+msgid "Memory limit setting (user-configurable)"
+msgstr "메모리 상한 설정 (사용자 조정 가능)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:333
+msgid "**Recommendations:**"
+msgstr "**권장:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:335
+msgid "4GB RAM: Set memory limit to 2GB, use 1-2 threads"
+msgstr "RAM 4GB: 메모리 상한 2GB, 스레드 1-2개"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:336
+msgid "8GB RAM: Default settings work well"
+msgstr "RAM 8GB: 기본 설정으로 충분"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:337
+msgid "16GB+ RAM: Can use higher thread counts"
+msgstr "RAM 16GB 이상: 더 많은 스레드 사용 가능"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:340
+msgid "Can I process larger datasets faster?"
+msgstr "큰 데이터셋을 더 빠르게 처리할 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:342
+msgid "**Yes! Optimization tips:**"
+msgstr "**네! 최적화 요령:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:344
+msgid "**Keep the Rust module enabled** (3-10x speedup; it is on by default)"
+msgstr "**Rust 모듈을 켜 두세요** (3-10배 속도 향상, 기본적으로 켜져 있습니다)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:345
+msgid "**Use SSD** instead of HDD"
+msgstr "HDD 대신 **SSD 사용**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:346
+msgid "**Increase worker threads** (Settings → Processing)"
+msgstr "**워커 스레드 늘리기** (Settings → Processing)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:348
+msgid "Recommended: 2-4 threads"
+msgstr "권장: 2-4 스레드"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:349
+msgid "Maximum: CPU core count"
+msgstr "최대: CPU 코어 수"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:351
+msgid "**Adjust thumbnail settings:**"
+msgstr "**썸네일 설정 조정:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:353
+msgid "Reduce max thumbnail size to 300-400px"
+msgstr "최대 썸네일 크기를 300-400px로 줄이기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:354
+msgid "Reduce sample size to 10-15"
+msgstr "표본 수를 10-15로 줄이기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:355
+msgid "Disable compression during generation"
+msgstr "생성 중에는 압축 끄기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:357
+msgid "**Close other applications** to free RAM"
+msgstr "RAM 확보를 위해 **다른 애플리케이션 종료**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:358
+msgid "**Process locally** (not over network)"
+msgstr "네트워크가 아닌 **로컬에서 처리**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:361
+msgid "What if I run out of memory?"
+msgstr "메모리가 부족하면 어떻게 하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:363
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:574
+msgid "**Solutions:**"
+msgstr "**해결책:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:365
+msgid "**Reduce memory limit** (Settings → Processing → Memory limit)"
+msgstr "**메모리 상한 줄이기** (Settings → Processing → Memory limit)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:366
+msgid "**Reduce worker threads** to 1-2"
+msgstr "**워커 스레드를 1-2로 줄이기**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:367
+msgid "**Reduce thumbnail size** to 300px"
+msgstr "**썸네일 크기를 300px로 줄이기**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:368
+msgid "**Process in batches** (split dataset into folders)"
+msgstr "**나눠서 처리** (데이터셋을 폴더로 분할)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:369
+msgid "**Close other applications**"
+msgstr "**다른 애플리케이션 종료**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:370
+msgid "**Restart CTHarvester** (to clear memory)"
+msgstr "**CTHarvester 재시작** (메모리 정리)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:372
+msgid "For huge datasets (10,000+ images), use batch processing approach."
+msgstr "아주 큰 데이터셋(이미지 10,000장 이상)에는 일괄 처리 방식을 사용하세요."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:375
+msgid "Usage and Workflow"
+msgstr "사용법과 작업 흐름"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:378
+msgid "What is the basic workflow?"
+msgstr "기본 작업 흐름은 어떻게 되나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:380
+msgid "**Step-by-step:**"
+msgstr "**단계별:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:382
+msgid "**Open Directory** → Select CT image folder"
+msgstr "**디렉토리 열기** → CT 이미지 폴더 선택"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:383
+msgid "**Wait** for thumbnail generation (first time only)"
+msgstr "썸네일 생성 **대기** (처음 한 번만)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:384
+msgid "**Navigate** through slices using timeline slider"
+msgstr "타임라인 슬라이더로 슬라이스 **탐색**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:385
+msgid "**Set Bottom** → Mark start of region of interest"
+msgstr "**Set Bottom** → 관심 영역의 시작 지정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:386
+msgid "**Set Top** → Mark end of region of interest"
+msgstr "**Set Top** → 관심 영역의 끝 지정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:387
+msgid "**Draw ROI** (optional) → Select area within images"
+msgstr "**ROI 그리기** (선택) → 이미지 안에서 영역 선택"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:388
+msgid "**Adjust Threshold** → Fine-tune 3D visualization"
+msgstr "**임계값 조정** → 3D 시각화 미세 조정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:389
+msgid "**Save/Export:**"
+msgstr "**저장/내보내기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:391
+msgid "Save cropped image stack → Selected slices only"
+msgstr "크롭한 이미지 스택 저장 → 선택한 슬라이스만"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:392
+msgid "Export 3D Model → Generate mesh (OBJ, PLY, STL)"
+msgstr "3D 모델 내보내기 → 메시 생성 (OBJ, PLY, STL)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:394
+msgid "**Total time:** 5-10 minutes for typical workflow"
+msgstr "**총 소요 시간:** 일반적인 작업 기준 5-10분"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:397
+msgid "Can I process multiple datasets in parallel?"
+msgstr "여러 데이터셋을 동시에 처리할 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:399
+msgid "**Currently, no.** CTHarvester processes one dataset at a time."
+msgstr "**현재는 불가능합니다.** CTHarvester는 한 번에 하나의 데이터셋만 처리합니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:401
+msgid "**Workaround for batch processing:**"
+msgstr "**일괄 처리 우회 방법:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:403
+msgid "Process first dataset"
+msgstr "첫 데이터셋 처리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:404
+msgid "Close CTHarvester"
+msgstr "CTHarvester 종료"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:405
+msgid "Repeat for each dataset"
+msgstr "데이터셋마다 반복"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:407
+msgid "**Future feature:** Command-line batch processing mode is planned."
+msgstr "**향후 기능:** 명령줄 일괄 처리 모드가 계획되어 있습니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:410
+msgid "What does \"Level of Detail (LoD)\" mean?"
+msgstr "\"Level of Detail (LoD)\"이 무슨 뜻인가요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:412
+msgid "**Level of Detail (LoD)** is a multi-resolution pyramid system:"
+msgstr "**LoD(Level of Detail)**는 다중 해상도 피라미드 시스템입니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:414
+msgid "**Level 0:** Full resolution (slowest to load)"
+msgstr "**레벨 0:** 원본 해상도 (로딩이 가장 느림)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:415
+msgid "**Level 1:** 1/2 resolution"
+msgstr "**레벨 1:** 1/2 해상도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:416
+msgid "**Level 2:** 1/4 resolution"
+msgstr "**레벨 2:** 1/4 해상도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:417
+msgid "**Level 3:** 1/8 resolution"
+msgstr "**레벨 3:** 1/8 해상도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:418
+msgid "... and so on"
+msgstr "... 이런 식으로 이어집니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:420
+msgid "**Benefits:**"
+msgstr "**장점:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:422
+msgid "**Fast navigation** at low levels"
+msgstr "낮은 레벨에서의 **빠른 탐색**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:423
+msgid "**Smooth scrolling** through large datasets"
+msgstr "큰 데이터셋에서도 **부드러운 스크롤**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:424
+msgid "**Memory efficient** (only loads current level)"
+msgstr "**메모리 효율** (현재 레벨만 로드)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:425
+msgid "**Progressive loading** (coarse to fine detail)"
+msgstr "**점진적 로딩** (거친 화면에서 세밀한 화면으로)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:427
+msgid "**When to use which level:**"
+msgstr "**어느 레벨을 언제 쓸까:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:429
+msgid "**Initial exploration:** Level 3-5 (fast)"
+msgstr "**처음 훑어볼 때:** 레벨 3-5 (빠름)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:430
+msgid "**Setting boundaries:** Level 2-3 (medium)"
+msgstr "**경계 지정:** 레벨 2-3 (중간)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:431
+msgid "**Fine adjustment:** Level 0-1 (slow but accurate)"
+msgstr "**미세 조정:** 레벨 0-1 (느리지만 정확)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:434
+msgid "How do I select a region of interest (ROI)?"
+msgstr "관심 영역(ROI)은 어떻게 선택하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:436
+msgid "**Two types of selection:**"
+msgstr "**두 가지 선택 방식:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:438
+msgid "**Slice range (vertical bounds):**"
+msgstr "**슬라이스 범위 (세로 경계):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:440
+msgid "Navigate to bottom slice → Click \"Set Bottom\""
+msgstr "아래쪽 슬라이스로 이동 → \"Set Bottom\" 클릭"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:441
+msgid "Navigate to top slice → Click \"Set Top\""
+msgstr "위쪽 슬라이스로 이동 → \"Set Top\" 클릭"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:442
+msgid "Shown as: \"Crop indices: 100~200\""
+msgstr "표시 형태: \"Crop indices: 100~200\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:444
+msgid "**Area within slices (horizontal ROI):**"
+msgstr "**슬라이스 내 영역 (가로 ROI):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:446
+msgid "Click and drag on image viewer to draw rectangle"
+msgstr "이미지 뷰어에서 클릭·드래그로 사각형 그리기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:447
+msgid "Adjust by dragging corners"
+msgstr "모서리를 드래그해 조정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:448
+msgid "Reset button clears ROI"
+msgstr "Reset 버튼으로 ROI 해제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:450
+msgid "**Both types can be combined:**"
+msgstr "**두 방식은 함께 쓸 수 있습니다:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:452
+msgid "Slice range: Z-axis selection"
+msgstr "슬라이스 범위: Z축 선택"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:453
+msgid "ROI area: X-Y plane selection"
+msgstr "ROI 영역: X-Y 평면 선택"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:454
+msgid "Result: 3D bounding box"
+msgstr "결과: 3D 경계 상자"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:457
+msgid "Can I undo my crop selection?"
+msgstr "크롭 선택을 되돌릴 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:459
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:588
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:646
+msgid "**Yes:**"
+msgstr "**네:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:461
+msgid "**Reset button** → Clears bottom/top boundaries and ROI rectangle"
+msgstr "**Reset 버튼** → 상/하단 경계와 ROI 사각형을 모두 해제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:462
+msgid "**Simply reselect** → Override previous selection"
+msgstr "**다시 선택** → 이전 선택을 덮어씀"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:463
+msgid "**Keyboard shortcut:** Ctrl+R"
+msgstr "**단축키:** Ctrl+R"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:465
+msgid "**Note:** Reset does not affect saved/exported files, only current selection."
+msgstr "**참고:** Reset은 저장·내보낸 파일에는 영향을 주지 않고 현재 선택만 초기화합니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:468
+msgid "What does \"Inversion\" do?"
+msgstr "\"Inversion\"은 무엇을 하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:470
+msgid "**Inversion checkbox** inverts grayscale values:"
+msgstr "**Inversion 체크박스**는 그레이스케일 값을 반전시킵니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:472
+msgid "**Normal:** Dark = less dense, Bright = more dense"
+msgstr "**일반:** 어두움 = 낮은 밀도, 밝음 = 높은 밀도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:473
+msgid "**Inverted:** Dark = more dense, Bright = less dense"
+msgstr "**반전:** 어두움 = 높은 밀도, 밝음 = 낮은 밀도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:475
+msgid "**When to use inversion:**"
+msgstr "**반전이 필요한 경우:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:477
+msgid "Negative CT scans"
+msgstr "음성 CT 스캔"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:478
+msgid "Phase-contrast CT data"
+msgstr "위상차 CT 데이터"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:479
+msgid "When your specimen appears \"inside-out\""
+msgstr "표본이 \"안팎이 뒤집힌\" 것처럼 보일 때"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:481
+msgid "**How it works:**"
+msgstr "**동작 방식:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:483
+msgid "Mathematically: ``inverted_value = max_value - original_value``"
+msgstr "수식: ``inverted_value = max_value - original_value``"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:484
+msgid "For 8-bit: ``inverted = 255 - original``"
+msgstr "8비트: ``inverted = 255 - original``"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:485
+msgid "For 16-bit: ``inverted = 65535 - original``"
+msgstr "16비트: ``inverted = 65535 - original``"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:488
+msgid "Output and Export"
+msgstr "출력과 내보내기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:491
+msgid "What output does CTHarvester create?"
+msgstr "CTHarvester는 어떤 결과물을 만드나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:493
+msgid "**Image Stack Export:**"
+msgstr "**이미지 스택 내보내기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:495
+msgid "Cropped image sequence (same format as input)"
+msgstr "크롭된 이미지 시퀀스 (입력과 같은 형식)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:496
+msgid "Only includes selected slice range"
+msgstr "선택한 슬라이스 범위만 포함"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:497
+msgid "Optionally cropped to ROI area"
+msgstr "선택적으로 ROI 영역으로 크롭"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:498
+msgid "Sequential numbering (001, 002, 003...)"
+msgstr "연속 번호 부여 (001, 002, 003...)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:500
+msgid "**3D Model Export:**"
+msgstr "**3D 모델 내보내기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:502
+msgid "Mesh file (OBJ, PLY, or STL format)"
+msgstr "메시 파일 (OBJ, PLY, STL 형식)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:503
+msgid "Generated using marching cubes algorithm"
+msgstr "마칭 큐브 알고리즘으로 생성"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:504
+msgid "Includes only visible structures above threshold"
+msgstr "임계값 이상의 보이는 구조만 포함"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:506
+msgid "**Thumbnails (automatic):**"
+msgstr "**썸네일 (자동):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:508
+msgid "Multi-level thumbnail pyramid"
+msgstr "다중 레벨 썸네일 피라미드"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:509
+msgid "Stored in ``.thumbnail/`` subdirectory"
+msgstr "``.thumbnail/`` 하위 디렉토리에 저장"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:510
+msgid "Used for fast navigation"
+msgstr "빠른 탐색에 사용"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:513
+msgid "Can I export at different resolutions?"
+msgstr "다른 해상도로 내보낼 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:515
+msgid "**Planned feature:** Multi-resolution export coming in future version."
+msgstr "**계획된 기능:** 다중 해상도 내보내기는 향후 버전에 추가될 예정입니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:517
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:922
+msgid "**Current workaround:**"
+msgstr "**현재 우회 방법:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:519
+msgid "Export full resolution crop"
+msgstr "원본 해상도로 크롭 내보내기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:520
+msgid "Use ImageJ/Fiji to resample:"
+msgstr "ImageJ/Fiji로 리샘플링:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:526
+msgid "Or use command-line tools:"
+msgstr "또는 명령줄 도구 사용:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:534
+msgid "What can I do with the exported 3D model?"
+msgstr "내보낸 3D 모델로 무엇을 할 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:536
+msgid "**Software compatible with OBJ/PLY/STL:**"
+msgstr "**OBJ/PLY/STL을 지원하는 소프트웨어:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:538
+msgid "**3D Viewing:**"
+msgstr "**3D 보기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:540
+msgid "Blender (free, open source)"
+msgstr "Blender (무료, 오픈소스)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:541
+msgid "MeshLab (free, open source)"
+msgstr "MeshLab (무료, 오픈소스)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:542
+msgid "3D Viewer (Windows built-in)"
+msgstr "3D 뷰어 (Windows 기본 제공)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:544
+msgid "**3D Printing:**"
+msgstr "**3D 프린팅:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:546
+msgid "Cura (free)"
+msgstr "Cura (무료)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:547
+msgid "PrusaSlicer (free)"
+msgstr "PrusaSlicer (무료)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:548
+msgid "Simplify3D (commercial)"
+msgstr "Simplify3D (상용)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:550
+msgid "**Scientific Analysis:**"
+msgstr "**과학적 분석:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:552
+msgid "CloudCompare (free)"
+msgstr "CloudCompare (무료)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:553
+msgid "Geomagic (commercial)"
+msgstr "Geomagic (상용)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:554
+msgid "Avizo (commercial)"
+msgstr "Avizo (상용)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:556
+msgid "**Further Processing:**"
+msgstr "**추가 처리:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:558
+msgid "Mesh decimation (reduce polygon count)"
+msgstr "메시 단순화 (폴리곤 수 줄이기)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:559
+msgid "Smoothing and cleanup"
+msgstr "스무딩과 정리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:560
+msgid "Measurements and analysis"
+msgstr "측정과 분석"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:561
+msgid "Animation and rendering"
+msgstr "애니메이션과 렌더링"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:564
+msgid "Why is my exported 3D model so large?"
+msgstr "내보낸 3D 모델이 왜 이렇게 큰가요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:566
+msgid "**Cause:** High mesh complexity (millions of polygons)"
+msgstr "**원인:** 폴리곤이 수백만 개인 복잡한 메시"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:568
+msgid "**Factors affecting mesh size:**"
+msgstr "**메시 크기에 영향을 주는 요소:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:570
+msgid "Low threshold → More voxels → More polygons"
+msgstr "낮은 임계값 → 더 많은 복셀 → 더 많은 폴리곤"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:571
+msgid "High resolution input → More detail → More polygons"
+msgstr "높은 해상도 입력 → 더 많은 디테일 → 더 많은 폴리곤"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:572
+msgid "Large crop region → More volume → More polygons"
+msgstr "큰 크롭 영역 → 더 큰 부피 → 더 많은 폴리곤"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:576
+msgid "**Increase threshold** → Fewer polygons"
+msgstr "**임계값 높이기** → 폴리곤 감소"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:577
+msgid "**Reduce crop region** → Smaller volume"
+msgstr "**크롭 영역 줄이기** → 부피 감소"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:578
+msgid "**Decimate mesh** in Blender/MeshLab:"
+msgstr "Blender/MeshLab에서 **메시 단순화**:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:580
+msgid "Blender: Modifiers → Decimate → Ratio 0.5"
+msgstr "Blender: Modifiers → Decimate → Ratio 0.5"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:581
+msgid "MeshLab: Filters → Remeshing → Quadric Edge Collapse Decimation"
+msgstr "MeshLab: Filters → Remeshing → Quadric Edge Collapse Decimation"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:583
+msgid "**Use STL format** instead of OBJ (more compact)"
+msgstr "OBJ 대신 **STL 형식 사용** (더 간결함)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:586
+msgid "Can I export only a single slice?"
+msgstr "슬라이스 한 장만 내보낼 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:590
+msgid "Navigate to desired slice"
+msgstr "원하는 슬라이스로 이동"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:591
+msgid "Click \"Set Bottom\""
+msgstr "\"Set Bottom\" 클릭"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:592
+msgid "Stay on same slice (do not navigate away)"
+msgstr "같은 슬라이스에 머무르기 (이동하지 않기)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:593
+msgid "Click \"Set Top\""
+msgstr "\"Set Top\" 클릭"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:594
+msgid "Save cropped image stack"
+msgstr "크롭한 이미지 스택 저장"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:596
+msgid "Result: One image file exported"
+msgstr "결과: 이미지 파일 한 장 내보내기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:599
+msgid "Settings and Customization"
+msgstr "설정과 사용자화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:602
+msgid "What settings should I change?"
+msgstr "어떤 설정을 바꿔야 하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:604
+msgid "**Most users:** Default settings work fine"
+msgstr "**대부분의 사용자:** 기본 설정으로 충분합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:606
+msgid "**Low-end systems (4GB RAM):**"
+msgstr "**저사양 시스템 (RAM 4GB):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:608
+msgid "Processing → Memory limit: 2 GB"
+msgstr "Processing → Memory limit: 2 GB"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:609
+msgid "Processing → Worker threads: 1-2"
+msgstr "Processing → Worker threads: 1-2"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:610
+msgid "Thumbnails → Max size: 300 px"
+msgstr "Thumbnails → Max size: 300 px"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:612
+msgid "**High-end systems (16GB+ RAM):**"
+msgstr "**고사양 시스템 (RAM 16GB 이상):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:614
+msgid "Processing → Worker threads: 4-8"
+msgstr "Processing → Worker threads: 4-8"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:615
+msgid "Thumbnails → Max size: 800 px"
+msgstr "Thumbnails → Max size: 800 px"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:616
+msgid "Enable anti-aliasing (Rendering)"
+msgstr "안티에일리어싱 켜기 (Rendering)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:618
+msgid "**Network/USB drive:**"
+msgstr "**네트워크/USB 드라이브:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:620
+msgid "Processing → Worker threads: 1 (avoid contention)"
+msgstr "Processing → Worker threads: 1 (경합 방지)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:621
+msgid "Thumbnails → Disable compression (faster)"
+msgstr "Thumbnails → 압축 끄기 (더 빠름)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:624
+msgid "How do I reset settings to defaults?"
+msgstr "설정을 기본값으로 되돌리려면?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:626
+msgid "**Method 1: In application**"
+msgstr "**방법 1: 애플리케이션에서**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:628
+msgid "Settings dialog → \"Reset to Defaults\" button"
+msgstr "설정 다이얼로그 → \"Reset to Defaults\" 버튼"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:629
+msgid "Confirm → All settings restored"
+msgstr "확인 → 모든 설정 복원"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:631
+msgid "**Method 2: Delete config file**"
+msgstr "**방법 2: 설정 파일 삭제**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:641
+msgid "Settings will be regenerated with defaults on next launch."
+msgstr "다음 실행 시 기본값으로 다시 생성됩니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:644
+msgid "Can I save and share my settings?"
+msgstr "설정을 저장하고 공유할 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:648
+msgid "Settings dialog → \"Export Settings...\""
+msgstr "설정 다이얼로그 → \"Export Settings...\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:649
+msgid "Save as ``my_settings.json``"
+msgstr "``my_settings.json``으로 저장"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:650
+msgid "Share file with colleagues"
+msgstr "동료와 파일 공유"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:652
+msgid "**To import:**"
+msgstr "**가져오려면:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:654
+msgid "Settings dialog → \"Import Settings...\""
+msgstr "설정 다이얼로그 → \"Import Settings...\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:655
+msgid "Select JSON file"
+msgstr "JSON 파일 선택"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:656
+msgid "Settings applied immediately"
+msgstr "설정이 즉시 적용됩니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:658
+msgid "**Use cases:**"
+msgstr "**활용 사례:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:660
+msgid "Share lab-wide settings"
+msgstr "연구실 공통 설정 공유"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:661
+msgid "Backup settings before upgrade"
+msgstr "업그레이드 전 설정 백업"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:662
+msgid "Switch between different workflows"
+msgstr "작업 방식별로 전환"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:665
+msgid "Where are logs stored?"
+msgstr "로그는 어디에 저장되나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:667
+msgid "**Log locations:**"
+msgstr "**로그 위치:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:669
+msgid "**Windows:** ``%USERPROFILE%\\PaleoBytes\\CTHarvester\\logs\\``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:670
+msgid "**Linux/macOS:** ``~/PaleoBytes/CTHarvester/logs/``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:672
+msgid "**Access logs:**"
+msgstr "**로그 열기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:674
+msgid "Help menu → \"View Logs\" (opens directory)"
+msgstr "도움말 메뉴 → \"View Logs\" (디렉토리를 엽니다)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:675
+msgid "Or navigate manually to above path"
+msgstr "또는 위 경로로 직접 이동"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:677
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:729
+msgid "**Log files:**"
+msgstr "**로그 파일:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:679
+msgid "Rotating logs (max 5 files × 10MB = 50MB total)"
+msgstr "회전 로그 (최대 5개 × 10MB = 총 50MB)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:680
+msgid "Single rotating file: ``CTHarvester.log``, with older ones as ``.log.1`` … ``.log.5``"
+msgstr "단일 회전 파일: ``CTHarvester.log``, 이전 파일은 ``.log.1`` … ``.log.5``"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:683
+msgid "Troubleshooting and Support"
+msgstr "문제 해결과 지원"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:686
+msgid "Where do I get help?"
+msgstr "어디서 도움을 받을 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:688
+msgid "**Resources (in order):**"
+msgstr "**자료 (순서대로):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:690
+msgid "**This FAQ** - Quick answers to common questions"
+msgstr "**이 FAQ** - 흔한 질문에 대한 빠른 답"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:691
+msgid "**Troubleshooting Guide** - Detailed problem-solving"
+msgstr "**문제 해결 가이드** - 자세한 해결 방법"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:692
+msgid "**GitHub Issues** - Search existing problems/solutions"
+msgstr "**GitHub Issues** - 기존 문제/해결책 검색"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:694
+msgid "https://github.com/jikhanjung/CTHarvester/issues"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:696
+msgid "**GitHub Discussions** - Ask questions, share workflows"
+msgstr "**GitHub Discussions** - 질문하기, 작업 방식 공유"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:698
+msgid "https://github.com/jikhanjung/CTHarvester/discussions"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:700
+msgid "**Email Support** - jikhanjung@gmail.com"
+msgstr "**이메일 문의** - jikhanjung@gmail.com"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:702
+msgid "(Please try above resources first)"
+msgstr "(위 자료를 먼저 이용해 주세요)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:705
+msgid "How do I report a bug?"
+msgstr "버그는 어떻게 신고하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:707
+msgid "**GitHub Issues:** https://github.com/jikhanjung/CTHarvester/issues/new"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:709
+msgid "**Include this information:**"
+msgstr "**다음 정보를 포함해 주세요:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:711
+msgid "**System info:**"
+msgstr "**시스템 정보:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:713
+msgid "Operating system and version"
+msgstr "운영체제와 버전"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:714
+msgid "Python version (``python --version``)"
+msgstr "Python 버전 (``python --version``)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:715
+msgid "CTHarvester version"
+msgstr "CTHarvester 버전"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:717
+msgid "**Problem description:**"
+msgstr "**문제 설명:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:719
+msgid "What you were trying to do"
+msgstr "무엇을 하려고 했는지"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:720
+msgid "What actually happened"
+msgstr "실제로 어떤 일이 일어났는지"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:721
+msgid "Error message (if any)"
+msgstr "오류 메시지 (있다면)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:723
+msgid "**Steps to reproduce:**"
+msgstr "**재현 방법:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:725
+msgid "Open directory..."
+msgstr "디렉토리 열기..."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:726
+msgid "Click button..."
+msgstr "버튼 클릭..."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:727
+msgid "Error appears..."
+msgstr "오류 발생..."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:731
+msgid "Attach relevant log files"
+msgstr "관련 로그 파일 첨부"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:732
+msgid "Location: Help → View Logs"
+msgstr "위치: 도움말 → View Logs"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:734
+msgid "**Screenshots** (if UI-related)"
+msgstr "**스크린샷** (UI 관련이라면)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:736
+msgid "**Good bug reports get fixed faster!**"
+msgstr "**좋은 버그 신고가 더 빨리 고쳐집니다!**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:739
+msgid "Why does CTHarvester crash?"
+msgstr "CTHarvester가 왜 종료되나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:743
+msgid "**Out of memory** → Reduce memory limit, close other apps"
+msgstr "**메모리 부족** → 메모리 상한 줄이기, 다른 앱 종료"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:744
+msgid "**Corrupted images** → Check image files, skip corrupted files"
+msgstr "**손상된 이미지** → 이미지 파일 확인, 손상된 파일 제외"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:745
+msgid "**Disk full** → Free up space"
+msgstr "**디스크 가득 참** → 공간 확보"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:746
+msgid "**OpenGL driver issues** → Update graphics drivers"
+msgstr "**OpenGL 드라이버 문제** → 그래픽 드라이버 업데이트"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:747
+msgid "**Python package conflicts** → Use virtual environment"
+msgstr "**Python 패키지 충돌** → 가상 환경 사용"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:749
+msgid "**Debugging steps:**"
+msgstr "**디버깅 절차:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:751
+msgid "Check log files for error messages"
+msgstr "로그 파일에서 오류 메시지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:752
+msgid "Try with different dataset (isolate problem)"
+msgstr "다른 데이터셋으로 시도 (문제 범위 좁히기)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:753
+msgid "Run with debug logging enabled"
+msgstr "디버그 로깅을 켜고 실행"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:754
+msgid "Report crash with log files attached"
+msgstr "로그 파일을 첨부해 신고"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:756
+msgid "See Troubleshooting Guide for detailed solutions."
+msgstr "자세한 해결 방법은 문제 해결 가이드를 참고하세요."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:759
+msgid "Is my data sent anywhere?"
+msgstr "제 데이터가 어디론가 전송되나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:761
+msgid "**No. Absolutely not.**"
+msgstr "**아니요. 전혀 그렇지 않습니다.**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:763
+#, python-format
+msgid "All processing is **100% local**"
+msgstr "모든 처리는 **100% 로컬**에서 이뤄집니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:764
+msgid "No internet connection required"
+msgstr "인터넷 연결이 필요 없습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:765
+msgid "No telemetry or analytics"
+msgstr "텔레메트리나 분석 수집이 없습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:766
+msgid "Your data never leaves your computer"
+msgstr "데이터가 컴퓨터를 벗어나지 않습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:768
+msgid "**Open source = transparent:**"
+msgstr "**오픈소스 = 투명함:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:770
+msgid "You can review the source code: https://github.com/jikhanjung/CTHarvester"
+msgstr "소스 코드를 직접 확인할 수 있습니다: https://github.com/jikhanjung/CTHarvester"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:771
+msgid "No hidden network calls"
+msgstr "숨겨진 네트워크 호출이 없습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:772
+msgid "MIT license - free to audit"
+msgstr "MIT 라이선스 - 자유롭게 감사 가능"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:775
+msgid "Development and Contributing"
+msgstr "개발과 기여"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:778
+msgid "Is CTHarvester open source?"
+msgstr "CTHarvester는 오픈소스인가요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:780
+msgid "**Yes!**"
+msgstr "**네!**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:782
+msgid "**License:** MIT License (permissive)"
+msgstr "**라이선스:** MIT 라이선스 (허용적)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:783
+msgid "**Repository:** https://github.com/jikhanjung/CTHarvester"
+msgstr "**저장소:** https://github.com/jikhanjung/CTHarvester"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:784
+msgid "**Free to use:** Commercial and non-commercial"
+msgstr "**자유로운 사용:** 상업적·비상업적 모두"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:785
+msgid "**Free to modify:** Change, extend, redistribute"
+msgstr "**자유로운 수정:** 변경, 확장, 재배포"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:787
+msgid "**This means you can:**"
+msgstr "**따라서 다음이 가능합니다:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:789
+msgid "Use in research (published papers)"
+msgstr "연구에 사용 (논문 게재)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:790
+msgid "Use in commercial projects"
+msgstr "상업 프로젝트에 사용"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:791
+msgid "Modify for your specific needs"
+msgstr "필요에 맞게 수정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:792
+msgid "Redistribute (must include license)"
+msgstr "재배포 (라이선스 포함 필수)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:795
+msgid "Can I contribute to CTHarvester?"
+msgstr "CTHarvester에 기여할 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:797
+msgid "**Absolutely! Contributions welcome:**"
+msgstr "**물론입니다! 기여를 환영합니다:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:799
+msgid "**Ways to contribute:**"
+msgstr "**기여 방법:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:801
+msgid "**Report bugs** - GitHub Issues"
+msgstr "**버그 신고** - GitHub Issues"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:802
+msgid "**Suggest features** - GitHub Discussions"
+msgstr "**기능 제안** - GitHub Discussions"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:803
+msgid "**Fix bugs** - Submit Pull Request"
+msgstr "**버그 수정** - Pull Request 제출"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:804
+msgid "**Add features** - Submit Pull Request"
+msgstr "**기능 추가** - Pull Request 제출"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:805
+msgid "**Improve documentation** - Edit .rst files"
+msgstr "**문서 개선** - .rst 파일 편집"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:806
+msgid "**Write tutorials** - Share workflows"
+msgstr "**튜토리얼 작성** - 작업 방식 공유"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:807
+msgid "**Translate UI** - Add new languages"
+msgstr "**UI 번역** - 새 언어 추가"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:809
+msgid "**Getting started:**"
+msgstr "**시작하기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:811
+msgid "Read CONTRIBUTING.md"
+msgstr "CONTRIBUTING.md 읽기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:812
+msgid "Fork the repository"
+msgstr "저장소 포크"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:813
+msgid "Make your changes"
+msgstr "변경 사항 작성"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:814
+msgid "Submit Pull Request"
+msgstr "Pull Request 제출"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:816
+msgid "**No contribution is too small!** Even fixing typos helps."
+msgstr "**작은 기여도 소중합니다!** 오타 수정도 도움이 됩니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:819
+msgid "What features are planned?"
+msgstr "어떤 기능이 계획되어 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:821
+msgid "**v1.0 Roadmap (Current):**"
+msgstr "**v1.0 로드맵 (현재):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:823
+msgid "User documentation improvements ← **Current focus**"
+msgstr "사용자 문서 개선 ← **현재 집중 영역**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:824
+msgid "UI polish and accessibility"
+msgstr "UI 다듬기와 접근성"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:825
+msgid "Complete internationalization"
+msgstr "국제화 완성"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:826
+msgid "Performance benchmarking"
+msgstr "성능 벤치마킹"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:827
+msgid "Beta testing program"
+msgstr "베타 테스트 프로그램"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:829
+msgid "**v1.1+ (Future):**"
+msgstr "**v1.1 이후 (향후):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:831
+msgid "DICOM format support"
+msgstr "DICOM 형식 지원"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:832
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1002
+msgid "Command-line batch processing"
+msgstr "명령줄 일괄 처리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:833
+msgid "GPU-accelerated thumbnail generation"
+msgstr "GPU 가속 썸네일 생성"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:834
+msgid "Plugin system"
+msgstr "플러그인 시스템"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:835
+msgid "Auto-skip corrupted files"
+msgstr "손상된 파일 자동 건너뛰기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:836
+msgid "Non-sequential dataset support"
+msgstr "비연속 데이터셋 지원"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:837
+msgid "Volume rendering mode"
+msgstr "볼륨 렌더링 모드"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:839
+msgid "See GitHub Issues and Milestones for details."
+msgstr "자세한 내용은 GitHub Issues와 마일스톤을 참고하세요."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:842
+msgid "Why is CTHarvester called \"CTHarvester\"?"
+msgstr "왜 이름이 \"CTHarvester\"인가요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:844
+msgid "**Name origin:**"
+msgstr "**이름의 유래:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:846
+msgid "**CT** = Computed Tomography (the data type)"
+msgstr "**CT** = Computed Tomography (데이터 종류)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:847
+msgid "**Harvester** = Gathering useful parts (cropping/extracting regions)"
+msgstr "**Harvester** = 쓸모 있는 부분을 거두어들임 (영역 크롭/추출)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:849
+msgid "Metaphor: Like a farmer harvesting crops, CTHarvester helps you \"harvest\" the useful regions from large CT datasets."
+msgstr "비유하자면, 농부가 작물을 수확하듯 CTHarvester는 큰 CT 데이터셋에서 필요한 영역을 \"수확\"하도록 돕습니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:851
+msgid "**Alternative names considered:**"
+msgstr "**후보로 검토했던 이름:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:853
+msgid "CTCrop (too simple)"
+msgstr "CTCrop (너무 단순함)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:854
+msgid "CTSlicer (confusing with Slicer3D software)"
+msgstr "CTSlicer (Slicer3D 소프트웨어와 혼동)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:855
+msgid "CTPrep (too generic)"
+msgstr "CTPrep (너무 일반적임)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:858
+msgid "Who develops CTHarvester?"
+msgstr "누가 개발하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:860
+msgid "**Primary developer:**"
+msgstr "**주 개발자:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:862
+msgid "Jikhan Jung (@jikhanjung)"
+msgstr "정지한 (@jikhanjung)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:863
+msgid "Part of PaleoBytes software suite"
+msgstr "PaleoBytes 소프트웨어 제품군의 일부"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:864
+msgid "Developed for paleontology research"
+msgstr "고생물학 연구를 위해 개발"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:866
+msgid "**Contributors:**"
+msgstr "**기여자:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:868
+msgid "See GitHub contributors page"
+msgstr "GitHub 기여자 페이지 참고"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:869
+msgid "Community bug reports and suggestions"
+msgstr "커뮤니티의 버그 신고와 제안"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:870
+msgid "Open source contributions welcome"
+msgstr "오픈소스 기여 환영"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:872
+msgid "**Funding/Support:**"
+msgstr "**지원/후원:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:874
+msgid "Academic research project"
+msgstr "학술 연구 프로젝트"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:875
+msgid "No commercial backing"
+msgstr "상업적 후원 없음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:876
+msgid "Developed in spare time"
+msgstr "여가 시간에 개발"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:879
+msgid "Advanced Topics"
+msgstr "고급 주제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:882
+msgid "Can I use CTHarvester in a publication?"
+msgstr "논문에 CTHarvester를 사용해도 되나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:884
+msgid "**Yes! Please do.**"
+msgstr "**네! 얼마든지요.**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:886
+msgid "**How to cite:**"
+msgstr "**인용 방법:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:899
+msgid "**In text:**"
+msgstr "**본문에서:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:901
+msgid "\"CT images were preprocessed using CTHarvester v0.2.3 (Jung, 2024), an open-source tool for memory-efficient CT data cropping and resampling.\""
+msgstr "\"CT images were preprocessed using CTHarvester v0.2.3 (Jung, 2024), an open-source tool for memory-efficient CT data cropping and resampling.\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:903
+msgid "**Please also:**"
+msgstr "**아울러:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:905
+msgid "Mention the software in Methods section"
+msgstr "Methods 절에 소프트웨어를 언급해 주세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:906
+msgid "Consider citing relevant papers if using specific algorithms"
+msgstr "특정 알고리즘을 사용했다면 관련 논문 인용을 고려해 주세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:909
+msgid "Can I automate CTHarvester with scripts?"
+msgstr "스크립트로 자동화할 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:911
+msgid "**Not yet.** GUI only in current version."
+msgstr "**아직은 불가능합니다.** 현재 버전은 GUI 전용입니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:913
+msgid "**Planned feature:** Command-line interface (CLI) for scripting:"
+msgstr "**계획된 기능:** 스크립팅을 위한 명령줄 인터페이스(CLI):"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:924
+msgid "Use Python API directly"
+msgstr "Python API를 직접 사용"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:925
+msgid "Import modules: ``from core.file_handler import FileHandler``"
+msgstr "모듈 임포트: ``from core.file_handler import FileHandler``"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:926
+msgid "Write custom scripts"
+msgstr "사용자 스크립트 작성"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:928
+msgid "See developer documentation for API details."
+msgstr "API 세부 사항은 개발자 문서를 참고하세요."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:931
+msgid "How does the Rust module work?"
+msgstr "Rust 모듈은 어떻게 동작하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:933
+msgid "**Architecture:**"
+msgstr "**구조:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:935
+msgid "**Python:** UI, file handling, coordination"
+msgstr "**Python:** UI, 파일 처리, 조율"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:936
+msgid "**Rust:** Performance-critical thumbnail generation"
+msgstr "**Rust:** 성능이 중요한 썸네일 생성"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:937
+msgid "**Bridge:** Maturin (Rust-Python bindings)"
+msgstr "**연결:** Maturin (Rust-Python 바인딩)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:939
+msgid "**Why Rust?**"
+msgstr "**왜 Rust인가요?**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:941
+msgid "3-10x faster than Python for image processing"
+msgstr "이미지 처리에서 Python보다 3-10배 빠름"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:942
+msgid "Better memory management"
+msgstr "더 나은 메모리 관리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:943
+msgid "Parallel processing without GIL limitations"
+msgstr "GIL 제약 없는 병렬 처리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:944
+msgid "Still memory-safe (no crashes)"
+msgstr "그러면서도 메모리 안전 (크래시 없음)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:946
+msgid "**Technical details:**"
+msgstr "**기술적 세부 사항:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:948
+msgid "Uses rayon crate for parallelism"
+msgstr "병렬 처리에 rayon 크레이트 사용"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:949
+msgid "Memory-mapped file I/O"
+msgstr "메모리 매핑 파일 I/O"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:950
+msgid "SIMD optimizations for array operations"
+msgstr "배열 연산에 SIMD 최적화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:951
+msgid "Compiled to native code"
+msgstr "네이티브 코드로 컴파일"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:953
+msgid "**When Rust not available:**"
+msgstr "**Rust를 사용할 수 없을 때:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:955
+msgid "Automatic fallback to Python implementation"
+msgstr "Python 구현으로 자동 폴백"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:956
+msgid "Same results, just slower"
+msgstr "결과는 동일하고 속도만 느려집니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:957
+msgid "No functionality lost"
+msgstr "기능 손실은 없습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:960
+msgid "What algorithms does CTHarvester use?"
+msgstr "어떤 알고리즘을 사용하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:962
+msgid "**Core Algorithms:**"
+msgstr "**핵심 알고리즘:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:964
+msgid "**Multi-resolution Pyramid:**"
+msgstr "**다중 해상도 피라미드:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:966
+msgid "Progressive downsampling (2x at each level)"
+msgstr "단계적 다운샘플링 (레벨마다 2배)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:967
+msgid "Box filter or bilinear interpolation"
+msgstr "박스 필터 또는 이중선형 보간"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:968
+msgid "Lazy generation (on-demand)"
+msgstr "지연 생성 (필요할 때만)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:970
+msgid "**Marching Cubes (3D mesh):**"
+msgstr "**마칭 큐브 (3D 메시):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:972
+msgid "Isosurface extraction"
+msgstr "등값면 추출"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:973
+msgid "Threshold as isovalue"
+msgstr "임계값을 등값으로 사용"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:974
+msgid "Triangle mesh generation"
+msgstr "삼각형 메시 생성"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:976
+msgid "**Image Resampling:**"
+msgstr "**이미지 리샘플링:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:978
+msgid "Nearest neighbor (fast)"
+msgstr "최근접 이웃 (빠름)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:979
+msgid "Bilinear interpolation (smooth)"
+msgstr "이중선형 보간 (부드러움)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:980
+msgid "Preserves bit depth (8/16-bit)"
+msgstr "비트 심도 보존 (8/16비트)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:982
+msgid "**Region of Interest (ROI):**"
+msgstr "**관심 영역(ROI):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:984
+msgid "Bounding box intersection"
+msgstr "경계 상자 교차"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:985
+msgid "Per-slice cropping"
+msgstr "슬라이스별 크롭"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:986
+msgid "Boundary adjustment"
+msgstr "경계 조정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:988
+msgid "**Libraries used:**"
+msgstr "**사용 라이브러리:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:990
+msgid "NumPy (array operations)"
+msgstr "NumPy (배열 연산)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:991
+msgid "PyMCubes (marching cubes)"
+msgstr "PyMCubes (마칭 큐브)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:992
+msgid "PIL/Pillow (image I/O)"
+msgstr "PIL/Pillow (이미지 입출력)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:993
+msgid "SciPy (scientific functions)"
+msgstr "SciPy (과학 계산 함수)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:996
+msgid "Can I run CTHarvester on a server?"
+msgstr "서버에서 실행할 수 있나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:998
+msgid "**Not currently.** CTHarvester requires GUI environment."
+msgstr "**현재는 불가능합니다.** CTHarvester는 GUI 환경이 필요합니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1000
+msgid "**Future feature:** Headless mode for server deployment:"
+msgstr "**향후 기능:** 서버 배포를 위한 헤드리스 모드:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1003
+msgid "No GUI required"
+msgstr "GUI 불필요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1004
+msgid "Docker container support"
+msgstr "Docker 컨테이너 지원"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1006
+msgid "**Current workarounds:**"
+msgstr "**현재 우회 방법:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1008
+msgid "Use VNC/Remote Desktop for GUI access"
+msgstr "VNC/원격 데스크톱으로 GUI 접속"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1009
+msgid "Or use X11 forwarding over SSH:"
+msgstr "또는 SSH로 X11 포워딩:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1017
+msgid "How do I build CTHarvester from source?"
+msgstr "소스에서 어떻게 빌드하나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1019
+msgid "**Prerequisites:**"
+msgstr "**사전 준비:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1021
+msgid "Python 3.12+"
+msgstr "Python 3.12 이상"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1022
+msgid "Rust toolchain (optional, for Rust module)"
+msgstr "Rust 툴체인 (선택, Rust 모듈용)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1024
+msgid "**Steps:**"
+msgstr "**단계:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1047
+msgid "See CONTRIBUTING.md for detailed build instructions."
+msgstr "자세한 빌드 방법은 CONTRIBUTING.md를 참고하세요."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1050
+msgid "License and Legal"
+msgstr "라이선스와 법적 사항"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1053
+msgid "Can I use CTHarvester commercially?"
+msgstr "상업적으로 사용해도 되나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1055
+msgid "**Yes!** MIT License permits:"
+msgstr "**네!** MIT 라이선스는 다음을 허용합니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1057
+msgid "**Commercial use** - Use in for-profit projects"
+msgstr "**상업적 사용** - 영리 프로젝트에 사용"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1058
+msgid "**Modification** - Adapt to your needs"
+msgstr "**수정** - 필요에 맞게 변경"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1059
+msgid "**Distribution** - Redistribute modified versions"
+msgstr "**배포** - 수정본 재배포"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1060
+msgid "**Private use** - Use internally without sharing"
+msgstr "**사적 사용** - 공유 없이 내부 사용"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1064
+msgid "Include MIT License text"
+msgstr "MIT 라이선스 전문 포함"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1065
+msgid "Include copyright notice"
+msgstr "저작권 고지 포함"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1067
+msgid "**No warranty:** Software provided \"as-is\""
+msgstr "**무보증:** 소프트웨어는 \"있는 그대로\" 제공됩니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1070
+msgid "Can I sell CTHarvester?"
+msgstr "CTHarvester를 판매해도 되나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1072
+msgid "**Technically yes, but discouraged:**"
+msgstr "**기술적으로는 가능하지만 권장하지 않습니다:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1074
+msgid "MIT license allows redistribution"
+msgstr "MIT 라이선스는 재배포를 허용합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1075
+msgid "But software is free on GitHub"
+msgstr "다만 이 소프트웨어는 GitHub에서 무료로 제공됩니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1076
+msgid "Please don't mislead users"
+msgstr "사용자를 오도하지 말아 주세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1078
+msgid "**Better approaches:**"
+msgstr "**더 나은 방법:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1080
+msgid "Offer CTHarvester as part of service (consulting, training)"
+msgstr "서비스의 일부로 제공 (컨설팅, 교육)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1081
+msgid "Contribute improvements back to project"
+msgstr "개선 사항을 프로젝트에 기여"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1082
+msgid "Sponsor development (contact maintainer)"
+msgstr "개발 후원 (관리자에게 연락)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1085
+msgid "What if CTHarvester damages my data?"
+msgstr "CTHarvester가 데이터를 손상시키면 어떻게 되나요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1087
+msgid "**Disclaimer:**"
+msgstr "**면책 고지:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1089
+msgid "Software provided \"as-is\" (MIT License)"
+msgstr "소프트웨어는 \"있는 그대로\" 제공됩니다 (MIT 라이선스)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1090
+msgid "No warranty of any kind"
+msgstr "어떠한 보증도 하지 않습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1091
+msgid "**Always backup original data**"
+msgstr "**원본 데이터는 항상 백업하세요**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1093
+msgid "**Best practices:**"
+msgstr "**권장 사항:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1095
+msgid "Keep original CT data unchanged"
+msgstr "원본 CT 데이터는 그대로 두세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1096
+msgid "Process copies in separate directory"
+msgstr "복사본을 별도 디렉토리에서 처리하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1097
+msgid "Verify results before deleting originals"
+msgstr "원본을 지우기 전에 결과를 확인하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1098
+msgid "Test with small sample first"
+msgstr "먼저 작은 표본으로 시험하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1100
+msgid "**In practice:**"
+msgstr "**실제로는:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1102
+msgid "CTHarvester does not modify original files"
+msgstr "CTHarvester는 원본 파일을 수정하지 않습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1103
+msgid "Only creates new files (thumbnails, exports)"
+msgstr "새 파일(썸네일, 내보내기 결과)만 생성합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1104
+msgid "Risk is very low with normal use"
+msgstr "평범하게 사용하면 위험은 매우 낮습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1107
+msgid "Still Have Questions?"
+msgstr "질문이 더 있으신가요?"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1109
+msgid "**Check these resources:**"
+msgstr "**다음 자료를 확인해 보세요:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1111
+msgid "**Installation Guide** - Setup and configuration"
+msgstr "**설치 가이드** - 설치와 설정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1112
+msgid "**User Guide** - Detailed usage instructions"
+msgstr "**사용자 가이드** - 자세한 사용법"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1113
+msgid "**Troubleshooting Guide** - Problem-solving"
+msgstr "**문제 해결 가이드** - 문제 해결"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1114
+msgid "**Developer Guide** - Technical details"
+msgstr "**개발자 가이드** - 기술적 세부 사항"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1116
+msgid "**Contact:**"
+msgstr "**연락처:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1118
+msgid "GitHub Issues: https://github.com/jikhanjung/CTHarvester/issues"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1119
+msgid "Discussions: https://github.com/jikhanjung/CTHarvester/discussions"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1120
+msgid "Email: jikhanjung@gmail.com"
+msgstr "이메일: jikhanjung@gmail.com"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1122
+msgid "**This FAQ is open source!**"
+msgstr "**이 FAQ도 오픈소스입니다!**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/faq.rst:1124
+msgid "Found an error? Have suggestions? Submit a PR to improve this document."
+msgstr "오류를 발견했거나 제안할 것이 있나요? PR을 보내 이 문서를 개선해 주세요."
+
+#~ msgid "Select YAML file"
+#~ msgstr ""
+
+#~ msgid "Named with timestamps: ``ctharvester_YYYYMMDD_HHMMSS.log``"
+#~ msgstr ""
+

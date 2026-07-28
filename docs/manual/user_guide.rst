@@ -304,7 +304,7 @@ Import/Export Settings
 **Import Settings:**
 
 1. Click **"Import Settings..."**
-2. Select YAML file
+2. Select JSON file
 3. Settings applied immediately
 
 **Reset to Defaults:**

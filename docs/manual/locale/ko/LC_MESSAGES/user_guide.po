@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CTHarvester \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 18:24+0900\n"
+"POT-Creation-Date: 2026-07-28 18:48+0900\n"
 "PO-Revision-Date: 2025-10-01 18:30+0900\n"
 "Last-Translator: CTHarvester Documentation Team <noreply@ctharvester.org>\n"
 "Language: ko\n"
@@ -701,8 +701,8 @@ msgid "Click **\"Import Settings...\"**"
 msgstr "**\"설정 가져오기...\"** 클릭"
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/user_guide.rst:307
-msgid "Select YAML file"
-msgstr "YAML 파일 선택"
+msgid "Select JSON file"
+msgstr "JSON 파일 선택"
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/user_guide.rst:308
 msgid "Settings applied immediately"

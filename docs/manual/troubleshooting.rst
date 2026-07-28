@@ -688,22 +688,26 @@ Settings Not Persisting
 Cannot Import Settings
 ~~~~~~~~~~~~~~~~~~~~~~
 
-**Problem:** "Failed to import settings" when loading YAML file
+**Problem:** "Failed to import settings" when loading a JSON file
 
 **Solution:**
 
-1. Check YAML syntax:
+1. Check the JSON syntax:
 
-   * Use YAML validator online
-   * Ensure proper indentation (spaces, not tabs)
-   * Check for special characters
+   * Every key and string value must be double-quoted
+   * No trailing comma after the last entry in an object or array
+   * ``true`` / ``false`` / ``null`` are lowercase
 
 2. Verify file is not corrupted:
 
    .. code-block:: bash
 
-      # Check if file is valid YAML
+      # Check if the file is valid JSON
       python -c "import json; json.load(open('preferences.json'))"
+
+   An import is also rejected if the file lacks the ``application``,
+   ``thumbnails`` and ``processing`` sections, which are what the validator
+   requires.
 
 3. Try exporting settings first, then modifying the exported file
 

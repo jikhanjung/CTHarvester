@@ -1,0 +1,1590 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023-2025, Jikhan Jung
+# This file is distributed under the same license as the CTHarvester
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: CTHarvester 0.2.3-beta.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-28 18:48+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ko\n"
+"Language-Team: ko <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:2
+msgid "Troubleshooting Guide"
+msgstr "문제 해결 가이드"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:4
+msgid "This guide provides solutions to common problems and errors you may encounter while using CTHarvester."
+msgstr "이 문서는 CTHarvester를 사용하면서 마주칠 수 있는 흔한 문제와 오류의 해결 방법을 정리합니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:8
+msgid "Table of Contents"
+msgstr "목차"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:11
+msgid "Installation Issues"
+msgstr "설치 문제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:14
+msgid "Python Import Errors"
+msgstr "Python 임포트 오류"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:16
+msgid "**Problem:** ``ImportError: No module named 'PyQt5'`` or similar module not found errors"
+msgstr "**문제:** ``ImportError: No module named 'PyQt5'`` 또는 이와 비슷한 모듈을 찾을 수 없다는 오류"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:18
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:155
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:211
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:240
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:264
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:313
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:451
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:519
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:565
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:609
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:643
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:693
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:719
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:729
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:837
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:849
+msgid "**Solution:**"
+msgstr "**해결:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:20
+msgid "Ensure you have installed all dependencies:"
+msgstr "모든 의존성이 설치되어 있는지 확인하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:26
+msgid "If using a virtual environment, verify it is activated:"
+msgstr "가상 환경을 쓰고 있다면 활성화되어 있는지 확인하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:36
+msgid "Try reinstalling the specific missing package:"
+msgstr "빠진 패키지를 다시 설치해 보세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:42
+msgid "**Problem:** ``ModuleNotFoundError: No module named 'OpenGL'``"
+msgstr "**문제:** ``ModuleNotFoundError: No module named 'OpenGL'``"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:44
+msgid "**Solution (Linux):**"
+msgstr "**해결 (Linux):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:55
+msgid "**Solution (Windows/macOS):**"
+msgstr "**해결 (Windows/macOS):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:62
+msgid "Rust Module Issues"
+msgstr "Rust 모듈 문제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:64
+msgid "**Problem:** Rust module not loading, falling back to Python"
+msgstr "**문제:** Rust 모듈이 로드되지 않고 Python으로 폴백됨"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:66
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:258
+msgid "**Symptoms:**"
+msgstr "**증상:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:68
+msgid "Console message: \"Rust thumbnail module not available, using Python fallback\""
+msgstr "콘솔 메시지: \"Rust thumbnail module not available, using Python fallback\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:69
+msgid "Thumbnail generation is very slow (8-10 seconds per image)"
+msgstr "썸네일 생성이 매우 느림 (이미지당 8-10초)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:71
+msgid "**Solution 1: Install Rust toolchain**"
+msgstr "**해결 1: Rust 툴체인 설치**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:81
+msgid "**Solution 2: Build the Rust module**"
+msgstr "**해결 2: Rust 모듈 빌드**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:93
+msgid "**Solution 3: Verify module is in correct location**"
+msgstr "**해결 3: 모듈이 올바른 위치에 있는지 확인**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:95
+msgid "The compiled Rust module should be in one of these locations:"
+msgstr "컴파일된 Rust 모듈은 다음 위치 중 하나에 있어야 합니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:97
+msgid "Windows: ``rust_thumbnail/target/wheels/*.whl`` or directly in Python site-packages"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:98
+msgid "Linux/macOS: ``rust_thumbnail/target/wheels/*.whl`` or Python site-packages"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:100
+msgid "**Problem:** Rust module build fails with compiler errors"
+msgstr "**문제:** Rust 모듈 빌드가 컴파일러 오류로 실패"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:102
+msgid "**Common Causes:**"
+msgstr "**흔한 원인:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:104
+msgid "**Outdated Rust version** - Update Rust:"
+msgstr "**오래된 Rust 버전** - Rust를 업데이트하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:110
+msgid "**Missing C/C++ compiler** (Windows):"
+msgstr "**C/C++ 컴파일러 없음** (Windows):"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:112
+msgid "Install Microsoft Visual C++ Build Tools"
+msgstr "Microsoft Visual C++ Build Tools 설치"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:113
+msgid "Or install Visual Studio with C++ development tools"
+msgstr "또는 C++ 개발 도구를 포함해 Visual Studio 설치"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:115
+msgid "**Missing build essentials** (Linux):"
+msgstr "**빌드 필수 패키지 없음** (Linux):"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:126
+msgid "Permission Issues"
+msgstr "권한 문제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:128
+msgid "**Problem:** \"Permission denied\" when opening directory or saving files"
+msgstr "**문제:** 디렉토리를 열거나 파일을 저장할 때 \"Permission denied\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:130
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:541
+msgid "**Windows Solution:**"
+msgstr "**Windows 해결:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:132
+msgid "Right-click CTHarvester.exe → \"Run as administrator\" (not recommended for normal use)"
+msgstr "CTHarvester.exe 우클릭 → \"관리자 권한으로 실행\" (평상시 사용에는 권장하지 않습니다)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:133
+msgid "Or change folder permissions:"
+msgstr "또는 폴더 권한 변경:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:135
+msgid "Right-click folder → Properties → Security"
+msgstr "폴더 우클릭 → 속성 → 보안"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:136
+msgid "Ensure your user has \"Full control\""
+msgstr "사용자 계정에 \"모든 권한\"이 있는지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:138
+msgid "**Linux/macOS Solution:**"
+msgstr "**Linux/macOS 해결:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:148
+msgid "**Problem:** Settings not saving"
+msgstr "**문제:** 설정이 저장되지 않음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:150
+msgid "**Location of settings files:**"
+msgstr "**설정 파일 위치:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:152
+msgid "Windows: ``%USERPROFILE%\\PaleoBytes\\CTHarvester\\preferences.json``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:153
+msgid "Linux/macOS: ``~/PaleoBytes/CTHarvester/preferences.json``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:157
+msgid "Check write permissions on the config directory"
+msgstr "설정 디렉토리의 쓰기 권한 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:158
+msgid "Manually create the directory if it doesn't exist:"
+msgstr "디렉토리가 없으면 직접 만드세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:168
+msgid "Delete corrupted settings file to regenerate defaults:"
+msgstr "손상된 설정 파일을 삭제해 기본값으로 다시 만들기:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:179
+msgid "Directory and File Loading Issues"
+msgstr "디렉토리와 파일 로딩 문제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:182
+msgid "No Valid Image Files Found"
+msgstr "유효한 이미지 파일을 찾을 수 없음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:184
+msgid "**Problem:** \"No valid image files found in directory\" error when opening a folder"
+msgstr "**문제:** 폴더를 열 때 \"No valid image files found in directory\" 오류"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:186
+msgid "**Possible Causes:**"
+msgstr "**가능한 원인:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:188
+msgid "**Incorrect naming pattern**"
+msgstr "**이름 규칙이 맞지 않음**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:190
+msgid "CTHarvester expects sequential image files with naming patterns like:"
+msgstr "CTHarvester는 다음과 같은 이름 규칙을 가진 연속 이미지 파일을 기대합니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:192
+msgid "``slice_0001.tif``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:193
+msgid "``image_001.png``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:194
+msgid "``CT0001.tif``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:196
+msgid "The pattern must include:"
+msgstr "이름은 다음을 포함해야 합니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:198
+msgid "A prefix (optional)"
+msgstr "접두사 (선택)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:199
+msgid "Sequential numbers (required)"
+msgstr "연속된 숫자 (필수)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:200
+msgid "File extension (.tif, .tiff, .png, .jpg, .bmp)"
+msgstr "파일 확장자 (.tif, .tiff, .png, .jpg, .bmp)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:202
+msgid "**Unsupported file formats**"
+msgstr "**지원하지 않는 파일 형식**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:204
+msgid "Only these formats are supported:"
+msgstr "다음 형식만 지원합니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:206
+msgid "TIF/TIFF (recommended for medical imaging)"
+msgstr "TIF/TIFF (의료 영상에 권장)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:207
+msgid "PNG"
+msgstr "PNG"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:208
+msgid "JPG/JPEG"
+msgstr "JPG/JPEG"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:209
+msgid "BMP"
+msgstr "BMP"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:213
+msgid "Check that files follow naming convention:"
+msgstr "파일이 이름 규칙을 따르는지 확인하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:215
+msgid "Files must have numeric sequence: ``001``, ``002``, ``003``, etc."
+msgstr "파일에 연속된 숫자가 있어야 합니다: ``001``, ``002``, ``003`` 등"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:216
+msgid "Numbers must be zero-padded to same length"
+msgstr "숫자는 같은 자릿수로 0을 채워야 합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:218
+msgid "Rename files if needed:"
+msgstr "필요하면 파일 이름을 바꾸세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:230
+msgid "Verify file extensions are lowercase or uppercase consistently"
+msgstr "확장자의 대소문자가 일관적인지 확인하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:232
+msgid "**Problem:** Only some images are loaded, not all"
+msgstr "**문제:** 일부 이미지만 로드되고 전부 로드되지 않음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:234
+msgid "**Causes:**"
+msgstr "**원인:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:236
+msgid "Non-sequential numbering (gaps in sequence)"
+msgstr "번호가 연속되지 않음 (중간에 빠진 번호)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:237
+msgid "Mixed file extensions in same directory"
+msgstr "같은 디렉토리에 확장자가 섞여 있음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:238
+msgid "Corrupted images breaking the sequence"
+msgstr "손상된 이미지가 시퀀스를 끊음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:242
+msgid "Ensure sequential numbering with no gaps"
+msgstr "빠진 번호 없이 연속되게 맞추세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:243
+msgid "Place different file types in separate directories"
+msgstr "서로 다른 파일 형식은 별도 디렉토리에 두세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:244
+msgid "Check for corrupted files:"
+msgstr "손상된 파일이 있는지 확인하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:254
+msgid "Corrupted Image Files"
+msgstr "손상된 이미지 파일"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:256
+msgid "**Problem:** \"Failed to load image\" or \"Corrupted image file\" error"
+msgstr "**문제:** \"Failed to load image\" 또는 \"Corrupted image file\" 오류"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:260
+msgid "Application crashes when loading certain slices"
+msgstr "특정 슬라이스를 불러올 때 애플리케이션이 종료됨"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:261
+msgid "Error dialog about corrupted files"
+msgstr "손상된 파일에 대한 오류 대화상자"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:262
+msgid "Some thumbnails show as blank/black"
+msgstr "일부 썸네일이 비어 있거나 검게 표시됨"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:266
+msgid "**Identify corrupted files:**"
+msgstr "**손상된 파일 찾기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:268
+msgid "Check the log files for error messages:"
+msgstr "로그 파일에서 오류 메시지를 확인하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:270
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:763
+msgid "Windows: ``%USERPROFILE%\\PaleoBytes\\CTHarvester\\logs\\``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:271
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:764
+msgid "Linux/macOS: ``~/PaleoBytes/CTHarvester/logs/``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:273
+msgid "Look for lines containing \"CorruptedImageError\" or \"Failed to load\""
+msgstr "\"CorruptedImageError\" 또는 \"Failed to load\"가 들어간 줄을 찾으세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:275
+msgid "**Verify file integrity:**"
+msgstr "**파일 무결성 확인:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:282
+msgid "**Try repairing with ImageMagick:**"
+msgstr "**ImageMagick으로 복구 시도:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:293
+msgid "**Replace corrupted files:**"
+msgstr "**손상된 파일 교체:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:295
+msgid "If possible, re-export from CT scanner"
+msgstr "가능하면 CT 스캐너에서 다시 내보내세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:296
+msgid "Or remove corrupted files from sequence (may break sequence)"
+msgstr "또는 손상된 파일을 시퀀스에서 제거하세요 (시퀀스가 끊길 수 있음)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:298
+msgid "**Skip corrupted files:**"
+msgstr "**손상된 파일 건너뛰기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:300
+msgid "In future versions, CTHarvester will have an option to skip corrupted files automatically."
+msgstr "향후 버전에서는 손상된 파일을 자동으로 건너뛰는 옵션이 제공될 예정입니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:303
+msgid "Invalid Image Format"
+msgstr "잘못된 이미지 형식"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:305
+msgid "**Problem:** \"Invalid image format\" or \"Unsupported bit depth\" errors"
+msgstr "**문제:** \"Invalid image format\" 또는 \"Unsupported bit depth\" 오류"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:307
+msgid "**Cause:** Image has unsupported characteristics:"
+msgstr "**원인:** 이미지가 지원되지 않는 특성을 가지고 있습니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:309
+msgid "32-bit floating point TIFFs"
+msgstr "32비트 부동소수점 TIFF"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:310
+msgid "24-bit or 48-bit RGB when grayscale expected"
+msgstr "그레이스케일이 필요한 곳에 24비트 또는 48비트 RGB"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:311
+msgid "Compressed formats not supported by PIL"
+msgstr "PIL이 지원하지 않는 압축 형식"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:315
+msgid "**Convert to supported format:**"
+msgstr "**지원되는 형식으로 변환:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:322
+msgid "**Check image properties:**"
+msgstr "**이미지 속성 확인:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:332
+msgid "**Supported image modes:**"
+msgstr "**지원되는 이미지 모드:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:334
+msgid "``L`` - 8-bit grayscale (0-255)"
+msgstr "``L`` - 8비트 그레이스케일 (0-255)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:335
+msgid "``I;16`` - 16-bit grayscale (0-65535)"
+msgstr "``I;16`` - 16비트 그레이스케일 (0-65535)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:336
+msgid "``RGB`` - 24-bit color (will be converted to grayscale)"
+msgstr "``RGB`` - 24비트 컬러 (그레이스케일로 변환됩니다)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:339
+msgid "Performance Issues"
+msgstr "성능 문제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:342
+msgid "Slow Thumbnail Generation"
+msgstr "썸네일 생성이 느림"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:344
+msgid "**Problem:** Thumbnail generation takes 8-10 seconds per image (extremely slow)"
+msgstr "**문제:** 썸네일 생성이 이미지당 8-10초 걸림 (매우 느림)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:346
+msgid "**Expected Performance:**"
+msgstr "**정상 성능:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:348
+msgid "**With Rust module:** 0.1-0.5 seconds per image"
+msgstr "**Rust 모듈 사용 시:** 이미지당 0.1-0.5초"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:349
+msgid "**Without Rust (Python):** 1-2 seconds per image (acceptable)"
+msgstr "**Rust 없이 (Python):** 이미지당 1-2초 (허용 범위)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:350
+msgid "**Abnormally slow:** 8-10+ seconds per image (problem!)"
+msgstr "**비정상적으로 느림:** 이미지당 8-10초 이상 (문제 있음)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:352
+msgid "**Solution 1: Check the Rust module is enabled (3-10x speedup)**"
+msgstr "**해결 1: Rust 모듈이 켜져 있는지 확인 (3-10배 속도 향상)**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:354
+msgid "See \"Rust Module Issues\" section above for installation instructions."
+msgstr "설치 방법은 위의 \"Rust 모듈 문제\" 절을 참고하세요."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:356
+msgid "**Solution 2: Check disk I/O**"
+msgstr "**해결 2: 디스크 I/O 확인**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:365
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:390
+msgid "**Possible causes:**"
+msgstr "**가능한 원인:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:367
+msgid "USB 2.0 external drive (slow) - Use USB 3.0+ or internal SSD"
+msgstr "USB 2.0 외장 드라이브 (느림) - USB 3.0 이상이나 내장 SSD 사용"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:368
+msgid "Network drive with high latency - Copy files locally first"
+msgstr "지연이 큰 네트워크 드라이브 - 파일을 먼저 로컬로 복사"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:369
+msgid "Disk fragmentation (Windows HDD) - Run defragmentation"
+msgstr "디스크 조각화 (Windows HDD) - 조각 모음 실행"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:370
+msgid "Too many threads - Reduce worker threads in settings"
+msgstr "스레드가 너무 많음 - 설정에서 워커 스레드 줄이기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:372
+msgid "**Solution 3: Optimize settings**"
+msgstr "**해결 3: 설정 최적화**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:374
+msgid "Open Settings (gear icon ⚙️)"
+msgstr "설정 열기 (톱니바퀴 아이콘 ⚙️)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:375
+msgid "Adjust these settings:"
+msgstr "다음 설정을 조정하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:377
+msgid "**Worker threads:** Set to 2-4 (not more than CPU cores)"
+msgstr "**워커 스레드:** 2-4로 설정 (CPU 코어 수를 넘지 않게)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:378
+msgid "**Max thumbnail size:** Reduce to 300-400 pixels"
+msgstr "**최대 썸네일 크기:** 300-400 픽셀로 줄이기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:379
+msgid "**Sample size:** Reduce to 10-15"
+msgstr "**표본 수:** 10-15로 줄이기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:380
+msgid "**Enable compression:** Disable for faster generation"
+msgstr "**압축 사용:** 생성 속도를 위해 끄기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:382
+msgid "**Solution 4: System performance**"
+msgstr "**해결 4: 시스템 성능**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:384
+msgid "Close other applications to free RAM"
+msgstr "RAM 확보를 위해 다른 애플리케이션 종료"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:385
+msgid "Check background processes (Windows Search, antivirus)"
+msgstr "백그라운드 프로세스 확인 (Windows Search, 백신)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:386
+msgid "Reboot if system has been in sleep mode (Windows-specific issue)"
+msgstr "시스템이 절전 모드였다면 재부팅 (Windows 특유의 문제)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:388
+msgid "**Problem:** Thumbnail generation was fast before, now suddenly slow"
+msgstr "**문제:** 전에는 빠르던 썸네일 생성이 갑자기 느려짐"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:392
+msgid "**Windows sleep/resume issues:**"
+msgstr "**Windows 절전/복귀 문제:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:394
+msgid "After system sleep/resume, performance may degrade due to:"
+msgstr "절전 후 복귀하면 다음 이유로 성능이 떨어질 수 있습니다:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:396
+msgid "Memory fragmentation"
+msgstr "메모리 단편화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:397
+msgid "SSD not resuming to full performance"
+msgstr "SSD가 완전한 성능으로 복귀하지 못함"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:398
+msgid "Driver state issues"
+msgstr "드라이버 상태 문제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:400
+msgid "**Solution:** Reboot the computer"
+msgstr "**해결:** 컴퓨터를 재부팅하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:402
+msgid "**Rust module no longer loading:**"
+msgstr "**Rust 모듈이 더 이상 로드되지 않음:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:404
+msgid "Check console for \"Rust thumbnail module not available\" message"
+msgstr "콘솔에 \"Rust thumbnail module not available\" 메시지가 있는지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:406
+msgid "**Solution:** Reinstall Rust module (see above)"
+msgstr "**해결:** Rust 모듈 재설치 (위 참고)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:408
+msgid "**Disk cache issues:**"
+msgstr "**디스크 캐시 문제:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:416
+msgid "Out of Memory Errors"
+msgstr "메모리 부족 오류"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:418
+msgid "**Problem:** \"Out of memory\" or \"MemoryError\" when processing large datasets"
+msgstr "**문제:** 큰 데이터셋 처리 중 \"Out of memory\" 또는 \"MemoryError\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:420
+msgid "**Solution 1: Reduce memory usage**"
+msgstr "**해결 1: 메모리 사용량 줄이기**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:422
+msgid "Open Settings → Processing"
+msgstr "Settings → Processing 열기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:423
+msgid "Adjust settings:"
+msgstr "설정 조정:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:425
+msgid "**Memory limit:** Reduce to 2-3 GB"
+msgstr "**메모리 상한:** 2-3 GB로 줄이기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:426
+msgid "**Worker threads:** Reduce to 1-2"
+msgstr "**워커 스레드:** 1-2로 줄이기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:427
+msgid "**Max thumbnail size:** Reduce to 300 pixels"
+msgstr "**최대 썸네일 크기:** 300 픽셀로 줄이기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:429
+msgid "**Solution 2: Process in smaller batches**"
+msgstr "**해결 2: 작은 단위로 나눠 처리**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:431
+msgid "Split large datasets into smaller folders"
+msgstr "큰 데이터셋을 작은 폴더로 나누기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:432
+msgid "Process each folder separately"
+msgstr "폴더별로 따로 처리"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:433
+msgid "Combine results afterward"
+msgstr "결과를 나중에 합치기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:435
+msgid "**Solution 3: Close other applications**"
+msgstr "**해결 3: 다른 애플리케이션 종료**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:437
+msgid "Close web browsers (Chrome uses lots of RAM)"
+msgstr "웹 브라우저 종료 (Chrome은 RAM을 많이 씁니다)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:438
+msgid "Close unnecessary applications"
+msgstr "불필요한 애플리케이션 종료"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:439
+msgid "Check Task Manager/Activity Monitor for memory usage"
+msgstr "작업 관리자/활성 상태 보기에서 메모리 사용량 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:441
+msgid "**Solution 4: Upgrade RAM**"
+msgstr "**해결 4: RAM 증설**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:443
+msgid "4GB RAM: Can process small datasets (<500 images)"
+msgstr "RAM 4GB: 작은 데이터셋 처리 가능 (이미지 500장 미만)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:444
+msgid "8GB RAM: Recommended for medium datasets (<2000 images)"
+msgstr "RAM 8GB: 중간 규모 데이터셋에 권장 (이미지 2000장 미만)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:445
+msgid "16GB+ RAM: For large datasets (5000+ images)"
+msgstr "RAM 16GB 이상: 큰 데이터셋용 (이미지 5000장 이상)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:447
+msgid "**Problem:** Memory usage keeps increasing over time"
+msgstr "**문제:** 시간이 지날수록 메모리 사용량이 계속 증가"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:449
+msgid "**Cause:** Memory leak in image processing"
+msgstr "**원인:** 이미지 처리 과정의 메모리 누수"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:453
+msgid "Restart CTHarvester every few hours when processing very large datasets"
+msgstr "아주 큰 데이터셋을 처리할 때는 몇 시간마다 CTHarvester를 재시작하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:454
+msgid "Process in smaller batches"
+msgstr "작은 단위로 나눠 처리하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:455
+msgid "Update to latest version (memory leaks are being fixed)"
+msgstr "최신 버전으로 업데이트하세요 (메모리 누수는 계속 수정되고 있습니다)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:458
+msgid "UI freezing during processing"
+msgstr "처리 중 UI 멈춤"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:460
+msgid "**Problem:** Application becomes unresponsive during thumbnail generation"
+msgstr "**문제:** 썸네일 생성 중 애플리케이션이 반응하지 않음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:462
+msgid "**Expected behavior:** UI should remain responsive with progress updates"
+msgstr "**정상 동작:** UI는 진행 상황을 갱신하며 계속 반응해야 합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:464
+msgid "**Solution 1: Check if truly frozen**"
+msgstr "**해결 1: 정말 멈춘 것인지 확인**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:466
+msgid "Wait 30-60 seconds"
+msgstr "30-60초 기다려 보세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:467
+msgid "Check if progress bar is moving (slowly)"
+msgstr "진행 표시줄이 (느리게라도) 움직이는지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:468
+msgid "Check console output for activity"
+msgstr "콘솔 출력에 활동이 있는지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:470
+msgid "**Solution 2: Increase responsiveness**"
+msgstr "**해결 2: 반응성 높이기**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:472
+msgid "Settings → Processing"
+msgstr "Settings → Processing"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:473
+msgid "Reduce worker threads to 1 (forces sequential processing)"
+msgstr "워커 스레드를 1로 줄이기 (순차 처리 강제)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:474
+msgid "Enable \"High priority UI updates\" (if available)"
+msgstr "\"High priority UI updates\" 켜기 (있는 경우)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:476
+msgid "**Solution 3: Force quit if truly frozen**"
+msgstr "**해결 3: 정말 멈췄다면 강제 종료**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:478
+msgid "Windows: Task Manager → End Task"
+msgstr "Windows: 작업 관리자 → 작업 끝내기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:479
+msgid "macOS: Force Quit (Cmd+Option+Esc)"
+msgstr "macOS: 강제 종료 (Cmd+Option+Esc)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:480
+msgid "Linux: ``killall python`` or ``kill -9 <pid>``"
+msgstr "Linux: ``killall python`` 또는 ``kill -9 <pid>``"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:482
+msgid "**Problem:** Application frozen after clicking \"Cancel\""
+msgstr "**문제:** \"취소\"를 누른 뒤 애플리케이션이 멈춤"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:484
+msgid "**Cause:** Workers need time to finish current operation"
+msgstr "**원인:** 워커가 현재 작업을 마칠 시간이 필요합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:486
+msgid "**Solution:** Wait 10-30 seconds for workers to stop gracefully"
+msgstr "**해결:** 워커가 정상적으로 멈출 때까지 10-30초 기다리세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:489
+msgid "3D Visualization Issues"
+msgstr "3D 시각화 문제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:492
+msgid "3D View Not Updating"
+msgstr "3D 뷰가 갱신되지 않음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:494
+msgid "**Problem:** 3D mesh not appearing or not updating when threshold changes"
+msgstr "**문제:** 임계값을 바꿔도 3D 메시가 나타나지 않거나 갱신되지 않음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:496
+msgid "**Solution 1: Check threshold value**"
+msgstr "**해결 1: 임계값 확인**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:498
+msgid "Try different threshold values (0-255)"
+msgstr "다른 임계값을 시도해 보세요 (0-255)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:499
+msgid "For dark images: Use lower thresholds (50-100)"
+msgstr "어두운 이미지: 낮은 임계값 사용 (50-100)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:500
+msgid "For bright images: Use higher thresholds (150-200)"
+msgstr "밝은 이미지: 높은 임계값 사용 (150-200)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:501
+msgid "Enable \"Inversion\" checkbox if viewing negative scans"
+msgstr "음성 스캔을 보는 경우 \"Inversion\" 체크박스를 켜세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:503
+msgid "**Solution 2: Verify data loaded**"
+msgstr "**해결 2: 데이터가 로드됐는지 확인**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:505
+msgid "Ensure enough slices are loaded (minimum ~10-20 for visible mesh)"
+msgstr "메시가 보이려면 충분한 슬라이스가 로드돼야 합니다 (최소 10-20장)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:506
+msgid "Check crop bounds include actual data"
+msgstr "크롭 범위에 실제 데이터가 포함되는지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:507
+msgid "Verify images are not completely black or white"
+msgstr "이미지가 완전히 검거나 희지 않은지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:509
+msgid "**Solution 3: Reset 3D view**"
+msgstr "**해결 3: 3D 뷰 초기화**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:511
+msgid "Double-click in 3D view area to reset camera"
+msgstr "3D 뷰 영역에서 더블클릭해 카메라 초기화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:512
+msgid "Try different viewing angles by dragging"
+msgstr "드래그해서 다른 각도로 보기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:513
+msgid "Zoom in/out with scroll wheel"
+msgstr "스크롤 휠로 확대/축소"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:515
+msgid "**Problem:** 3D view shows incorrect/garbled mesh"
+msgstr "**문제:** 3D 뷰에 잘못되거나 깨진 메시가 표시됨"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:517
+msgid "**Cause:** Invalid threshold or corrupted data"
+msgstr "**원인:** 잘못된 임계값 또는 손상된 데이터"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:521
+msgid "Reset threshold to default (128)"
+msgstr "임계값을 기본값(128)으로 초기화"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:522
+msgid "Check original images for data integrity"
+msgstr "원본 이미지의 무결성 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:523
+msgid "Try different crop bounds"
+msgstr "다른 크롭 범위 시도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:524
+msgid "Verify bit depth is correct (8-bit vs 16-bit)"
+msgstr "비트 심도가 맞는지 확인 (8비트 vs 16비트)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:527
+msgid "OpenGL Errors"
+msgstr "OpenGL 오류"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:529
+msgid "**Problem:** \"OpenGL error\" or \"Failed to initialize OpenGL context\""
+msgstr "**문제:** \"OpenGL error\" 또는 \"Failed to initialize OpenGL context\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:531
+msgid "**Linux Solution:**"
+msgstr "**Linux 해결:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:543
+msgid "Update graphics drivers:"
+msgstr "그래픽 드라이버 업데이트:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:545
+msgid "NVIDIA: Download from nvidia.com"
+msgstr "NVIDIA: nvidia.com에서 내려받기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:546
+msgid "AMD: Download from amd.com"
+msgstr "AMD: amd.com에서 내려받기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:547
+msgid "Intel: Use Windows Update"
+msgstr "Intel: Windows Update 사용"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:549
+msgid "Try forcing software rendering (slower but works):"
+msgstr "소프트웨어 렌더링 강제 시도 (느리지만 동작합니다):"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:551
+msgid "Set environment variable before launching CTHarvester:"
+msgstr "CTHarvester를 실행하기 전에 환경 변수를 설정하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:558
+msgid "**macOS Solution:**"
+msgstr "**macOS 해결:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:560
+msgid "Update macOS to latest version"
+msgstr "macOS를 최신 버전으로 업데이트"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:561
+msgid "OpenGL should work out of the box on macOS 10.14+"
+msgstr "macOS 10.14 이상에서는 OpenGL이 기본적으로 동작합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:563
+msgid "**Problem:** Low FPS in 3D view (< 10 FPS)"
+msgstr "**문제:** 3D 뷰의 FPS가 낮음 (10 FPS 미만)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:567
+msgid "Settings → Rendering"
+msgstr "Settings → Rendering"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:568
+msgid "Disable \"Anti-aliasing\""
+msgstr "\"안티에일리어싱\" 끄기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:569
+msgid "Reduce mesh complexity by using higher threshold"
+msgstr "임계값을 높여 메시 복잡도 줄이기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:570
+msgid "Update graphics drivers"
+msgstr "그래픽 드라이버 업데이트"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:571
+msgid "Check if integrated GPU is being used instead of dedicated GPU"
+msgstr "전용 GPU 대신 내장 GPU가 쓰이고 있지 않은지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:574
+msgid "File Export Issues"
+msgstr "파일 내보내기 문제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:577
+msgid "Save Cropped Image Stack Fails"
+msgstr "크롭한 이미지 스택 저장 실패"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:579
+msgid "**Problem:** \"Failed to save image stack\" or no images saved"
+msgstr "**문제:** \"Failed to save image stack\" 또는 저장된 이미지가 없음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:581
+msgid "**Solution 1: Check disk space**"
+msgstr "**해결 1: 디스크 공간 확인**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:589
+msgid "Ensure enough space for output:"
+msgstr "출력에 충분한 공간이 있는지 확인하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:591
+msgid "Formula: ``image_count × width × height × bytes_per_pixel``"
+msgstr "공식: ``image_count × width × height × bytes_per_pixel``"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:592
+msgid "Example: 1000 images × 2048 × 2048 × 2 bytes = ~8 GB"
+msgstr "예시: 이미지 1000장 × 2048 × 2048 × 2바이트 = 약 8 GB"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:594
+msgid "**Solution 2: Verify write permissions**"
+msgstr "**해결 2: 쓰기 권한 확인**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:596
+msgid "Try saving to a different directory"
+msgstr "다른 디렉토리에 저장해 보세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:597
+msgid "On Windows, avoid \"Program Files\" directory"
+msgstr "Windows에서는 \"Program Files\" 디렉토리를 피하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:598
+msgid "Use Documents or Desktop folder"
+msgstr "문서 또는 바탕 화면 폴더를 사용하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:600
+msgid "**Solution 3: Check filename conflicts**"
+msgstr "**해결 3: 파일 이름 충돌 확인**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:602
+msgid "Remove existing files with same names"
+msgstr "같은 이름의 기존 파일을 지우세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:603
+msgid "Or choose different output directory"
+msgstr "또는 다른 출력 디렉토리를 선택하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:605
+msgid "**Problem:** Exported images are black/white/corrupted"
+msgstr "**문제:** 내보낸 이미지가 검거나 희거나 깨져 있음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:607
+msgid "**Cause:** Incorrect bit depth conversion or threshold issue"
+msgstr "**원인:** 잘못된 비트 심도 변환 또는 임계값 문제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:611
+msgid "Check original images are not corrupted"
+msgstr "원본 이미지가 손상되지 않았는지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:612
+msgid "Verify crop bounds are correct"
+msgstr "크롭 범위가 올바른지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:613
+msgid "Try exporting small sample first (5-10 images)"
+msgstr "먼저 적은 수(5-10장)로 내보내 보세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:614
+msgid "Check bit depth matches source (8-bit vs 16-bit)"
+msgstr "비트 심도가 원본과 맞는지 확인 (8비트 vs 16비트)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:617
+msgid "Export 3D Model Fails"
+msgstr "3D 모델 내보내기 실패"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:619
+msgid "**Problem:** \"Failed to export 3D model\" or OBJ file is empty"
+msgstr "**문제:** \"Failed to export 3D model\" 또는 OBJ 파일이 비어 있음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:621
+msgid "**Solution 1: Check threshold**"
+msgstr "**해결 1: 임계값 확인**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:623
+msgid "Threshold too high/low may result in empty mesh"
+msgstr "임계값이 너무 높거나 낮으면 메시가 비어 있을 수 있습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:624
+msgid "Try different threshold values"
+msgstr "다른 임계값을 시도해 보세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:625
+msgid "Ensure 3D preview shows visible mesh before export"
+msgstr "내보내기 전에 3D 미리보기에 메시가 보이는지 확인하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:627
+msgid "**Solution 2: Verify mesh generation**"
+msgstr "**해결 2: 메시 생성 확인**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:629
+msgid "Look for error messages in console/logs"
+msgstr "콘솔/로그에 오류 메시지가 있는지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:630
+msgid "Check that marching cubes algorithm completed successfully"
+msgstr "마칭 큐브 알고리즘이 정상적으로 끝났는지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:631
+msgid "Try with smaller dataset first"
+msgstr "먼저 작은 데이터셋으로 시도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:633
+msgid "**Solution 3: File format issues**"
+msgstr "**해결 3: 파일 형식 문제**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:635
+msgid "Ensure file extension is ``.obj``"
+msgstr "확장자가 ``.obj``인지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:636
+msgid "Try different export location"
+msgstr "다른 위치로 내보내 보기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:637
+msgid "Check disk space and permissions"
+msgstr "디스크 공간과 권한 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:639
+msgid "**Problem:** 3D model is too large to open in other software"
+msgstr "**문제:** 3D 모델이 너무 커서 다른 소프트웨어에서 열리지 않음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:641
+msgid "**Cause:** High-resolution mesh with millions of polygons"
+msgstr "**원인:** 폴리곤이 수백만 개인 고해상도 메시"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:645
+msgid "Use higher threshold to reduce mesh complexity"
+msgstr "임계값을 높여 메시 복잡도 줄이기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:646
+msgid "Export smaller crop region"
+msgstr "더 작은 크롭 영역 내보내기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:647
+msgid "Use mesh decimation software (MeshLab, Blender) to reduce polygon count"
+msgstr "메시 단순화 소프트웨어(MeshLab, Blender)로 폴리곤 수 줄이기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:648
+msgid "Export in chunks and combine later"
+msgstr "나눠서 내보낸 뒤 나중에 합치기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:651
+msgid "Settings and Configuration Issues"
+msgstr "설정 관련 문제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:654
+msgid "Settings Not Persisting"
+msgstr "설정이 유지되지 않음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:656
+msgid "**Problem:** Settings reset to defaults every time you restart CTHarvester"
+msgstr "**문제:** CTHarvester를 재시작할 때마다 설정이 기본값으로 돌아감"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:658
+msgid "**Solution 1: Check config file location**"
+msgstr "**해결 1: 설정 파일 위치 확인**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:668
+msgid "**Solution 2: Fix permissions**"
+msgstr "**해결 2: 권한 수정**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:677
+msgid "**Solution 3: Delete corrupted config**"
+msgstr "**해결 3: 손상된 설정 파일 삭제**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:689
+msgid "Cannot Import Settings"
+msgstr "설정을 가져올 수 없음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:691
+msgid "**Problem:** \"Failed to import settings\" when loading a JSON file"
+msgstr "**문제:** JSON 파일을 불러올 때 \"Failed to import settings\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:695
+msgid "Check the JSON syntax:"
+msgstr "JSON 문법을 확인하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:697
+msgid "Every key and string value must be double-quoted"
+msgstr "모든 키와 문자열 값은 큰따옴표로 감싸야 합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:698
+msgid "No trailing comma after the last entry in an object or array"
+msgstr "객체나 배열의 마지막 항목 뒤에 쉼표가 있으면 안 됩니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:699
+msgid "``true`` / ``false`` / ``null`` are lowercase"
+msgstr "``true`` / ``false`` / ``null``은 소문자입니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:701
+msgid "Verify file is not corrupted:"
+msgstr "파일이 손상되지 않았는지 확인하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:708
+msgid "An import is also rejected if the file lacks the ``application``, ``thumbnails`` and ``processing`` sections, which are what the validator requires."
+msgstr "``application``, ``thumbnails``, ``processing`` 섹션이 없는 파일도 가져오기가 거부됩니다. 검증기가 요구하는 항목입니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:712
+msgid "Try exporting settings first, then modifying the exported file"
+msgstr "먼저 설정을 내보낸 뒤, 내보낸 파일을 수정하는 방식으로 시도해 보세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:715
+msgid "Language/Translation Issues"
+msgstr "언어/번역 문제"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:717
+msgid "**Problem:** UI text shows untranslated strings or incorrect language"
+msgstr "**문제:** UI에 번역되지 않은 문자열이 보이거나 언어가 잘못됨"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:721
+msgid "Settings → General → Language"
+msgstr "Settings → General → Language"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:722
+msgid "Select desired language"
+msgstr "원하는 언어 선택"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:723
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:852
+msgid "Restart CTHarvester"
+msgstr "CTHarvester 재시작"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:725
+msgid "**Problem:** Mixed languages (some English, some Korean)"
+msgstr "**문제:** 언어가 섞여 있음 (일부는 영어, 일부는 한국어)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:727
+msgid "**Cause:** Incomplete translation coverage"
+msgstr "**원인:** 번역이 완전히 채워지지 않음"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:731
+msgid "Report missing translations as GitHub issue"
+msgstr "빠진 번역을 GitHub 이슈로 알려 주세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:732
+msgid "Provide English text and location in UI"
+msgstr "영어 원문과 UI에서의 위치를 함께 적어 주세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:733
+msgid "Temporary workaround: Use English language setting"
+msgstr "임시 방편: 언어를 영어로 설정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:736
+msgid "Advanced Troubleshooting"
+msgstr "고급 문제 해결"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:739
+msgid "Collecting Debug Information"
+msgstr "디버그 정보 수집"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:741
+msgid "When reporting issues, include this information:"
+msgstr "문제를 신고할 때는 다음 정보를 함께 보내 주세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:743
+msgid "**System Information:**"
+msgstr "**시스템 정보:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:755
+msgid "**CTHarvester version:**"
+msgstr "**CTHarvester 버전:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:761
+msgid "**Log files:**"
+msgstr "**로그 파일:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:766
+msgid "**Package versions:**"
+msgstr "**패키지 버전:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:773
+msgid "Enabling Debug Logging"
+msgstr "디버그 로깅 켜기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:775
+msgid "To get more detailed logs:"
+msgstr "더 자세한 로그를 남기려면:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:777
+msgid "**Via Settings:**"
+msgstr "**설정에서:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:779
+msgid "Settings → Advanced → Logging"
+msgstr "Settings → Advanced → Logging"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:780
+msgid "Set \"Log level\" to \"DEBUG\""
+msgstr "\"Log level\"을 \"DEBUG\"로 설정"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:781
+msgid "Enable \"Console output\""
+msgstr "\"Console output\" 켜기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:783
+msgid "**Via Environment Variable:**"
+msgstr "**환경 변수로:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:791
+msgid "**View logs:**"
+msgstr "**로그 보기:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:793
+msgid "Help menu → \"View Logs\" (opens log directory)"
+msgstr "도움말 메뉴 → \"View Logs\" (로그 디렉토리를 엽니다)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:794
+msgid "Or manually navigate to log directory (see above)"
+msgstr "또는 로그 디렉토리로 직접 이동 (위 참고)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:797
+msgid "Running in Safe Mode"
+msgstr "안전 모드로 실행"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:799
+msgid "To disable all optimizations and run with minimal features:"
+msgstr "모든 최적화를 끄고 최소 기능으로 실행하려면:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:816
+msgid "Common Error Messages"
+msgstr "흔한 오류 메시지"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:819
+msgid "\"Directory does not exist\""
+msgstr "\"Directory does not exist\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:821
+msgid "**Cause:** Selected directory was moved or deleted"
+msgstr "**원인:** 선택한 디렉토리가 이동되었거나 삭제됨"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:823
+msgid "**Solution:** Browse to a different directory"
+msgstr "**해결:** 다른 디렉토리를 선택하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:826
+msgid "\"Permission denied\""
+msgstr "\"Permission denied\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:828
+msgid "**Cause:** Insufficient file system permissions"
+msgstr "**원인:** 파일 시스템 권한 부족"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:830
+msgid "**Solution:** See \"Permission Issues\" section above"
+msgstr "**해결:** 위의 \"권한 문제\" 절을 참고하세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:833
+msgid "\"Thumbnail generation failed\""
+msgstr "\"Thumbnail generation failed\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:835
+msgid "**Cause:** Error during thumbnail processing (disk full, corrupted image, etc.)"
+msgstr "**원인:** 썸네일 처리 중 오류 (디스크 가득 참, 손상된 이미지 등)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:839
+msgid "Check disk space"
+msgstr "디스크 공간 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:840
+msgid "Verify images are not corrupted"
+msgstr "이미지가 손상되지 않았는지 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:841
+msgid "Try with smaller sample size"
+msgstr "더 적은 표본 수로 시도"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:842
+msgid "Check logs for specific error"
+msgstr "로그에서 구체적인 오류 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:845
+msgid "\"Worker thread crashed\""
+msgstr "\"Worker thread crashed\""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:847
+msgid "**Cause:** Unexpected error in background thread"
+msgstr "**원인:** 백그라운드 스레드에서 예기치 못한 오류"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:851
+msgid "Check logs for Python traceback"
+msgstr "로그에서 Python 트레이스백 확인"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:853
+msgid "Try processing single-threaded (Settings → Processing → Worker threads: 1)"
+msgstr "단일 스레드로 처리 시도 (Settings → Processing → Worker threads: 1)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:854
+msgid "Report as bug with log file"
+msgstr "로그 파일과 함께 버그로 신고"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:857
+msgid "Getting Additional Help"
+msgstr "추가 도움 받기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:859
+msgid "If this guide doesn't solve your problem:"
+msgstr "이 문서로 문제가 해결되지 않는다면:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:861
+msgid "**Check GitHub Issues:**"
+msgstr "**GitHub Issues 확인:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:863
+msgid "https://github.com/jikhanjung/CTHarvester/issues"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:865
+msgid "Search for similar problems - they may already be solved"
+msgstr "비슷한 문제를 검색해 보세요 — 이미 해결되어 있을 수 있습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:867
+msgid "**Create New Issue:**"
+msgstr "**새 이슈 등록:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:869
+msgid "Include:"
+msgstr "다음을 포함해 주세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:871
+msgid "Operating system and version"
+msgstr "운영체제와 버전"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:872
+msgid "Python version (``python --version``)"
+msgstr "Python 버전 (``python --version``)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:873
+msgid "CTHarvester version"
+msgstr "CTHarvester 버전"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:874
+msgid "Error message or description"
+msgstr "오류 메시지 또는 상황 설명"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:875
+msgid "Steps to reproduce"
+msgstr "재현 방법"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:876
+msgid "Log files (see \"Collecting Debug Information\" above)"
+msgstr "로그 파일 (위 \"디버그 정보 수집\" 참고)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:878
+msgid "**GitHub Discussions:**"
+msgstr "**GitHub Discussions:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:880
+msgid "For questions and general discussion:"
+msgstr "질문과 일반적인 논의:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:882
+msgid "https://github.com/jikhanjung/CTHarvester/discussions"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:884
+msgid "**Email Support:**"
+msgstr "**이메일 문의:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:886
+msgid "Contact: jikhanjung@gmail.com"
+msgstr "연락처: jikhanjung@gmail.com"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:888
+msgid "(Please try GitHub issues first for faster community support)"
+msgstr "(커뮤니티의 빠른 도움을 받으려면 GitHub 이슈를 먼저 이용해 주세요)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:891
+msgid "Known Issues and Limitations"
+msgstr "알려진 문제와 제약"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:894
+msgid "Current Limitations"
+msgstr "현재 제약"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:896
+msgid "**Maximum Image Resolution:**"
+msgstr "**최대 이미지 해상도:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:898
+msgid "Tested up to 4096×4096 pixels"
+msgstr "4096×4096 픽셀까지 테스트됨"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:899
+msgid "Larger images may work but require more RAM"
+msgstr "더 큰 이미지도 동작할 수 있으나 RAM이 더 필요합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:901
+msgid "**File Naming:**"
+msgstr "**파일 이름:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:903
+msgid "Must have sequential numbers"
+msgstr "연속된 숫자가 있어야 합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:904
+msgid "No support for non-sequential datasets yet"
+msgstr "아직 비연속 데이터셋은 지원하지 않습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:906
+msgid "**3D Export Formats:**"
+msgstr "**3D 내보내기 형식:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:908
+msgid "OBJ, PLY, STL supported"
+msgstr "OBJ, PLY, STL 지원"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:909
+msgid "No VRML, Collada, or other formats yet"
+msgstr "아직 VRML, Collada 등은 지원하지 않습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:911
+msgid "**Platform-Specific:**"
+msgstr "**플랫폼별:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:913
+msgid "macOS builds not code-signed (requires manual approval)"
+msgstr "macOS 빌드는 코드 서명되어 있지 않습니다 (수동 승인 필요)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:914
+msgid "Linux AppImage requires FUSE"
+msgstr "Linux AppImage는 FUSE가 필요합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:916
+msgid "**GUI Only:**"
+msgstr "**GUI 전용:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:918
+msgid "No command-line interface yet"
+msgstr "아직 명령줄 인터페이스가 없습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:919
+msgid "Cannot run in headless mode"
+msgstr "헤드리스 모드로 실행할 수 없습니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:921
+msgid "**Memory Usage:**"
+msgstr "**메모리 사용:**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:923
+msgid "Full dataset not loaded into memory (by design)"
+msgstr "데이터셋 전체를 메모리에 올리지 않습니다 (의도된 설계)"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:924
+msgid "But thumbnails require disk space"
+msgstr "다만 썸네일에는 디스크 공간이 필요합니다"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:927
+msgid "Planned Improvements"
+msgstr "예정된 개선"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:929
+msgid "See CHANGELOG and GitHub milestones for planned features:"
+msgstr "계획된 기능은 CHANGELOG와 GitHub 마일스톤을 참고하세요:"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:931
+msgid "Command-line interface for batch processing"
+msgstr "일괄 처리를 위한 명령줄 인터페이스"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:932
+msgid "Support for DICOM format"
+msgstr "DICOM 형식 지원"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:933
+msgid "Auto-detection and skipping of corrupted files"
+msgstr "손상된 파일 자동 감지 및 건너뛰기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:934
+msgid "Improved error recovery"
+msgstr "오류 복구 개선"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:935
+msgid "Better memory management for huge datasets"
+msgstr "대용량 데이터셋을 위한 메모리 관리 개선"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:936
+msgid "GPU acceleration for thumbnail generation"
+msgstr "썸네일 생성의 GPU 가속"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:937
+msgid "Plugin system for custom workflows"
+msgstr "사용자 워크플로를 위한 플러그인 시스템"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:940
+msgid "Contributing"
+msgstr "기여하기"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:942
+msgid "Found a bug or have suggestions? Contributions welcome!"
+msgstr "버그를 발견했거나 제안할 것이 있나요? 기여를 환영합니다!"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:944
+msgid "Report bugs: https://github.com/jikhanjung/CTHarvester/issues"
+msgstr "버그 신고: https://github.com/jikhanjung/CTHarvester/issues"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:945
+msgid "Submit fixes: https://github.com/jikhanjung/CTHarvester/pulls"
+msgstr "수정 제출: https://github.com/jikhanjung/CTHarvester/pulls"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:946
+msgid "Improve docs: Edit this file and submit PR"
+msgstr "문서 개선: 이 파일을 수정해 PR을 보내 주세요"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/troubleshooting.rst:948
+msgid "See CONTRIBUTING.md for detailed contribution guidelines."
+msgstr "자세한 기여 지침은 CONTRIBUTING.md를 참고하세요."
+
+#~ msgid "**Problem:** \"Failed to import settings\" when loading YAML file"
+#~ msgstr ""
+
+#~ msgid "Check YAML syntax:"
+#~ msgstr ""
+
+#~ msgid "Use YAML validator online"
+#~ msgstr ""
+
+#~ msgid "Ensure proper indentation (spaces, not tabs)"
+#~ msgstr ""
+
+#~ msgid "Check for special characters"
+#~ msgstr ""
+

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CTHarvester \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 18:24+0900\n"
+"POT-Creation-Date: 2026-07-28 18:48+0900\n"
 "PO-Revision-Date: 2025-10-01 18:30+0900\n"
 "Last-Translator: CTHarvester Documentation Team <noreply@ctharvester.org>\n"
 "Language: ko\n"
@@ -144,8 +144,8 @@ msgid "**Settings Management:**"
 msgstr "**설정 관리:**"
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:100
-msgid "YAML-based configuration"
-msgstr "YAML 기반 구성"
+msgid "JSON-based configuration"
+msgstr "JSON 기반 설정"
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/developer_guide.rst:101
 msgid "Platform-independent storage"
