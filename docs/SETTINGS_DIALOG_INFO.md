@@ -72,21 +72,28 @@ Settings Dialog가 메인 윈도우에 통합되었습니다.
 
 ### 설정 파일 위치
 
-로그와 같은 디렉토리에 함께 들어간다 (`utils/paths.py`가 결정).
+OS 설정 디렉토리 아래 `PaleoBytes/CTHarvester/`에 들어간다 (`utils/paths.py`가 결정).
+**로그와는 다른 위치다** — 설정은 기기 종속 상태이고 데이터가 아니기 때문 (PaleoBytes 규약 R02).
 
 #### Windows
 ```
-%USERPROFILE%\PaleoBytes\CTHarvester\preferences.json
+%LOCALAPPDATA%\PaleoBytes\CTHarvester\preferences.json
 ```
-예: `C:\Users\YourName\PaleoBytes\CTHarvester\preferences.json`
+예: `C:\Users\YourName\AppData\Local\PaleoBytes\CTHarvester\preferences.json`
 
-#### Linux/Mac
+#### macOS
 ```
-~/PaleoBytes/CTHarvester/preferences.json
+~/Library/Application Support/PaleoBytes/CTHarvester/preferences.json
 ```
-예: `/home/yourname/PaleoBytes/CTHarvester/preferences.json`
 
-`CTHARVESTER_DATA_DIR`로 위치를 바꿀 수 있다.
+#### Linux
+```
+~/.config/PaleoBytes/CTHarvester/preferences.json
+```
+예: `/home/yourname/.config/PaleoBytes/CTHarvester/preferences.json`
+
+`CTHARVESTER_CONFIG_DIR`로 위치를 바꿀 수 있다. 로그는 `~/PaleoBytes/CTHarvester/logs/`에
+그대로 남으며 `CTHARVESTER_DATA_DIR`가 관장한다.
 
 ### 기존 PreferencesDialog와의 차이
 

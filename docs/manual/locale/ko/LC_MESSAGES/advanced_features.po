@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CTHarvester 0.2.3-beta.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 18:24+0900\n"
+"POT-Creation-Date: 2026-07-28 19:34+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ko\n"
@@ -997,350 +997,364 @@ msgid "**Location:**"
 msgstr "**위치:**"
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:660
-msgid "Windows: ``%USERPROFILE%\\PaleoBytes\\CTHarvester\\preferences.json``"
+msgid "Windows: ``%LOCALAPPDATA%\\PaleoBytes\\CTHarvester\\preferences.json``"
 msgstr ""
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:661
-msgid "Linux/macOS: ``~/PaleoBytes/CTHarvester/preferences.json``"
+msgid "macOS: ``~/Library/Application Support/PaleoBytes/CTHarvester/preferences.json``"
 msgstr ""
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:663
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:662
+msgid "Linux: ``~/.config/PaleoBytes/CTHarvester/preferences.json``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:664
 msgid "**Example preferences.json:**"
 msgstr "**preferences.json 예시:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:674
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:675
 msgid "The excerpt above is partial. :doc:`configuration` documents every available key and is the reference to work from."
 msgstr "위 예시는 일부만 담고 있습니다. 사용 가능한 모든 키는 :doc:`configuration`에 정리되어 있으며, 그 문서를 기준으로 삼으세요."
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:678
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:679
 msgid "Bulk Settings Configuration"
 msgstr "설정 일괄 구성"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:680
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:681
 msgid "**Export settings for team:**"
 msgstr "**팀용 설정 내보내기:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:690
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:691
 msgid "**Import settings for team:**"
 msgstr "**팀용 설정 가져오기:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:697
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:698
 msgid "**Programmatic settings update:**"
 msgstr "**프로그램으로 설정 변경:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:727
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:732
 msgid "Environment Variables"
 msgstr "환경 변수"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:729
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:734
 msgid "Control CTHarvester behavior via environment variables:"
 msgstr "환경 변수로 CTHarvester의 동작을 제어할 수 있습니다:"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:731
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:736
 msgid "**Log level:**"
 msgstr "**로그 수준:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:738
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:743
 msgid "**Console log level (separate from file log):**"
 msgstr "**콘솔 로그 수준 (파일 로그와 별도):**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:745
-msgid "**Custom data directory (preferences and logs):**"
-msgstr "**데이터 디렉토리 지정 (환경 설정과 로그):**"
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:750
+msgid "**Custom settings location:**"
+msgstr "**설정 위치 지정:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:752
-msgid "Moves the whole profile — ``preferences.json`` and ``logs/`` — which is the clean way to keep separate configurations side by side."
-msgstr "``preferences.json``과 ``logs/``를 포함한 프로필 전체를 옮깁니다. 여러 설정을 나란히 두고 쓰는 가장 깔끔한 방법입니다."
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:757
+msgid "Moves ``preferences.json`` only, which is the clean way to keep separate configurations side by side."
+msgstr "``preferences.json``만 옮깁니다. 여러 설정을 나란히 두고 쓰는 가장 깔끔한 방법입니다."
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:755
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:760
+msgid "**Custom data directory (logs):**"
+msgstr "**데이터 디렉토리 지정 (로그):**"
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:767
 msgid "**Custom log directory:**"
 msgstr "**로그 디렉토리 지정:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:762
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:774
 msgid "Moves the logs only, and takes precedence over ``CTHARVESTER_DATA_DIR`` for them. The in-application log viewer and **Open log directory** follow it too."
 msgstr "로그만 옮기며, 로그에 대해서는 ``CTHARVESTER_DATA_DIR``보다 우선합니다. 애플리케이션 내 로그 뷰어와 **로그 디렉토리 열기**도 이 값을 따릅니다."
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:765
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:777
 msgid "**Disable Rust module:**"
 msgstr "**Rust 모듈 비활성화:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:772
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:784
 msgid "**Force single-threaded:**"
 msgstr "**단일 스레드 강제:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:779
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:791
 msgid "**Combined example:**"
 msgstr "**조합 예시:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:795
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:807
 msgid "Integration with Other Tools"
 msgstr "다른 도구와의 연동"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:798
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:810
 msgid "ImageJ/Fiji Integration"
 msgstr "ImageJ/Fiji 연동"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:800
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:812
 msgid "**Export for ImageJ:**"
 msgstr "**ImageJ용 내보내기:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:802
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:814
 msgid "Save cropped image stack (TIF format recommended)"
 msgstr "크롭한 이미지 스택 저장 (TIF 형식 권장)"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:803
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:815
 msgid "Open in ImageJ: File → Import → Image Sequence"
 msgstr "ImageJ에서 열기: File → Import → Image Sequence"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:804
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:816
 msgid "Select first file in sequence"
 msgstr "시퀀스의 첫 파일 선택"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:805
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:817
 msgid "ImageJ automatically loads all files"
 msgstr "ImageJ가 나머지 파일을 자동으로 불러옵니다"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:807
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:819
 msgid "**ImageJ macro for batch import:**"
 msgstr "**일괄 가져오기용 ImageJ 매크로:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:816
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:828
 msgid "**CTHarvester → ImageJ → Analysis workflow:**"
 msgstr "**CTHarvester → ImageJ → 분석 워크플로:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:830
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:842
 msgid "Blender Integration"
 msgstr "Blender 연동"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:832
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:844
 msgid "**Import CTHarvester mesh:**"
 msgstr "**CTHarvester 메시 가져오기:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:843
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:855
 msgid "**Blender Python script for batch import:**"
 msgstr "**일괄 가져오기용 Blender Python 스크립트:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:865
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:877
 msgid "**Render animation:**"
 msgstr "**애니메이션 렌더링:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:886
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:898
 msgid "CloudCompare Integration"
 msgstr "CloudCompare 연동"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:888
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:900
 msgid "**Import CTHarvester mesh into CloudCompare:**"
 msgstr "**CTHarvester 메시를 CloudCompare로 가져오기:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:900
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:912
 msgid "**Command-line CloudCompare:**"
 msgstr "**명령줄 CloudCompare:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:911
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:923
 msgid "Python/NumPy Integration"
 msgstr "Python/NumPy 연동"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:913
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:925
 msgid "**Load CTHarvester images for custom processing:**"
 msgstr "**직접 처리하기 위해 CTHarvester 이미지 불러오기:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:946
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:958
 msgid "**3D morphological operations:**"
 msgstr "**3D 형태학 연산:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:971
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:983
 msgid "Custom Analysis Pipelines"
 msgstr "사용자 분석 파이프라인"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:973
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:985
 msgid "**Example: Automated porosity analysis**"
 msgstr "**예시: 공극률 자동 분석**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1027
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1039
 msgid "Debugging and Diagnostics"
 msgstr "디버깅과 진단"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1030
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1042
 msgid "Advanced Logging"
 msgstr "고급 로깅"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1032
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1044
 msgid "**Enable debug logging:**"
 msgstr "**디버그 로깅 활성화:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1043
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1055
 msgid "**View logs in real-time:**"
 msgstr "**실시간 로그 보기:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1053
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1065
 msgid "**Parse logs for errors:**"
 msgstr "**로그에서 오류 찾기:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1067
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1079
 msgid "Performance Profiling"
 msgstr "성능 프로파일링"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1069
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1081
 msgid "**Profile thumbnail generation:**"
 msgstr "**썸네일 생성 프로파일링:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1114
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1126
 msgid "**Memory profiling:**"
 msgstr "**메모리 프로파일링:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1133
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1145
 msgid "Safe Mode and Recovery"
 msgstr "안전 모드와 복구"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1135
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1147
 msgid "**Run in safe mode (minimal features):**"
 msgstr "**안전 모드로 실행 (최소 기능):**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1145
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1157
 msgid "**Reset to factory settings:**"
 msgstr "**설정 초기화:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1158
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1173
 msgid "**Clear thumbnail cache:**"
 msgstr "**썸네일 캐시 삭제:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1166
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1181
 msgid "Tips and Tricks"
 msgstr "팁과 요령"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1169
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1184
 msgid "Keyboard Power User Shortcuts"
 msgstr "파워 사용자용 단축키"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1171
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1186
 msgid "Beyond the basics, these are the combinations that save the most time. The full list of 24 shortcuts is in the User Guide, and ``F1`` shows it in the application."
 msgstr "기본 단축키 외에, 시간을 가장 많이 아껴 주는 조합들입니다. 전체 24개 목록은 사용자 가이드에 있고, 애플리케이션에서는 ``F1``로 볼 수 있습니다."
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1175
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1190
 msgid "**Quick navigation:**"
 msgstr "**빠른 이동:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1177
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1192
 msgid "``Home`` / ``End``: Jump to the first / last slice"
 msgstr "``Home`` / ``End``: 첫 / 마지막 슬라이스로 이동"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1178
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1193
 msgid "``Ctrl+Left`` / ``Ctrl+Right``: Jump 10 slices backward / forward"
 msgstr "``Ctrl+Left`` / ``Ctrl+Right``: 10 슬라이스 뒤로 / 앞으로 이동"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1179
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1194
 msgid "``Left`` / ``Right``: Step one slice"
 msgstr "``Left`` / ``Right``: 한 슬라이스씩 이동"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1181
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1196
 msgid "**Rapid ROI setting:**"
 msgstr "**빠른 ROI 설정:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1190
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1205
 msgid "**Threshold:**"
 msgstr "**임계값:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1192
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1207
 msgid "``Up`` / ``Down``: Adjust the threshold"
 msgstr "``Up`` / ``Down``: 임계값 조정"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1193
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1208
 msgid "``Ctrl+R``: Reset the crop region"
 msgstr "``Ctrl+R``: 크롭 영역 초기화"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1195
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1210
 msgid "**View management:**"
 msgstr "**뷰 관리:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1197
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1212
 msgid "``F3``: Toggle the 3D view"
 msgstr "``F3``: 3D 뷰 전환"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1198
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1213
 msgid "``Ctrl+0``: Fit the image to the window"
 msgstr "``Ctrl+0``: 이미지를 창에 맞추기"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1199
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1214
 msgid "``Ctrl++`` / ``Ctrl+-``: Zoom in / out"
 msgstr "``Ctrl++`` / ``Ctrl+-``: 확대 / 축소"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1203
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1218
 msgid "Workflow Optimization"
 msgstr "워크플로 최적화"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1205
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1220
 msgid "**Efficient large dataset exploration:**"
 msgstr "**큰 데이터셋을 효율적으로 탐색하기:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1217
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1232
 msgid "**Multi-stage processing:**"
 msgstr "**단계별 처리:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1235
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1250
 msgid "**Dataset organization:**"
 msgstr "**데이터셋 정리:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1247
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1262
 msgid "Further Resources"
 msgstr "더 읽을 자료"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1249
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1264
 msgid "**Documentation:**"
 msgstr "**문서:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1251
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1266
 msgid "Installation Guide: Detailed setup instructions"
 msgstr "설치 가이드: 상세한 설치 방법"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1252
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1267
 msgid "User Guide: Basic usage and workflow"
 msgstr "사용자 가이드: 기본 사용법과 작업 흐름"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1253
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1268
 msgid "Troubleshooting Guide: Problem-solving"
 msgstr "문제 해결 가이드: 문제 해결"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1254
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1269
 msgid "FAQ: Common questions"
 msgstr "FAQ: 자주 묻는 질문"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1256
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1271
 msgid "**Community:**"
 msgstr "**커뮤니티:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1258
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1273
 msgid "GitHub Discussions: Ask questions, share workflows"
 msgstr "GitHub Discussions: 질문하기, 작업 방식 공유"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1259
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1274
 msgid "GitHub Issues: Report bugs, request features"
 msgstr "GitHub Issues: 버그 신고, 기능 요청"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1261
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1276
 msgid "**Development:**"
 msgstr "**개발:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1263
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1278
 msgid "Developer Guide: Architecture and API"
 msgstr "개발자 가이드: 아키텍처와 API"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1264
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1279
 msgid "CONTRIBUTING.md: Contribution guidelines"
 msgstr "CONTRIBUTING.md: 기여 지침"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1265
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1280
 msgid "GitHub Repository: Source code and releases"
 msgstr "GitHub 저장소: 소스 코드와 릴리스"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1267
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1282
 msgid "**Contact:**"
 msgstr "**연락:**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1269
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1284
 msgid "Email: jikhanjung@gmail.com"
 msgstr ""
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1270
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/advanced_features.rst:1285
 msgid "GitHub: @jikhanjung"
 msgstr ""
+
+#~ msgid "Windows: ``%USERPROFILE%\\PaleoBytes\\CTHarvester\\preferences.json``"
+#~ msgstr ""
+
+#~ msgid "Linux/macOS: ``~/PaleoBytes/CTHarvester/preferences.json``"
+#~ msgstr ""
 

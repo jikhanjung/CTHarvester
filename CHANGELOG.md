@@ -22,16 +22,25 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   menu shortcut sits in a PaleoBytes group alongside Modan2 and PaperMeister.
   Your preferences and logs are untouched by install or uninstall — both live
   under `%USERPROFILE%\PaleoBytes\CTHarvester`.
-- **Preferences moved to `~/PaleoBytes/CTHarvester/preferences.json`** — the same
-  directory as the logs, and the layout Modan2 and PaperMeister use, so a profile
-  can be backed up or moved as one directory. They were previously written as
-  `settings.yaml` under `%APPDATA%\CTHarvester` (Windows) or
-  `~/.config/CTHarvester` (Linux/macOS), which meant preferences and logs lived in
-  different places on every platform. Export/Import in the Settings dialog now
-  reads and writes JSON as well. `CTHARVESTER_DATA_DIR` overrides the location,
-  and `CTHARVESTER_LOG_DIR` now moves the in-application log viewer and
-  "Open log directory" along with the log files themselves — previously it moved
-  only the files, and the UI kept looking at the default directory.
+- **Preferences are now `preferences.json` in your OS configuration directory**,
+  under `PaleoBytes/CTHarvester`:
+  `%LOCALAPPDATA%\PaleoBytes\CTHarvester` on Windows,
+  `~/Library/Application Support/PaleoBytes/CTHarvester` on macOS,
+  `~/.config/PaleoBytes/CTHarvester` on Linux. They were previously written as
+  `settings.yaml` under `%APPDATA%\CTHarvester` or `~/.config/CTHarvester`, and
+  Export/Import in the Settings dialog now reads and writes JSON as well.
+
+  **Logs stay where they are**, under `~/PaleoBytes/CTHarvester/logs/`. Settings
+  and data are kept in separate roots on purpose: preferences are machine-local
+  state that costs nothing to lose and set again, which is not true of anything
+  else the application keeps for you, and a configuration file stored inside a
+  directory whose own location is configurable cannot be read without first
+  knowing where it is.
+
+  `CTHARVESTER_CONFIG_DIR` and `CTHARVESTER_DATA_DIR` override the two roots.
+  `CTHARVESTER_LOG_DIR` now moves the in-application log viewer and "Open log
+  directory" along with the log files themselves — previously it moved only the
+  files, and the UI kept looking at the default directory.
 - **There is now one settings file.** `config/settings.yaml` held a second,
   hand-maintained copy of the defaults and has been removed; the defaults are
   defined once, in `SettingsManager._get_default_settings()`. The two copies had

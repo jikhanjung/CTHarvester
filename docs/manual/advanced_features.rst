@@ -657,8 +657,9 @@ CTHarvester settings are stored as JSON.
 
 **Location:**
 
-* Windows: ``%USERPROFILE%\PaleoBytes\CTHarvester\preferences.json``
-* Linux/macOS: ``~/PaleoBytes/CTHarvester/preferences.json``
+* Windows: ``%LOCALAPPDATA%\PaleoBytes\CTHarvester\preferences.json``
+* macOS: ``~/Library/Application Support/PaleoBytes/CTHarvester/preferences.json``
+* Linux: ``~/.config/PaleoBytes/CTHarvester/preferences.json``
 
 **Example preferences.json:**
 
@@ -705,7 +706,11 @@ Bulk Settings Configuration
    import json
    from pathlib import Path
 
-   settings_path = Path.home() / "PaleoBytes" / "CTHarvester" / "preferences.json"
+   import platformdirs
+
+   settings_path = (
+       Path(platformdirs.user_config_dir()) / "PaleoBytes" / "CTHarvester" / "preferences.json"
+   )
 
    # Load existing settings
    with open(settings_path, encoding="utf-8") as f:
@@ -742,15 +747,22 @@ Control CTHarvester behavior via environment variables:
    export CTHARVESTER_CONSOLE_LEVEL=WARNING
    python CTHarvester.py
 
-**Custom data directory (preferences and logs):**
+**Custom settings location:**
+
+.. code-block:: bash
+
+   export CTHARVESTER_CONFIG_DIR=~/ct-profiles/dev
+   python CTHarvester.py
+
+Moves ``preferences.json`` only, which is the clean way to keep separate
+configurations side by side.
+
+**Custom data directory (logs):**
 
 .. code-block:: bash
 
    export CTHARVESTER_DATA_DIR=~/PaleoBytes/CTHarvester-dev
    python CTHarvester.py
-
-Moves the whole profile — ``preferences.json`` and ``logs/`` — which is the clean
-way to keep separate configurations side by side.
 
 **Custom log directory:**
 
@@ -1148,10 +1160,13 @@ Safe Mode and Recovery
 
    # Delete config file
    # Windows
-   del %USERPROFILE%\PaleoBytes\CTHarvester\preferences.json
+   del %LOCALAPPDATA%\PaleoBytes\CTHarvester\preferences.json
 
-   # Linux/macOS
-   rm ~/PaleoBytes/CTHarvester/preferences.json
+   # Linux
+   rm ~/.config/PaleoBytes/CTHarvester/preferences.json
+
+   # macOS
+   rm ~/Library/Application\ Support/PaleoBytes/CTHarvester/preferences.json
 
    # Launch CTHarvester - settings regenerated with defaults
 

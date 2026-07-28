@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CTHarvester \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 18:24+0900\n"
+"POT-Creation-Date: 2026-07-28 19:34+0900\n"
 "PO-Revision-Date: 2025-10-01 18:30+0900\n"
 "Last-Translator: CTHarvester Documentation Team <noreply@ctharvester.org>\n"
 "Language: ko\n"
@@ -139,6 +139,7 @@ msgid "Launch CTHarvester from the Start Menu (under **PaleoBytes**) or the Desk
 msgstr "시작 메뉴(**PaleoBytes** 아래) 또는 바탕 화면 바로 가기에서 CTHarvester 실행"
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:50
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:194
 msgid "**macOS:**"
 msgstr "**macOS:**"
 
@@ -159,6 +160,7 @@ msgid "Launch CTHarvester from Applications"
 msgstr "응용 프로그램에서 CTHarvester 실행"
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:58
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:197
 msgid "**Linux:**"
 msgstr "**Linux:**"
 
@@ -211,8 +213,8 @@ msgid "Verifying Installation"
 msgstr "설치 확인"
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:136
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:204
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:222
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:210
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:228
 msgid "**Binary Installation:**"
 msgstr "**바이너리 설치:**"
 
@@ -221,8 +223,8 @@ msgid "Launch CTHarvester from your application menu or desktop shortcut. The ap
 msgstr "애플리케이션 메뉴 또는 바탕 화면 바로 가기에서 CTHarvester를 실행합니다. 애플리케이션이 시작되고 메인 창이 표시되어야 합니다."
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:140
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:211
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:228
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:217
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:234
 msgid "**Source Installation:**"
 msgstr "**소스 설치:**"
 
@@ -283,88 +285,101 @@ msgid "CTHarvester stores its configuration in platform-specific locations:"
 msgstr "CTHarvester는 플랫폼별 위치에 구성을 저장합니다:"
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:192
-msgid "``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester\\\\preferences.json``"
-msgstr "``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester\\\\preferences.json``"
-
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:194
-msgid "**Linux/macOS:**"
-msgstr "**Linux/macOS:**"
+msgid "``%LOCALAPPDATA%\\\\PaleoBytes\\\\CTHarvester\\\\preferences.json``"
+msgstr ""
 
 #: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:195
-msgid "``~/PaleoBytes/CTHarvester/preferences.json``"
-msgstr "``~/PaleoBytes/CTHarvester/preferences.json``"
+msgid "``~/Library/Application Support/PaleoBytes/CTHarvester/preferences.json``"
+msgstr ""
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:197
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:198
+msgid "``~/.config/PaleoBytes/CTHarvester/preferences.json``"
+msgstr ""
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:200
+msgid "Logs are kept separately, under ``~/PaleoBytes/CTHarvester/logs/`` on every platform."
+msgstr "로그는 별도로 모든 플랫폼에서 ``~/PaleoBytes/CTHarvester/logs/``에 저장됩니다."
+
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:203
 msgid "You can customize settings through the Preferences dialog (gear icon) in the application."
 msgstr "애플리케이션의 환경 설정 대화 상자(톱니바퀴 아이콘)를 통해 설정을 사용자 정의할 수 있습니다."
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:200
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:206
 msgid "Updating"
 msgstr "업데이트"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:202
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:208
 msgid "To update CTHarvester to the latest version:"
 msgstr "CTHarvester를 최신 버전으로 업데이트하려면:"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:206
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:212
 msgid "Download the latest version from the releases page"
 msgstr "릴리스 페이지에서 최신 버전 다운로드"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:207
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:213
 msgid "Windows: Run the new installer, it will update the existing installation"
 msgstr "Windows: 새 설치 프로그램을 실행하면 기존 설치가 업데이트됩니다"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:208
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:214
 msgid "macOS: Replace the old CTHarvester.app with the new one"
 msgstr "macOS: 이전 CTHarvester.app을 새 것으로 교체"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:209
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:215
 msgid "Linux: Replace the old AppImage with the new one"
 msgstr "Linux: 이전 AppImage를 새 것으로 교체"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:220
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:226
 msgid "Uninstallation"
 msgstr "제거"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:224
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:230
 msgid "**Windows**: Use \"Add or Remove Programs\" in Windows Settings, or run the uninstaller from the installation directory"
 msgstr "**Windows**: Windows 설정의 \"프로그램 추가/제거\"를 사용하거나 설치 디렉토리에서 제거 프로그램을 실행합니다"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:225
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:231
 msgid "**macOS**: Drag CTHarvester.app to Trash"
 msgstr "**macOS**: CTHarvester.app을 휴지통으로 드래그"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:226
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:232
 msgid "**Linux**: Delete the AppImage file"
 msgstr "**Linux**: AppImage 파일 삭제"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:230
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:236
 msgid "Delete the CTHarvester directory"
 msgstr "CTHarvester 디렉토리 삭제"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:231
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:237
 msgid "Deactivate and remove the virtual environment"
 msgstr "가상 환경 비활성화 및 제거"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:233
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:239
 msgid "**Configuration Files (all methods):**"
 msgstr "**구성 파일 (모든 방법):**"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:235
-msgid "To completely remove CTHarvester, also delete configuration files:"
-msgstr "CTHarvester를 완전히 제거하려면 구성 파일도 삭제하세요:"
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:241
+msgid "To completely remove CTHarvester, also delete its preferences and logs:"
+msgstr "CTHarvester를 완전히 제거하려면 환경 설정과 로그도 삭제하세요:"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:237
-msgid "Windows: Delete ``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester``"
-msgstr "Windows: ``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester`` 삭제"
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:243
+msgid "Preferences: the file listed under `Configuration`_ above"
+msgstr "환경 설정: 위 `Configuration`_ 절에 나온 파일"
 
-#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:238
-msgid "Linux/macOS: Delete ``~/PaleoBytes/CTHarvester``"
-msgstr "Linux/macOS: ``~/PaleoBytes/CTHarvester`` 삭제"
+#: ../../../../../../mnt/d/projects/CTHarvester/docs/manual/installation.rst:244
+msgid "Logs: ``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester`` (Windows) or ``~/PaleoBytes/CTHarvester`` (Linux/macOS)"
+msgstr "로그: ``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester`` (Windows) 또는 ``~/PaleoBytes/CTHarvester`` (Linux/macOS)"
 
 #~ msgid "Python 3.11 or later"
 #~ msgstr "Python 3.11 이상"
 
 #~ msgid "Follow the installation wizard"
 #~ msgstr "설치 마법사 따라하기"
+
+#~ msgid "**Linux/macOS:**"
+#~ msgstr "**Linux/macOS:**"
+
+#~ msgid "Windows: Delete ``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester``"
+#~ msgstr "Windows: ``%USERPROFILE%\\\\PaleoBytes\\\\CTHarvester`` 삭제"
+
+#~ msgid "Linux/macOS: Delete ``~/PaleoBytes/CTHarvester``"
+#~ msgstr "Linux/macOS: ``~/PaleoBytes/CTHarvester`` 삭제"
 

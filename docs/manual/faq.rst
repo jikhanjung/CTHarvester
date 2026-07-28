@@ -633,10 +633,13 @@ How do I reset settings to defaults?
 .. code-block:: bash
 
    # Windows
-   del %USERPROFILE%\PaleoBytes\CTHarvester\preferences.json
+   del %LOCALAPPDATA%\PaleoBytes\CTHarvester\preferences.json
 
-   # Linux/macOS
-   rm ~/PaleoBytes/CTHarvester/preferences.json
+   # Linux
+   rm ~/.config/PaleoBytes/CTHarvester/preferences.json
+
+   # macOS
+   rm ~/Library/Application\ Support/PaleoBytes/CTHarvester/preferences.json
 
 Settings will be regenerated with defaults on next launch.
 

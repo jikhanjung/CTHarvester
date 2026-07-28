@@ -189,10 +189,16 @@ Configuration
 CTHarvester stores its configuration in platform-specific locations:
 
 **Windows:**
-  ``%USERPROFILE%\\PaleoBytes\\CTHarvester\\preferences.json``
+  ``%LOCALAPPDATA%\\PaleoBytes\\CTHarvester\\preferences.json``
 
-**Linux/macOS:**
-  ``~/PaleoBytes/CTHarvester/preferences.json``
+**macOS:**
+  ``~/Library/Application Support/PaleoBytes/CTHarvester/preferences.json``
+
+**Linux:**
+  ``~/.config/PaleoBytes/CTHarvester/preferences.json``
+
+Logs are kept separately, under ``~/PaleoBytes/CTHarvester/logs/`` on every
+platform.
 
 You can customize settings through the Preferences dialog (gear icon) in the application.
 
@@ -232,7 +238,8 @@ Uninstallation
 
 **Configuration Files (all methods):**
 
-To completely remove CTHarvester, also delete configuration files:
+To completely remove CTHarvester, also delete its preferences and logs:
 
-* Windows: Delete ``%USERPROFILE%\\PaleoBytes\\CTHarvester``
-* Linux/macOS: Delete ``~/PaleoBytes/CTHarvester``
+* Preferences: the file listed under `Configuration`_ above
+* Logs: ``%USERPROFILE%\\PaleoBytes\\CTHarvester`` (Windows) or
+  ``~/PaleoBytes/CTHarvester`` (Linux/macOS)

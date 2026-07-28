@@ -4,9 +4,10 @@ Provides a unified settings management system, replacing the platform-specific
 QSettings approach it started from with a plain file the user can read, copy and
 version-control.
 
-There is one settings file: ``preferences.json`` in the data directory (see
-:mod:`utils.paths`), matching Modan2 and PaperMeister. The defaults are defined
-once, in :meth:`SettingsManager._get_default_settings`.
+There is one settings file: ``preferences.json`` in the OS configuration
+directory under ``PaleoBytes/CTHarvester`` (see :mod:`utils.paths`), separate
+from the data directory that holds the logs. The defaults are defined once, in
+:meth:`SettingsManager._get_default_settings`.
 
 Key features:
     - Platform-independent configuration storage
@@ -43,7 +44,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-from utils.paths import CONFIG_FILENAME, get_data_dir
+from utils.paths import CONFIG_FILENAME, get_config_dir
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +52,9 @@ logger = logging.getLogger(__name__)
 class SettingsManager:
     """Settings manager for application configuration.
 
-    This class manages application settings as a JSON file in the user's data
-    directory. It provides a simple key-value interface with dot notation support
-    for nested settings.
+    This class manages application settings as a JSON file in the user's
+    configuration directory. It provides a simple key-value interface with dot
+    notation support for nested settings.
 
     Settings are organized hierarchically and accessed using dot notation (e.g.,
     'application.language'). The manager automatically creates configuration directories
@@ -85,15 +86,16 @@ class SettingsManager:
         from disk. If no settings file exists, uses default settings.
 
         Args:
-            config_dir: Path to configuration directory. If None, uses the data
-                directory from :mod:`utils.paths` (``~/PaleoBytes/CTHarvester``),
-                which is also where logs go.
+            config_dir: Path to configuration directory. If None, uses the
+                configuration directory from :mod:`utils.paths` — the OS config
+                location under ``PaleoBytes/CTHarvester``, deliberately separate
+                from the data directory that holds the logs.
 
         Note:
             The configuration directory and file are created automatically if they
             don't exist.
         """
-        self.config_dir = Path(config_dir) if config_dir is not None else get_data_dir()
+        self.config_dir = Path(config_dir) if config_dir is not None else get_config_dir()
         self.config_file = self.config_dir / self.DEFAULT_CONFIG_FILE
 
         # Create directory

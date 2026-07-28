@@ -149,8 +149,9 @@ Permission Issues
 
 **Location of settings files:**
 
-* Windows: ``%USERPROFILE%\PaleoBytes\CTHarvester\preferences.json``
-* Linux/macOS: ``~/PaleoBytes/CTHarvester/preferences.json``
+* Windows: ``%LOCALAPPDATA%\PaleoBytes\CTHarvester\preferences.json``
+* macOS: ``~/Library/Application Support/PaleoBytes/CTHarvester/preferences.json``
+* Linux: ``~/.config/PaleoBytes/CTHarvester/preferences.json``
 
 **Solution:**
 
@@ -170,10 +171,13 @@ Permission Issues
    .. code-block:: bash
 
       # Windows (PowerShell)
-      rm "$env:USERPROFILE\PaleoBytes\CTHarvester\preferences.json"
+      rm "$env:LOCALAPPDATA\PaleoBytes\CTHarvester\preferences.json"
 
-      # Linux/macOS
-      rm ~/PaleoBytes/CTHarvester/preferences.json
+      # Linux
+      rm ~/.config/PaleoBytes/CTHarvester/preferences.json
+
+      # macOS
+      rm ~/Library/Application\ Support/PaleoBytes/CTHarvester/preferences.json
 
 Directory and File Loading Issues
 ----------------------------------
@@ -680,10 +684,13 @@ Settings Not Persisting
 
    # This will regenerate default settings
    # Windows
-   del %USERPROFILE%\PaleoBytes\CTHarvester\preferences.json
+   del %LOCALAPPDATA%\PaleoBytes\CTHarvester\preferences.json
 
-   # Linux/macOS
-   rm ~/PaleoBytes/CTHarvester/preferences.json
+   # Linux
+   rm ~/.config/PaleoBytes/CTHarvester/preferences.json
+
+   # macOS
+   rm ~/Library/Application\ Support/PaleoBytes/CTHarvester/preferences.json
 
 Cannot Import Settings
 ~~~~~~~~~~~~~~~~~~~~~~

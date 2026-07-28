@@ -10,15 +10,18 @@ CTHarvester keeps your preferences in a plain file you can read, copy and back u
 Configuration File Location
 ---------------------------
 
-**Your preferences** are written as JSON to ``preferences.json`` in the CTHarvester
-data directory, next to the logs:
+**Your preferences** are written as JSON to ``preferences.json`` in the location
+your operating system sets aside for configuration:
 
-- Linux/macOS: ``~/PaleoBytes/CTHarvester/preferences.json``
-- Windows: ``%USERPROFILE%\PaleoBytes\CTHarvester\preferences.json``
+- Windows: ``%LOCALAPPDATA%\PaleoBytes\CTHarvester\preferences.json``
+- macOS: ``~/Library/Application Support/PaleoBytes/CTHarvester/preferences.json``
+- Linux: ``~/.config/PaleoBytes/CTHarvester/preferences.json``
 
-Everything CTHarvester keeps for you lives under that one directory, so backing up
-or moving a profile is a single directory copy. Set ``CTHARVESTER_DATA_DIR`` to put
-it somewhere else.
+This is deliberately *not* the directory the logs go to
+(``~/PaleoBytes/CTHarvester/``). Preferences are machine-local state — window
+positions, thread counts — that costs nothing to lose and set again, so it is not
+something you back up or carry between machines alongside your data. Set
+``CTHARVESTER_CONFIG_DIR`` to put the preferences somewhere else.
 
 The preferences file is created automatically on first run with default values.
 Defaults have a single definition, in ``SettingsManager._get_default_settings()``;
@@ -492,7 +495,7 @@ Configuration Priority
 ~~~~~~~~~~~~~~~~~~~~~~
 
 1. Command-line arguments (future feature)
-2. User preferences file (``~/PaleoBytes/CTHarvester/preferences.json``)
+2. User preferences file (see `Configuration File Location`_)
 3. Built-in defaults (``SettingsManager._get_default_settings()``)
 
 Resetting to Defaults
@@ -504,28 +507,34 @@ To reset all settings:
 2. Restart CTHarvester
 3. A new preferences file will be created with defaults
 
-**Linux/macOS:**
+**Linux:**
 
 .. code:: bash
 
-   rm ~/PaleoBytes/CTHarvester/preferences.json
+   rm ~/.config/PaleoBytes/CTHarvester/preferences.json
+
+**macOS:**
+
+.. code:: bash
+
+   rm ~/Library/Application\ Support/PaleoBytes/CTHarvester/preferences.json
 
 **Windows:**
 
 .. code:: powershell
 
-   del %USERPROFILE%\PaleoBytes\CTHarvester\preferences.json
+   del %LOCALAPPDATA%\PaleoBytes\CTHarvester\preferences.json
 
 Environment-Specific Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For different workflows, keep a profile per workflow and point
-``CTHARVESTER_DATA_DIR`` at the one you want. Each gets its own preferences and
-logs, and nothing has to be copied over the file in use:
+For different workflows, keep a settings profile per workflow and point
+``CTHARVESTER_CONFIG_DIR`` at the one you want, so nothing has to be copied over
+the file in use. ``CTHARVESTER_DATA_DIR`` does the same for the logs:
 
 .. code:: bash
 
-   CTHARVESTER_DATA_DIR=~/PaleoBytes/CTHarvester-dev CTHarvester
+   CTHARVESTER_CONFIG_DIR=~/ct-profiles/dev CTHarvester
 
 Alternatively, export your settings to a file from the Settings dialog
 (**Export Settings...**) and import it again later.
