@@ -38,6 +38,11 @@ devlog 114에서 인스톨러를 맞추다가 매뉴얼의 로그 경로가 코�
     logs/CTHarvester.log
 ```
 
+> **이후 정정 (devlog 116):** 설정 파일은 이 디렉토리에 두지 않는다. PaleoBytes 규약
+> R02에 따라 OS 설정 위치 아래 `PaleoBytes/CTHarvester/preferences.json`으로 옮겼다.
+> 로그는 여기 그대로다. 아래 내용 중 "모든 것이 한 디렉토리"라는 서술은 그 범위에서
+> 읽어야 한다.
+
 - 설정 파일은 **`preferences.json`** (Modan2와 동일한 이름·형식), 로그와 같은
   디렉토리. 프로필 백업이 디렉토리 하나 복사로 끝나는 것이 이 배치의 이유다.
 - `CTHARVESTER_DATA_DIR`로 루트를 바꿀 수 있다. PaperMeister의
