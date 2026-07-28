@@ -1,21 +1,51 @@
+; Inno Setup script template for CTHarvester (Windows installer).
+; build.py fills {{VERSION}} and rewrites every ..\ path below to an absolute one
+; before running ISCC, so those relative paths are placeholders too — ISCC is
+; never pointed at this file directly, and the paths do not have to exist as
+; written. BUILD_NUMBER comes from the environment.
+;
+; Runtime data is NOT installed or removed by this script — logs live in
+; %USERPROFILE%\PaleoBytes\CTHarvester\logs and settings in the user's QSettings
+; store, both of which must survive an uninstall. The app creates them on first
+; run.
 #define AppVersion "{{VERSION}}"
 #define BuildNumber GetEnv('BUILD_NUMBER')
 
 [Setup]
+; Stable identity for upgrades and uninstall. Without it Inno derives the ID
+; from AppName, so renaming the app later would install a second copy beside the
+; first and orphan its entry in Add/Remove Programs. Generated once — never
+; change it. The doubled brace below is Inno's escape for a literal `{`; it is
+; not one of the placeholders build.py substitutes, and must be left alone.
+AppId={{D08C5C2E-2025-440E-80B2-27105466BFFD}
 AppName=CTHarvester
 AppVersion={#AppVersion}
-AppPublisher=Jikhanjung
+AppPublisher=PaleoBytes
 AppPublisherURL=https://github.com/jikhanjung/CTHarvester
 AppSupportURL=https://github.com/jikhanjung/CTHarvester
 AppUpdatesURL=https://github.com/jikhanjung/CTHarvester
-DefaultDirName={commonpf}\PaleoBytes\CTHarvester
+; Per-user install: no elevation, so {userpf} and {userprograms} always resolve
+; to the invoking user rather than to whoever consented to UAC.
+PrivilegesRequired=lowest
+; {userpf} is the per-user equivalent of Program Files -- %LOCALAPPDATA%\Programs
+; -- which is where a per-user application belongs. Writing straight into
+; %LOCALAPPDATA% (as this did) puts a program among the application *data*
+; directories, next to the caches and profiles that live there. Local rather than
+; Roaming either way: the onedir payload runs to a couple of hundred megabytes and
+; would otherwise sync with the user profile on domain-joined machines. Grouped
+; under PaleoBytes to match Modan2 and PaperMeister.
+DefaultDirName={userpf}\PaleoBytes\CTHarvester
+UninstallDisplayIcon={app}\CTHarvester.exe
 DisableProgramGroupPage=yes
 LicenseFile=..\LICENSE
 OutputDir=..\InnoSetup\Output
 OutputBaseFilename=CTHarvester_v{#AppVersion}_build{#BuildNumber}_Installer
-SetupIconFile=..\icon.ico
-Compression=lzma
-SolidCompression=yes
+SetupIconFile=..\resources\icons\icon.ico
+; Conservative compression rather than solid/max: solid archives make AV
+; heuristics flag unsigned installers more often, and this one is unsigned until
+; signing lands. Same setting as Modan2, which hit the false positives first.
+Compression=lzma/normal
+SolidCompression=no
 WizardStyle=modern
 
 [Languages]
@@ -32,19 +62,9 @@ Source: "..\dist\CTHarvester\*"; DestDir: "{app}"; Flags: recursesubdirs createa
 ; Copy sample data if available
 ; Source: "..\SampleData\*"; DestDir: "{%userprofile}\PaleoBytes\CTHarvester\SampleData"; Flags: recursesubdirs createallsubdirs
 
-[Run]
-Filename: "{app}\CTHarvester.exe"; Description: "{cm:LaunchProgram,CTHarvester}"; Flags: postinstall nowait skipifsilent
-
-[Code]
-function InitializeSetup(): Boolean;
-begin
-  // Create a specific Start Menu group under PaleoBytes
-  if not DirExists(ExpandConstant('{userprograms}\PaleoBytes')) then
-    CreateDir(ExpandConstant('{userprograms}\PaleoBytes'));
-
-  Result := True;
-end;
-
 [Icons]
 Name: "{userprograms}\PaleoBytes\CTHarvester"; Filename: "{app}\CTHarvester.exe"
-Name: "{autodesktop}\CTHarvester"; Filename: "{app}\CTHarvester.exe"; Tasks: desktopicon
+Name: "{userdesktop}\CTHarvester"; Filename: "{app}\CTHarvester.exe"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\CTHarvester.exe"; Description: "{cm:LaunchProgram,CTHarvester}"; Flags: postinstall shellexec nowait skipifsilent
