@@ -59,6 +59,48 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   schema example used key names the application does not have, and a
   "database repair" section described a SQLite cache CTHarvester has never had.
 
+### Changed / Internal
+
+Nothing in this group changes how the application behaves. It is recorded
+because most of it was found by measuring something that had never been
+measured, and the same checks now run on every commit.
+
+- **Type checking now covers the whole shipped tree.** `ui/widgets/` was the
+  last excluded directory and the mypy exclude list is empty. Bringing it in
+  surfaced two defects that the exclusion had been hiding: `MCubeWidget`
+  assigned `self.parent`, which replaces `QWidget.parent()` on the instance so
+  callers get the 2D viewer instead of the parent widget, and every mouse
+  handler in `ObjectViewer2D` — plus `resizeEvent` — dereferenced collaborators
+  that are attached after construction, so those four paths raised
+  `AttributeError` on a viewer built on its own. Neither is reachable in the
+  running application, where the collaborators are always wired up.
+- **Property-based tests replace the placeholder.** `tests/property/` held one
+  test whose body was `pytest.skip("Template")`; it now carries 14 properties
+  over image downsampling, overflow-safe image averaging, and ROI coordinate
+  handling. Hypothesis itself turned out not to be configured at all: the
+  settings lived in a `[tool.hypothesis]` table in `pyproject.toml`, which
+  Hypothesis does not read, so the runs were not deterministic as intended.
+- **The test suite no longer writes your real preferences file.** The
+  integration tests isolate settings with an environment variable, and the name
+  they used was not one the application reads. Since closing a window saves
+  settings, every run of those tests wrote the developer's own
+  `preferences.json`. This only ever affected people running the test suite from
+  a source checkout.
+- Three tests that could not fail were repaired: an ETA test whose tolerance
+  depended on how busy the CI machine was (it had failed on macOS three times),
+  an assertion comparing two unrelated clocks, and a settings test whose body
+  was skipped by a guard checking for an attribute under the wrong name. A
+  handful of others asserted on literals they had just written rather than on
+  anything the application computed.
+- `tests/test_basic.py` was removed. It had been excluded from CI while still
+  passing locally, and each of its six tests is covered — in some cases more
+  strictly — by `test_smoke.py` or by the dedicated test file for the module
+  concerned.
+- The `bandit` security scan was reviewed against Ruff's `S` rules, which now
+  implement 73 of its 75 checks. It stays: `B613` (bidirectional Unicode control
+  characters, the "Trojan Source" class) has no Ruff equivalent and applies to
+  any codebase. The reasoning is recorded next to the command.
+
 ## [0.2.3-beta.3] - 2026-07-27
 
 ### Added

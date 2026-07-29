@@ -155,7 +155,7 @@ jobs:
 
           - [User Guide](https://jikhanjung.github.io/CTHarvester/en/user_guide.html)
           - [Full Changelog](https://github.com/jikhanjung/CTHarvester/blob/main/CHANGELOG.md)
-          - [Troubleshooting](https://github.com/jikhanjung/CTHarvester/blob/main/docs/user_guide/troubleshooting.rst)
+          - [Troubleshooting](https://jikhanjung.github.io/CTHarvester/en/troubleshooting.html)
         prerelease: ${{ steps.check_prerelease.outputs.PRERELEASE }}
         files: |
           release-files/ctharvester-windows/CTHarvester-Windows-*.zip
