@@ -24,7 +24,9 @@ rm -f *.AppImage
 mkdir -p "${APPDIR}/usr/bin"
 mkdir -p "${APPDIR}/usr/lib"
 mkdir -p "${APPDIR}/usr/share/applications"
-mkdir -p "${APPDIR}/usr/share/icons/hicolor/256x256/apps"
+# 64x64, not 256x256: that is the largest icon in the tree, and declaring a
+# size the file does not have makes desktops scale it wrongly.
+mkdir -p "${APPDIR}/usr/share/icons/hicolor/64x64/apps"
 
 # Copy the PyInstaller output
 if [ -d "${PROJECT_ROOT}/dist/CTHarvester" ]; then
@@ -43,18 +45,26 @@ else
     exit 1
 fi
 
-# Copy icon
-if [ -f "${PROJECT_ROOT}/icon.png" ]; then
-    cp "${PROJECT_ROOT}/icon.png" "${APPDIR}/usr/share/icons/hicolor/256x256/apps/CTHarvester.png"
-    cp "${PROJECT_ROOT}/icon.png" "${APPDIR}/CTHarvester.png"
-elif [ -f "${PROJECT_ROOT}/CTHarvester_64.png" ]; then
-    cp "${PROJECT_ROOT}/CTHarvester_64.png" "${APPDIR}/usr/share/icons/hicolor/256x256/apps/CTHarvester.png"
-    cp "${PROJECT_ROOT}/CTHarvester_64.png" "${APPDIR}/CTHarvester.png"
-else
-    echo "Warning: No icon file found, creating placeholder..."
-    # Create a minimal placeholder icon
-    echo -e '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05|%\xb6b\x00\x00\x00\x00IEND\xaeB`\x82' > "${APPDIR}/CTHarvester.png"
+# Copy icon.
+#
+# This used to look for ${PROJECT_ROOT}/icon.png and
+# ${PROJECT_ROOT}/CTHarvester_64.png. Both live under resources/icons/, so
+# neither path has ever existed and every AppImage built so far fell through to
+# the placeholder branch below and shipped a 1x1 transparent pixel as its icon.
+# Confirmed by extracting the v0.2.3-beta.4 AppImage: its CTHarvester.png is 69
+# bytes, 1x1.
+#
+# The placeholder is gone with it. A missing icon is a packaging error, and a
+# build that quietly substitutes an invisible one is how this went unnoticed
+# across every release.
+ICON_SRC="${PROJECT_ROOT}/resources/icons/CTHarvester_64_2.png"
+if [ ! -f "${ICON_SRC}" ]; then
+    echo "Error: icon not found at ${ICON_SRC}"
+    exit 1
 fi
+cp "${ICON_SRC}" "${APPDIR}/usr/share/icons/hicolor/64x64/apps/CTHarvester.png"
+cp "${ICON_SRC}" "${APPDIR}/CTHarvester.png"
+echo "Icon: ${ICON_SRC} ($(stat -c %s "${ICON_SRC}") bytes)"
 
 # Create desktop entry
 cat > "${APPDIR}/usr/share/applications/CTHarvester.desktop" << EOF
@@ -138,7 +148,17 @@ done
 # Create the AppImage
 echo "Creating AppImage..."
 if command -v appimagetool >/dev/null 2>&1; then
-    ARCH=x86_64 appimagetool "${APPDIR}" "CTHarvester-Linux-${VERSION}.AppImage"
+    # --comp xz rather than the gzip default. Measured on the v0.2.3-beta.4
+    # payload (349 MiB uncompressed): gzip 124.2 MiB, xz 102.6 MiB -- 18% off
+    # the download for a squashfs that every type-2 AppImage runtime can mount.
+    # zstd compresses to 111.6 MiB and decompresses faster, but appimagetool
+    # rejects anything other than gzip or xz (src/appimagetool.c), so it is not
+    # an option here.
+    #
+    # The cost is startup: xz decompresses more slowly, and the runtime pages
+    # the filesystem in on demand. If launch time becomes the complaint rather
+    # than download size, gzip is the one-word revert.
+    ARCH=x86_64 appimagetool --comp xz "${APPDIR}" "CTHarvester-Linux-${VERSION}.AppImage"
 else
     echo "Error: appimagetool not found. Please install it first."
     exit 1
