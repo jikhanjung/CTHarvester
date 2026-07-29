@@ -5,7 +5,7 @@ Single Source of Truth for version management
 
 import semver
 
-__version__ = "0.2.3-beta.3"
+__version__ = "0.2.3-beta.4"
 
 # semver 라이브러리를 사용해 안전하게 파싱
 _ver = semver.VersionInfo.parse(__version__)

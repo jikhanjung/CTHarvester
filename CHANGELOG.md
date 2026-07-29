@@ -14,6 +14,8 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
 
 ## [Unreleased]
 
+## [0.2.3-beta.4] - 2026-07-29
+
 ### Changed
 - **The Windows installer is now a per-user install into
   `%LOCALAPPDATA%\Programs\PaleoBytes\CTHarvester`** and no longer asks for administrator
