@@ -268,28 +268,44 @@ class TestSimpleProgressTracker:
         info = callback.call_args[0][0]
         assert info.eta_seconds is not None
 
-    def test_eta_calculation_with_speed(self):
-        """Test ETA calculation based on speed"""
+    def test_eta_calculation_with_speed(self, monkeypatch):
+        """ETA is remaining-items divided by the smoothed speed.
+
+        The clock is injected, for the reason spelled out in
+        TestProgressTrackerIntegration.test_speed_averaging. Two earlier
+        attempts to state this with time.sleep() both failed on macOS: an
+        absolute `< 2` ceiling (which asserted the runner was not busy) and
+        then `approx(9 * elapsed, rel=0.5)`, which came out at 2.77 vs 6.01.
+
+        The relative form looks machine-independent but is not. Each sample is
+        a *cumulative* speed, completed/elapsed-since-start, so the first one
+        is 1/elapsed_1 and is wildly volatile -- if a later iteration stalls,
+        that early outlier still sits in the smoothing window and drags the
+        average above the true rate. That is the tracker working as designed;
+        only a controlled clock can hold it still enough to assert on.
+        """
+        now = 1000.0
+
+        def fake_perf_counter():
+            return now
+
+        monkeypatch.setattr(time, "perf_counter", fake_perf_counter)
+
         callback = MagicMock()
         tracker = SimpleProgressTracker(total_items=100, callback=callback, min_samples_for_eta=1)
 
-        # Simulate work
         for _i in range(10):
-            time.sleep(0.01)
+            now += 0.01
             tracker.update()
 
         info = callback.call_args[0][0]
 
-        # Should have ETA
-        assert info.eta_seconds is not None
-        assert info.eta_seconds > 0
-
-        # 10 of 100 items are done, so 90 remain and the ETA should be about 9x
-        # the elapsed time -- a relationship that holds whatever speed the
-        # machine ran at. The previous `< 2` was an absolute ceiling, which
-        # asserts the CI runner is not busy rather than anything about the
-        # calculation, and it duly failed on macOS at 4.83s.
-        assert info.eta_seconds == pytest.approx(9 * info.elapsed_seconds, rel=0.5)
+        # At a steady 100 items/sec every sample reads 100, so the smoothed
+        # speed is exactly 100 and the 90 remaining items take 0.9s -- nine
+        # times the 0.1s elapsed, with no tolerance needed beyond float noise.
+        assert info.elapsed_seconds == pytest.approx(0.1)
+        assert info.speed == pytest.approx(100.0)
+        assert info.eta_seconds == pytest.approx(0.9)
 
     def test_moving_average_smoothing(self):
         """Test moving average window for speed smoothing"""
@@ -314,12 +330,18 @@ class TestSimpleProgressTracker:
         assert len(tracker.speed_samples) > 0
 
         # Reset
+        before = time.perf_counter()
         tracker.reset()
+        after = time.perf_counter()
 
         assert tracker.completed_items == 0
         assert len(tracker.speed_samples) == 0
-        # Start time should be updated
-        assert tracker.start_time <= time.time()
+        # The clock restarts. Bracketing it against perf_counter is the only
+        # way to say so: start_time is a perf_counter reading, and the previous
+        # `<= time.time()` compared it to the epoch clock, where any value at
+        # all passes.
+        assert before <= tracker.start_time <= after
+        assert tracker.last_update_time == tracker.start_time
 
     def test_get_info_without_update(self):
         """Test get_info() retrieves current state without updating"""
