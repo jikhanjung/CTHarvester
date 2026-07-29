@@ -6,10 +6,13 @@ Deferred work, with enough context to pick up later. Newest first.
 
 ## Code quality guide status
 
-Live status against `../Modan2/docs/CODE_QUALITY_GUIDE.md` (v1.0, 2026-07-23),
-Appendix A's prioritised adoption checklist. Verified 2026-07-26. The table in
-devlog 100 is the snapshot from the original audit; this one is the current
-state and should be updated as items land.
+Live status against the prioritised adoption checklist (Appendix A) of the code
+quality guide, v1.0 of 2026-07-23. **The checklist and the section numbering it
+uses are copied into [devlog 120](devlog/20260729_120_quality_checklist_baseline_copied_in.md)**
+— that copy is the baseline this table scores against, and it is deliberately
+frozen at v1.0. Verified 2026-07-26. The table in devlog 100 is the snapshot
+from the original audit; this one is the current state and should be updated as
+items land.
 
 | # | Item | Status | Where it stands |
 |---|---|---|---|
@@ -20,7 +23,7 @@ state and should be updated as items land.
 | 5 | Lockfile + pip-audit + Dependabot | ✅ | 9 per-platform lockfiles with hashes, pip-audit gating on all three platforms, `.github/dependabot.yml`, and `dependabot-lock-refresh.yml` to keep the locks in step with Dependabot's range bumps |
 | 6 | Coverage gate | ✅ | `--cov-fail-under=75` on the reference leg |
 | 7 | Static type checking, scoped | ✅ | mypy per-module strict, gating in CI over `core/`, `utils/` and `ui/` — **nothing excluded** as of 2026-07-29 (49 files, clean). CI, `make type-check` and the pre-commit hook run one identical command |
-| 8 | Dead-code / complexity automation | ✅ | `C901` enforced at the guide's threshold of 15 (2026-07-26); the backlog of eight functions is cleared. vulture evaluated and rejected — 5 of its 6 findings were false positives; Modan2 does not use it either. |
+| 8 | Dead-code / complexity automation | ✅ | `C901` enforced at 15 (2026-07-26); the backlog of eight functions is cleared. vulture evaluated and rejected — 5 of its 6 findings were false positives. |
 | 9 | Packaged-artifact smoke test; signed installers | ⚠️ | Smoke test done (2026-07-26): `--self-test` entry point, run against the frozen build on all 3 OSes in `reusable_build.yml`. Installer signing/notarization still open |
 | 10 | Property-based / fuzz tests | ✅ | `tests/property/test_image_properties.py` holds 14 real properties over `downsample_image`, `average_images` and `ROIManager` (2026-07-29). The hypothesis profile moved to `tests/conftest.py`, because the `[tool.hypothesis]` table in `pyproject.toml` had never been read |
 
@@ -93,7 +96,9 @@ shape as the macOS ETA flake fixed the same day.
 
 ### Complexity backlog (`C901`) ✅ cleared 2026-07-26
 
-`max-complexity` is at **15**, the guide's threshold. It began as a ratchet at
+`max-complexity` is at **15**, this project's own long-standing value (it was
+already 15 in 2025-09-30, devlog 038; the guide sets no number — see devlog 120).
+It began as a ratchet at
 32 — the then-worst function — and came down as each of eight functions was
 split. Nothing is above the limit now.
 
@@ -217,15 +222,15 @@ still fails when a dependency is added to `pyproject.toml` without re-locking.
 From the same devlog (lower priority):
 
 - **Packaged-artifact smoke test** — build the installer in CI, then install and
-  launch it headless in a clean runner (guide §7). Neither CTHarvester nor Modan2
-  has this yet.
+  launch it headless in a clean runner (guide §7, copied into devlog 120).
+  Neither CTHarvester nor Modan2 has this yet.
 - **Upstream PyMCubes PR** — `mcubes/src/_mcubes.pyx` sets `ndarray.shape`
   directly (`verts.shape = (-1, 3)`), deprecated in NumPy 2.5. Currently worked
   around with a message-scoped `filterwarnings` ignore in `pyproject.toml`. Real
   fix is a one-line-per-site `reshape` PR upstream. Revisit if NumPy announces a
   removal version. See the pymcubes appendix in devlog 100.
 - **Installer signing / notarization** — Windows Authenticode, macOS notarization
-  (guide §7).
+  (guide §7, copied into devlog 120).
 
 ---
 
