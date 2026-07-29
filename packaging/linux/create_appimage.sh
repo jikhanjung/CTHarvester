@@ -148,17 +148,21 @@ done
 # Create the AppImage
 echo "Creating AppImage..."
 if command -v appimagetool >/dev/null 2>&1; then
-    # --comp xz rather than the gzip default. Measured on the v0.2.3-beta.4
-    # payload (349 MiB uncompressed): gzip 124.2 MiB, xz 102.6 MiB -- 18% off
-    # the download for a squashfs that every type-2 AppImage runtime can mount.
-    # zstd compresses to 111.6 MiB and decompresses faster, but appimagetool
-    # rejects anything other than gzip or xz (src/appimagetool.c), so it is not
-    # an option here.
+    # gzip, appimagetool's default. --comp xz was tried and reverted: measured
+    # end to end it took the artifact from 124.4 MiB only to 118.5 MiB, 4.8%,
+    # which does not pay for xz's slower decompression on a filesystem the
+    # runtime pages in on demand at every launch.
     #
-    # The cost is startup: xz decompresses more slowly, and the runtime pages
-    # the filesystem in on demand. If launch time becomes the complaint rather
-    # than download size, gzip is the one-word revert.
-    ARCH=x86_64 appimagetool --comp xz "${APPDIR}" "CTHarvester-Linux-${VERSION}.AppImage"
+    # The reason the gain is small is the block size. Standalone mksquashfs at
+    # its 128 KiB default gives gzip 124.2 MiB against xz 102.6 MiB, and that
+    # 18% is what made xz look worthwhile -- but appimagetool builds with
+    # `block size 16384`, and 16 KiB blocks give xz far less to work with while
+    # costing gzip almost nothing. Anyone re-measuring this has to do it at
+    # appimagetool's block size or they will get the same wrong answer.
+    #
+    # zstd is not selectable regardless: appimagetool rejects anything that is
+    # not gzip or xz (src/appimagetool.c).
+    ARCH=x86_64 appimagetool "${APPDIR}" "CTHarvester-Linux-${VERSION}.AppImage"
 else
     echo "Error: appimagetool not found. Please install it first."
     exit 1
