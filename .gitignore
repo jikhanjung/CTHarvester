@@ -93,3 +93,7 @@ check_*.py
 _build/
 docs/manual/_static/
 # Note: docs/manual/_templates/ contains custom Sphinx templates - NOT ignored
+
+# Symlink to the shared PaleoBytes guide set (a checkout of the private devdocs
+# repo). Referenced, never copied — a copy drifts from the source. See devlog 119.
+.guides
