@@ -227,30 +227,64 @@ jobs:
           "$exe" --self-test
           echo "Smoke test passed"
 
-      - name: Create macOS app bundle
+      # PyInstaller's BUNDLE() builds dist/CTHarvester.app (see
+      # CTHarvester_onedir.spec), so this only checks the result. It replaces a
+      # step that assembled the bundle by hand with `mkdir Contents/MacOS` and
+      # `cp -r dist/*`, which was wrong twice: the glob matched the
+      # destination's own .app, so BSD cp copied the bundle into itself and the
+      # v0.2.3-beta.4 DMG shipped the application twice (553.9 MB of content
+      # for a ~277 MB build), and without an Info.plist the executable macOS
+      # looks for at Contents/MacOS/CTHarvester was a directory.
+      #
+      # Both failures were silent -- the copy ended in `2>/dev/null || true`
+      # and nothing ever inspected the bundle -- so the checks below are the
+      # point of the step, not ceremony.
+      - name: Verify macOS app bundle
         run: |
-          if [ ! -d "dist/CTHarvester.app" ]; then
-            mkdir -p "dist/CTHarvester.app/Contents/MacOS"
-            cp -r dist/* "dist/CTHarvester.app/Contents/MacOS/" 2>/dev/null || true
-          fi
+          app="dist/CTHarvester.app"
+          plist="$app/Contents/Info.plist"
+          test -d "$app"   || { echo "::error::$app was not produced by PyInstaller"; ls -la dist/; exit 1; }
+          test -f "$plist" || { echo "::error::$app has no Info.plist"; exit 1; }
+
+          read_key() { /usr/libexec/PlistBuddy -c "Print :$1" "$plist"; }
+          exe="$app/Contents/MacOS/$(read_key CFBundleExecutable)"
+          test -f "$exe" && test -x "$exe" \
+            || { echo "::error::CFBundleExecutable does not resolve to a program: $exe"; exit 1; }
+
+          echo "identifier : $(read_key CFBundleIdentifier)"
+          echo "version    : $(read_key CFBundleShortVersionString) (build $(read_key CFBundleVersion))"
+          echo "executable : $exe"
+          echo "bundle size: $(du -sh "$app" | cut -f1)"
+
+      # Run the shipped artifact, not just the COLLECT tree the smoke test
+      # above uses: BUNDLE rearranges the layout, so this is the first thing
+      # that exercises what the DMG actually contains.
+      - name: Smoke-test the app bundle (macOS)
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          "dist/CTHarvester.app/Contents/MacOS/CTHarvester" --self-test
+          echo "App bundle smoke test passed"
 
       - name: Create macOS DMG
+        # No `|| echo ... continuing`: a DMG that fails to build should fail the
+        # job rather than leave the upload step to publish nothing. The former
+        # `--icon` argument is gone with it -- it pointed at icons/CTHarvester.png
+        # and icon.png, neither of which exists (the tree has
+        # resources/icons/), so the variable was always empty, and create-dmg's
+        # --icon takes `<name> <x> <y>` rather than a file to use as artwork.
         run: |
-          if [ -f "icons/CTHarvester.png" ]; then
-            ICON_ARG="--icon icons/CTHarvester.png"
-          elif [ -f "icon.png" ]; then
-            ICON_ARG="--icon icon.png"
-          else
-            ICON_ARG=""
-          fi
           create-dmg \
             --volname "CTHarvester Installer" \
             --window-pos 200 120 \
             --window-size 800 400 \
+            --icon-size 100 \
+            --icon "CTHarvester.app" 200 190 \
             --hide-extension "CTHarvester.app" \
+            --app-drop-link 600 185 \
             --hdiutil-verbose \
             "CTHarvester-macOS-Installer-v${{ steps.get_version.outputs.VERSION }}-build${{ inputs.build_number }}.dmg" \
-            "dist/CTHarvester.app" || echo "DMG creation failed, but continuing"
+            "dist/CTHarvester.app"
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v6
