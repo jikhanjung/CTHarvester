@@ -19,7 +19,7 @@ state and should be updated as items land.
 | 4 | `filterwarnings = error` | ✅ | `pyproject.toml`, narrow documented ignores only |
 | 5 | Lockfile + pip-audit + Dependabot | ✅ | 9 per-platform lockfiles with hashes, pip-audit gating on all three platforms, `.github/dependabot.yml`, and `dependabot-lock-refresh.yml` to keep the locks in step with Dependabot's range bumps |
 | 6 | Coverage gate | ✅ | `--cov-fail-under=75` on the reference leg |
-| 7 | Static type checking, scoped | ✅ | mypy per-module strict, gating in CI over `core/`, `utils/` and `ui/` (43 files, clean). Only `ui/widgets/` is still excluded. CI, `make type-check` and the pre-commit hook now run one identical command |
+| 7 | Static type checking, scoped | ✅ | mypy per-module strict, gating in CI over `core/`, `utils/` and `ui/` — **nothing excluded** as of 2026-07-29 (49 files, clean). CI, `make type-check` and the pre-commit hook run one identical command |
 | 8 | Dead-code / complexity automation | ✅ | `C901` enforced at the guide's threshold of 15 (2026-07-26); the backlog of eight functions is cleared. vulture evaluated and rejected — 5 of its 6 findings were false positives; Modan2 does not use it either. |
 | 9 | Packaged-artifact smoke test; signed installers | ⚠️ | Smoke test done (2026-07-26): `--self-test` entry point, run against the frozen build on all 3 OSes in `reusable_build.yml`. Installer signing/notarization still open |
 | 10 | Property-based / fuzz tests | ⚠️ | `tests/property/test_image_properties.py` exists but its body is `pytest.skip("Template - to be implemented in Phase 4")` |
@@ -44,19 +44,36 @@ utils/ ui/` reports **Success: no issues found in 43 source files**. It took six
 fixes in `ui/` proper and four in `ui/dialogs/progress_dialog.py`, which came
 off the exclude list at the same time.
 
-What remains outside is **`ui/widgets/`** — 38 errors across `mcube_widget.py`
-(27) and `object_viewer_2d.py` (11), still excluded in `pyproject.toml` and
-still `ignore_errors = true`. Most are one mechanical class: `Qt.LeftButton`
-and friends, which PyQt5 exposes on `Qt` at runtime but the stubs place on
-`Qt.GlobalColor` / `Qt.MouseButton`. The rest are `union-attr` on
-`QApplication.instance()`, a few `override` mismatches and three
-`var-annotated`. Same approach: one file clean before it is added.
+**`ui/widgets/` joined 2026-07-29, and the exclude list is now empty.** The 38
+errors came out as predicted in kind but not in weight: about half really were
+the mechanical `Qt.LeftButton` class, fixed by naming the scoped enum
+(`Qt.MouseButton.LeftButton`, `Qt.CursorShape.ArrowCursor`,
+`Qt.AspectRatioMode.KeepAspectRatio`), which also let ten `# type: ignore`
+comments go — one of which, `# type: ignore[attr-defined],` with a trailing
+comma, was malformed and had never suppressed anything.
+
+Two were real defects rather than typing noise, both of the kind that only
+surfaces because nothing had ever measured the file:
+
+- `mcube_widget.py` did `self.parent = parent`, overwriting `QWidget.parent()`
+  for the instance — the same defect `progress_dialog.py` had (devlog 117).
+  Renamed to `parent_widget`; it is read only inside that file.
+- `object_viewer_2d.py` ended every mouse handler with an unguarded
+  `self.object_dialog.update_status()`, and `resizeEvent` reached through both
+  `object_dialog` and `threed_view` the same way. Both are attached from
+  outside by `MainWindowSetup`, so all four paths raised `AttributeError` on a
+  standalone viewer. Guarded, and six regression tests added — verified by
+  probe: removing the guards fails four of them.
+
+The `method-assign` errors on the overlay buttons were kept and waived
+in place: assigning a handler onto a child `QLabel` you own is the ordinary
+PyQt idiom, not the `self.parent` defect.
 
 **Working order** (cheapest first, per the guide's own ordering): ~~#3 `DTZ`~~,
 ~~#2 docs build gating~~, ~~#9 packaged smoke test~~, ~~#8 complexity ratchet~~,
 ~~per-platform locks~~, ~~mypy gating~~ and ~~the full lint ruleset~~ (all done
-2026-07-26/27) and ~~widening mypy to `ui/`~~ (2026-07-28). Remaining: **#10
-property tests**, **installer signing**, and mypy over `ui/widgets/`.
+2026-07-26/27), ~~widening mypy to `ui/`~~ (2026-07-28) and ~~`ui/widgets/`~~
+(2026-07-29). Remaining: **#10 property tests** and **installer signing**.
 
 ### Complexity backlog (`C901`) ✅ cleared 2026-07-26
 

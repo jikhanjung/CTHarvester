@@ -7,6 +7,7 @@ Refactored during Phase 4 to use ROIManager component.
 
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 from PyQt5.QtCore import QRect, Qt
@@ -35,6 +36,12 @@ from config.view_modes import (
     MODE_VIEW,
 )
 from ui.widgets.roi_manager import ROIManager
+
+if TYPE_CHECKING:
+    # Both are wired in from the outside after construction, and both import
+    # this module at runtime, so the reference has to stay type-only.
+    from ui.main_window import CTHarvesterMainWindow
+    from ui.widgets.mcube_widget import MCubeWidget
 
 logger = logging.getLogger(__name__)
 
@@ -67,13 +74,15 @@ class ObjectViewer2D(QLabel):
         self.curr_pixmap = None
         self.distance_threshold = self._2imgx(5)
         self.setMouseTracking(True)
-        self.object_dialog = None
+        # Set by MainWindowSetup right after construction; None until then, and
+        # None for the whole life of a viewer built on its own (every test).
+        self.object_dialog: CTHarvesterMainWindow | None = None
         self.top_idx = -1
         self.bottom_idx = -1
         self.curr_idx = 0
         self.move_x = 0
         self.move_y = 0
-        self.threed_view = None
+        self.threed_view: MCubeWidget | None = None
         self.isovalue = 60
         self.is_inverse = False
 
@@ -194,7 +203,7 @@ class ObjectViewer2D(QLabel):
         self.isovalue = isovalue
         self.update()
 
-    def set_threed_view(self, threed_view):
+    def set_threed_view(self, threed_view: "MCubeWidget") -> None:
         self.threed_view = threed_view
 
     def reset_crop(self):
@@ -280,16 +289,31 @@ class ObjectViewer2D(QLabel):
     def _2imgy(self, coord):
         return round(((float(coord)) / self.scale) * self.image_canvas_ratio)
 
+    def _notify_dialog(self, update_3d: bool = False) -> None:
+        """Push the ROI change back to the owning dialog, if there is one.
+
+        Every mouse handler ended by calling self.object_dialog.update_status()
+        unguarded, but object_dialog is wired in from outside after the widget
+        is constructed. A viewer that has not been through MainWindowSetup --
+        which is every viewer in tests/ui/test_object_viewer_2d.py -- would
+        raise AttributeError on the first mouse event.
+        """
+        if self.object_dialog is None:
+            return
+        self.object_dialog.update_status()
+        if update_3d:
+            self.object_dialog.update_3D_view(True)
+
     def set_mode(self, mode):
         self.edit_mode = mode
         if self.edit_mode == MODE["ADD_BOX"]:
-            self.setCursor(Qt.CrossCursor)  # type: ignore[attr-defined]
+            self.setCursor(Qt.CursorShape.CrossCursor)
         elif self.edit_mode in [
             MODE["MOVE_BOX"],
             MODE["MOVE_BOX_READY"],
             MODE["MOVE_BOX_PROGRESS"],
         ]:
-            self.setCursor(Qt.OpenHandCursor)  # type: ignore[attr-defined]
+            self.setCursor(Qt.CursorShape.OpenHandCursor)
         elif self.edit_mode in [
             MODE["EDIT_BOX"],
             MODE["EDIT_BOX_READY"],
@@ -297,7 +321,7 @@ class ObjectViewer2D(QLabel):
         ]:
             pass
         else:
-            self.setCursor(Qt.ArrowCursor)  # type: ignore[attr-defined]
+            self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def distance_check(self, x, y):
         x = self._2imgx(x)
@@ -348,23 +372,23 @@ class ObjectViewer2D(QLabel):
 
     def set_cursor_mode(self):
         if (self.edit_x1 and self.edit_y1) or (self.edit_x2 and self.edit_y2):
-            self.setCursor(Qt.SizeFDiagCursor)  # type: ignore[attr-defined]
+            self.setCursor(Qt.CursorShape.SizeFDiagCursor)
         elif (self.edit_x1 and self.edit_y2) or (self.edit_x2 and self.edit_y1):
-            self.setCursor(Qt.SizeBDiagCursor)  # type: ignore[attr-defined]
+            self.setCursor(Qt.CursorShape.SizeBDiagCursor)
         elif self.edit_x1 or self.edit_x2:
-            self.setCursor(Qt.SizeHorCursor)  # type: ignore[attr-defined]
+            self.setCursor(Qt.CursorShape.SizeHorCursor)
         elif self.edit_y1 or self.edit_y2:
-            self.setCursor(Qt.SizeVerCursor)  # type: ignore[attr-defined]
+            self.setCursor(Qt.CursorShape.SizeVerCursor)
         elif self.inside_box:
-            self.setCursor(Qt.OpenHandCursor)  # type: ignore[attr-defined]
+            self.setCursor(Qt.CursorShape.OpenHandCursor)
         else:
-            self.setCursor(Qt.ArrowCursor)  # type: ignore[attr-defined]
+            self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def mouseMoveEvent(self, event):
         if self.orig_pixmap is None:
             return
         me = QMouseEvent(event)
-        if me.buttons() == Qt.LeftButton:  # type: ignore[attr-defined]
+        if me.buttons() == Qt.MouseButton.LeftButton:
             if self.edit_mode == MODE["ADD_BOX"]:
                 self.mouse_curr_x = me.x()
                 self.mouse_curr_y = me.y()
@@ -397,14 +421,14 @@ class ObjectViewer2D(QLabel):
                     self.set_mode(MODE["EDIT_BOX_READY"])
                 elif not self.inside_box:
                     self.set_mode(MODE["EDIT_BOX"])
-        self.object_dialog.update_status()
+        self._notify_dialog()
         self.repaint()
 
     def mousePressEvent(self, event):
         if self.orig_pixmap is None:
             return
         me = QMouseEvent(event)
-        if me.button() == Qt.LeftButton:  # type: ignore[attr-defined]
+        if me.button() == Qt.MouseButton.LeftButton:
             # Start a new box: either there is no usable ROI to edit, or the
             # user is already in a box-drawing mode.
             if (
@@ -448,16 +472,16 @@ class ObjectViewer2D(QLabel):
                 self.temp_x2 = self.crop_to_x
                 self.temp_y2 = self.crop_to_y
                 self.set_mode(MODE["MOVE_BOX_PROGRESS"])
-        self.object_dialog.update_status()
+        self._notify_dialog()
         self.repaint()
 
-    def mouseReleaseEvent(self, ev: QMouseEvent) -> None:
-        if self.orig_pixmap is None:
+    def mouseReleaseEvent(self, ev: QMouseEvent | None) -> None:
+        if ev is None or self.orig_pixmap is None:
             return
         me = QMouseEvent(ev)
         if self.mouse_down_x == me.x() and self.mouse_down_y == me.y():
             return
-        if me.button() == Qt.LeftButton:  # type: ignore[attr-defined]
+        if me.button() == Qt.MouseButton.LeftButton:
             if self.edit_mode == MODE["ADD_BOX"]:
                 img_x = self._2imgx(self.mouse_curr_x)
                 img_y = self._2imgy(self.mouse_curr_y)
@@ -510,8 +534,7 @@ class ObjectViewer2D(QLabel):
             )
             self.calculate_resize()
 
-        self.object_dialog.update_status()
-        self.object_dialog.update_3D_view(True)
+        self._notify_dialog(update_3d=True)
         self.repaint()
 
     def get_crop_area(self, imgxy=False):
@@ -616,9 +639,9 @@ class ObjectViewer2D(QLabel):
                 painter.drawText(tx, ty + i * (line_h + vgap), s)
 
         if self.curr_idx > self.top_idx or self.curr_idx < self.bottom_idx:
-            painter.setPen(QPen(QColor(128, 0, 0), 2, Qt.DotLine))  # type: ignore[attr-defined]
+            painter.setPen(QPen(QColor(128, 0, 0), 2, Qt.PenStyle.DotLine))
         else:
-            painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))  # type: ignore[attr-defined]
+            painter.setPen(QPen(Qt.GlobalColor.red, 2, Qt.PenStyle.SolidLine))
         [x1, y1, x2, y2] = self.get_crop_area()
         painter.drawRect(x1, y1, x2 - x1, y2 - y1)
 
@@ -741,7 +764,7 @@ class ObjectViewer2D(QLabel):
             self.curr_pixmap = self.orig_pixmap.scaled(
                 int(self.orig_width * self.scale / self.image_canvas_ratio),
                 int(self.orig_width * self.scale / self.image_canvas_ratio),
-                Qt.KeepAspectRatio,  # type: ignore[attr-defined],
+                Qt.AspectRatioMode.KeepAspectRatio,
             )
             # Always colorize current slice by threshold. If range not set, treat as full stack
             if self.isovalue > 0:
@@ -752,9 +775,13 @@ class ObjectViewer2D(QLabel):
                     self.curr_pixmap, self.isovalue
                 )
 
-    def resizeEvent(self, a0: QResizeEvent) -> None:
+    def resizeEvent(self, a0: QResizeEvent | None) -> None:
         self.calculate_resize()
-        self.object_dialog.mcube_widget.reposition_self()
+        # Same story as _notify_dialog: both collaborators are attached from
+        # outside, so a standalone viewer has neither. Resizing one used to
+        # raise AttributeError before it reached super().
+        if self.object_dialog is not None:
+            self.object_dialog.mcube_widget.reposition_self()
 
         if self.canvas_box:
             self.canvas_box = QRect(
@@ -763,5 +790,6 @@ class ObjectViewer2D(QLabel):
                 self._2canx(self.crop_to_x - self.crop_from_x),
                 self._2cany(self.crop_to_y - self.crop_from_y),
             )
-        self.threed_view.resize_self()
+        if self.threed_view is not None:
+            self.threed_view.resize_self()
         return super().resizeEvent(a0)

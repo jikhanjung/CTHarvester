@@ -14,8 +14,8 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 try:
-    from PyQt5.QtCore import QPoint, QRect, Qt
-    from PyQt5.QtGui import QImage, QPixmap
+    from PyQt5.QtCore import QPoint, QPointF, QRect, QSize, Qt
+    from PyQt5.QtGui import QImage, QMouseEvent, QPixmap, QResizeEvent
     from PyQt5.QtWidgets import QWidget
 
     PYQT_AVAILABLE = True
@@ -504,3 +504,64 @@ class TestObjectViewer2DIntegration:
 
             # Should roundtrip with minimal error
             assert abs(img_coord - back_img) <= 1
+
+
+@pytest.mark.skipif(not PYQT_AVAILABLE, reason="PyQt5 not available")
+@pytest.mark.qt
+class TestObjectViewer2DWithoutDialog:
+    """The viewer must survive having no object_dialog and no threed_view.
+
+    Both are attached from outside by MainWindowSetup after construction, so
+    they are None for any viewer built on its own. Every mouse handler used to
+    end with an unguarded self.object_dialog.update_status(), and resizeEvent
+    reached through object_dialog and threed_view the same way, so all four
+    paths raised AttributeError in that state. Nothing exercised them, which
+    is why it went unnoticed until ui/widgets/ came under mypy.
+    """
+
+    @pytest.fixture
+    def parent_widget(self, qtbot):
+        # Held by a fixture of its own, as everywhere else in this file: a
+        # local would be collected at return and take the child viewer's C++
+        # object with it.
+        widget = QWidget()
+        qtbot.addWidget(widget)
+        return widget
+
+    @pytest.fixture
+    def viewer(self, qtbot, parent_widget):
+        v = ObjectViewer2D(parent_widget)
+        qtbot.addWidget(v)
+        v.orig_pixmap = create_test_pixmap(100, 100)
+        v.calculate_resize()
+        return v
+
+    def _mouse(self, kind, x, y):
+        return QMouseEvent(
+            kind,
+            QPointF(x, y),
+            Qt.LeftButton,
+            Qt.LeftButton,
+            Qt.NoModifier,
+        )
+
+    def test_object_dialog_defaults_to_none(self, viewer):
+        assert viewer.object_dialog is None
+        assert viewer.threed_view is None
+
+    def test_mouse_press_without_dialog(self, viewer):
+        viewer.mousePressEvent(self._mouse(QMouseEvent.MouseButtonPress, 10, 10))
+
+    def test_mouse_move_without_dialog(self, viewer):
+        viewer.mouseMoveEvent(self._mouse(QMouseEvent.MouseMove, 20, 20))
+
+    def test_mouse_release_without_dialog(self, viewer):
+        viewer.mousePressEvent(self._mouse(QMouseEvent.MouseButtonPress, 10, 10))
+        viewer.mouseReleaseEvent(self._mouse(QMouseEvent.MouseButtonRelease, 40, 40))
+
+    def test_mouse_release_ignores_none_event(self, viewer):
+        # Qt's own signature allows None; the override has to accept it.
+        viewer.mouseReleaseEvent(None)
+
+    def test_resize_without_dialog(self, viewer):
+        viewer.resizeEvent(QResizeEvent(QSize(200, 200), QSize(100, 100)))

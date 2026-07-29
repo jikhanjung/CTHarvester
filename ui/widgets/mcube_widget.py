@@ -197,8 +197,9 @@ class MCubeWidget(QGLWidget):
         self.curr_y = 0
         self.down_x = 0
         self.down_y = 0
-        self.temp_dolly = 0
-        self.dolly = 0
+        # Floats: mouseMoveEvent assigns a fraction of the drag distance.
+        self.temp_dolly = 0.0
+        self.dolly = 0.0
         self.data_mode = OBJECT_MODE
         self.view_mode = VIEW_MODE
         self.auto_rotate = True
@@ -215,31 +216,41 @@ class MCubeWidget(QGLWidget):
 
         self.triangles = []
         self.gl_list_generated = False
-        self.parent = parent
-        self.parent.set_threed_view(self)
+        # Not `self.parent`: that name is QWidget.parent(), and assigning to it
+        # replaces the method for this instance, so any caller doing
+        # widget.parent() gets the viewer object back instead of the parent
+        # widget. Same defect that progress_dialog.py had (devlog 117). The
+        # attribute is read only inside this file, so renaming is contained.
+        self.parent_widget = parent
+        self.parent_widget.set_threed_view(self)
 
         """ set up buttons """
+        # The overlay buttons take their handlers by assignment. mypy flags
+        # every one as method-assign, and unlike `self.parent` above these are
+        # kept: the target is a plain child QLabel this widget owns and never
+        # calls the base handler on, which is the standard PyQt way to give a
+        # label click behaviour without a subclass per button.
         self.moveButton = QLabel(self)
         self.moveButton.setPixmap(QPixmap(resource_path("resources/icons/move.png")).scaled(15, 15))
         self.moveButton.hide()
         self.moveButton.setGeometry(0, 0, 15, 15)
-        self.moveButton.mousePressEvent = self.moveButton_mousePressEvent
-        self.moveButton.mouseMoveEvent = self.moveButton_mouseMoveEvent
-        self.moveButton.mouseReleaseEvent = self.moveButton_mouseReleaseEvent
+        self.moveButton.mousePressEvent = self.moveButton_mousePressEvent  # type: ignore[method-assign]
+        self.moveButton.mouseMoveEvent = self.moveButton_mouseMoveEvent  # type: ignore[method-assign]
+        self.moveButton.mouseReleaseEvent = self.moveButton_mouseReleaseEvent  # type: ignore[method-assign]
         self.expandButton = QLabel(self)
         self.expandButton.setPixmap(
             QPixmap(resource_path("resources/icons/expand.png")).scaled(15, 15)
         )
         self.expandButton.hide()
         self.expandButton.setGeometry(15, 0, 15, 15)
-        self.expandButton.mousePressEvent = self.expandButton_mousePressEvent
+        self.expandButton.mousePressEvent = self.expandButton_mousePressEvent  # type: ignore[method-assign]
         self.shrinkButton = QLabel(self)
         self.shrinkButton.setPixmap(
             QPixmap(resource_path("resources/icons/shrink.png")).scaled(15, 15)
         )
         self.shrinkButton.hide()
         self.shrinkButton.setGeometry(30, 0, 15, 15)
-        self.shrinkButton.mousePressEvent = self.shrinkButton_mousePressEvent
+        self.shrinkButton.mousePressEvent = self.shrinkButton_mousePressEvent  # type: ignore[method-assign]
         self.cbxRotation = QCheckBox(self)
         self.cbxRotation.setText("R")
         self.cbxRotation.setChecked(True)
@@ -249,28 +260,32 @@ class MCubeWidget(QGLWidget):
         self.cbxRotation.move(45, 0)
 
         self.curr_slice = None
-        self.curr_slice_vertices = []
+        # Empty arrays rather than []: both fields hold an (N, 3) vertex array
+        # everywhere they are read, and are only ever tested with len() > 0, so
+        # the list was standing in for "no vertices yet" while breaking the
+        # in-place arithmetic (`/=`, `*=`) applied to them further down.
+        self.curr_slice_vertices: np.ndarray = np.empty((0, 3), dtype=np.float64)
         self.scale = 0.20
         self.average_coordinates = np.array([0.0, 0.0, 0.0], dtype=np.float64)
         self.bounding_box = None
         self.roi_box = None
         self.threadpool = QThreadPool()
         # print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
-        self.vertices = []
-        self.setCursor(QCursor(Qt.ArrowCursor))
+        self.vertices: np.ndarray = np.empty((0, 3), dtype=np.float64)
+        self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
         self.generate_mesh_under_way = False
         self.adjust_volume_under_way = False
         self.generated_data = None
         self.is_inverse = False
 
-        self.queue = Queue()
+        self.queue: Queue = Queue()
 
         # Phase 1.2: Non-blocking mesh generation
         self.mesh_generation_thread = None
 
     def recalculate_geometry(self):
-        # self.scale = self.parent.
-        size = min(self.parent.width(), self.parent.height())
+        # self.scale = self.parent_widget.
+        size = min(self.parent_widget.width(), self.parent_widget.height())
         self.scale = round((self.width() / size) * 10.0) / 10.0
         # self.resize(int(size*self.scale),int(size*self.scale))
 
@@ -333,7 +348,7 @@ class MCubeWidget(QGLWidget):
 
     def reposition_self(self):
         x, y = self.x(), self.y()
-        parent_geometry = self.parent.get_pixmap_geometry()
+        parent_geometry = self.parent_widget.get_pixmap_geometry()
         if parent_geometry is None:
             return
         if y + (self.height() / 2) > parent_geometry.height() / 2:
@@ -351,9 +366,9 @@ class MCubeWidget(QGLWidget):
         self.auto_rotate = self.cbxRotation.isChecked()
 
     def resize_self(self):
-        size = min(self.parent.width(), self.parent.height())
+        size = min(self.parent_widget.width(), self.parent_widget.height())
         self.resize(int(size * self.scale), int(size * self.scale))
-        # print("resize:",self.parent.width(),self.parent.height())
+        # print("resize:",self.parent_widget.width(),self.parent_widget.height())
 
     def make_box(self, box_coords):
         from_z = box_coords[0]
@@ -683,11 +698,11 @@ class MCubeWidget(QGLWidget):
     def mousePressEvent(self, event):
         self.down_x = event.x()
         self.down_y = event.y()
-        if event.buttons() == Qt.LeftButton:
+        if event.buttons() == Qt.MouseButton.LeftButton:
             self.view_mode = ROTATE_MODE
-        elif event.buttons() == Qt.RightButton:
+        elif event.buttons() == Qt.MouseButton.RightButton:
             self.view_mode = ZOOM_MODE
-        elif event.buttons() == Qt.MiddleButton:
+        elif event.buttons() == Qt.MouseButton.MiddleButton:
             self.view_mode = PAN_MODE
 
     def mouseReleaseEvent(self, event):
@@ -695,16 +710,16 @@ class MCubeWidget(QGLWidget):
         self.curr_x = event.x()
         self.curr_y = event.y()
 
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.rotate_x += self.temp_rotate_x
             self.rotate_y += self.temp_rotate_y
             self.rotate_y = 0
             self.temp_rotate_x = 0
             self.temp_rotate_y = 0
-        elif event.button() == Qt.RightButton:
+        elif event.button() == Qt.MouseButton.RightButton:
             self.dolly += self.temp_dolly
             self.temp_dolly = 0
-        elif event.button() == Qt.MiddleButton:
+        elif event.button() == Qt.MouseButton.MiddleButton:
             self.pan_x += self.temp_pan_x
             self.pan_y += self.temp_pan_y
             self.temp_pan_x = 0
@@ -716,14 +731,14 @@ class MCubeWidget(QGLWidget):
         self.curr_x = event.x()
         self.curr_y = event.y()
 
-        if event.buttons() == Qt.LeftButton and self.view_mode == ROTATE_MODE:
+        if event.buttons() == Qt.MouseButton.LeftButton and self.view_mode == ROTATE_MODE:
             self.is_dragging = True
             self.temp_rotate_x = self.curr_x - self.down_x
             self.temp_rotate_y = self.curr_y - self.down_y
-        elif event.buttons() == Qt.RightButton and self.view_mode == ZOOM_MODE:
+        elif event.buttons() == Qt.MouseButton.RightButton and self.view_mode == ZOOM_MODE:
             self.is_dragging = True
             self.temp_dolly = (self.curr_y - self.down_y) / 100.0
-        elif event.buttons() == Qt.MiddleButton and self.view_mode == PAN_MODE:
+        elif event.buttons() == Qt.MouseButton.MiddleButton and self.view_mode == PAN_MODE:
             self.is_dragging = True
             self.temp_pan_x = self.curr_x - self.down_x
             self.temp_pan_y = self.curr_y - self.down_y
