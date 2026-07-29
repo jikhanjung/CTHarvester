@@ -238,37 +238,38 @@ class TestThumbnailGeneratorEdgeCases:
         assert gen is not None
         assert settings["image_width"] == 512
 
-    def test_single_image_sequence(self):
-        """Test handling when seq_begin == seq_end."""
+    def test_single_image_sequence(self, tmp_path):
+        """A stack of exactly one image resolves to exactly that one file.
+
+        seq_begin == seq_end is the boundary of get_file_list's inclusive
+        `range(seq_begin, seq_end + 1)`; an off-by-one there yields either an
+        empty stack or a phantom second slice. This test used to assert
+        `settings["seq_end"] - settings["seq_begin"] == 0` on a dict literal it
+        had just written, which restates the arithmetic instead of running any.
+        """
+        from core.file_handler import FileHandler
+
+        (tmp_path / "img_0010.tif").write_bytes(b"")
+
         settings = {
-            "directory": "/tmp/test",
-            "image_width": 512,
-            "image_height": 512,
+            "prefix": "img_",
+            "file_type": "tif",
             "seq_begin": 10,
-            "seq_end": 10,  # Same as begin - single image
-            "prefix": "img_",
-            "file_type": "tif",
+            "seq_end": 10,
             "index_length": 4,
         }
 
-        # Should handle single image case without crashing
-        assert settings["seq_end"] - settings["seq_begin"] == 0
+        result = FileHandler().get_file_list(str(tmp_path), settings)
 
-    def test_negative_sequence_numbers(self):
-        """Test handling of negative sequence numbers in settings."""
-        settings = {
-            "directory": "/tmp/test",
-            "image_width": 512,
-            "image_height": 512,
-            "seq_begin": -5,
-            "seq_end": -1,
-            "prefix": "img_",
-            "file_type": "tif",
-            "index_length": 4,
-        }
+        assert result == [str(tmp_path / "img_0010.tif")]
 
-        # Should handle negative numbers gracefully
-        assert isinstance(settings["seq_begin"], int)
+    # test_negative_sequence_numbers was removed here. It built a settings dict
+    # with seq_begin=-5 and asserted `isinstance(settings["seq_begin"], int)`,
+    # which is true of the literal by construction and never reached the
+    # application. The behaviour it was named for is covered for real by
+    # tests/test_error_recovery.py::TestFileSystemErrors::
+    # test_negative_sequence_numbers, which calls get_file_list and asserts the
+    # empty result.
 
 
 class TestProgressManagerEdgeCases:

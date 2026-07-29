@@ -26,44 +26,45 @@ class TestUIWorkflows:
         # Verify directory was set
         assert main_window.edtDirname.text() == str(sample_ct_directory)
 
-        # Verify UI widget exists
-        assert hasattr(main_window, "edtDirname")
+        # The window stays usable afterwards. (`hasattr(main_window,
+        # "edtDirname")` used to stand here, two lines after the attribute had
+        # already been read twice.)
+        assert main_window.isVisible()
 
-    def test_settings_persistence(self, qapp, tmp_path):
-        """Test that settings persist across window sessions"""
-        import os
+    def test_settings_persistence(self, qapp, tmp_path, monkeypatch):
+        """A setting written in one session is read back by the next.
 
+        Two things made the previous version assert nothing at all. The
+        attribute is `settings_manager`, not `settings`, so both
+        `if hasattr(window, "settings")` guards were False and the write and
+        the check were skipped together -- a test that could only pass. And the
+        isolation used CTHARVESTER_SETTINGS_DIR, a name the application does
+        not read, so had the guards been right this would have written the
+        developer's real preferences.json instead of tmp_path.
+        """
         from ui.main_window import CTHarvesterMainWindow
 
-        # Set temp settings location
-        os.environ["CTHARVESTER_SETTINGS_DIR"] = str(tmp_path)
+        monkeypatch.setenv("CTHARVESTER_CONFIG_DIR", str(tmp_path))
 
-        # First session - change settings
         window1 = CTHarvesterMainWindow()
         window1.show()
         QTest.qWaitForWindowExposed(window1)
 
-        # Change a setting if settings manager exists
-        if hasattr(window1, "settings"):
-            window1.settings.set("application.language", "ko")
-            window1.settings.save()
+        assert window1.settings_manager.get_config_file_path().startswith(str(tmp_path))
 
-        # Close window
+        window1.settings_manager.set("application.language", "ko")
+        window1.settings_manager.save()
+
         window1.close()
         qapp.processEvents()
         QTest.qWait(100)
 
-        # Second session - verify settings persisted
         window2 = CTHarvesterMainWindow()
         window2.show()
         QTest.qWaitForWindowExposed(window2)
 
-        # Verify setting persisted
-        if hasattr(window2, "settings"):
-            lang = window2.settings.get("application.language")
-            assert lang == "ko"
+        assert window2.settings_manager.get("application.language") == "ko"
 
-        # Cleanup
         window2.close()
         qapp.processEvents()
 
@@ -81,18 +82,24 @@ class TestUIWorkflows:
         assert main_window.isVisible()
 
     def test_window_state_after_operations(self, main_window, sample_ct_directory):
-        """Test window state remains consistent after operations"""
-        # Set directory programmatically
+        """Setting a directory leaves geometry and title untouched.
+
+        The before/after comparison this test is named for was captured into
+        `geometry1` and `initial_title` and then never written; the F841 sweep
+        removed the unused bindings and left the assertions that survived,
+        which only said the window was still visible and had some title.
+        """
+        initial_geometry = main_window.geometry()
+        initial_title = main_window.windowTitle()
+
         main_window.edtDirname.setText(str(sample_ct_directory))
         QTest.qWait(100)
 
-        # Window should still be visible and responsive
         assert main_window.isVisible()
         assert not main_window.isMinimized()
-
-        # Title should still be set
-        current_title = main_window.windowTitle()
-        assert current_title  # Should have some title
+        assert main_window.geometry() == initial_geometry
+        assert main_window.windowTitle() == initial_title
+        assert initial_title
 
     def test_ui_element_visibility(self, main_window):
         """Test that required UI elements are visible"""

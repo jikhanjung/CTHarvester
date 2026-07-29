@@ -126,26 +126,51 @@ class TestThumbnailGenerationErrors:
                 # Verify error is properly raised
                 assert e.errno == 28
 
-    def test_thumbnail_generation_with_missing_directory(self, caplog):
-        """Test handling when source directory doesn't exist."""
-        generator = ThumbnailGenerator()
+    def test_thumbnail_generation_with_missing_directory(self, tmp_path):
+        """The missing directory is rejected before the generator sees it.
 
-        # In actual usage, FileHandler validates a missing directory before it
-        # ever reaches the generator, so there is nothing to call here.
-        # Verify the generator exists and can be instantiated
-        assert generator is not None
+        The previous body said exactly this in a comment and then asserted
+        `generator is not None`, which leaves the claim untested -- if
+        FileHandler ever stopped raising, nothing here would notice. Assert the
+        contract instead.
+        """
+        from core.file_handler import FileHandler
+
+        missing = tmp_path / "no_such_directory"
+
+        with pytest.raises(FileNotFoundError):
+            FileHandler().open_directory(str(missing))
 
 
 class TestThumbnailLoadingErrors:
     """Tests for thumbnail loading error handling."""
 
     def test_loading_from_nonexistent_directory(self, tmp_path):
-        """Test handling of missing thumbnail directory."""
-        generator = ThumbnailGenerator()
+        """A directory with no .thumbnail yields (None, {}) rather than raising.
 
-        # Generator should exist and be callable
-        assert generator is not None
-        assert hasattr(generator, "load_thumbnail_data")
+        Callers unpack the tuple and branch on the None, so returning it is the
+        contract -- an exception here would surface as a crash on opening any
+        directory whose thumbnails have not been built yet. The old body
+        asserted `generator is not None` and `hasattr(generator,
+        "load_thumbnail_data")`, i.e. that the method it never called exists.
+        """
+        volume, level_info = ThumbnailGenerator().load_thumbnail_data(str(tmp_path))
+
+        assert volume is None
+        assert level_info == {}
+
+    def test_loading_with_thumbnail_dir_but_no_levels(self, tmp_path):
+        """An empty .thumbnail directory is the same non-answer, not a crash.
+
+        This is the state left behind by a generation run cancelled before it
+        wrote level 1.
+        """
+        (tmp_path / ".thumbnail").mkdir()
+
+        volume, level_info = ThumbnailGenerator().load_thumbnail_data(str(tmp_path))
+
+        assert volume is None
+        assert level_info == {}
 
     def test_permission_error_simulation(self, tmp_path):
         """Test that permission errors can be detected."""

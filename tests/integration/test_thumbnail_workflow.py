@@ -190,7 +190,7 @@ def test_thumbnail_generation_with_cancellation(main_window, sample_ct_directory
 
 
 @pytest.mark.integration
-def test_load_existing_thumbnails(main_window, sample_ct_directory, qtbot):
+def test_load_existing_thumbnails(main_window, sample_ct_directory, qtbot, monkeypatch):
     """Test loading a directory that already has thumbnails.
 
     Verifies that existing thumbnails are detected and loaded correctly
@@ -226,11 +226,12 @@ def test_load_existing_thumbnails(main_window, sample_ct_directory, qtbot):
     qtbot.wait(500)
 
     # Create new window instance
-    import os
-
     from ui.main_window import CTHarvesterMainWindow
 
-    os.environ["CTHARVESTER_SETTINGS_DIR"] = str(sample_ct_directory.parent)
+    # CTHARVESTER_CONFIG_DIR is the name the application reads; the old
+    # CTHARVESTER_SETTINGS_DIR was never one, so this second window used to
+    # pick up the developer's real configuration rather than a scratch one.
+    monkeypatch.setenv("CTHARVESTER_CONFIG_DIR", str(sample_ct_directory.parent))
 
     new_window = CTHarvesterMainWindow()
     new_window.show()

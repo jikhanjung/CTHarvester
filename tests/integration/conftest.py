@@ -75,7 +75,7 @@ def sample_ct_directory(tmp_path):
 
 
 @pytest.fixture
-def main_window(qapp, tmp_path):
+def main_window(qapp, tmp_path, monkeypatch):
     """Create MainWindow instance for testing.
 
     Creates a fresh CTHarvesterMainWindow instance with isolated settings
@@ -97,12 +97,17 @@ def main_window(qapp, tmp_path):
         ...     assert main_window.isVisible()
         ...     # Interact with window widgets
     """
-    import os
-
     from ui.main_window import CTHarvesterMainWindow
 
-    # Set temp settings location to isolate from user settings
-    os.environ["CTHARVESTER_SETTINGS_DIR"] = str(tmp_path)
+    # CTHARVESTER_CONFIG_DIR, not CTHARVESTER_SETTINGS_DIR. The latter is not a
+    # name the application has ever read -- utils.paths resolves the config
+    # root from CTHARVESTER_CONFIG_DIR -- so this fixture's promised isolation
+    # did not exist, and closeEvent() calls save_settings(), which means every
+    # run of these tests was writing the developer's real preferences.json.
+    #
+    # monkeypatch rather than os.environ so the override is undone at teardown
+    # instead of leaking into every later test in the session.
+    monkeypatch.setenv("CTHARVESTER_CONFIG_DIR", str(tmp_path))
 
     window = CTHarvesterMainWindow()
     window.show()

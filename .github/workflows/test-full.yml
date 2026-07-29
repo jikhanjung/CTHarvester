@@ -78,7 +78,6 @@ jobs:
       run: |
         xvfb-run -a -s "-screen 0 1024x768x24" \
           pytest tests/ \
-            --ignore=tests/test_basic.py \
             -n auto \
             --cov=core \
             --cov=ui \

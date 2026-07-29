@@ -212,7 +212,6 @@ jobs:
         xvfb-run -a -s "-screen 0 1024x768x24" \
           pytest tests/ \
             -m "not slow and not benchmark" \
-            --ignore=tests/test_basic.py \
             -n auto \
             --cov=core --cov=ui --cov=utils --cov=security \
             --cov-report=term-missing \
@@ -225,7 +224,7 @@ jobs:
       env:
         QT_QPA_PLATFORM: offscreen
         QT_DEBUG_PLUGINS: 0
-      run: pytest tests/ -m "not slow and not benchmark" --ignore=tests/test_basic.py -n auto --timeout=60
+      run: pytest tests/ -m "not slow and not benchmark" -n auto --timeout=60
 
     - name: Upload coverage to Codecov
       # Coverage is measured once, on the reference platform (the same leg that

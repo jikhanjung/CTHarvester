@@ -229,21 +229,70 @@ From the same devlog (lower priority):
 
 ---
 
-## Test-suite weak spots found during the F841 sweep (2026-07-26)
+## Test-suite weak spots found during the F841 sweep ✅ fixed 2026-07-29
 
-Enabling `F841` surfaced tests that compute a value and then never assert on it.
-The unused bindings are gone, but the underlying thinness remains:
+Enabling `F841` surfaced tests that compute a value and then never assert on
+it. The unused bindings went in 2026-07-26; the thinness underneath is now
+fixed too.
 
-- `tests/test_edge_cases.py::test_single_image_sequence` /
-  `::test_negative_sequence_numbers` assert only on the literal settings dict
-  they just built (`settings["seq_end"] - settings["seq_begin"] == 0`). They
-  instantiated a `ThumbnailGenerator` and never called it.
-- `tests/test_error_recovery.py::test_missing_source_directory` /
-  `::test_loading_from_nonexistent_directory` assert only
-  `generator is not None` / `hasattr(...)`.
-- `tests/integration/test_ui_workflows.py` captured `geometry1` and
-  `initial_title` for a before/after comparison that was never written.
-- `tests/test_basic.py` is excluded from CI (`--ignore=tests/test_basic.py` in
-  `test.yml` and `test-full.yml`) yet passes locally, and now overlaps
-  `tests/test_smoke.py` almost entirely. Decide: fold the unique parts into
-  `test_smoke.py` and delete it, or drop the `--ignore`.
+- `tests/test_edge_cases.py::test_single_image_sequence` now writes one file
+  and calls `get_file_list`, which is the boundary of that function's
+  inclusive `range(seq_begin, seq_end + 1)`. `::test_negative_sequence_numbers`
+  was **deleted**: it asserted `isinstance(settings["seq_begin"], int)` on a
+  literal it had just written, and the behaviour it was named for is covered
+  for real in `test_error_recovery.py`.
+- `tests/test_error_recovery.py::test_loading_from_nonexistent_directory` now
+  calls `load_thumbnail_data` and asserts the `(None, {})` contract that
+  callers unpack, plus a second case for a `.thumbnail` directory with no
+  levels — the state a cancelled generation run leaves behind.
+  `::test_thumbnail_generation_with_missing_directory` asserts the
+  `FileNotFoundError` its own comment claimed without testing. (The backlog
+  called this one `test_missing_source_directory`; no test by that name
+  exists.)
+- `tests/integration/test_ui_workflows.py::test_window_state_after_operations`
+  captures geometry and title and compares them across the operation, which is
+  the test the discarded `geometry1` / `initial_title` bindings were for.
+
+### The isolation these tests promised did not exist ★
+
+Fixing `test_settings_persistence` turned up a real defect rather than a thin
+assertion. Two independent faults hid each other:
+
+1. Both halves were guarded by `if hasattr(window, "settings")`. The attribute
+   is **`settings_manager`**, so the guards were always False — the write and
+   the assertion were skipped together, and the test could only pass.
+2. Isolation was set with **`CTHARVESTER_SETTINGS_DIR`, which the application
+   has never read.** `utils.paths` resolves the config root from
+   `CTHARVESTER_CONFIG_DIR`. The wrong name appeared in three places,
+   including the shared `main_window` fixture in
+   `tests/integration/conftest.py`.
+
+Because `closeEvent()` calls `save_settings()`, and the `main_window` fixture
+closes its window at teardown, **the integration tests were writing the
+developer's real `preferences.json` on every run.** Only fault 1 kept the
+language key from being clobbered as well.
+
+All three sites now use `monkeypatch.setenv("CTHARVESTER_CONFIG_DIR", ...)` —
+`monkeypatch` rather than `os.environ` so the override is undone at teardown
+instead of leaking through the rest of the session. The test asserts the
+config path really is under `tmp_path`, which is what makes the name wrong
+again fail loudly; verified by probe.
+
+### `tests/test_basic.py` deleted, and the CI `--ignore` with it
+
+It was excluded from CI in `test.yml` and `test-full.yml` yet passed locally —
+an anomaly either way. Checked before deleting rather than assumed: every one
+of its six tests is subsumed.
+
+| test_basic.py | subsumed by |
+|---|---|
+| `test_import`, `test_requirements` | `test_smoke.py::test_module_imports` walks **every** module under `config`/`core`/`security`/`ui`/`utils` plus `CTHarvester`; `::test_third_party_native_extensions_load` touches the compiled submodules, not just the names |
+| `test_security_module_basic` | `test_security.py` (including the null-byte case, `:74`) |
+| `test_image_utils_basic` | `test_image_utils.py`, `test_image_utils_error_paths.py` |
+| `test_progress_manager_basic` | `test_progress_manager.py` |
+| `test_file_utils_basic` | `test_file_utils.py` (`parse_filename` at `:117`, in a stronger form) |
+
+`docs/CI_CD_AUDIT.md` still shows `--ignore=tests/test_basic.py` in three code
+blocks. Left alone deliberately: it is a dated audit report (2025-10-08), a
+record of the commands at that time, and its snippets are already stale in
+other ways (`--cov-fail-under=85`, now 75).
