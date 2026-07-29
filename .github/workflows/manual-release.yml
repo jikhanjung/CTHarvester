@@ -29,7 +29,7 @@ jobs:
     outputs:
       build_number: ${{ steps.bn.outputs.build_number }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - id: bn
@@ -47,10 +47,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Download all artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v7
       with:
         path: release-files/
 
@@ -107,7 +107,7 @@ jobs:
         git push origin "${{ github.event.inputs.version_tag }}"
 
     - name: Create Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         tag_name: ${{ github.event.inputs.version_tag }}
         name: CTHarvester ${{ github.event.inputs.version_tag }}

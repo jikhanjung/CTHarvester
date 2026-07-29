@@ -43,13 +43,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.LOCK_REFRESH_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           # Must match LOCK_ARGS' --python-version in the Makefile, or the
           # refreshed locks will not be the ones `make lock-check` expects.
