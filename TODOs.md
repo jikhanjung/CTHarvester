@@ -22,7 +22,7 @@ state and should be updated as items land.
 | 7 | Static type checking, scoped | ✅ | mypy per-module strict, gating in CI over `core/`, `utils/` and `ui/` — **nothing excluded** as of 2026-07-29 (49 files, clean). CI, `make type-check` and the pre-commit hook run one identical command |
 | 8 | Dead-code / complexity automation | ✅ | `C901` enforced at the guide's threshold of 15 (2026-07-26); the backlog of eight functions is cleared. vulture evaluated and rejected — 5 of its 6 findings were false positives; Modan2 does not use it either. |
 | 9 | Packaged-artifact smoke test; signed installers | ⚠️ | Smoke test done (2026-07-26): `--self-test` entry point, run against the frozen build on all 3 OSes in `reusable_build.yml`. Installer signing/notarization still open |
-| 10 | Property-based / fuzz tests | ⚠️ | `tests/property/test_image_properties.py` exists but its body is `pytest.skip("Template - to be implemented in Phase 4")` |
+| 10 | Property-based / fuzz tests | ✅ | `tests/property/test_image_properties.py` holds 14 real properties over `downsample_image`, `average_images` and `ROIManager` (2026-07-29). The hypothesis profile moved to `tests/conftest.py`, because the `[tool.hypothesis]` table in `pyproject.toml` had never been read |
 
 **Done 2026-07-27:** ~~adopt Modan2's per-platform lockfiles~~. Nine locks
 (runtime / dev / build x linux, windows, macos), the `pyqt5-qt5` environment
@@ -73,7 +73,23 @@ PyQt idiom, not the `self.parent` defect.
 ~~#2 docs build gating~~, ~~#9 packaged smoke test~~, ~~#8 complexity ratchet~~,
 ~~per-platform locks~~, ~~mypy gating~~ and ~~the full lint ruleset~~ (all done
 2026-07-26/27), ~~widening mypy to `ui/`~~ (2026-07-28) and ~~`ui/widgets/`~~
-(2026-07-29). Remaining: **#10 property tests** and **installer signing**.
+(2026-07-29) and ~~#10 property tests~~ (2026-07-29). Remaining: **installer
+signing**, which needs a Windows Authenticode certificate and an Apple
+Developer ID — credentials, not code, so it cannot be finished from here.
+
+### Hypothesis was configured in a file it does not read (2026-07-29)
+
+`pyproject.toml` carried a `[tool.hypothesis]` table setting `max_examples`,
+`derandomize` and `deadline`. **Hypothesis has no pyproject.toml support** —
+there is no reference to the filename anywhere in the installed package — so
+all three were inert, confirmed by reading `settings.default.derandomize` as
+`False` against a file that said `true`. The values now live in a profile
+registered in `tests/conftest.py`.
+
+`derandomize` was the one that mattered: without it each CI run draws
+different examples, so a property holding for all but a sliver of the input
+space fails on one platform, once in a while, and passes on rerun — the same
+shape as the macOS ETA flake fixed the same day.
 
 ### Complexity backlog (`C901`) ✅ cleared 2026-07-26
 

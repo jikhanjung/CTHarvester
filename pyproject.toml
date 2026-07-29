@@ -390,8 +390,7 @@ module = [
 disallow_untyped_defs = true    # Require all functions to have type annotations
 disallow_incomplete_defs = true  # Require complete type annotations
 
-# Hypothesis (property-based testing) configuration
-[tool.hypothesis]
-max_examples = 100
-derandomize = true
-deadline = 500  # milliseconds
+# Hypothesis is configured in tests/conftest.py, not here. A [tool.hypothesis]
+# table used to sit at this spot; hypothesis does not read pyproject.toml, so
+# it set nothing -- settings.default.derandomize was False while the table said
+# true. settings.register_profile() is the supported mechanism.

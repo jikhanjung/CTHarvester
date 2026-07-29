@@ -11,7 +11,34 @@ import tempfile
 
 import numpy as np
 import pytest
+from hypothesis import HealthCheck, settings
 from PIL import Image
+
+# ==============================================================================
+# Hypothesis profile
+# ==============================================================================
+# Registered here rather than in pyproject.toml, which is where these three
+# values used to live under a [tool.hypothesis] table. Hypothesis has never
+# read pyproject.toml -- there is no reference to it anywhere in the installed
+# package -- so that table configured nothing. It was measurably inert:
+# settings.default.derandomize read False while the file said true.
+#
+# derandomize matters most of the three. Without it every CI run draws a
+# different set of examples, so a property that holds for 99.9% of inputs fails
+# on one platform, one time in ten, and passes on rerun. That is the exact
+# failure mode the ETA test was just cured of; property tests should not
+# reintroduce it.
+settings.register_profile(
+    "ctharvester",
+    max_examples=100,
+    derandomize=True,
+    deadline=500,
+    # A derandomized run replays the same examples every time, so a slow first
+    # example is a fixed cost rather than a flaky one.
+    suppress_health_check=[HealthCheck.too_slow],
+)
+settings.load_profile("ctharvester")
+
 
 # ==============================================================================
 # Mock Objects for Testing
