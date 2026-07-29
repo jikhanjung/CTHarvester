@@ -72,6 +72,27 @@ jobs:
       - name: Install bandit
         run: pip install "bandit[toml]"
 
+      # Why this job survives the ruff `S` ruleset (measured 2026-07-29).
+      #
+      # ruff's flake8-bandit implements 73 of bandit 1.9.4's 75 checks, so the
+      # overlap really is nearly total and dropping this job was a fair
+      # question. Diffing the two leaves exactly four bandit checks with no
+      # ruff port, and three of them are for libraries this project does not
+      # use: B614 (torch.load), B615 (HuggingFace downloads), B703 (Django
+      # XSS).
+      #
+      # The fourth is the reason to keep it. B613 `trojansource` is HIGH
+      # severity, so it passes the `-ll` gate, and it applies to any codebase
+      # in any language: it flags bidirectional Unicode control characters,
+      # which make a source file render differently from how it compiles.
+      # Verified by probe -- a file with U+202E in a comment is caught here and
+      # passes `ruff check --select S` clean.
+      #
+      # The invocation is left broad rather than narrowed to `-t B613` so that
+      # any future bandit check ruff has not ported arrives automatically.
+      # Note that bandit currently reports nothing at this threshold; like the
+      # ruff `S` rules, the value is prospective.
+      #
       # Medium+ severity only (`-ll`); B101 (assert) is noise in this codebase.
       # Scoped to shipped code, excluding tests.
       - name: Run bandit

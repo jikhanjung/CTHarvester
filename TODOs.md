@@ -156,10 +156,25 @@ Two things worth remembering about it:
   and hardcoded secrets now fail at lint time, in the PR, rather than in a
   separate workflow. Verified by probe rather than assumed: a scratch file using
   all five was flagged (S307, S301, S324, S602, S105) with the waivers in place.
-- **The `bandit` job now overlaps ruff substantially.** Removing it would be a
-  reasonable simplification, but dropping a security scanner is not a call to
-  make in passing — decide it on its own, checking which bandit checks ruff has
-  no port of.
+- **The `bandit` job overlaps ruff almost entirely — and stays. ✅ decided
+  2026-07-29.** ruff's flake8-bandit implements **73 of bandit 1.9.4's 75**
+  checks, so the question was fair. Diffing the two leaves **four** bandit
+  checks with no ruff port, three of which are for libraries this project does
+  not use: `B614` (`torch.load`), `B615` (HuggingFace downloads), `B703`
+  (Django XSS).
+
+  The fourth decides it. **`B613` `trojansource`** flags bidirectional Unicode
+  control characters — the class of attack where a file renders differently
+  from how it compiles. It is HIGH severity, so it clears the job's `-ll`
+  gate, and it is language- and project-agnostic. Verified by probe: a file
+  with `U+202E` in a comment is caught by bandit and passes
+  `ruff check --select S` clean.
+
+  The invocation was left broad rather than narrowed to `-t B613`, so a future
+  bandit check ruff has not ported arrives on its own. The reasoning is now in
+  `security.yml` next to the command. Worth knowing: bandit reports **nothing**
+  at this threshold today (12 findings, all below `-ll`) — like the ruff `S`
+  rules, its value is prospective.
 
 ---
 
