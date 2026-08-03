@@ -19,7 +19,7 @@ hypothesis>=6.0.0,<7.0.0
 
 # Code Quality (ruff replaces black + isort + flake8 + pyupgrade + pylint;
 # pinned exactly so a newer release cannot reformat the tree unannounced)
-ruff==0.16.0
+ruff==0.16.1
 
 # Type Checking
 mypy>=1.7.0,<2.0.0
