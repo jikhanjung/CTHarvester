@@ -357,6 +357,9 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false  # Still permissive for old code
 check_untyped_defs = true      # Check function bodies even without annotations
+# mypy 2.0 turned this on by default; set explicitly so 1.x and 2.x agree.
+# memoryview and bytearray no longer pass where bytes is declared (devlog 123).
+strict_bytes = true
 ignore_missing_imports = true
 exclude = [
     "build/",

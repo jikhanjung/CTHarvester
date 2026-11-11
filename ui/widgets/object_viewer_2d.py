@@ -696,15 +696,16 @@ class ObjectViewer2D(QLabel):
         # Apply color in-place (no intermediate array)
         region[mask] = color
 
-        # Create QImage directly from array data (minimal overhead)
+        # QImage wraps the buffer without copying, and PyQt keeps the bytes
+        # object alive for as long as the QImage exists. fromImage() then
+        # converts the pixels into the pixmap's own storage, so the pixmap does
+        # not depend on either -- which is why no extra .copy() is needed here.
+        # bytes rather than rgb_array.data: a memoryview is not bytes under
+        # mypy's strict_bytes (devlog 123).
         bytes_per_line = 3 * width
-        # Keep rgb_array alive by storing reference
-        qt_image = QImage(rgb_array.data, width, height, bytes_per_line, QImage.Format_RGB888)
-
-        # Convert to QPixmap
-        # Note: QImage holds reference to rgb_array.data, so array must stay alive
-        modified_pixmap = QPixmap.fromImage(qt_image.copy())  # Copy here to own the data
-        return modified_pixmap
+        rgb_bytes = rgb_array.tobytes()
+        qt_image = QImage(rgb_bytes, width, height, bytes_per_line, QImage.Format_RGB888)
+        return QPixmap.fromImage(qt_image)
 
     def set_image(self, file_path):
         # print("set_image", file_path)
