@@ -10,7 +10,7 @@ repos:
   # the `lint` job in .github/workflows/test.yml. A newer ruff reformats code the
   # pinned one accepted, which turns every unrelated PR red.
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.0
+    rev: v0.17.1
     hooks:
       - id: ruff-check
         args: ['--fix']

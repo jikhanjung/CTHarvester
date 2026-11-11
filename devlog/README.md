@@ -4,6 +4,7 @@ Chronological index of all development sessions for CTHarvester.
 
 ## Recent Sessions (November 2026)
 
+- [122](20261111_122_ruff_0171_and_mypy_2.md) - **ruff 0.17.1, mypy 2 보류**: Dependabot #19(ruff)는 머리 커밋이 `GITHUB_TOKEN` 락 갱신 커밋이라 CI가 한 번도 안 돌았고(devlog 109의 예상 그대로), pre-commit `rev`를 빠뜨려 세 곳 고정 규칙을 깨므로 새 브랜치로 대체 — 락 변화는 dev 락 3개의 ruff 한 줄, `ruff check`/`format --check` 무변경 통과. #8(mypy `<3`)은 상한만 넓혀 무효(devlog 110)이고, 실제로 2.x를 돌리면 **`--strict-bytes`가 기본이 된 탓에** `object_viewer_2d.py:702`의 `QImage(ndarray.data, …)` 1건 오류 — 1.20.2 + `--strict-bytes`로 재현, 2.4.1 + `--no-strict-bytes`로 해소해 원인 확정. 한 줄 수정 후 하한을 올리는 PR로 갈 것
 - [121](20261106_121_pillow_13.md) - **Pillow 13**: 정기 `pip-audit`이 10/26부터 `main`에서 실패 — Pillow 12.3.0에 39건, 수정은 전부 13.0.0. 선언 범위 `<13.0.0`이 수정 버전을 정확히 배제하고 있어 락 재생성으로는 닿지 않았음. **devlog 101(`<12` 상한이 CVE 18건 수정을 막음)과 같은 일의 두 번째.** `>=13.0.0,<14.0.0`으로 하한까지 올림, 락 9개는 pillow 한 줄만 변경. CI 선택 1320 passed / 3 skipped, 3플랫폼 pip-audit 깨끗. slow 테스트 실패 2건은 Pillow와 무관함을 12.3.0 대조로 확인(큰 데이터셋 테스트는 12.3.0 282s, 13.0.0 266s)
 
 ## Recent Sessions (July 2026)
