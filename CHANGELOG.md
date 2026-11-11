@@ -19,6 +19,11 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   The declared range was `>=12.3.0,<13.0.0`, so re-locking alone could not reach
   the fix; it is now `>=13.0.0,<14.0.0`.
 
+### Changed / Internal
+- Ruff `0.16.0` → `0.17.1` (dev tooling only). The tree needed no lint or
+  formatting changes; the pin moves together in `pyproject.toml`,
+  `requirements-dev.txt` and `.pre-commit-config.yaml`.
+
 ## [0.2.3-beta.4] - 2026-07-29
 
 ### Changed
