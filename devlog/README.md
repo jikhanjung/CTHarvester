@@ -2,6 +2,10 @@
 
 Chronological index of all development sessions for CTHarvester.
 
+## Recent Sessions (November 2026)
+
+- [121](20261106_121_pillow_13.md) - **Pillow 13**: 정기 `pip-audit`이 10/26부터 `main`에서 실패 — Pillow 12.3.0에 39건, 수정은 전부 13.0.0. 선언 범위 `<13.0.0`이 수정 버전을 정확히 배제하고 있어 락 재생성으로는 닿지 않았음. **devlog 101(`<12` 상한이 CVE 18건 수정을 막음)과 같은 일의 두 번째.** `>=13.0.0,<14.0.0`으로 하한까지 올림, 락 9개는 pillow 한 줄만 변경. CI 선택 1320 passed / 3 skipped, 3플랫폼 pip-audit 깨끗. slow 테스트 실패 2건은 Pillow와 무관함을 12.3.0 대조로 확인(큰 데이터셋 테스트는 12.3.0 282s, 13.0.0 266s)
+
 ## Recent Sessions (July 2026)
 
 - [120](20260729_120_quality_checklist_baseline_copied_in.md) - **품질 상태표의 기준을 저장소 안으로**: 119가 열어 둔 항목을 닫음 — `TODOs.md`의 상태표가 채점 기준으로 삼던 `../Modan2/docs/CODE_QUALITY_GUIDE.md`의 Appendix A 체크리스트(+절 목록, §7, §1 규칙군 표, Appendix B)를 devlog로 **원문 복사**. 119는 "복사하지 말고 참조하라"였지만 **여기서는 성질이 반대다** — 표가 재는 것은 현재 최선의 권고가 아니라 *v1.0(2026-07-23) 대비 어디까지 왔는가*이므로 **갱신되지 않는 것이 결함이 아니라 요건**이고, 그래서 계획(`TODOs.md`)이 아니라 기록(`devlog/`)에 둔다. 공유 가이드로 기준을 옮기지 않은 추가 근거: **절 번호가 다른 것을 가리킨다**(Modan2 §7 = Packaging & release verification, 공유본 §7 = Dead code…) — 조용히 바꿔 달았다면 링크는 멀쩡한 채 뜻만 틀렸을 것. **옮기다 인용 오류 발견**: `C901` 임계값 15를 세 문서가 "the guide's threshold"라 적어 왔으나 **원문에는 숫자가 없고**(Modan2 자신은 19) 15는 가이드보다 열 달 앞선 이 저장소 고유 값(devlog 038). 옆 저장소를 열어야 확인되는 인용은 아무도 확인하지 않는다는 사례. devlog 100·103의 Modan2 경로는 *그때 무엇을 보고 감사했는가*의 기록이라 그대로 둠 — 살아 있는 상호 의존은 이제 없음

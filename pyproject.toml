@@ -50,9 +50,10 @@ dependencies = [
     "pyopengl-accelerate>=3.1.5,<4.0.0",
     "superqt>=0.6.0,<1.0.0",
     # Image Processing
-    # Floor is 12.3.0, not 11.x: Pillow 11.3.0 carries 18 known CVEs
-    # (PYSEC-2026-165 and friends), all fixed in 12.1.1-12.3.0. Do not lower it.
-    "pillow>=12.3.0,<13.0.0",
+    # Floor is 13.0.0: Pillow 12.3.0 carries 39 known advisories (PYSEC-2026-4326
+    # to -4343, CVE-2026-112xxx, GHSA-78g4-xqwv-q3g8), all fixed in 13.0.0; before
+    # that, 11.3.0 carried 18 (PYSEC-2026-165 and friends). Do not lower it.
+    "pillow>=13.0.0,<14.0.0",
     "numpy>=2.0.0,<3.0.0",
     # Scientific Computing
     "pymcubes>=0.1.4,<1.0.0",
