@@ -654,7 +654,12 @@ class ObjectViewer2D(QLabel):
         - Create RGB output array once
         - Direct indexing without intermediate copies
         """
-        qt_image = qt_pixmap.toImage()
+        # Convert explicitly rather than trusting toImage()'s format. It usually
+        # returns Format_RGB32, which is *BGRA* in memory on little-endian
+        # machines -- read as RGB below, that swapped red and blue (devlog 124).
+        # RGBA8888 is R, G, B, A byte order everywhere, never premultiplied, and
+        # always 4 bytes per pixel with no row padding, which the reshape needs.
+        qt_image = qt_pixmap.toImage().convertToFormat(QImage.Format_RGBA8888)
         width = qt_image.width()
         height = qt_image.height()
 
