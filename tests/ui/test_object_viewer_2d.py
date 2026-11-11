@@ -4,6 +4,7 @@ Unit tests for ObjectViewer2D widget
 Tests 2D image viewer with ROI selection functionality.
 """
 
+import gc
 import os
 import sys
 
@@ -565,3 +566,89 @@ class TestObjectViewer2DWithoutDialog:
 
     def test_resize_without_dialog(self, viewer):
         viewer.resizeEvent(QResizeEvent(QSize(200, 200), QSize(100, 100)))
+
+
+def _pixmap_from_rgb(arr):
+    """QPixmap holding exactly the pixels of an (h, w, 3) uint8 array."""
+    h, w, _ = arr.shape
+    data = np.ascontiguousarray(arr).tobytes()
+    return QPixmap.fromImage(QImage(data, w, h, 3 * w, QImage.Format_RGB888))
+
+
+def _rgb_from_pixmap(pixmap):
+    """(h, w, 3) uint8 copy of a QPixmap's pixels, independent of Qt memory."""
+    image = pixmap.toImage().convertToFormat(QImage.Format_RGB888)
+    h, w = image.height(), image.width()
+    bits = image.constBits()
+    bits.setsize(image.byteCount())
+    rows = np.frombuffer(bits, np.uint8).reshape(h, image.bytesPerLine())
+    return rows[:, : 3 * w].reshape(h, w, 3).copy()
+
+
+@pytest.mark.skipif(not PYQT_AVAILABLE, reason="PyQt5 not available")
+@pytest.mark.qt
+class TestApplyThresholdAndColorize:
+    """The threshold overlay drawn over each slice.
+
+    The QImage is built over a temporary bytes buffer and not copied before
+    QPixmap.fromImage(). These tests pin both the colouring and that the
+    returned pixmap owns its pixels once that buffer is gone (devlog 123).
+    """
+
+    BOX = (10, 5, 39, 24)  # x1, y1, x2, y2 -- inclusive, as get_crop_area returns
+
+    @pytest.fixture
+    def parent_widget(self, qtbot):
+        # A fixture, not a local: qtbot holds widgets only weakly, so a local
+        # parent would be collected by the gc.collect() below, taking the
+        # viewer with it.
+        widget = QWidget()
+        qtbot.addWidget(widget)
+        return widget
+
+    @pytest.fixture
+    def viewer(self, qtbot, parent_widget):
+        v = ObjectViewer2D(parent_widget)
+        qtbot.addWidget(v)
+        # A plain instance attribute rather than monkeypatch: the widget is
+        # deleted before monkeypatch would restore it.
+        v.get_crop_area = lambda: list(self.BOX)
+        return v
+
+    @pytest.fixture
+    def source(self):
+        # Grey, as CT slices are. The function reads the pixmap's RGB32 bytes,
+        # which are BGRA in memory, as RGB -- harmless only while R == G == B.
+        rng = np.random.default_rng(1234)
+        grey = rng.integers(0, 256, (48, 64, 1), dtype=np.uint8)
+        return np.repeat(grey, 3, axis=2)
+
+    def _expected(self, source, isovalue, inverse):
+        x1, y1, x2, y2 = self.BOX
+        out = source.copy()
+        region = out[y1 : y2 + 1, x1 : x2 + 1]
+        red = region[:, :, 0]
+        region[(red <= isovalue) if inverse else (red > isovalue)] = (0, 255, 0)
+        return out
+
+    @pytest.mark.parametrize("inverse", [False, True])
+    def test_colours_only_pixels_past_the_threshold_inside_the_box(self, viewer, source, inverse):
+        viewer.isovalue = 128
+        viewer.is_inverse = inverse
+        result = viewer.apply_threshold_and_colorize(_pixmap_from_rgb(source), 128)
+
+        np.testing.assert_array_equal(
+            _rgb_from_pixmap(result), self._expected(source, 128, inverse)
+        )
+
+    def test_result_survives_its_source_buffers_being_freed(self, viewer, source):
+        viewer.isovalue = 100
+        result = viewer.apply_threshold_and_colorize(_pixmap_from_rgb(source), 100)
+
+        # If the pixmap still pointed at the temporary buffer, reusing the freed
+        # memory would show up as corrupted pixels here.
+        gc.collect()
+        churn = [bytes([i % 251]) * source.nbytes for i in range(500)]
+        assert len(churn) == 500
+
+        np.testing.assert_array_equal(_rgb_from_pixmap(result), self._expected(source, 100, False))

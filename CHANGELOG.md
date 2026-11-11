@@ -23,6 +23,10 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
 - Ruff `0.16.0` → `0.17.1` (dev tooling only). The tree needed no lint or
   formatting changes; the pin moves together in `pyproject.toml`,
   `requirements-dev.txt` and `.pre-commit-config.yaml`.
+- mypy `1.20.2` → `2.4.1` (dev tooling only). mypy 2 checks `bytes` strictly
+  by default; `strict_bytes` is now set explicitly, and the one call it flagged
+  (building the threshold overlay image) passes `bytes` instead of a
+  `memoryview`. The overlay itself is unchanged and now has tests.
 
 ## [0.2.3-beta.4] - 2026-07-29
 
