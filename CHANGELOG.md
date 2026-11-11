@@ -19,6 +19,11 @@ release time, and release.yml publishes it verbatim as the GitHub release body.
   The declared range was `>=12.3.0,<13.0.0`, so re-locking alone could not reach
   the fix; it is now `>=13.0.0,<14.0.0`.
 
+### Fixed
+- **The threshold overlay no longer swaps red and blue on colour images.** It
+  read the slice's pixels in the wrong byte order. Greyscale CT slices were never
+  affected (red and blue are equal there), and their overlay is unchanged.
+
 ### Changed / Internal
 - Ruff `0.16.0` → `0.17.1` (dev tooling only). The tree needed no lint or
   formatting changes; the pin moves together in `pyproject.toml`,

@@ -592,7 +592,8 @@ class TestApplyThresholdAndColorize:
 
     The QImage is built over a temporary bytes buffer and not copied before
     QPixmap.fromImage(). These tests pin both the colouring and that the
-    returned pixmap owns its pixels once that buffer is gone (devlog 123).
+    returned pixmap owns its pixels once that buffer is gone (devlog 123),
+    and that channels come back in the order they went in (devlog 124).
     """
 
     BOX = (10, 5, 39, 24)  # x1, y1, x2, y2 -- inclusive, as get_crop_area returns
@@ -617,19 +618,27 @@ class TestApplyThresholdAndColorize:
 
     @pytest.fixture
     def source(self):
-        # Grey, as CT slices are. The function reads the pixmap's RGB32 bytes,
-        # which are BGRA in memory, as RGB -- harmless only while R == G == B.
+        # Colour, with R, G and B independent. CT slices are grey, and grey
+        # input is exactly what hid the function reading BGRA bytes as RGB:
+        # with R == G == B a channel swap changes nothing (devlog 124).
         rng = np.random.default_rng(1234)
-        grey = rng.integers(0, 256, (48, 64, 1), dtype=np.uint8)
-        return np.repeat(grey, 3, axis=2)
+        return rng.integers(0, 256, (48, 64, 3), dtype=np.uint8)
 
     def _expected(self, source, isovalue, inverse):
         x1, y1, x2, y2 = self.BOX
         out = source.copy()
         region = out[y1 : y2 + 1, x1 : x2 + 1]
-        red = region[:, :, 0]
+        red = region[:, :, 0]  # the threshold is taken on the red channel
         region[(red <= isovalue) if inverse else (red > isovalue)] = (0, 255, 0)
         return out
+
+    def test_untouched_pixels_keep_their_colour(self, viewer, source):
+        # Threshold at the top of the range: nothing is painted, so the output
+        # must be the input, channel for channel.
+        viewer.isovalue = 255
+        result = viewer.apply_threshold_and_colorize(_pixmap_from_rgb(source), 255)
+
+        np.testing.assert_array_equal(_rgb_from_pixmap(result), source)
 
     @pytest.mark.parametrize("inverse", [False, True])
     def test_colours_only_pixels_past_the_threshold_inside_the_box(self, viewer, source, inverse):
